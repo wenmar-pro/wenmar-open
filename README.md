@@ -61,6 +61,11 @@ cargo run --release -p open-data -- decode --data data/build/wenmar-open-2026.09
 
 `fetch` downloads NHTSA's newest vPIC release (about 73 MB) and prints the path of the extracted file to pass to `build`. No database server is needed.
 
+## Checking against NHTSA
+
+```bash
+cargo run --release -p open-data -- parity --data data/build/wenmar-open-2026.09.sqlite3
+
 ## Data sources
 
 Vehicle data comes from the [NHTSA Product Information Catalog and Vehicle Listing (vPIC)](https://vpic.nhtsa.dot.gov/), published by the US National Highway Traffic Safety Administration.

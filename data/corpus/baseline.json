@@ -1,0 +1,258 @@
+{
+  "vins": 443,
+  "decode_errors": 0,
+  "fields": {
+    "abs": {
+      "agree": 13,
+      "differ": 0,
+      "missing": 77,
+      "extra": 0,
+      "both_empty": 353
+    },
+    "adaptive_cruise": {
+      "agree": 0,
+      "differ": 0,
+      "missing": 49,
+      "extra": 0,
+      "both_empty": 394
+    },
+    "airbags_curtain": {
+      "agree": 93,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 350
+    },
+    "airbags_front": {
+      "agree": 169,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 274
+    },
+    "airbags_knee": {
+      "agree": 37,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 406
+    },
+    "airbags_side": {
+      "agree": 120,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 323
+    },
+    "auto_brake": {
+      "agree": 0,
+      "differ": 0,
+      "missing": 53,
+      "extra": 0,
+      "both_empty": 390
+    },
+    "backup_camera": {
+      "agree": 0,
+      "differ": 0,
+      "missing": 77,
+      "extra": 0,
+      "both_empty": 366
+    },
+    "blind_spot": {
+      "agree": 0,
+      "differ": 0,
+      "missing": 62,
+      "extra": 0,
+      "both_empty": 381
+    },
+    "body": {
+      "agree": 422,
+      "differ": 2,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 19
+    },
+    "cylinders": {
+      "agree": 297,
+      "differ": 0,
+      "missing": 4,
+      "extra": 1,
+      "both_empty": 141
+    },
+    "displacement_l": {
+      "agree": 359,
+      "differ": 0,
+      "missing": 3,
+      "extra": 1,
+      "both_empty": 80
+    },
+    "doors": {
+      "agree": 270,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 173
+    },
+    "drivetrain": {
+      "agree": 229,
+      "differ": 0,
+      "missing": 9,
+      "extra": 0,
+      "both_empty": 205
+    },
+    "electrification": {
+      "agree": 26,
+      "differ": 0,
+      "missing": 2,
+      "extra": 0,
+      "both_empty": 415
+    },
+    "engine_configuration": {
+      "agree": 192,
+      "differ": 0,
+      "missing": 10,
+      "extra": 1,
+      "both_empty": 240
+    },
+    "engine_model": {
+      "agree": 178,
+      "differ": 0,
+      "missing": 0,
+      "extra": 1,
+      "both_empty": 264
+    },
+    "esc": {
+      "agree": 0,
+      "differ": 0,
+      "missing": 78,
+      "extra": 0,
+      "both_empty": 365
+    },
+    "forward_collision": {
+      "agree": 0,
+      "differ": 0,
+      "missing": 63,
+      "extra": 0,
+      "both_empty": 380
+    },
+    "fuel": {
+      "agree": 364,
+      "differ": 1,
+      "missing": 9,
+      "extra": 0,
+      "both_empty": 69
+    },
+    "lane_departure": {
+      "agree": 0,
+      "differ": 0,
+      "missing": 59,
+      "extra": 0,
+      "both_empty": 384
+    },
+    "lane_keep": {
+      "agree": 0,
+      "differ": 0,
+      "missing": 55,
+      "extra": 0,
+      "both_empty": 388
+    },
+    "make": {
+      "agree": 442,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 1
+    },
+    "manufacturer": {
+      "agree": 443,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 0
+    },
+    "model": {
+      "agree": 442,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 1
+    },
+    "plant_city": {
+      "agree": 367,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 76
+    },
+    "plant_company": {
+      "agree": 151,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 292
+    },
+    "plant_country": {
+      "agree": 376,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 67
+    },
+    "plant_state": {
+      "agree": 276,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 167
+    },
+    "series": {
+      "agree": 129,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 314
+    },
+    "tpms": {
+      "agree": 0,
+      "differ": 0,
+      "missing": 132,
+      "extra": 0,
+      "both_empty": 311
+    },
+    "transmission": {
+      "agree": 72,
+      "differ": 0,
+      "missing": 24,
+      "extra": 0,
+      "both_empty": 347
+    },
+    "transmission_speeds": {
+      "agree": 50,
+      "differ": 0,
+      "missing": 23,
+      "extra": 0,
+      "both_empty": 370
+    },
+    "trim": {
+      "agree": 205,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 238
+    },
+    "vehicle_type": {
+      "agree": 443,
+      "differ": 0,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 0
+    },
+    "year": {
+      "agree": 442,
+      "differ": 1,
+      "missing": 0,
+      "extra": 0,
+      "both_empty": 0
+    }
+  }
+}
