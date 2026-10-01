@@ -20,6 +20,7 @@ Use the bug report or feature request templates. For anything large, open an iss
 
 ## Pull requests
 
+- Open pull requests against `dev`. `main` holds what has been released.
 - Keep each pull request to one change.
 - Add or update tests for behaviour you change. Decoder changes need at least one real VIN with a known answer.
 - Run formatting, lints, and tests before you push: `mise run check`, or the three `cargo` commands listed under `[tasks.check]` in `mise.toml`.
