@@ -121,6 +121,10 @@ async fn the_stylesheet_and_script_are_the_sites_own() {
     let script = body_text(response).await;
     assert!(script.contains("data-copy"));
     assert!(!script.contains("http"), "the script talks to no one");
+    // "Copied" is said where a screen reader hears it.
+    assert!(script.contains("data-copy-text"));
+    assert!(script.contains("[role=\"status\"]"));
+    assert!(script.contains("'Copied'"));
 }
 
 #[tokio::test]
