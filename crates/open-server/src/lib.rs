@@ -6,7 +6,9 @@ pub mod db;
 pub mod error;
 pub mod headers;
 pub mod limit;
+pub mod llms;
 pub mod log;
+pub mod mcp;
 pub mod search_index;
 pub mod state;
 pub mod vin_rows;
@@ -87,6 +89,13 @@ pub fn app(state: AppState) -> Router {
         .merge(v1)
         .route("/v1/openapi.json", get(openapi))
         .route("/health", get(api::meta::health))
+        .route("/llms.txt", get(llms::llms_txt))
+        .route(
+            "/mcp",
+            axum::routing::post(mcp::post)
+                .get(mcp::not_allowed)
+                .delete(mcp::not_allowed),
+        )
         .fallback(not_found)
         .method_not_allowed_fallback(method_not_allowed)
         .layer(DefaultBodyLimit::max(BODY_LIMIT))

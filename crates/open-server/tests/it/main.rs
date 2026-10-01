@@ -7,6 +7,7 @@ mod common;
 mod db;
 mod http;
 mod limit;
+mod mcp;
 mod openapi;
 mod search;
 mod vin_rows;
