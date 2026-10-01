@@ -15,6 +15,7 @@ use wenmar_vehicles::Scope;
 use crate::api::types::{EngineOption, Entry, Make, Model, Submodel};
 use crate::api::{bad_query, blank_is_none};
 use crate::error::{ApiError, ErrorBody};
+use crate::search_index;
 use crate::state::AppState;
 
 /// Most items in a list, whatever `limit` says.
@@ -235,11 +236,62 @@ pub async fn search_op(state: &AppState, query: SearchQuery) -> Result<Vec<Entry
         .collect();
     let scope = scope(query.scope.as_deref())?;
     let limit = limit(query.limit, SEARCH_DEFAULT, SEARCH_MOST);
+
+    // First the catalog's own reading: a year, a make, a model, a submodel.
+    let typed = text.clone();
     let entries = state
         .db()
-        .run(move |worker| worker.catalog.search(&text, scope, limit))
+        .run(move |worker| worker.catalog.search(&typed, scope, limit))
         .await??;
-    Ok(entries.into_iter().map(Entry::from).collect())
+    if !entries.is_empty() {
+        return Ok(entries.into_iter().map(Entry::from).collect());
+    }
+
+    // Then the full-text index, which finds a model from its words in any
+    // order. It knows light vehicles from the rest, not single types.
+    let light_only = match scope {
+        Scope::Light => true,
+        Scope::All => false,
+        Scope::Type(_) => return Ok(Vec::new()),
+    };
+    let Some(index) = state.search() else {
+        return Ok(Vec::new());
+    };
+    let found = match index.find(&text, light_only, limit).await {
+        Ok(found) => found,
+        Err(error) => {
+            tracing::warn!(%error, "search index failed");
+            return Ok(Vec::new());
+        }
+    };
+    if found.is_empty() {
+        return Ok(Vec::new());
+    }
+    let entries = state
+        .db()
+        .run(move |worker| {
+            let (first, last) = worker.catalog.year_range();
+            let typed_year = search_index::words(&text)
+                .iter()
+                .filter(|word| word.len() == 4)
+                .filter_map(|word| word.parse::<u16>().ok())
+                .find(|year| (first..=last).contains(year));
+            let mut entries = Vec::new();
+            for model in found {
+                let year = match typed_year {
+                    Some(year) if (model.year_from..=model.year_to).contains(&year) => year,
+                    Some(_) => continue,
+                    None => model.year_to,
+                };
+                let id = format!("{year}_{}_{}", model.make, model.model);
+                if let Some(entry) = worker.catalog.entry(&id)? {
+                    entries.push(Entry::from(entry));
+                }
+            }
+            Ok::<_, wenmar_vehicles::CatalogError>(entries)
+        })
+        .await??;
+    Ok(entries)
 }
 
 pub async fn entry_op(state: &AppState, id: String) -> Result<Entry, ApiError> {

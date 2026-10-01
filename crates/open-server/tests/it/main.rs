@@ -8,4 +8,5 @@ mod db;
 mod http;
 mod limit;
 mod openapi;
+mod search;
 mod vin_rows;

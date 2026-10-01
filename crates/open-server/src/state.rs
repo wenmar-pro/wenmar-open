@@ -9,6 +9,7 @@ use crate::config::Config;
 use crate::db::{Db, DbError};
 use crate::headers;
 use crate::limit::Limiter;
+use crate::search_index::{self, SearchIndex};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -25,14 +26,42 @@ struct Inner {
     /// Model years, newest first, for light vehicles and for all vehicles.
     years_light: Vec<u16>,
     years_all: Vec<u16>,
+    search: Option<SearchIndex>,
 }
 
 fn header(text: &str) -> HeaderValue {
     HeaderValue::from_str(text).unwrap_or_else(|_| HeaderValue::from_static("unknown"))
 }
 
+/// Builds the search index from the data file. The index is a convenience:
+/// if it cannot be built the server still starts, and search uses the
+/// catalog's own matching alone.
+async fn search_index(db: &Db) -> Option<SearchIndex> {
+    let rows = match db.run(|worker| search_index::rows(&worker.source)).await {
+        Ok(Ok(rows)) => rows,
+        Ok(Err(error)) => {
+            tracing::warn!(%error, "search index not built");
+            return None;
+        }
+        Err(error) => {
+            tracing::warn!(%error, "search index not built");
+            return None;
+        }
+    };
+    match SearchIndex::build(&rows).await {
+        Ok(index) => {
+            tracing::info!("search index built over {} models", rows.len());
+            Some(index)
+        }
+        Err(error) => {
+            tracing::warn!(%error, "search index not built");
+            None
+        }
+    }
+}
+
 impl AppState {
-    /// Opens the data file named by `config`.
+    /// Opens the data file named by `config` and builds the search index.
     pub async fn open(config: Config) -> Result<AppState, DbError> {
         let db = Db::open(&config.data, config.connections).await?;
         // The list of years is asked for by every vehicle form and by the
@@ -53,6 +82,7 @@ impl AppState {
             })
             .await?
             .map_err(|error| DbError::Read(error.into()))?;
+        let search = search_index(&db).await;
         let etag_text = headers::etag(db.meta());
         Ok(AppState {
             inner: Arc::new(Inner {
@@ -62,6 +92,7 @@ impl AppState {
                 etag_text,
                 years_light,
                 years_all,
+                search,
                 db,
                 config,
             }),
@@ -76,6 +107,11 @@ impl AppState {
             Scope::All => Some(&self.inner.years_all),
             Scope::Type(_) => None,
         }
+    }
+
+    /// The full-text index, when it could be built.
+    pub fn search(&self) -> Option<&SearchIndex> {
+        self.inner.search.as_ref()
     }
 
     pub fn db(&self) -> &Db {

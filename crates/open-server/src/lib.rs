@@ -7,6 +7,7 @@ pub mod error;
 pub mod headers;
 pub mod limit;
 pub mod log;
+pub mod search_index;
 pub mod state;
 pub mod vin_rows;
 
