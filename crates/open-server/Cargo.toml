@@ -13,6 +13,7 @@ askama = "0.14"
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "matched-path", "query", "tokio"] }
 hyper = { version = "1", features = ["http1", "server"] }
 hyper-util = { version = "0.1", features = ["tokio"] }
+open-mcp = { version = "0.1.0", path = "../open-mcp" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

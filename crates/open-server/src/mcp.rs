@@ -13,6 +13,10 @@ use axum::extract::State;
 use axum::extract::rejection::JsonRejection;
 use axum::http::{HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Response};
+use open_mcp::{
+    INVALID_PARAMS, INVALID_REQUEST, METHOD_NOT_FOUND, PARSE_ERROR, rpc_error, rpc_result,
+    tool_result,
+};
 use serde::Deserialize;
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
@@ -21,67 +25,12 @@ use crate::api::{vehicles, vin};
 use crate::error::ApiError;
 use crate::state::AppState;
 
+/// The tools, as `tools/list` returns them. They are defined once, for
+/// this endpoint and for `wenmar-open mcp`.
+pub use open_mcp::tools;
+
 /// Protocol versions this server can speak, newest first.
 pub const PROTOCOL_VERSIONS: [&str; 3] = ["2025-11-25", "2025-06-18", "2025-03-26"];
-
-const PARSE_ERROR: i64 = -32700;
-const INVALID_REQUEST: i64 = -32600;
-const METHOD_NOT_FOUND: i64 = -32601;
-const INVALID_PARAMS: i64 = -32602;
-
-const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. Every call is read-only and needs no key.";
-
-/// The tools, as `tools/list` returns them.
-pub fn tools() -> Value {
-    json!([
-        {
-            "name": "wenmar_vin",
-            "title": "VIN decoder",
-            "description": "Decode vehicle identification numbers into year, make, model, trim, engine, drivetrain, safety equipment and the matching catalog entry. action=decode takes `vin` (and optionally `year` to override the model year). action=batch takes `vins`, at most 50, and returns one result per VIN in order. A wrong check digit is not an error: the result has valid=false and a warning.",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "action": { "type": "string", "enum": ["decode", "batch"] },
-                    "vin": { "type": "string", "description": "A 17-character VIN. Spaces and dashes are ignored." },
-                    "vins": { "type": "array", "items": { "type": "string" }, "maxItems": 50 },
-                    "year": { "type": "integer", "description": "Model year to use instead of the one worked out from the VIN." }
-                },
-                "required": ["action"]
-            },
-            "annotations": { "readOnlyHint": true, "openWorldHint": false }
-        },
-        {
-            "name": "wenmar_vehicles",
-            "title": "Vehicle catalog",
-            "description": "Look up vehicles by year, make, model, submodel and engine. Actions: years; makes (optional `year`); models (`make`, optional `year`); submodels (`make`, `model`, `year`); engines (`make`, `model`, `year`, optional `submodel`); search (`query`, such as \"2019 civic si\" or \"chevy 1500\"); entry (`id`, such as \"2019_honda_civic_si\"). `make` and `model` take a name, an alias or an id. `term` narrows a list to names starting with it. `scope` is light (cars, MPVs and trucks; the default), all, or a vPIC vehicle type id.",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "action": { "type": "string", "enum": ["years", "makes", "models", "submodels", "engines", "search", "entry"] },
-                    "year": { "type": "integer" },
-                    "make": { "type": "string" },
-                    "model": { "type": "string" },
-                    "submodel": { "type": "string" },
-                    "term": { "type": "string" },
-                    "query": { "type": "string" },
-                    "id": { "type": "string" },
-                    "scope": { "type": "string" },
-                    "limit": { "type": "integer" }
-                },
-                "required": ["action"]
-            },
-            "annotations": { "readOnlyHint": true, "openWorldHint": false }
-        }
-    ])
-}
-
-fn rpc_result(id: &Value, result: Value) -> Value {
-    json!({ "jsonrpc": "2.0", "id": id, "result": result })
-}
-
-fn rpc_error(id: &Value, code: i64, message: &str) -> Value {
-    json!({ "jsonrpc": "2.0", "id": id, "error": { "code": code, "message": message } })
-}
 
 fn answer(status: StatusCode, body: Value) -> Response {
     let mut response = (status, Json(body)).into_response();
@@ -91,30 +40,10 @@ fn answer(status: StatusCode, body: Value) -> Response {
     response
 }
 
-/// A tool's result: the JSON as text, and as structured content when it is
-/// an object. Lists are wrapped, because structured content must be an
-/// object.
-fn tool_result(value: Value) -> Value {
-    let text = value.to_string();
-    let structured = match value {
-        Value::Object(_) => value,
-        other => json!({ "items": other }),
-    };
-    json!({
-        "content": [{ "type": "text", "text": text }],
-        "structuredContent": structured,
-        "isError": false
-    })
-}
-
 /// A tool call that failed in a way the model can read and correct.
 fn tool_error(error: &ApiError) -> Value {
     let body = serde_json::to_value(error.body()).unwrap_or_else(|_| json!({}));
-    json!({
-        "content": [{ "type": "text", "text": body.to_string() }],
-        "structuredContent": body,
-        "isError": true
-    })
+    open_mcp::tool_error(body)
 }
 
 fn arguments<T: DeserializeOwned>(arguments: &Value) -> Result<T, ApiError> {
@@ -230,20 +159,7 @@ async fn call(state: &AppState, params: &Value) -> Result<Value, (i64, String)> 
 }
 
 fn initialize(params: &Value) -> Value {
-    let asked = params.get("protocolVersion").and_then(Value::as_str);
-    let version = asked
-        .and_then(|asked| PROTOCOL_VERSIONS.iter().find(|known| **known == asked))
-        .unwrap_or(&PROTOCOL_VERSIONS[0]);
-    json!({
-        "protocolVersion": version,
-        "capabilities": { "tools": { "listChanged": false } },
-        "serverInfo": {
-            "name": "wenmar-open",
-            "title": "Wenmar Open",
-            "version": env!("CARGO_PKG_VERSION")
-        },
-        "instructions": INSTRUCTIONS
-    })
+    open_mcp::initialize(params, &PROTOCOL_VERSIONS, env!("CARGO_PKG_VERSION"))
 }
 
 /// `POST /mcp`.

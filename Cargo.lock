@@ -2347,6 +2347,7 @@ dependencies = [
  "http-body-util",
  "hyper",
  "hyper-util",
+ "open-mcp",
  "rusqlite",
  "serde",
  "serde_json",
