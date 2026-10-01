@@ -1,28 +1,28 @@
 //! `GET /v1/vin/{vin}` and `POST /v1/vin/batch`.
 
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use axum::Json;
 use axum::extract::rejection::{JsonRejection, PathRejection, QueryRejection};
 use axum::extract::{Path, Query, State};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa::{IntoParams, ToSchema};
-use wenmar_vin::{DecodeOptions, Decoder, Vin};
+use wenmar_open_turso::DecodeFailure;
+use wenmar_vin::DecodeOptions;
 
 use crate::api::types::VinDecode;
 use crate::api::{bad_body, bad_query, blank_is_none};
 use crate::db::Worker;
 use crate::error::{ApiError, ErrorBody};
 use crate::state::AppState;
-use crate::vin_rows::{self, VinRows};
+
+pub use wenmar_open_turso::current_year;
 
 /// Most VINs in one batch.
 pub const MOST_VINS: usize = 50;
 
 /// Longest text read as a VIN. A VIN has 17 characters; spaces and dashes
 /// are allowed, so there is some room. Anything longer is refused unread.
-pub const LONGEST_INPUT: usize = 64;
+pub const LONGEST_INPUT: usize = wenmar_open_turso::LONGEST_INPUT;
 
 /// The first model year a 17-character VIN can have.
 const FIRST_YEAR: u16 = 1980;
@@ -52,16 +52,6 @@ pub enum BatchItem {
     Error(ErrorBody),
 }
 
-/// The calendar year, worked out the way `wenmar-vin` does. It is only an
-/// upper bound on model years, so a day's error at New Year does not matter.
-pub fn current_year() -> u16 {
-    const SECONDS_PER_YEAR: u64 = 31_556_952;
-    let seconds = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_or(0, |elapsed| elapsed.as_secs());
-    u16::try_from(1970 + seconds / SECONDS_PER_YEAR).unwrap_or(u16::MAX)
-}
-
 fn too_long() -> ApiError {
     ApiError::InvalidVin {
         message: "a VIN has 17 characters, this is far longer".to_owned(),
@@ -70,29 +60,25 @@ fn too_long() -> ApiError {
 }
 
 /// Decodes one VIN on a blocking thread: fetch its rows, decode, then ask
-/// the catalog which entry it is.
+/// the catalog which entry it is. The steps are `Worker::decode`'s; this
+/// turns each way it can fail into the API's error.
 fn decode_one(
     worker: &Worker,
     input: &str,
     model_year: Option<u16>,
     current_year: u16,
 ) -> Result<VinDecode, ApiError> {
-    if input.len() > LONGEST_INPUT {
-        return Err(too_long());
-    }
-    let rows = match Vin::parse(input) {
-        Ok(vin) => vin_rows::fetch(&worker.source, &vin, model_year, current_year)
-            .map_err(ApiError::internal)?,
-        // The decoder says what is wrong with it and suggests corrections.
-        Err(_) => VinRows::default(),
-    };
     let options = DecodeOptions {
         model_year,
         current_year: Some(current_year),
     };
-    let decoded = Decoder::new(&rows).decode(input, options)?;
-    let selection = worker.catalog.selection(&decoded)?;
-    Ok(VinDecode::new(decoded, selection))
+    match worker.decode(input, options) {
+        Ok(decode) => Ok(VinDecode::new(decode.decoded, decode.catalog)),
+        Err(DecodeFailure::TooLong) => Err(too_long()),
+        Err(DecodeFailure::Decode(error)) => Err(ApiError::from(error)),
+        Err(DecodeFailure::Catalog(error)) => Err(ApiError::from(error)),
+        Err(other) => Err(ApiError::internal(other)),
+    }
 }
 
 /// Decodes each input in order. The outer error is for the request as a

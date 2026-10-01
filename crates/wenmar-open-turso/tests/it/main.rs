@@ -3,3 +3,4 @@
 
 mod common;
 mod data_file;
+mod decode;
