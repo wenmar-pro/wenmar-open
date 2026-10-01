@@ -94,7 +94,35 @@ curl -s https://open.wenmarpro.com/sitemap.xml | head -5
 
 The home page answers `200`; the result page carries `x-robots-tag: noindex` and `cache-control: private, max-age=3600`; `robots.txt` names `https://open.wenmarpro.com/sitemap.xml`; and the sitemap's addresses start with `https://open.wenmarpro.com/`. If they start with anything else, `OPEN_BASE_URL` is wrong in `config/deploy.yml`.
 
-Once the site is live, give `https://open.wenmarpro.com/sitemap.xml` to the search engines you care about through their webmaster tools. Nothing in this repository does that.
+What crawlers, agents and a shared link are given:
+
+```bash
+curl -s https://open.wenmarpro.com/robots.txt | grep -c '^User-agent: '
+curl -sI https://open.wenmarpro.com/assets/fonts/dm-sans-latin-wght.woff2 | grep -i -E '^(content-type|cache-control)'
+curl -sI https://open.wenmarpro.com/assets/og.png | grep -i '^content-type'
+curl -sI https://open.wenmarpro.com/.well-known/api-catalog | grep -i -E '^(link|content-type)'
+curl -s https://open.wenmarpro.com/ | grep -c 'application/ld+json'
+curl -s https://open.wenmarpro.com/vin/1HGCM82633A004352 | grep -c -E 'application/ld\+json|og:url|rel="canonical"'
+```
+
+They print `22`; `font/woff2` and `public, max-age=31536000, immutable`; `image/png`; the catalog's `link` and `application/linkset+json`; `1`; and `0`. The last one is the point: a result page carries no structured data, no canonical address and no address for a shared link.
+
+How heavy the home page is, with everything it loads:
+
+```bash
+total=0
+for file in / /assets/site.css /assets/site.js /assets/fonts/dm-sans-latin-wght.woff2 \
+    /assets/fonts/jetbrains-mono-latin-400.woff2 /assets/favicon.svg; do
+  size=$(curl -s -o /dev/null -w '%{size_download}' "https://open.wenmarpro.com$file")
+  echo "$size $file"
+  total=$((total + size))
+done
+echo "$total in all"
+```
+
+The total is under 150,000 bytes, and the first line, the page itself, under 40,000. A proxy or a CDN that compresses makes both smaller; the service itself does not compress.
+
+Once the site is live, [ai-discovery.md](ai-discovery.md) lists what to do by hand so that search engines and AI assistants can find it: the sitemap, the MCP Registry, the connector directories. Nothing in this repository does any of it.
 
 `/v1/meta` must show the data version you deployed, an `x-data-version` header, and no `set-cookie` header. The service's log lines show `GET /v1/vin/1HGCM82633A` and never the last six characters of a VIN. That holds at any address: every part of a path that the caller chose is cut to 11 characters, so `GET /v1/vehicles/1HGCM82633A004352` is logged as `GET /v1/vehicles/1HGCM82633A`.
 
@@ -135,15 +163,27 @@ Expected: 600 answers of `200` and one of `429`, and a log line `over the abuse 
 
 ## Look at the pages
 
-Tests check what the pages contain. Only a person can check how they look and feel. Before the first deploy, and after any change to the stylesheet or the templates, run `mise run serve` and go through this list in a browser.
+Tests check what the pages contain. Only looking checks how they look. Before the first deploy, and after any change to the stylesheet or the templates, run `mise run serve` and go through this list in a browser.
 
-- **Phone width.** At 320 pixels wide, nothing scrolls sideways on `/`, `/vin/1HGCM82633A004352`, `/makes` and `/makes/honda/civic/2019`.
-- **Without JavaScript.** With scripts turned off, type a VIN and press Enter; pick a year and a make and press the button. Both must work. The copy and print buttons are not shown.
-- **With JavaScript.** On a result page, Copy puts the heading on the clipboard and Print opens the print dialogue.
+- **Phone width.** At 320 pixels wide, nothing scrolls sideways on `/`, `/vin/1HGCM82633A004352`, `/makes`, `/makes/honda`, `/makes/honda/civic/2019`, `/guides/model-year` and `/docs`. A code block on `/docs` scrolls inside its own box. The header is two rows: the wordmark and "by Wenmar Pro", then the navigation.
+- **The wordmark.** "Wenmar" in the text colour and "Open" in red, as one word, in bold DM Sans. "by Wenmar Pro" is small and grey beside it.
+- **One red action.** Apart from the wordmark, the only red thing on the home page is the Decode button. A result page, a list of makes and a guide have none. The outline around whatever has keyboard focus is red too; that is the focus ring, and it moves.
+- **Type.** Text is in DM Sans, and VINs, codes and code blocks are in JetBrains Mono. In the browser's network panel the only font requests are two files under `/assets/fonts/`, and no request goes to another host. With those two files blocked, every page is still readable in the system's own faces, and the text does not jump when they are unblocked.
+- **Without JavaScript.** With scripts turned off, type a VIN and press Enter; pick a year and a make and press the button. Both work. The copy and print buttons are not shown.
+- **With JavaScript.** On a result page, Copy puts the whole sheet on the clipboard as text, with the vehicle and the VIN on its first two lines, and "Copied" appears beside the buttons. Print opens the print dialogue.
 - **Keyboard only.** Tab from the top of the home page: the first stop is "Skip to content", every link and field shows a clear outline when it has focus, and Enter submits each form.
-- **Dark scheme.** Switch the system to dark. Text is readable on every page and the Decode button is the only red thing.
-- **Print.** Print preview of a result page shows the heading, the VIN and the tables, and no navigation, buttons or footer links.
-- **A screen reader,** if one is at hand: the page title is read first, tables are announced with their captions, and the VIN field is announced as "VIN".
+- **Dark scheme.** Switch the system to dark. Text is readable on every page, fields have a visible edge, a warning on a result page is amber on dark amber, and the reds are the same two as in light.
+- **Print.** Print preview of a result page, from the light scheme and again from the dark one, shows black text on white: the wordmark in black, the heading, the VIN, the tables and the data version. No navigation, buttons, links list or Wenmar Pro line.
+- **A warning.** `/vin/1HGCM82633A004353` (a wrong check digit) shows the decode with one amber line above the tables, which says what position 9 should be and links to the guide.
+- **A long name.** The make and the trim with the longest names wrap inside the page at 320 pixels. Find them with:
+
+  ```bash
+  sqlite3 -readonly data/build/wenmar-open-*.sqlite3 \
+    "SELECT slug, length(name) FROM catalog_make WHERE light = 1 ORDER BY length(name) DESC LIMIT 3"
+  ```
+
+- **A shared link.** `/assets/og.png` is the wordmark on off-white with one line under it.
+- **A screen reader,** if one is at hand: the page title is read first, the wordmark is read as "Wenmar Open, home", tables are announced with their captions, the VIN field is announced as "VIN", and "Copied" is spoken after Copy is pressed.
 
 ## A new data version
 

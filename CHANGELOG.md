@@ -48,3 +48,14 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Each release has the `wenmar-open` command-line tool built for macOS (arm64, x86_64) and Linux (x86_64, arm64).
 - `docs/integrating.md`: how an application replaces calls to NHTSA's hosted API and a make and model sync job.
 - Data releases are no longer marked as the repository's latest release, so `releases/latest` is always a release of the code.
+- The website in Wenmar Pro's look: the wordmark, DM Sans and JetBrains Mono served from the site itself, field edges and warnings with enough contrast in both colour schemes, and print that is black on white from either.
+- The result page as a spec sheet in short groups, with Copy for the whole sheet.
+- Five guides under `/guides`: how to read a VIN, where to find it, the manufacturer code, the model year chart and the check digit, each with a Markdown version.
+- Titles and descriptions for what people search, breadcrumbs, Open Graph tags and JSON-LD structured data on the reference pages. Result pages for single VINs carry none of it.
+- `robots.txt` states a policy for AI crawlers. `/llms.txt` follows the llms.txt convention, and `/llms-full.txt` is the documentation as one file. `/.well-known/api-catalog` points to the OpenAPI description. `server.json` describes the MCP endpoint to the MCP Registry.
+- `open-server`: the MCP endpoint answers protocol revision 2026-07-28, which has no handshake, as well as the earlier revisions.
+
+### Fixed
+
+- `open-server`: a result page is no longer answered `304` as a public page, a failed result page is not kept by the browser, and refusals made before a page's handler runs (too many requests, a busy server, an address that is too long) are pages instead of JSON on page addresses.
+- `open-server`: a year in a page's address is exactly four digits; a redirect from a make's alias keeps the year; a list that is cut says so; Markdown versions mark trims and engines from this project's own list, as the pages do.

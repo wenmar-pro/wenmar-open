@@ -49,8 +49,14 @@ Fields and endpoints are only ever added.
 
 ### For AI agents
 
-- `/mcp` is a Model Context Protocol endpoint (Streamable HTTP, no key) with two tools: `wenmar_vin` and `wenmar_vehicles`.
-- `/llms.txt` describes the service for language models.
+- `GET /v1/vin/{vin}` needs no key and no header: an assistant that can fetch an address can decode a VIN.
+- `/mcp` is a Model Context Protocol endpoint (Streamable HTTP, no key) with two tools, `wenmar_vin` and `wenmar_vehicles`. It answers protocol revision 2026-07-28 and the revisions that open with `initialize`.
+- `/llms.txt` describes the service for language models, and `/llms-full.txt` is the documentation as one Markdown file.
+- `/.well-known/api-catalog` points to the OpenAPI description (RFC 9727).
+- `robots.txt` welcomes AI crawlers on everything except single VINs.
+- `server.json` describes the MCP endpoint to the MCP Registry.
+
+What to do by hand so that search engines and assistants find a deployed copy: [docs/ai-discovery.md](docs/ai-discovery.md).
 
 ## Using it from an application
 
@@ -68,7 +74,7 @@ mise run serve    # http://localhost:3000
 curl http://localhost:3000/v1/vin/1HGCM82633A004352
 ```
 
-Open `http://localhost:3000` for the website: a VIN box, a year and make picker, and reference pages for every make, model year and manufacturer code. The pages are rendered on the server and work with JavaScript turned off. Every reference page has a Markdown version at the same address with `.md` added, such as `/makes/honda/civic/2019.md`.
+Open `http://localhost:3000` for the website: a VIN box, a year and make picker, reference pages for every make, model year and manufacturer code, and five short guides to reading a VIN. The pages are rendered on the server and work with JavaScript turned off. They load nothing from any other host: the two typefaces, DM Sans and JetBrains Mono, are served from the site itself. Every reference page has a Markdown version at the same address with `.md` added, such as `/makes/honda/civic/2019.md`.
 
 Without mise: `OPEN_DATA=data/build/wenmar-open-2026.09.sqlite3 cargo run -p open-server`. The server opens the data file read-only and stores nothing. Settings and the deploy procedure are in [docs/deploy.md](docs/deploy.md).
 
