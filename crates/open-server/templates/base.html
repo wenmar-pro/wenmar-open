@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ page.title }}</title>
+<meta name="description" content="{{ page.description }}">
+{% if let Some(canonical) = page.canonical -%}
+<link rel="canonical" href="{{ canonical }}">
+{% endif -%}
+{% if let Some(markdown) = page.markdown -%}
+<link rel="alternate" type="text/markdown" href="{{ markdown }}">
+{% endif -%}
+{% if !page.index -%}
+<meta name="robots" content="noindex">
+{% endif -%}
+<link rel="stylesheet" href="/assets/site.css?v={{ page.asset_version }}">
+<link rel="icon" href="data:,">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+<a class="name" href="/">Wenmar Open</a>
+<a class="by" href="{{ page.pro_header }}">by Wenmar Pro</a>
+<nav aria-label="Site">
+<a href="/makes">Makes</a>
+<a href="/docs">API</a>
+<a href="/data">Data</a>
+<a href="/about">About</a>
+</nav>
+</header>
+<main id="main">
+{% block content %}{% endblock %}
+</main>
+<footer>
+<p>Data version {{ page.data_version }}, from NHTSA vPIC. <a href="/data">About the data</a>. For AI agents: <a href="/llms.txt">llms.txt</a>.</p>
+</footer>
+<script src="/assets/site.js?v={{ page.asset_version }}" defer></script>
+</body>
+</html>

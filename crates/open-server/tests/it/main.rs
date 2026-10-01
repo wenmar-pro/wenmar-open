@@ -14,4 +14,5 @@ mod openapi;
 mod search;
 mod search_speed;
 mod serve;
+mod site;
 mod vin_rows;

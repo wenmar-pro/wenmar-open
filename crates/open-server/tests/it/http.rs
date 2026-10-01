@@ -183,18 +183,6 @@ async fn head_is_answered_like_get_without_a_body() {
 }
 
 #[tokio::test]
-async fn outside_v1_an_unknown_address_is_a_json_404_too() {
-    let app = common::app().await;
-    for path in ["/", "/nothing", "/makes", "/.env"] {
-        let response = app.get(path).await;
-        assert_eq!(response.status(), StatusCode::NOT_FOUND, "{path}");
-        // Only data responses carry the data version.
-        assert!(response.headers().get("x-data-version").is_none());
-        assert_eq!(body_json(response).await["error"]["code"], "not_found");
-    }
-}
-
-#[tokio::test]
 async fn an_address_that_is_too_long_is_414_in_the_error_shape() {
     let app = common::app().await;
     let fits = "A".repeat(open_server::MOST_URI - "/v1/meta?x=".len());

@@ -455,3 +455,116 @@ impl Hold {
             .store(true, std::sync::atomic::Ordering::SeqCst);
     }
 }
+
+// ----- helpers for the pages -----
+
+/// `GET`s a page and reads its body as text.
+pub async fn page(app: &TestApp, path: &str) -> (StatusCode, String) {
+    let response = app.get(path).await;
+    let status = response.status();
+    (status, body_text(response).await)
+}
+
+/// `GET`s an address that redirects, and says where to.
+pub async fn redirect(app: &TestApp, path: &str) -> (StatusCode, String) {
+    let response = app.get(path).await;
+    let to = response
+        .headers()
+        .get("location")
+        .map(|value| value.to_str().unwrap().to_owned())
+        .unwrap_or_default();
+    (response.status(), to)
+}
+
+/// Nothing that came from the data file or from the address may arrive as
+/// markup. The fixture holds a make, a model, a trim and a VIN pattern
+/// whose names are HTML.
+pub fn assert_no_injection(html: &str) {
+    for needle in [
+        "<script>alert",
+        "<img src=x",
+        "onerror=alert(1)>",
+        "<b>Bold",
+    ] {
+        assert!(!html.contains(needle), "found {needle:?} in:\n{html}");
+    }
+}
+
+/// What every page must have for a screen reader and a keyboard.
+pub fn assert_basics(html: &str, path: &str) {
+    assert!(
+        html.starts_with("<!doctype html>\n<html lang=\"en\">"),
+        "{path}"
+    );
+    assert!(
+        html.contains(r#"<meta name="viewport" content="width=device-width, initial-scale=1">"#),
+        "{path}"
+    );
+    assert!(
+        html.contains(r##"<a class="skip" href="#main">Skip to content</a>"##),
+        "{path}"
+    );
+    assert!(html.contains(r#"<main id="main">"#), "{path}");
+    assert!(html.contains(r#"<nav aria-label="Site">"#), "{path}");
+    assert_eq!(html.matches("<h1").count(), 1, "{path}: one main heading");
+    assert!(
+        html.contains("<title>") && !html.contains("<title></title>"),
+        "{path}"
+    );
+    // Every field has a label that names it.
+    for field in html
+        .split("<input ")
+        .skip(1)
+        .chain(html.split("<select ").skip(1))
+    {
+        let id = field
+            .split("id=\"")
+            .nth(1)
+            .unwrap()
+            .split('"')
+            .next()
+            .unwrap();
+        assert!(
+            html.contains(&format!("<label for=\"{id}\">")),
+            "{path}: no label for {id}"
+        );
+    }
+    // A table says what its rows are.
+    assert_eq!(
+        html.matches("<table>").count(),
+        html.matches("<caption>").count(),
+        "{path}: every table has a caption"
+    );
+}
+
+/// `GET`s the Markdown version of a page, checks it is marked as a copy of
+/// the HTML page and that the HTML page points to it, and returns its text.
+pub async fn markdown(app: &TestApp, path: &str) -> String {
+    let response = app.get(path).await;
+    assert_eq!(response.status(), StatusCode::OK, "{path}");
+    assert_eq!(
+        header(&response, "content-type"),
+        "text/markdown; charset=utf-8",
+        "{path}"
+    );
+    // The HTML page is the one to index.
+    assert_eq!(header(&response, "x-robots-tag"), "noindex", "{path}");
+    let html_path = path.split(".md").next().unwrap().to_owned();
+    assert_eq!(
+        header(&response, "link"),
+        format!("<https://open.example{html_path}>; rel=\"canonical\""),
+        "{path}"
+    );
+    let text = body_text(response).await;
+    assert!(!text.contains("<h1>"), "{path}");
+
+    let (status, html) = page(app, &html_path).await;
+    assert_eq!(status, StatusCode::OK, "{html_path}");
+    assert!(
+        html.contains(&format!(
+            r#"<link rel="alternate" type="text/markdown" href="{html_path}.md">"#
+        )),
+        "{html_path}"
+    );
+    text
+}

@@ -9,6 +9,7 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+askama = "0.14"
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "matched-path", "query", "tokio"] }
 hyper = { version = "1", features = ["http1", "server"] }
 hyper-util = { version = "0.1", features = ["tokio"] }

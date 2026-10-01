@@ -11,6 +11,7 @@ pub mod log;
 pub mod mcp;
 pub mod search_index;
 pub mod serve;
+pub mod site;
 pub mod state;
 pub mod vin_rows;
 
@@ -43,10 +44,6 @@ pub const MOST_IN_FLIGHT: usize = 512;
 
 /// Longest a request may take before it is answered with 503.
 pub const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
-
-async fn not_found() -> ApiError {
-    ApiError::NotFound("There is nothing at this address.".to_owned())
-}
 
 async fn method_not_allowed() -> ApiError {
     ApiError::MethodNotAllowed
@@ -121,7 +118,8 @@ pub fn app(state: AppState) -> Router {
     // Layers run from the bottom of this list to the top: a request is
     // logged, then guarded against panics, refused if its address is too
     // long, counted against the ceiling, given a place among the requests
-    // in flight, a time limit and CORS headers, and only then handled.
+    // in flight, a time limit, CORS headers and a page's or the API's own
+    // headers, and only then handled.
     Router::new()
         .merge(v1)
         .route("/v1/openapi.json", get(openapi))
@@ -133,12 +131,17 @@ pub fn app(state: AppState) -> Router {
                 .get(mcp::not_allowed)
                 .delete(mcp::not_allowed),
         )
-        .fallback(not_found)
+        .merge(site::router())
+        .fallback(site::fallback)
         .method_not_allowed_fallback(method_not_allowed)
         .layer(DefaultBodyLimit::max(BODY_LIMIT))
         .layer(middleware::from_fn_with_state(
             state.clone(),
             headers::data_headers,
+        ))
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            site::page_headers,
         ))
         .layer(cors())
         .layer(middleware::from_fn(timeout))

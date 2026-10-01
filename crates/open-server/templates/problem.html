@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ heading }}</h1>
+<p>{{ message }}</p>
+{% if !suggestions.is_empty() -%}
+<p>Did you mean:</p>
+<ul>
+{% for suggestion in suggestions -%}
+<li><a class="mono" href="/vin/{{ suggestion }}">{{ suggestion }}</a></li>
+{% endfor -%}
+</ul>
+{% endif -%}
+{% if retry -%}
+<form class="vin" action="/vin" method="get">
+<label for="vin">VIN</label>
+<input id="vin" name="vin" type="text" required maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false">
+<button class="primary" type="submit">Decode</button>
+</form>
+{% endif -%}
+<p><a href="/">Back to the start</a></p>
+{% endblock %}
