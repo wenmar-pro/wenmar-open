@@ -31,7 +31,7 @@
 <caption>Engines</caption>
 <tbody>
 {% for engine in view.engines -%}
-<tr><th scope="row">{{ engine.label }}</th><td>{% if let Some(vin8) = engine.vin8 %}Eighth VIN character <span class="mono">{{ vin8 }}</span>{% endif %}</td></tr>
+<tr><th scope="row">{{ engine.label }}</th><td>{% if !engine.vin8.is_empty() %}Eighth VIN character {% for character in engine.vin8 %}{% if !loop.first %}{% if loop.last %} or {% else %}, {% endif %}{% endif %}<span class="mono">{{ character }}</span>{% endfor %}{% endif %}</td></tr>
 {% else -%}
 <tr><td>None on file.</td></tr>
 {% endfor -%}

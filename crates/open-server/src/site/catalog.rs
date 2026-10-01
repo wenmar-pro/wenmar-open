@@ -9,9 +9,9 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::Deserialize;
 use wenmar_vehicles::text::is_slug;
-use wenmar_vehicles::{CatalogError, Scope};
+use wenmar_vehicles::{CatalogError, Scope, Source, Value};
 
-use crate::api::types::{EngineOption, Entry, Make, Model};
+use crate::api::types::{Entry, Make, Model};
 use crate::db::Worker;
 use crate::error::ApiError;
 use crate::site::markdown::{self, Format, escape};
@@ -21,6 +21,24 @@ use crate::state::AppState;
 /// Most makes or models listed on one page, and most trims on a model year.
 const MOST_LISTED: usize = 500;
 const MOST_TRIMS: usize = 60;
+
+/// The model years a make has a model in, newest first. `?1` make id, `?2`
+/// whether only light-vehicle model years count.
+const MAKE_YEARS_SQL: &str = "
+SELECT DISTINCT v.year
+FROM catalog_model md
+JOIN catalog_vehicle v ON v.model_id = md.id
+WHERE md.make_id = ?1 AND (?2 = 0 OR v.light = 1)
+ORDER BY v.year DESC";
+
+/// Whether a model year is a light vehicle: a car, an MPV or a truck. `?1`
+/// and `?2` are the id forms of the make and the model, `?3` the year.
+const LIGHT_SQL: &str = "
+SELECT v.light
+FROM catalog_make mk
+JOIN catalog_model md ON md.make_id = mk.id
+JOIN catalog_vehicle v ON v.model_id = md.id
+WHERE mk.slug = ?1 AND md.slug = ?2 AND v.year = ?3";
 
 #[derive(Debug, Default, Deserialize)]
 pub struct YearQuery {
@@ -130,6 +148,9 @@ pub struct MakeView {
     /// Every year the make has a model in, newest first.
     pub years: Vec<u16>,
     pub models: Vec<Model>,
+    /// Whether the make builds cars, MPVs or trucks. Only those are offered
+    /// to search engines.
+    pub light: bool,
 }
 
 /// What a make's address led to.
@@ -154,17 +175,25 @@ fn load_make(
     };
     // A trailer maker has no cars to list, so list what it has.
     let scope = if make.light { Scope::Light } else { Scope::All };
-    let all = worker
-        .catalog
-        .models(&make.slug, None, scope, "", MOST_LISTED)?;
-    let first = all.iter().map(|model| model.year_from).min();
-    let last = all.iter().map(|model| model.year_to).max();
-    let (Some(first), Some(last)) = (first, last) else {
+    // The years come from the model years themselves, in the scope the
+    // models are listed in. A model's own range will not do: it runs over
+    // years the model was not built in, and over years in which it was not
+    // a light vehicle.
+    let years: Vec<u16> = worker
+        .source
+        .query(
+            MAKE_YEARS_SQL,
+            &[make.id.into(), i64::from(make.light).into()],
+        )
+        .map_err(CatalogError::Source)?
+        .iter()
+        .filter_map(|row| row.first().and_then(Value::integer))
+        .filter_map(|year| u16::try_from(year).ok())
+        .collect();
+    let Some(newest) = years.first().copied() else {
         return Ok(Found::Nothing);
     };
-    let year = year
-        .filter(|year| (first..=last).contains(year))
-        .unwrap_or(last);
+    let year = year.filter(|year| years.contains(year)).unwrap_or(newest);
     let models = worker
         .catalog
         .models(&make.slug, Some(year), scope, "", MOST_LISTED)?;
@@ -172,8 +201,9 @@ fn load_make(
         slug: make.slug.clone(),
         name: make.name.clone(),
         year,
-        years: (first..=last).rev().collect(),
+        years,
         models: models.into_iter().map(Model::from).collect(),
+        light: make.light,
     }))
 }
 
@@ -248,11 +278,14 @@ pub async fn make(
             view.name, view.year
         ),
     );
-    // The page without a year is the one to index.
+    // The page without a year is the one to index, and only for a make of
+    // cars, MPVs or trucks: a trailer maker's page is there for whoever
+    // asks for it, and is in no sitemap.
     let page = match asked {
-        None => page
+        None if view.light => page
             .indexed(&state, &path)
             .with_markdown(&format!("{path}.md")),
+        None => page.with_markdown(&format!("{path}.md")),
         Some(_) => page,
     };
     site::html(StatusCode::OK, &MakePage { page, view })
@@ -268,12 +301,40 @@ pub struct TrimLine {
     pub details: String,
 }
 
+/// An engine, with how a VIN tells it from the others.
+pub struct EngineLine {
+    pub label: String,
+    /// The characters in position 8 of a VIN that mean this engine. Any one
+    /// of them does: they are alternatives, not a sequence. Empty where the
+    /// data does not settle it.
+    pub vin8: Vec<char>,
+}
+
+/// Alternatives in words: `5`, `4 or G`, `3, 4 or 9`.
+fn any_of(characters: &[char]) -> String {
+    let mut text = String::new();
+    for (index, character) in characters.iter().enumerate() {
+        if index > 0 {
+            text.push_str(if index + 1 == characters.len() {
+                " or "
+            } else {
+                ", "
+            });
+        }
+        text.push(*character);
+    }
+    text
+}
+
 pub struct ModelYearView {
     pub entry: Entry,
     pub make_slug: String,
     pub model_slug: String,
     pub trims: Vec<TrimLine>,
-    pub engines: Vec<EngineOption>,
+    pub engines: Vec<EngineLine>,
+    /// Whether this model year is a car, an MPV or a truck. Only those are
+    /// offered to search engines.
+    pub light: bool,
 }
 
 fn load_model_year(
@@ -313,13 +374,38 @@ fn load_model_year(
             details,
         });
     }
-    let engines = worker.catalog.engines(make, model, year, None, "")?;
+    let engines = worker
+        .catalog
+        .engines(make, model, year, None, "")?
+        .into_iter()
+        .map(|engine| EngineLine {
+            label: engine.label,
+            vin8: engine
+                .vin8
+                .unwrap_or_default()
+                .chars()
+                .filter(|character| !character.is_whitespace())
+                .collect(),
+        })
+        .collect();
+    // The same question the sitemap for a model year asks, so a page is
+    // marked for indexing exactly when a sitemap lists it.
+    let light = worker
+        .source
+        .query(
+            LIGHT_SQL,
+            &[make.into(), model.into(), i64::from(year).into()],
+        )
+        .map_err(CatalogError::Source)?
+        .iter()
+        .any(|row| row.first().and_then(Value::integer) == Some(1));
     Ok(Some(ModelYearView {
         entry: Entry::from(entry),
         make_slug: make.to_owned(),
         model_slug: model.to_owned(),
         trims,
-        engines: engines.into_iter().map(EngineOption::from).collect(),
+        engines,
+        light,
     }))
 }
 
@@ -374,8 +460,11 @@ fn model_year_markdown(view: &ModelYearView) -> String {
     }
     for engine in &view.engines {
         text.push_str(&format!("- {}", escape(&engine.label)));
-        if let Some(vin8) = &engine.vin8 {
-            text.push_str(&format!(" (eighth VIN character {})", escape(vin8)));
+        if !engine.vin8.is_empty() {
+            text.push_str(&format!(
+                " (eighth VIN character {})",
+                escape(&any_of(&engine.vin8))
+            ));
         }
         text.push('\n');
     }
@@ -420,7 +509,27 @@ pub async fn model_year(
         format!("{name} trims and engines - Wenmar Open"),
         format!("Trims, engines and equipment of the {name}, from NHTSA's data."),
     )
-    .indexed(&state, &path)
     .with_markdown(&format!("{path}.md"));
+    // A trailer, a motorcycle or a bus has a page for whoever asks for it,
+    // and is in no sitemap.
+    let page = if view.light {
+        page.indexed(&state, &path)
+    } else {
+        page
+    };
     site::html(StatusCode::OK, &ModelYearPage { page, view, name })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn alternatives_are_listed_in_words() {
+        assert_eq!(any_of(&[]), "");
+        assert_eq!(any_of(&['5']), "5");
+        assert_eq!(any_of(&['4', 'G']), "4 or G");
+        assert_eq!(any_of(&['3', '4', '9']), "3, 4 or 9");
+        assert_eq!(any_of(&['A', 'B', 'C', 'D']), "A, B, C or D");
+    }
 }

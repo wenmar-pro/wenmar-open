@@ -338,8 +338,7 @@ pub fn config(fixture: &Fixture) -> Config {
     }
 }
 
-pub async fn app_with(change: impl FnOnce(&mut Config)) -> TestApp {
-    let fixture = data_file();
+async fn app_over(fixture: Fixture, change: impl FnOnce(&mut Config)) -> TestApp {
     let mut config = config(&fixture);
     change(&mut config);
     let state = AppState::open(config).await.unwrap();
@@ -348,6 +347,20 @@ pub async fn app_with(change: impl FnOnce(&mut Config)) -> TestApp {
         state,
         _fixture: fixture,
     }
+}
+
+pub async fn app_with(change: impl FnOnce(&mut Config)) -> TestApp {
+    app_over(data_file(), change).await
+}
+
+/// The application over the small data file with `rows` added to it, for a
+/// test that needs something the small data file does not hold.
+pub async fn app_with_rows(rows: &str) -> TestApp {
+    let fixture = data_file();
+    let connection = Connection::open(fixture.path()).unwrap();
+    connection.execute_batch(rows).unwrap();
+    connection.close().unwrap();
+    app_over(fixture, |_| {}).await
 }
 
 pub async fn app() -> TestApp {

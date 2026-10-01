@@ -205,3 +205,170 @@ async fn every_catalog_page_has_a_markdown_version() {
         "{text}"
     );
 }
+
+/// A make of light trucks that went on to build only buses, under one model
+/// name. Its light model years are 2008 and 2010: nothing in 2009, and the
+/// years after 2010 are not light. Type bits: truck 8, bus 32.
+const MIXED_MAKE: &str = "
+INSERT INTO catalog_make VALUES
+  (8000, 'mixed-works', 'Mixed Works', 'mixedworks', NULL, 40, 1);
+INSERT INTO catalog_model VALUES
+  (9800, 8000, 'hauler', 'Hauler', 'hauler', 2008, 2015, 40, 1);
+INSERT INTO catalog_vehicle VALUES
+  (20, 2008, 8000, 9800, 8, 1, NULL),
+  (21, 2010, 8000, 9800, 8, 1, 7),
+  (22, 2013, 8000, 9800, 32, 0, NULL),
+  (23, 2015, 8000, 9800, 32, 0, NULL);
+INSERT INTO catalog_detail VALUES (7, NULL, NULL, NULL);
+INSERT INTO catalog_engine VALUES (10, 7, '6.0L V8', '349', 'vpic');
+";
+
+#[tokio::test]
+async fn a_make_page_shows_the_newest_year_it_has_models_in_and_links_only_such_years() {
+    let app = common::app_with_rows(MIXED_MAKE).await;
+    // The page without a year is the one in the sitemap. It must not be
+    // empty because the model's range runs on into years that are not light.
+    let (status, html) = page(&app, "/makes/mixed-works").await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("<h1>Mixed Works models, 2010</h1>"), "{html}");
+    assert!(html.contains(r#"<a href="/makes/mixed-works/hauler/2010">Hauler</a>"#));
+    assert!(!html.contains("are on file for"), "{html}");
+    assert!(!html.contains(r#"name="robots""#), "the page is indexed");
+    // Only years with a model are linked: not the gap, not the bus years.
+    assert!(
+        html.contains(r#"<a href="/makes/mixed-works?year=2010" aria-current="page">2010</a>"#)
+    );
+    assert!(html.contains(r#"<a href="/makes/mixed-works?year=2008">2008</a>"#));
+    assert_eq!(
+        html.matches("/makes/mixed-works?year=").count(),
+        2,
+        "{html}"
+    );
+
+    // A year between or after them falls back to the newest, as any year
+    // the make has nothing in does.
+    for year in [2009, 2013, 2015, 2027] {
+        let (_, html) = page(&app, &format!("/makes/mixed-works?year={year}")).await;
+        assert!(html.contains("<h1>Mixed Works models, 2010</h1>"), "{year}");
+        assert!(html.contains("/makes/mixed-works/hauler/2010"), "{year}");
+    }
+    let (_, html) = page(&app, "/makes/mixed-works?year=2008").await;
+    assert!(html.contains("<h1>Mixed Works models, 2008</h1>"));
+    assert!(html.contains(r#"<a href="/makes/mixed-works/hauler/2008">Hauler</a>"#));
+
+    let text = markdown(&app, "/makes/mixed-works.md").await;
+    assert!(text.starts_with("# Mixed Works models, 2010\n"), "{text}");
+    assert!(text.contains("- [Hauler](/makes/mixed-works/hauler/2010.md)\n"));
+    assert!(
+        text.ends_with(
+            "[2010](/makes/mixed-works.md?year=2010) [2008](/makes/mixed-works.md?year=2008)\n"
+        ),
+        "{text}"
+    );
+
+    // Every make in the sitemap has something to show.
+    let (_, xml) = page(&app, "/sitemaps/makes.xml").await;
+    assert!(xml.contains("/makes/mixed-works</loc>"));
+    for entry in xml.split("<loc>https://open.example").skip(1) {
+        let path = entry.split("</loc>").next().unwrap();
+        let (_, html) = page(&app, path).await;
+        assert!(!html.contains("are on file for"), "{path}");
+    }
+}
+
+#[tokio::test]
+async fn the_eighth_character_is_shown_as_the_alternatives_it_is() {
+    let app = common::app_with_rows(MIXED_MAKE).await;
+    // One character.
+    let (_, html) = page(&app, "/makes/ford/f-150/2019").await;
+    assert!(
+        html.contains(
+            r#"<tr><th scope="row">5.0L V8</th><td>Eighth VIN character <span class="mono">5</span></td></tr>"#
+        ),
+        "{html}"
+    );
+    // Two: either one means this engine.
+    assert!(
+        html.contains(
+            r#"<tr><th scope="row">3.5L Turbo V6</th><td>Eighth VIN character <span class="mono">4</span> or <span class="mono">G</span></td></tr>"#
+        ),
+        "{html}"
+    );
+    // Three or more.
+    let (_, html) = page(&app, "/makes/mixed-works/hauler/2010").await;
+    assert!(
+        html.contains(
+            r#"<tr><th scope="row">6.0L V8</th><td>Eighth VIN character <span class="mono">3</span>, <span class="mono">4</span> or <span class="mono">9</span></td></tr>"#
+        ),
+        "{html}"
+    );
+    // An engine the eighth character does not settle says nothing of it.
+    let (_, html) = page(&app, "/makes/honda/civic/2019").await;
+    assert!(html.contains(r#"<tr><th scope="row">1.5L Turbo</th><td></td></tr>"#));
+
+    let text = markdown(&app, "/makes/ford/f-150/2019.md").await;
+    assert!(
+        text.contains("- 5.0L V8 (eighth VIN character 5)\n"),
+        "{text}"
+    );
+    assert!(
+        text.contains("- 3.5L Turbo V6 (eighth VIN character 4 or G)\n"),
+        "{text}"
+    );
+    let text = markdown(&app, "/makes/mixed-works/hauler/2010.md").await;
+    assert!(
+        text.contains("- 6.0L V8 (eighth VIN character 3, 4 or 9)\n"),
+        "{text}"
+    );
+}
+
+#[tokio::test]
+async fn pages_for_trailers_and_buses_exist_but_are_not_offered_to_search_engines() {
+    let app = common::app_with_rows(MIXED_MAKE).await;
+    for path in [
+        // A trailer maker and its one model year.
+        "/makes/ranger-trailers",
+        "/makes/ranger-trailers/tilt-deck/2019",
+        // The bus years of a make that also built light trucks.
+        "/makes/mixed-works/hauler/2013",
+        "/makes/mixed-works/hauler/2015",
+    ] {
+        let (status, html) = page(&app, path).await;
+        assert_eq!(status, StatusCode::OK, "{path}");
+        assert_basics(&html, path);
+        assert!(
+            html.contains(r#"<meta name="robots" content="noindex">"#),
+            "{path} may be indexed"
+        );
+        assert!(!html.contains(r#"rel="canonical""#), "{path}");
+        // An agent can still ask for it as Markdown.
+        assert!(
+            html.contains(&format!(
+                r#"<link rel="alternate" type="text/markdown" href="{path}.md">"#
+            )),
+            "{path}"
+        );
+    }
+    // Light vehicles are indexed as before, the light years of a mixed make
+    // among them.
+    for path in [
+        "/makes/honda",
+        "/makes/honda/civic/2019",
+        "/makes/mixed-works",
+        "/makes/mixed-works/hauler/2010",
+    ] {
+        let (_, html) = page(&app, path).await;
+        assert!(!html.contains(r#"name="robots""#), "{path}");
+        assert!(
+            html.contains(&format!(
+                r#"<link rel="canonical" href="https://open.example{path}">"#
+            )),
+            "{path}"
+        );
+    }
+    // The manufacturer code that leads to the trailer maker is still listed:
+    // it is the page for the code, not for a trailer.
+    let (_, html) = page(&app, "/wmi/1A9881").await;
+    assert!(html.contains(r#"<a href="/makes/ranger-trailers">Ranger Trailers</a>"#));
+    assert!(!html.contains(r#"name="robots""#));
+}
