@@ -64,6 +64,11 @@ pub enum Command {
         #[command(subcommand)]
         command: DataCommand,
     },
+    /// Run an MCP server on standard input and output, for AI agents.
+    ///
+    /// It offers two tools, wenmar_vin and wenmar_vehicles, the same as the
+    /// hosted server at /mcp.
+    Mcp,
 }
 
 #[derive(Debug, Subcommand)]

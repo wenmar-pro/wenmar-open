@@ -84,3 +84,29 @@ fn an_exit_code_says_what_went_wrong() {
         .unwrap();
     assert_eq!(output.status.code(), Some(10));
 }
+
+#[test]
+fn an_mcp_client_that_goes_away_ends_the_server_quietly() {
+    use std::io::Write;
+
+    let fixture = common::data_dir();
+    let (reader, writer) = std::io::pipe().unwrap();
+    drop(reader);
+    let mut child = binary()
+        .env("WENMAR_OPEN_DATA_DIR", fixture.directory())
+        .arg("mcp")
+        .stdin(Stdio::piped())
+        .stdout(writer)
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(b"{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"ping\"}\n")
+        .unwrap();
+    let output = child.wait_with_output().unwrap();
+    assert_eq!(output.status.code(), Some(0));
+    assert_eq!(String::from_utf8_lossy(&output.stderr), "");
+}

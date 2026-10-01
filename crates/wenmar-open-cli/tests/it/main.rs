@@ -4,6 +4,7 @@
 mod commands;
 mod common;
 mod data;
+mod mcp;
 mod output;
 mod process;
 mod remote;

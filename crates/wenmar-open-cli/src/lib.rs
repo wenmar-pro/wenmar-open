@@ -11,6 +11,7 @@ pub mod env;
 pub mod error;
 pub mod jq;
 pub mod local;
+pub mod mcp;
 pub mod output;
 pub mod pull;
 pub mod remote;
@@ -33,7 +34,7 @@ use crate::output::Mode;
 pub fn run(
     args: Vec<OsString>,
     env: &Env,
-    _stdin: &mut dyn BufRead,
+    stdin: &mut dyn BufRead,
     stdout: &mut dyn Write,
     stderr: &mut dyn Write,
 ) -> u8 {
@@ -45,7 +46,7 @@ pub fn run(
                 cli.global.jq.as_deref(),
                 env.stdout_terminal,
             );
-            execute(cli, env, &mode, stdout, stderr)
+            execute(cli, env, &mode, stdin, stdout, stderr)
         }
         Err(problem) => match problem.kind() {
             ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => stdout
@@ -111,10 +112,17 @@ fn execute(
     cli: Cli,
     env: &Env,
     mode: &Mode,
+    stdin: &mut dyn BufRead,
     stdout: &mut dyn Write,
     stderr: &mut dyn Write,
 ) -> Result<(), CliError> {
     let request = match cli.command {
+        Some(Command::Mcp) => {
+            // Standard output carries protocol messages only, so nothing
+            // is said about the choice of source.
+            let backend = Backend::open(env, &cli.global, &mut Vec::new())?;
+            return mcp::serve(&backend, stdin, stdout);
+        }
         Some(Command::Vin { command }) => command.request(),
         Some(Command::Vehicles { command }) => command.request(),
         Some(Command::Data { command }) => {

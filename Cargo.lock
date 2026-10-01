@@ -2332,6 +2332,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "open-mcp"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "open-server"
 version = "0.1.0"
 dependencies = [
@@ -4245,6 +4252,7 @@ dependencies = [
  "jaq-core",
  "jaq-json",
  "jaq-std",
+ "open-mcp",
  "ratatui",
  "rusqlite",
  "serde",
