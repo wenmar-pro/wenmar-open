@@ -14,28 +14,61 @@
 {% if !page.index -%}
 <meta name="robots" content="noindex">
 {% endif -%}
+<meta property="og:site_name" content="Wenmar Open">
+<meta property="og:type" content="{{ page.og_type }}">
+<meta property="og:title" content="{{ page.title }}">
+<meta property="og:description" content="{{ page.description }}">
+{% if let Some(canonical) = page.canonical -%}
+<meta property="og:url" content="{{ canonical }}">
+{% endif -%}
+<meta property="og:image" content="{{ page.base }}/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Wenmar Open: free VIN decoder and vehicle data">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f8f7f4">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e0e10">
+<link rel="preload" href="/assets/fonts/dm-sans-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
+{% if page.mono_first -%}
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin>
+{% endif -%}
 <link rel="stylesheet" href="/assets/site.css?v={{ page.asset_version }}">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/assets/favicon-96.png" type="image/png" sizes="96x96">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+{% if page.index -%}
+{% if let Some(json_ld) = page.json_ld -%}
+<script type="application/ld+json">{{ json_ld|safe }}</script>
+{% endif -%}
+{% endif -%}
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="top">
-<a class="name" href="/">Wenmar Open</a>
+<a class="name" href="/" aria-label="Wenmar Open, home">Wenmar<span>Open</span></a>
 <a class="by" href="{{ page.pro_header }}">by Wenmar Pro</a>
 <nav aria-label="Site">
-<a href="/makes">Makes</a>
-<a href="/docs">API</a>
-<a href="/data">Data</a>
-<a href="/about">About</a>
+<a href="/makes"{% if page.section == "makes" %} aria-current="page"{% endif %}>Makes</a>
+<a href="/docs"{% if page.section == "docs" %} aria-current="page"{% endif %}>API</a>
+<a href="/data"{% if page.section == "data" %} aria-current="page"{% endif %}>Data</a>
+<a href="/about"{% if page.section == "about" %} aria-current="page"{% endif %}>About</a>
 </nav>
 </header>
 <main id="main">
+{% if !page.crumbs.is_empty() -%}
+<nav aria-label="Breadcrumb">
+<ol class="crumbs">
+{% for crumb in page.crumbs -%}
+<li><a href="{{ crumb.1 }}">{{ crumb.0 }}</a></li>
+{% endfor -%}
+</ol>
+</nav>
+{% endif -%}
 {% block content %}{% endblock %}
 </main>
 <footer>
-<p>Data version {{ page.data_version }}, from NHTSA vPIC. <a href="/data">About the data</a>. For AI agents: <a href="/llms.txt">llms.txt</a>.</p>
+<p>Data version {{ page.data_version }}, from NHTSA vPIC.</p>
+<p class="screen"><a href="/data">About the data</a>. For AI agents: <a href="/llms.txt">llms.txt</a>.</p>
 </footer>
 <script src="/assets/site.js?v={{ page.asset_version }}" defer></script>
 </body>

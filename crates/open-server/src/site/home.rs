@@ -41,7 +41,8 @@ pub async fn home(State(state): State<AppState>) -> Response {
                 "Wenmar Open - free VIN decoder for auto repair shops",
                 "Decode a VIN or pick a year, make and model. Free vehicle data for auto repair shops, with no account and no key.",
             )
-            .indexed(&state, "/"),
+            .indexed(&state, "/")
+            .with_mono(),
             years,
             makes: makes.into_iter().map(Make::from).collect(),
         },

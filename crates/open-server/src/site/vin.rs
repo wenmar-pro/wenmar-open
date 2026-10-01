@@ -215,7 +215,7 @@ fn problem(
     private(site::html(
         status,
         &Problem {
-            page: Page::new(state, format!("{heading} - Wenmar Open"), heading),
+            page: Page::new(state, format!("{heading} - Wenmar Open"), heading).with_mono(),
             heading: heading.to_owned(),
             message,
             suggestions,
@@ -326,7 +326,8 @@ pub async fn result(
                 &state,
                 format!("{headline} - Wenmar Open"),
                 "A decoded VIN: year, make, model, trim, engine and safety equipment.",
-            ),
+            )
+            .with_mono(),
             vin: decode.vin.clone(),
             headline,
             warnings,

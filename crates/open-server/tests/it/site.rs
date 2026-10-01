@@ -65,9 +65,13 @@ async fn pages_load_nothing_from_anywhere_else() {
     assert!(html.contains(r#"<script src="/assets/site.js?v="#));
     assert!(!html.contains("style="));
     assert!(!html.contains(" onclick=") && !html.contains(" onload="));
-    // The only address on another site is Wenmar Pro's, with its marker.
+    // The only address on another site is Wenmar Pro's, with its marker. The
+    // page's own address may be written in full in the head.
     let mut outside = 0;
     for link in html.split("https://").skip(1) {
+        if link.starts_with("open.example/") {
+            continue;
+        }
         outside += 1;
         assert!(
             link.starts_with(
@@ -99,8 +103,14 @@ async fn the_stylesheet_and_script_are_the_sites_own() {
     assert!(css.contains(":focus-visible"), "keyboard focus is visible");
     assert!(css.contains("min-height:var(--touch)"), "targets are 44px");
     assert!(
-        !css.contains("@import") && !css.contains("url("),
-        "nothing is fetched"
+        !css.contains("@import"),
+        "nothing is fetched from elsewhere"
+    );
+    assert!(
+        css.split("url(")
+            .skip(1)
+            .all(|address| address.starts_with("/assets/fonts/")),
+        "the only files the stylesheet loads are the site's own fonts"
     );
 
     let response = app.get("/assets/site.js").await;

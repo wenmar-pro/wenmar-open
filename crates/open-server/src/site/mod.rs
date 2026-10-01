@@ -70,6 +70,22 @@ pub struct Page {
     /// Names the build in the address of the stylesheet and the script.
     pub asset_version: &'static str,
     pub pro_header: String,
+    /// The site's public address, for the full addresses the head needs.
+    pub base: String,
+    /// The entry of the header's navigation the page belongs under:
+    /// `makes`, `guides`, `docs`, `data`, `about`, or nothing.
+    pub section: &'static str,
+    /// The pages above this one, as name and address, outermost first.
+    /// They are shown above the heading.
+    pub crumbs: Vec<(String, String)>,
+    /// Whether the fixed-width face is on the first screen, and so worth
+    /// asking for early.
+    pub mono_first: bool,
+    /// `website`, or `article` for a page of prose.
+    pub og_type: &'static str,
+    /// Structured data, already made safe for a script element. Only an
+    /// indexed page shows it.
+    pub json_ld: Option<String>,
 }
 
 impl Page {
@@ -84,6 +100,12 @@ impl Page {
             data_version: state.db().meta().data_version.clone(),
             asset_version: crate::BUILD_ID,
             pro_header: pro_link("header"),
+            base: state.config().base_url.clone(),
+            section: "",
+            crumbs: Vec::new(),
+            mono_first: false,
+            og_type: "website",
+            json_ld: None,
         }
     }
 
@@ -97,6 +119,30 @@ impl Page {
     /// Says the page has a Markdown version at `path`.
     pub fn with_markdown(mut self, path: &str) -> Page {
         self.markdown = Some(path.to_owned());
+        self
+    }
+
+    /// Says which entry of the header's navigation the page is under.
+    pub fn in_section(mut self, section: &'static str) -> Page {
+        self.section = section;
+        self
+    }
+
+    /// Says which pages are above this one, outermost first.
+    pub fn under(mut self, crumbs: Vec<(String, String)>) -> Page {
+        self.crumbs = crumbs;
+        self
+    }
+
+    /// Says a VIN or a code is on the page's first screen.
+    pub fn with_mono(mut self) -> Page {
+        self.mono_first = true;
+        self
+    }
+
+    /// Says the page is a piece of prose.
+    pub fn as_article(mut self) -> Page {
+        self.og_type = "article";
         self
     }
 }

@@ -581,3 +581,73 @@ pub async fn markdown(app: &TestApp, path: &str) -> String {
     );
     text
 }
+
+/// What the head of every page has for someone who shares the page, and
+/// the wordmark every page starts with.
+pub fn assert_head(html: &str, path: &str) {
+    assert!(
+        html.contains(
+            r#"<a class="name" href="/" aria-label="Wenmar Open, home">Wenmar<span>Open</span></a>"#
+        ),
+        "{path}: the wordmark"
+    );
+    let title = html
+        .split("<title>")
+        .nth(1)
+        .and_then(|rest| rest.split("</title>").next())
+        .unwrap_or_else(|| panic!("{path}: no title"));
+    assert!(!title.is_empty(), "{path}");
+    // The title a search engine and a chat application are given is one.
+    assert!(
+        html.contains(&format!(r#"<meta property="og:title" content="{title}">"#)),
+        "{path}: og:title"
+    );
+    for tag in [
+        r#"<meta property="og:site_name" content="Wenmar Open">"#,
+        r#"<meta property="og:type" content=""#,
+        r#"<meta property="og:description" content=""#,
+        r#"<meta property="og:image" content="https://open.example/assets/og.png">"#,
+        r#"<meta property="og:image:width" content="1200">"#,
+        r#"<meta property="og:image:height" content="630">"#,
+        r#"<meta property="og:image:alt" content="Wenmar Open: free VIN decoder and vehicle data">"#,
+        r#"<meta name="twitter:card" content="summary_large_image">"#,
+        r#"<link rel="preload" href="/assets/fonts/dm-sans-latin-wght.woff2" as="font" type="font/woff2" crossorigin>"#,
+    ] {
+        assert!(html.contains(tag), "{path}: {tag}");
+    }
+    // A page says where it lives to a chat application exactly when it says
+    // so to a search engine.
+    let canonical = html
+        .split(r#"<link rel="canonical" href=""#)
+        .nth(1)
+        .and_then(|rest| rest.split('"').next());
+    match canonical {
+        Some(address) => assert!(
+            html.contains(&format!(r#"<meta property="og:url" content="{address}">"#)),
+            "{path}: og:url"
+        ),
+        None => assert!(
+            !html.contains("og:url"),
+            "{path}: og:url without a canonical"
+        ),
+    }
+    assert!(
+        html.matches(r#"class="primary""#).count() <= 1,
+        "{path}: more than one red action"
+    );
+}
+
+/// Anything that can be tapped is at least 44 pixels tall. A link inside a
+/// sentence is exempt. A link that stands alone is not, so it sits in
+/// something the stylesheet gives the height to: a paragraph with class
+/// `more`, or a list with class `plain`.
+pub fn assert_targets(html: &str, path: &str) {
+    assert!(
+        !html.contains("<p><a "),
+        "{path}: a paragraph that is one link needs class \"more\""
+    );
+    assert!(
+        !html.contains("<ul>"),
+        "{path}: a list of links needs class \"plain\""
+    );
+}

@@ -4,18 +4,14 @@
 <p>{{ message }}</p>
 {% if !suggestions.is_empty() -%}
 <p>Did you mean:</p>
-<ul>
+<ul class="plain links">
 {% for suggestion in suggestions -%}
 <li><a class="mono" href="/vin/{{ suggestion }}">{{ suggestion }}</a></li>
 {% endfor -%}
 </ul>
 {% endif -%}
 {% if retry -%}
-<form class="vin" action="/vin" method="get">
-<label for="vin">VIN</label>
-<input id="vin" name="vin" type="text" required maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false">
-<button class="primary" type="submit">Decode</button>
-</form>
+{% include "vin_form.html" %}
 {% endif -%}
-<p><a href="/">Back to the start</a></p>
+<p class="more"><a href="/">Back to the start</a></p>
 {% endblock %}

@@ -173,6 +173,18 @@ mod tests {
         assert!(contrast("#ffffff", BRAND_HOVER) >= 4.5);
     }
 
+    #[test]
+    fn the_layout_names_the_page_colours_of_both_schemes() {
+        let layout = include_str!("../../templates/base.html");
+        for palette in [&LIGHT, &DARK] {
+            assert!(
+                layout.contains(&format!("content=\"{}\"", palette.page)),
+                "{}",
+                palette.page
+            );
+        }
+    }
+
     /// Relative luminance and contrast, as WCAG 2 defines them.
     fn luminance(hex: &str) -> f64 {
         let channel = |index: usize| {
