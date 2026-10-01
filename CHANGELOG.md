@@ -21,3 +21,8 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - `data/catalog/makes.yaml`, `data/catalog/names.yaml` and `data/presets.yaml`: popular makes and their aliases, spelling fixes, and hand-written trims.
 - A monthly workflow that builds the data file and publishes it as a `data-YYYY.MM` release.
 - Data file schema version 3. Files built before this must be rebuilt.
+- `open-server`: the JSON API under `/v1`. VIN decoding (single and batches of 50) with the catalog entry each VIN reaches, the vehicle catalog step by step, free-text search, vehicles by id, and the data version. It reads the data file read-only and stores nothing.
+- An OpenAPI description generated from the server's code at `/v1/openapi.json`, with a committed copy at `crates/open-server/openapi.json`.
+- A keyless MCP endpoint at `/mcp` with two tools, `wenmar_vin` and `wenmar_vehicles`, and `/llms.txt`.
+- A limit of 600 requests a minute for one address, answered with `429` and `Retry-After`.
+- `mise run serve`, a `Dockerfile`, Kamal configuration and a deploy runbook in `docs/deploy.md`. Nothing is deployed yet.

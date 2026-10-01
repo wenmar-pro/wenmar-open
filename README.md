@@ -4,7 +4,7 @@ Free vehicle data for auto repair shops, starting with VIN decoding. No API key,
 
 Wenmar Open is built and hosted by [Wenmar Pro](https://wenmarpro.com), shop management software for independent auto repair shops.
 
-> **Status: pre-release.** This repository is being set up. Nothing is published or hosted yet, and everything below describes what is being built, not what you can use today. Watch the repo or check [CHANGELOG.md](CHANGELOG.md) for the first release.
+> **Status: pre-release.** The decoder, the data build and the API server exist and run locally. Nothing is published or hosted yet. Watch the repo or check [CHANGELOG.md](CHANGELOG.md) for the first release.
 
 ## What it will be
 
@@ -23,33 +23,55 @@ Most decoders are built for car listings. This one is built for the service coun
 - It tells you when a VIN is mistyped, not just that it is invalid.
 - It is Canadian-first where the data allows, and treats US and Canadian vehicles as equals.
 
-## Planned API
+## API
 
-The shape below is the current design and may change before the first release.
+Every route is under `/v1`. Responses are plain JSON with no wrapper object, any website may call them from a browser, and every response carries the data version in an `X-Data-Version` header.
 
 ```
-GET  /v1/vin/{vin}            Decode one VIN
-POST /v1/vin/batch            Decode a list of VINs
-GET  /v1/vehicles/years       Years
-GET  /v1/vehicles/makes       Makes, optionally for a year
-GET  /v1/vehicles/models      Models for a make
-GET  /v1/vehicles/trims       Trims for a model
-GET  /v1/vehicles/engines     Engines for a model
-GET  /v1/openapi.json         OpenAPI description of the API
+GET  /v1/vin/{vin}               Decode one VIN (?year= to override the model year)
+POST /v1/vin/batch               Decode up to 50 VINs: { "vins": [...] }
+GET  /v1/vehicles/years          Model years, newest first
+GET  /v1/vehicles/makes          Makes, optionally for a year
+GET  /v1/vehicles/models         Models of a make
+GET  /v1/vehicles/submodels      Trims of a model year (also served as /v1/vehicles/trims)
+GET  /v1/vehicles/engines        Engines of a model year
+GET  /v1/vehicles/search         Free text: ?q=2019+civic+si
+GET  /v1/vehicles/{id}           One vehicle by its id, such as 2019_honda_civic_si
+GET  /v1/meta                    Data version, vPIC release, build time
+GET  /v1/openapi.json            OpenAPI description, generated from the code
 ```
 
-Responses are plain JSON with no wrapper object. Each response reports the version of the data it was decoded from.
+An error is `{ "error": { "code", "message", "details" } }` with a fitting HTTP status. A VIN with a wrong check digit is not an error: the decode has `valid: false` and a warning.
+
+One address may make 600 requests a minute. Over that the answer is `429` with a `Retry-After` header. The limit exists so that one client cannot slow the service for everyone.
+
+Fields and endpoints are only ever added.
+
+### For AI agents
+
+- `/mcp` is a Model Context Protocol endpoint (Streamable HTTP, no key) with two tools: `wenmar_vin` and `wenmar_vehicles`.
+- `/llms.txt` describes the service for language models.
+
+## Running the server
+
+```bash
+mise run data     # once: download vPIC and build the data file
+mise run serve    # http://localhost:3000
+curl http://localhost:3000/v1/vin/1HGCM82633A004352
+```
+
+Without mise: `OPEN_DATA=data/build/wenmar-open-2026.09.sqlite3 cargo run -p open-server`. The server opens the data file read-only and stores nothing. Settings and the deploy procedure are in [docs/deploy.md](docs/deploy.md).
 
 ## Repository layout
 
-`crates/wenmar-vin`, `crates/wenmar-vehicles` and `crates/open-data` exist so far. The rest is planned.
+`crates/wenmar-vin`, `crates/wenmar-vehicles`, `crates/open-data` and `crates/open-server` exist so far. The rest is planned.
 
 | Path | What it is |
 |---|---|
 | `crates/wenmar-vin` | Decoder library: VIN parsing, check digit, model year, pattern matching |
 | `crates/wenmar-vehicles` | Catalog library: years, makes, models, submodels, engines, search, stable vehicle ids |
 | `crates/open-data` | Builds the SQLite data file from NHTSA's vPIC release |
-| `crates/open-server` | The website and JSON API |
+| `crates/open-server` | The JSON API and the MCP endpoint, served from one read-only data file |
 | `clients/js` | npm client for the hosted API |
 
 ## Building the data file

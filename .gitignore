@@ -28,7 +28,7 @@ dist/
 .env.*
 !.env.example
 .port
-.kamal/secrets*
+.kamal/secrets.*
 
 # Editors and OS
 .DS_Store

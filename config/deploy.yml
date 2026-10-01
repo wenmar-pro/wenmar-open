@@ -1,0 +1,51 @@
+# Kamal configuration for open.wenmarpro.com. See docs/deploy.md.
+# This service has no secrets, no volumes and no accessories.
+service: wenmar-open
+
+image: wenmar-open
+
+# The same server as app.wenmarpro.com; the Kamal proxy routes by host name.
+# The limits keep public traffic from starving the product.
+servers:
+  web:
+    hosts:
+      - app.wenmarpro.com
+    options:
+      cpus: "0.5"
+      memory: "256m"
+
+proxy:
+  ssl: true
+  host: open.wenmarpro.com
+  app_port: 3000
+  healthcheck:
+    path: /health
+    interval: 5
+    timeout: 3
+
+registry:
+  server: localhost:5555
+
+env:
+  clear:
+    PORT: "3000"
+    OPEN_DATA: /app/data/wenmar-open.sqlite3
+    OPEN_BASE_URL: https://open.wenmarpro.com
+    # One proxy, the Kamal proxy, is in front. Its X-Forwarded-For entry is
+    # the client's address.
+    OPEN_TRUSTED_PROXIES: "1"
+    RUST_LOG: info,turso_core=error,tantivy=warn
+
+aliases:
+  logs: app logs -f
+
+builder:
+  arch: amd64
+  local: true
+  # Build from the working directory: the data file is not in git.
+  # .dockerignore keeps everything else out.
+  context: "."
+  args:
+    # The data release baked into the image. data/build must hold
+    # wenmar-open-<DATA_VERSION>.sqlite3.
+    DATA_VERSION: "2026.09"
