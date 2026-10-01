@@ -11,6 +11,23 @@ pub struct Manufacturer {
     pub make: Option<String>,
     pub country: Option<String>,
     pub vehicle_type: Option<String>,
+    /// Passenger car, multipurpose vehicle, or light truck. Only these follow
+    /// the rule that position 7 selects the model-year cycle.
+    pub light_vehicle: bool,
+}
+
+impl Manufacturer {
+    /// A manufacturer with only the required fields, treated as a light vehicle.
+    pub fn new(wmi: &str, name: &str) -> Self {
+        Self {
+            wmi: wmi.to_owned(),
+            name: name.to_owned(),
+            make: None,
+            country: None,
+            vehicle_type: None,
+            light_vehicle: true,
+        }
+    }
 }
 
 /// A vehicle attribute a pattern can describe.
@@ -30,6 +47,8 @@ pub enum Element {
     EngineConfiguration,
     EngineCylinders,
     DisplacementL,
+    DisplacementCc,
+    DisplacementCi,
     FuelTypePrimary,
     Turbo,
     ElectrificationLevel,
@@ -51,6 +70,51 @@ pub enum Element {
     AirbagsSide,
     AirbagsCurtain,
     AirbagsKnee,
+}
+
+impl Element {
+    /// The element for a vPIC `element.id`, if this crate uses it.
+    pub fn from_vpic_id(id: i64) -> Option<Element> {
+        Some(match id {
+            26 => Element::Make,
+            28 => Element::Model,
+            34 => Element::Series,
+            38 => Element::Trim,
+            5 => Element::BodyClass,
+            14 => Element::Doors,
+            15 => Element::DriveType,
+            37 => Element::TransmissionStyle,
+            63 => Element::TransmissionSpeeds,
+            18 => Element::EngineModel,
+            64 => Element::EngineConfiguration,
+            9 => Element::EngineCylinders,
+            13 => Element::DisplacementL,
+            11 => Element::DisplacementCc,
+            12 => Element::DisplacementCi,
+            24 => Element::FuelTypePrimary,
+            135 => Element::Turbo,
+            126 => Element::ElectrificationLevel,
+            31 => Element::PlantCity,
+            77 => Element::PlantState,
+            75 => Element::PlantCountry,
+            76 => Element::PlantCompany,
+            86 => Element::Abs,
+            99 => Element::Esc,
+            168 => Element::TpmsType,
+            81 => Element::AdaptiveCruise,
+            103 => Element::LaneKeep,
+            102 => Element::LaneDeparture,
+            88 => Element::BlindSpot,
+            101 => Element::ForwardCollision,
+            87 => Element::AutoBrake,
+            104 => Element::BackupCamera,
+            65 => Element::AirbagsFront,
+            107 => Element::AirbagsSide,
+            55 => Element::AirbagsCurtain,
+            69 => Element::AirbagsKnee,
+            _ => return None,
+        })
+    }
 }
 
 /// A schema that applies to a manufacturer code and model year.

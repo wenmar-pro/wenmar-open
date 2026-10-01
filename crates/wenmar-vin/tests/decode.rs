@@ -15,6 +15,7 @@ fn data() -> MemoryData {
             make: Some("Hyundai".to_owned()),
             country: Some("South Korea".to_owned()),
             vehicle_type: Some("Multipurpose Passenger Vehicle (MPV)".to_owned()),
+            light_vehicle: true,
         })
         .with_schema("KM8", 1, 2022, None)
         .with_schema("KM8", 2, 2022, None)
@@ -165,6 +166,7 @@ fn the_other_thirty_year_cycle_is_used_when_only_it_has_data() {
             make: None,
             country: None,
             vehicle_type: None,
+            light_vehicle: true,
         })
         .with_schema("KM8", 3, 1990, Some(1995))
         .with_pattern(3, "K2***", Element::Model, "Old Model");
@@ -240,6 +242,7 @@ fn the_six_character_manufacturer_code_is_tried_first() {
             make: None,
             country: None,
             vehicle_type: None,
+            light_vehicle: true,
         })
         .with_manufacturer(Manufacturer {
             wmi: "1Z9456".to_owned(),
@@ -247,6 +250,7 @@ fn the_six_character_manufacturer_code_is_tried_first() {
             make: Some("Small".to_owned()),
             country: None,
             vehicle_type: None,
+            light_vehicle: true,
         });
     let decoded = Decoder::new(low_volume)
         .decode("1Z9AB1C23DE456789", options())
@@ -286,13 +290,7 @@ fn the_default_options_use_the_clock() {
 }
 
 fn maker() -> Manufacturer {
-    Manufacturer {
-        wmi: "KM8".to_owned(),
-        name: "Maker".to_owned(),
-        make: None,
-        country: None,
-        vehicle_type: None,
-    }
+    Manufacturer::new("KM8", "Maker")
 }
 
 /// One manufacturer with a single schema current from 2022.
@@ -319,6 +317,7 @@ fn placeholder_manufacturer_fields_are_left_out() {
         make: Some(String::new()),
         country: Some("  ".to_owned()),
         vehicle_type: Some("Not Applicable".to_owned()),
+        light_vehicle: true,
     });
     let decoded = decode(data);
     assert_eq!(decoded.make, None);
@@ -530,4 +529,54 @@ fn a_schema_linked_twice_ranks_by_its_latest_start_year() {
         .with_pattern(1, "K2***", Element::Trim, "Linked Twice")
         .with_pattern(2, "K2***", Element::Trim, "Linked Once");
     assert_eq!(decode(data).trim.as_deref(), Some("Linked Twice"));
+}
+
+#[test]
+fn litres_are_worked_out_from_cubic_centimetres() {
+    let decoded = decode(one_schema().with_pattern(1, "K2***", Element::DisplacementCc, "1998"));
+    let engine = decoded.engine.unwrap();
+    assert_eq!(engine.displacement_l, Some(1.998));
+    assert_eq!(engine.label.as_deref(), Some("2.0L"));
+}
+
+#[test]
+fn litres_are_worked_out_from_cubic_inches() {
+    let decoded = decode(one_schema().with_pattern(1, "K2***", Element::DisplacementCi, "350"));
+    let litres = decoded.engine.unwrap().displacement_l.unwrap();
+    assert!((litres - 5.7354724).abs() < 1e-6, "got {litres}");
+}
+
+#[test]
+fn stated_litres_beat_a_conversion() {
+    let decoded = decode(
+        one_schema()
+            .with_pattern(1, "K2***", Element::DisplacementL, "2.0")
+            .with_pattern(1, "K2***", Element::DisplacementCc, "1998"),
+    );
+    assert_eq!(decoded.engine.unwrap().displacement_l, Some(2.0));
+}
+
+#[test]
+fn heavy_vehicles_try_the_later_cycle_first() {
+    let truck = Manufacturer {
+        light_vehicle: false,
+        ..Manufacturer::new("1M8", "Truck Maker")
+    };
+    let data = MemoryData::new()
+        .with_manufacturer(truck)
+        .with_schema("1M8", 1, 1985, None)
+        .with_pattern(1, "GDM9A", Element::Model, "Coach");
+    let decoded = Decoder::new(data)
+        .decode("1M8GDM9AXKP042788", options())
+        .unwrap();
+    assert_eq!(decoded.year, Some(2019));
+}
+
+#[test]
+fn vpic_element_ids_map_to_elements() {
+    assert_eq!(Element::from_vpic_id(28), Some(Element::Model));
+    assert_eq!(Element::from_vpic_id(168), Some(Element::TpmsType));
+    assert_eq!(Element::from_vpic_id(11), Some(Element::DisplacementCc));
+    assert_eq!(Element::from_vpic_id(96), None);
+    assert_eq!(Element::from_vpic_id(-1), None);
 }

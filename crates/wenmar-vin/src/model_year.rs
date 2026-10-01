@@ -8,18 +8,23 @@ const CYCLE: u16 = 30;
 
 /// Model years this VIN could have, most likely first.
 ///
-/// Empty when position 10 does not encode a year. `current_year` bounds the
-/// answer: nothing later than next year is returned.
-pub fn candidates(vin: &Vin, current_year: u16) -> Vec<u16> {
+/// Empty when position 10 does not encode a year. Nothing later than
+/// `current_year + 2` is returned, which is NHTSA's bound.
+///
+/// For light vehicles a digit in position 7 means the 1980 to 2009 cycle and
+/// a letter the 2010 to 2039 cycle. Other vehicles do not follow that rule,
+/// so the later cycle is tried first.
+pub fn candidates(vin: &Vin, current_year: u16, light_vehicle: bool) -> Vec<u16> {
     let Some(index) = YEAR_CODES.find(vin.year_char()) else {
         return Vec::new();
     };
     let offset = u16::try_from(index).unwrap_or(0);
     let early = FIRST_YEAR + offset;
     let late = early + CYCLE;
-    let latest = current_year.saturating_add(1);
+    let latest = current_year.saturating_add(2);
 
-    let ordered = if vin.char_at(7).is_ascii_digit() {
+    let early_first = light_vehicle && vin.char_at(7).is_ascii_digit();
+    let ordered = if early_first {
         [early, late]
     } else {
         [late, early]
@@ -31,42 +36,45 @@ pub fn candidates(vin: &Vin, current_year: u16) -> Vec<u16> {
 mod tests {
     use super::*;
 
-    fn years(vin: &str) -> Vec<u16> {
-        candidates(&Vin::parse(vin).unwrap(), 2026)
+    fn years(vin: &str, light_vehicle: bool) -> Vec<u16> {
+        candidates(&Vin::parse(vin).unwrap(), 2026, light_vehicle)
     }
 
     #[test]
-    fn a_letter_in_position_7_prefers_the_later_cycle() {
-        assert_eq!(years("KM8K2CAB4PU001140"), vec![2023, 1993]);
+    fn light_vehicles_use_position_7_to_pick_the_cycle() {
+        assert_eq!(years("KM8K2CAB4PU001140", true), vec![2023, 1993]);
+        assert_eq!(years("1M8GDM9AXKP042788", true), vec![1989, 2019]);
     }
 
     #[test]
-    fn a_digit_in_position_7_prefers_the_earlier_cycle() {
-        assert_eq!(years("1M8GDM9AXKP042788"), vec![1989, 2019]);
+    fn other_vehicles_prefer_the_later_cycle_whatever_position_7_holds() {
+        assert_eq!(years("1M8GDM9AXKP042788", false), vec![2019, 1989]);
+        assert_eq!(years("KM8K2CAB4PU001140", false), vec![2023, 1993]);
     }
 
     #[test]
-    fn years_that_have_not_happened_yet_are_dropped() {
-        assert_eq!(years("1HGCM82633A004352"), vec![2003]);
-        assert_eq!(years("1FTFW1E50YFA00001"), vec![2000]);
+    fn years_more_than_two_ahead_are_dropped() {
+        assert_eq!(years("1HGCM82633A004352", true), vec![2003]);
+        assert_eq!(years("1FTFW1E50YFA00001", true), vec![2000]);
+        assert_eq!(years("1FTFW1E50YFA00001", false), vec![2000]);
     }
 
     #[test]
-    fn next_model_year_is_allowed() {
-        let vin = Vin::parse("1FTFW1E50VFA00001").unwrap();
-        assert_eq!(candidates(&vin, 2026), vec![2027, 1997]);
-        assert_eq!(candidates(&vin, 2025), vec![1997]);
+    fn the_bound_is_the_current_year_plus_two() {
+        let vin = Vin::parse("1FTFW1E50WFA00001").unwrap();
+        assert_eq!(candidates(&vin, 2026, true), vec![2028, 1998]);
+        assert_eq!(candidates(&vin, 2025, true), vec![1998]);
     }
 
     #[test]
     fn position_10_may_carry_no_year() {
-        assert_eq!(years("KM8K2CAB40U001140"), Vec::<u16>::new());
+        assert_eq!(years("KM8K2CAB40U001140", true), Vec::<u16>::new());
     }
 
     #[test]
     fn extreme_current_years_do_not_overflow() {
         let vin = Vin::parse("KM8K2CAB4PU001140").unwrap();
-        assert_eq!(candidates(&vin, u16::MAX), vec![2023, 1993]);
-        assert_eq!(candidates(&vin, 0), Vec::<u16>::new());
+        assert_eq!(candidates(&vin, u16::MAX, true), vec![2023, 1993]);
+        assert_eq!(candidates(&vin, 0, true), Vec::<u16>::new());
     }
 }

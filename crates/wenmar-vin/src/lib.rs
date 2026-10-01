@@ -18,6 +18,7 @@
 //!         make: Some("Hyundai".to_owned()),
 //!         country: None,
 //!         vehicle_type: None,
+//!         light_vehicle: true,
 //!     })
 //!     .with_schema("KM8", 1, 2022, None)
 //!     .with_pattern(1, "K2***", Element::Model, "Kona");

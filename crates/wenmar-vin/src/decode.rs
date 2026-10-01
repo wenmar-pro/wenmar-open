@@ -87,7 +87,7 @@ impl<D: VinData> Decoder<D> {
             Some(year) => vec![year],
             None => {
                 let current = options.current_year.unwrap_or_else(current_year);
-                model_year::candidates(&vin, current)
+                model_year::candidates(&vin, current, manufacturer.light_vehicle)
             }
         };
         // Position 7 does not settle the cycle for every vehicle type, so each
@@ -306,10 +306,16 @@ fn short_form(value: &str) -> String {
 }
 
 fn build_engine(values: &Values<'_>) -> Option<Engine> {
-    let displacement_l = values
-        .get(&Element::DisplacementL)
-        .and_then(|value| value.trim().parse::<f64>().ok())
-        .filter(|litres| litres.is_finite() && *litres > 0.0);
+    let number = |element: Element| {
+        values
+            .get(&element)
+            .and_then(|value| value.trim().parse::<f64>().ok())
+            .filter(|amount| amount.is_finite() && *amount > 0.0)
+    };
+    // NHTSA's conversions, for vehicles reported in only one unit.
+    let displacement_l = number(Element::DisplacementL)
+        .or_else(|| number(Element::DisplacementCc).map(|cc| cc / 1000.0))
+        .or_else(|| number(Element::DisplacementCi).map(|ci| ci * 0.016_387_064));
     let mut engine = Engine {
         label: None,
         model: text(values, Element::EngineModel),

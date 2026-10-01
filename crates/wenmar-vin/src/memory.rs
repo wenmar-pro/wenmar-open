@@ -118,6 +118,7 @@ mod tests {
                 make: Some("Hyundai".to_owned()),
                 country: None,
                 vehicle_type: None,
+                light_vehicle: true,
             })
             .with_schema("KM8", 1, 2022, None)
             .with_schema("KM8", 2, 1990, Some(1995))
