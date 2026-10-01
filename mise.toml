@@ -1,0 +1,37 @@
+# Tooling for this repository. Optional: without mise, rustup reads
+# rust-toolchain.toml and the commands under [tasks] can be run by hand.
+
+[tools]
+rust = "1.98.1"   # keep in sync with rust-toolchain.toml
+python = "3.14"   # tools/corpus
+
+[tasks.check]
+description = "Format check, lints and tests: what CI runs"
+run = [
+  "cargo fmt --all --check",
+  "cargo clippy --workspace --all-targets --all-features -- -D warnings",
+  "cargo test --workspace --all-features",
+]
+
+[tasks.data]
+description = "Download NHTSA's newest vPIC release and build the data file"
+run = '''
+set -eu
+dump=$(cargo run --release -q -p open-data -- fetch)
+version=$(basename "$dump" .sql | sed 's/^vPICList_lite_//; s/_/./')
+out="data/build/wenmar-open-$version.sqlite3"
+rm -f "$out"
+cargo run --release -q -p open-data -- build --dump "$dump" --out "$out"
+'''
+
+[tasks.parity]
+description = "Compare decodes with NHTSA's recorded answers"
+run = '''
+set -eu
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+if [ -z "$data" ]; then
+  echo "No data file in data/build. Run: mise run data" >&2
+  exit 1
+fi
+cargo run --release -q -p open-data -- parity --data "$data"
+'''

@@ -2,7 +2,7 @@
 
 Thanks for helping. This project is maintained by a small team, so the notes below are here to keep contributions quick to review.
 
-> The project is pre-release and the code is not in the repository yet. Until it lands, the most useful thing you can do is open an issue.
+> The project is pre-release. The decoder and the data build are here; the API and website are not yet.
 
 ## Report a wrong decode
 
@@ -22,7 +22,8 @@ Use the bug report or feature request templates. For anything large, open an iss
 
 - Keep each pull request to one change.
 - Add or update tests for behaviour you change. Decoder changes need at least one real VIN with a known answer.
-- Run formatting, lints, and tests before you push. The exact commands will be listed here once the workspace exists.
+- Run formatting, lints, and tests before you push: `mise run check`, or the three `cargo` commands listed under `[tasks.check]` in `mise.toml`.
+- If you change decoding, run `mise run parity` against a built data file (`mise run data`) and explain any VIN that newly differs from NHTSA.
 - If you bring in code or data from another project, add it to [NOTICE.md](NOTICE.md) and confirm its license allows redistribution under MIT.
 - Do not add data from licensed sources such as commercial labor guides, repair manuals, or paid VIN services. Only public-domain or openly licensed data can be accepted.
 

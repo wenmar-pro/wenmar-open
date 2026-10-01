@@ -61,6 +61,8 @@ cargo run --release -p open-data -- decode --data data/build/wenmar-open-2026.09
 
 `fetch` downloads NHTSA's newest vPIC release (about 73 MB) and prints the path of the extracted file to pass to `build`. No database server is needed.
 
+With [mise](https://mise.jdx.dev) installed, `mise run data` does the fetch and build in one step, `mise run parity` runs the comparison below, and `mise run check` runs what CI runs.
+
 ## Checking against NHTSA
 
 ```bash
