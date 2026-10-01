@@ -5,6 +5,8 @@ pub mod config;
 pub mod db;
 pub mod error;
 pub mod headers;
+pub mod limit;
+pub mod log;
 pub mod state;
 pub mod vin_rows;
 
@@ -78,8 +80,8 @@ pub fn app(state: AppState) -> Router {
     };
 
     // Layers run from the bottom of this list to the top: a request is
-    // guarded against panics, given a time limit and CORS headers, and only
-    // then routed.
+    // logged, then guarded against panics, counted against the ceiling,
+    // given a time limit and CORS headers, and only then routed.
     Router::new()
         .merge(v1)
         .route("/v1/openapi.json", get(openapi))
@@ -93,9 +95,11 @@ pub fn app(state: AppState) -> Router {
         ))
         .layer(cors())
         .layer(middleware::from_fn(timeout))
+        .layer(middleware::from_fn_with_state(state.clone(), limit::limit))
         .layer(CatchPanicLayer::custom(
             |_: Box<dyn std::any::Any + Send>| ApiError::Internal.into_response(),
         ))
+        .layer(middleware::from_fn(log::log))
         .with_state(state)
 }
 

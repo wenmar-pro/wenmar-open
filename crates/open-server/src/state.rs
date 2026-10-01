@@ -8,6 +8,7 @@ use wenmar_vehicles::Scope;
 use crate::config::Config;
 use crate::db::{Db, DbError};
 use crate::headers;
+use crate::limit::Limiter;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -17,6 +18,7 @@ pub struct AppState {
 struct Inner {
     db: Db,
     config: Config,
+    limiter: Limiter,
     etag_text: String,
     etag: HeaderValue,
     data_version: HeaderValue,
@@ -54,6 +56,7 @@ impl AppState {
         let etag_text = headers::etag(db.meta());
         Ok(AppState {
             inner: Arc::new(Inner {
+                limiter: Limiter::new(config.requests_per_minute),
                 etag: header(&etag_text),
                 data_version: header(&db.meta().data_version),
                 etag_text,
@@ -81,6 +84,10 @@ impl AppState {
 
     pub fn config(&self) -> &Config {
         &self.inner.config
+    }
+
+    pub fn limiter(&self) -> &Limiter {
+        &self.inner.limiter
     }
 
     pub fn etag_text(&self) -> &str {
