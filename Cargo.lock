@@ -1011,6 +1011,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "wenmar-vehicles"
+version = "0.1.0"
+
+[[package]]
 name = "wenmar-vin"
 version = "0.1.0"
 dependencies = [
