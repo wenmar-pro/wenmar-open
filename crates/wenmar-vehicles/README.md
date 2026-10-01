@@ -2,7 +2,7 @@
 
 Reads and searches the vehicle catalog in a [Wenmar Open](https://open.wenmarpro.com) data file: years, makes, models, submodels and engines.
 
-Not published yet. The catalog is built by `open-data build` from NHTSA's vPIC release.
+Not published yet. The catalog is built by `open-data build` from NHTSA's vPIC release; what it covers and what it cannot is described in the repository's `data/catalog/README.md`.
 
 ## Example
 

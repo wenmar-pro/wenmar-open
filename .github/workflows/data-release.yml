@@ -1,0 +1,151 @@
+name: Data release
+
+# Builds the data file from NHTSA's newest vPIC release, checks it against
+# NHTSA's recorded answers, and attaches it to a GitHub release tagged
+# data-YYYY.MM. It always builds the code on main.
+#
+# A schedule only fires for the copy of this file on the default branch.
+
+on:
+  schedule:
+    # 06:00 UTC on the 10th of each month.
+    - cron: "0 6 10 * *"
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "vPIC release to build, such as 2026_09. Empty for the newest."
+        required: false
+        default: ""
+      data_version:
+        description: "Data version to publish, such as 2026.09.1 for a rebuild. Empty to take it from the release."
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Refuse to run from a branch other than main
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+        run: |
+          echo "Start this workflow from main, not from $GITHUB_REF." >&2
+          exit 1
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Install pinned toolchain
+        run: rustup toolchain install
+
+      - name: Build the data tool
+        run: cargo build --release --locked -p open-data
+
+      - name: Choose the release and the version
+        id: pick
+        env:
+          RELEASE_INPUT: ${{ inputs.release }}
+          VERSION_INPUT: ${{ inputs.data_version }}
+        run: |
+          set -euo pipefail
+          release="${RELEASE_INPUT:-}"
+          if [ -z "$release" ]; then
+            release=$(./target/release/open-data latest)
+          fi
+          if ! echo "$release" | grep -Eq '^[0-9]{4}_[0-9]{2}$'; then
+            echo "$release is not a release name like 2026_09." >&2
+            exit 1
+          fi
+          version="${VERSION_INPUT:-}"
+          if [ -z "$version" ]; then
+            version=$(echo "$release" | tr _ .)
+          fi
+          if ! echo "$version" | grep -Eq '^[0-9]{4}\.[0-9]{2}(\.[0-9]+)?$'; then
+            echo "$version is not a data version like 2026.09 or 2026.09.1." >&2
+            exit 1
+          fi
+          if gh release view "data-$version" >/dev/null 2>&1; then
+            exists=true
+          else
+            exists=false
+          fi
+          {
+            echo "release=$release"
+            echo "version=$version"
+            echo "exists=$exists"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Nothing new to release
+        if: steps.pick.outputs.exists == 'true'
+        run: echo "data-${{ steps.pick.outputs.version }} is already released. Nothing to do." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fetch NHTSA's release
+        if: steps.pick.outputs.exists == 'false'
+        run: ./target/release/open-data fetch --release "${{ steps.pick.outputs.release }}" --dir data/build
+
+      - name: Build the data file
+        if: steps.pick.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          ./target/release/open-data build \
+            --dump "data/build/vPICList_lite_${{ steps.pick.outputs.release }}.sql" \
+            --out "data/build/wenmar-open-${{ steps.pick.outputs.version }}.sqlite3" \
+            --data-version "${{ steps.pick.outputs.version }}" \
+            --curated data | tee build.txt
+
+      - name: Compare decodes with NHTSA
+        if: steps.pick.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          ./target/release/open-data parity \
+            --data "data/build/wenmar-open-${{ steps.pick.outputs.version }}.sqlite3" | tee parity.txt
+
+      - name: Compare the catalog with NHTSA
+        if: steps.pick.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          ./target/release/open-data catalog-parity \
+            --data "data/build/wenmar-open-${{ steps.pick.outputs.version }}.sqlite3" | tee catalog-parity.txt
+
+      - name: Compress
+        if: steps.pick.outputs.exists == 'false'
+        working-directory: data/build
+        run: |
+          set -euo pipefail
+          file="wenmar-open-${{ steps.pick.outputs.version }}.sqlite3"
+          gzip -9 -k "$file"
+          sha256sum "$file.gz" > "$file.gz.sha256"
+          ls -l "$file" "$file.gz"
+
+      - name: Publish the release
+        if: steps.pick.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          version="${{ steps.pick.outputs.version }}"
+          file="data/build/wenmar-open-$version.sqlite3.gz"
+          {
+            echo "Wenmar Open data $version, built from NHTSA's vPIC release ${{ steps.pick.outputs.release }}."
+            echo
+            echo "Unpack it with \`gunzip\`. It is a plain SQLite file."
+            echo
+            echo '```'
+            cat build.txt
+            echo
+            tail -n 1 parity.txt
+            cat catalog-parity.txt
+            echo '```'
+          } > notes.md
+          gh release create "data-$version" "$file" "$file.sha256" \
+            --target main \
+            --title "Data $version" \
+            --notes-file notes.md

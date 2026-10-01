@@ -25,6 +25,8 @@ Use the bug report or feature request templates. For anything large, open an iss
 - Add or update tests for behaviour you change. Decoder changes need at least one real VIN with a known answer.
 - Run formatting, lints, and tests before you push: `mise run check`, or the three `cargo` commands listed under `[tasks.check]` in `mise.toml`.
 - If you change decoding, run `mise run parity` against a built data file (`mise run data`) and explain any VIN that newly differs from NHTSA.
+- If you change the catalog build or the lists under `data/`, run `mise run catalog-parity` against a built data file and explain any model that newly differs from NHTSA.
+- Trims added to `data/presets.yaml` and spellings added to `data/catalog/names.yaml` must be your own work or public knowledge. Do not copy lists from licensed catalogs or parts databases.
 - If you bring in code or data from another project, add it to [NOTICE.md](NOTICE.md) and confirm its license allows redistribution under MIT.
 - Do not add data from licensed sources such as commercial labor guides, repair manuals, or paid VIN services. Only public-domain or openly licensed data can be accepted.
 

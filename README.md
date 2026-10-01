@@ -42,11 +42,12 @@ Responses are plain JSON with no wrapper object. Each response reports the versi
 
 ## Repository layout
 
-`crates/wenmar-vin` and `crates/open-data` exist so far. The rest is planned.
+`crates/wenmar-vin`, `crates/wenmar-vehicles` and `crates/open-data` exist so far. The rest is planned.
 
 | Path | What it is |
 |---|---|
 | `crates/wenmar-vin` | Decoder library: VIN parsing, check digit, model year, pattern matching |
+| `crates/wenmar-vehicles` | Catalog library: years, makes, models, submodels, engines, search, stable vehicle ids |
 | `crates/open-data` | Builds the SQLite data file from NHTSA's vPIC release |
 | `crates/open-server` | The website and JSON API |
 | `clients/js` | npm client for the hosted API |
@@ -69,7 +70,21 @@ With [mise](https://mise.jdx.dev) installed, `mise run data` does the fetch and 
 cargo run --release -p open-data -- parity --data data/build/wenmar-open-2026.09.sqlite3
 ```
 
-Decodes a corpus of VINs and compares each field with NHTSA's own recorded answers. See [data/corpus/README.md](data/corpus/README.md).
+Decodes a corpus of VINs and compares each field with NHTSA's own recorded answers. See [data/corpus/README.md](data/corpus/README.md). `mise run catalog-parity` does the same for the catalog's model lists.
+
+## The vehicle catalog
+
+The data file also holds a catalog for choosing a vehicle without a VIN: year, make, model, submodel, engine. It comes from the same NHTSA release.
+
+```bash
+cargo run --release -p open-data -- catalog --data data/build/wenmar-open-2026.09.sqlite3 search 2019 civic si
+```
+
+What it covers, what it cannot, and how it is checked against NHTSA's own model lists: [data/catalog/README.md](data/catalog/README.md).
+
+## Data releases
+
+A workflow builds the data file each month from NHTSA's newest release, runs both checks against NHTSA's recorded answers, and attaches the file to a GitHub release tagged `data-YYYY.MM`. A build that fails a check is not released.
 
 ## Data sources
 
