@@ -7,6 +7,8 @@ name: Release
 #   crates    wenmar-vin, wenmar-vehicles, wenmar-open-turso to crates.io
 #   npm       wenmar-open to npm, with provenance
 #   release   a GitHub release whose notes are the changelog's section
+#   binaries  the wenmar-open command-line tool for macOS and Linux, attached
+#             to the release, then SHA256SUMS
 #
 # No registry token is stored. crates.io and npm each trust this file, in
 # this repository, in the environment `release` (trusted publishing over
@@ -213,3 +215,77 @@ jobs:
             --title "v$VERSION" \
             --notes-file notes.md \
             --latest
+
+  binaries:
+    needs: [verify, release]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            runner: macos-latest
+          - target: x86_64-apple-darwin
+            runner: macos-latest
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-22.04
+          - target: aarch64-unknown-linux-gnu
+            runner: ubuntu-22.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.verify.outputs.version }}
+      TARGET: ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pinned toolchain and the target
+        run: |
+          set -euo pipefail
+          rustup toolchain install
+          rustup target add "$TARGET"
+
+      - name: Build
+        run: cargo build --release --locked -p wenmar-open-cli --bin wenmar-open --target "$TARGET"
+
+      # The x86_64 macOS binary cannot be run on the arm64 runner without
+      # Rosetta, so it is built and not run.
+      - name: The binary says its version
+        if: matrix.target != 'x86_64-apple-darwin'
+        run: |
+          set -euo pipefail
+          "target/$TARGET/release/wenmar-open" --version
+          "target/$TARGET/release/wenmar-open" --version | grep -F "$VERSION"
+
+      - name: Package and attach
+        run: |
+          set -euo pipefail
+          archive="wenmar-open-$TARGET.tar.gz"
+          tar -czf "$archive" -C "target/$TARGET/release" wenmar-open
+          gh release upload "v$VERSION" "$archive" --clobber
+
+  checksums:
+    needs: [verify, binaries]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.verify.outputs.version }}
+    steps:
+      - name: Write SHA256SUMS from the attached archives
+        run: |
+          set -euo pipefail
+          gh release download "v$VERSION" --repo "$GITHUB_REPOSITORY" --pattern 'wenmar-open-*.tar.gz'
+          ls -l
+          count=$(ls wenmar-open-*.tar.gz | wc -l)
+          if [ "$count" -ne 4 ]; then
+            echo "Expected 4 archives on the release, found $count." >&2
+            exit 1
+          fi
+          sha256sum wenmar-open-*.tar.gz > SHA256SUMS
+          cat SHA256SUMS
+          gh release upload "v$VERSION" SHA256SUMS --repo "$GITHUB_REPOSITORY" --clobber

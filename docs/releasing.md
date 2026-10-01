@@ -4,7 +4,7 @@ A release publishes one version of everything at once:
 
 - three crates on crates.io: `wenmar-vin`, `wenmar-vehicles`, `wenmar-open-turso`;
 - the npm package `wenmar-open`;
-- a GitHub release `v<version>`, with that version's section of the changelog as its notes.
+- a GitHub release `v<version>`, with that version's section of the changelog as its notes and the `wenmar-open` command-line tool built for macOS (arm64, x86_64) and Linux (x86_64, arm64).
 
 It starts when a tag `v<version>` is pushed to a commit on `main`, and is run by `.github/workflows/release.yml`. No registry password or token is stored anywhere: crates.io and npm are each told, once, to trust that workflow in this repository.
 
@@ -123,7 +123,7 @@ The package `wenmar-open-data` is not published by this workflow. It will need a
    cargo search wenmar-vin
    ```
 
-   The npm page shows a provenance statement naming this repository and the workflow. The GitHub release's notes are the changelog's section.
+   The npm page shows a provenance statement naming this repository and the workflow. The GitHub release's notes are the changelog's section, and it has four archives and SHA256SUMS.
 
 ## The first release
 
@@ -133,6 +133,31 @@ The first release differs in one way: the crates are published by hand, because 
 2. Do steps 2 to 4 of "Making a release": cut the changelog for `0.1.0`, run `mise run release-check`, merge to `main`.
 3. Do the crates.io part of the one-time setup, from that commit on `main`.
 4. Do steps 5 to 7: tag `v0.1.0` and push the tag. The `crates` job finds all three crates on crates.io and publishes nothing. The `npm` job publishes `0.1.0` over the placeholder, and the release is created.
+
+## The binaries
+
+The release has one archive per platform, `wenmar-open-<target>.tar.gz`, each holding the single file `wenmar-open`, and `SHA256SUMS`.
+
+| Target | Runs on |
+|---|---|
+| `aarch64-apple-darwin` | macOS on Apple silicon |
+| `x86_64-apple-darwin` | macOS on Intel |
+| `x86_64-unknown-linux-gnu` | Linux on x86_64, glibc 2.35 or later |
+| `aarch64-unknown-linux-gnu` | Linux on arm64, glibc 2.35 or later |
+
+After a release, check one by hand:
+
+```bash
+curl -fsSL -o wenmar-open.tar.gz https://github.com/wenmar-pro/wenmar-open/releases/latest/download/wenmar-open-aarch64-apple-darwin.tar.gz
+curl -fsSL https://github.com/wenmar-pro/wenmar-open/releases/latest/download/SHA256SUMS | grep aarch64-apple-darwin
+shasum -a 256 wenmar-open.tar.gz
+tar -xzf wenmar-open.tar.gz
+./wenmar-open --version
+```
+
+The two checksums must be the same, and the version must be the one released. The macOS binaries are not signed or notarized: one downloaded with a browser is stopped by Gatekeeper until it is allowed in System Settings, and one downloaded with `curl` is not.
+
+If a `binaries` job fails, the version is already published and the release exists. Use "Re-run failed jobs"; the archive is attached when the job passes, and `checksums` runs after all four.
 
 ## If a release fails
 
