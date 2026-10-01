@@ -84,7 +84,7 @@ What it covers, what it cannot, and how it is checked against NHTSA's own model 
 
 ## Data releases
 
-A workflow builds the data file each month from NHTSA's newest release, runs both checks against NHTSA's recorded answers, and attaches the file to a GitHub release tagged `data-YYYY.MM`. A build that fails a check is not released.
+A workflow builds the data file each month from NHTSA's newest release, runs both checks against NHTSA's recorded answers, and attaches the file to a GitHub release tagged `data-YYYY.MM`. A build that fails a check is not released. Models NHTSA added to the newest model years after the answers were recorded are noted in the release and do not fail it; see [data/catalog/README.md](data/catalog/README.md).
 
 ## Data sources
 

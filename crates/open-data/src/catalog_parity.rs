@@ -15,7 +15,25 @@ use wenmar_vehicles::{Catalog, CatalogError, Scope, Source};
 /// NHTSA's answers, as recorded by `tools/catalog/record.py`.
 #[derive(Debug, Clone, Deserialize)]
 pub struct Fixtures {
+    /// The day the answers were recorded, as `2026-10-01`.
+    #[serde(default)]
+    pub recorded: Option<String>,
     pub answers: Vec<Answer>,
+}
+
+impl Fixtures {
+    /// The first model year that was still being added to when the answers
+    /// were recorded: the year of the recording. NHTSA goes on adding
+    /// models to that model year and the next, and each monthly release
+    /// carries them, so the catalog of a later release lists models for
+    /// those years that the recording cannot know. `None` when the file
+    /// has no readable date.
+    pub fn open_from(&self) -> Option<u16> {
+        let year = self.recorded.as_deref()?.split('-').next()?;
+        (year.len() == 4 && year.bytes().all(|byte| byte.is_ascii_digit()))
+            .then(|| year.parse().ok())
+            .flatten()
+    }
 }
 
 /// The models NHTSA lists for one make and model year.
@@ -111,8 +129,24 @@ fn sample(entries: &[String]) -> String {
     text
 }
 
+/// The model year of an entry such as `2019 Honda: Accord`.
+fn year_of(entry: &str) -> Option<u16> {
+    entry.split(' ').next()?.parse().ok()
+}
+
+/// Whether an entry is for a model year that was still open when the
+/// answers were recorded.
+fn open(entry: &str, open_from: Option<u16>) -> bool {
+    matches!((year_of(entry), open_from), (Some(year), Some(from)) if year >= from)
+}
+
 /// What got worse since the baseline. Empty when nothing did.
-pub fn regressions(report: &Report, baseline: &Report) -> Vec<String> {
+///
+/// A model NHTSA lists and the catalog does not is always a regression. A
+/// model the catalog lists and NHTSA's recorded answer does not is one
+/// too, except in the model years from `open_from` on: there it is what a
+/// release newer than the recording looks like, and [`newer`] reports it.
+pub fn regressions(report: &Report, baseline: &Report, open_from: Option<u16>) -> Vec<String> {
     let mut problems = Vec::new();
     if report.pairs != baseline.pairs {
         problems.push(format!(
@@ -128,7 +162,10 @@ pub fn regressions(report: &Report, baseline: &Report) -> Vec<String> {
             sample(&missing)
         ));
     }
-    let extra = newly(&report.extra, &baseline.extra);
+    let extra: Vec<String> = newly(&report.extra, &baseline.extra)
+        .into_iter()
+        .filter(|entry| !open(entry, open_from))
+        .collect();
     if !extra.is_empty() {
         problems.push(format!(
             "{} models are newly listed that NHTSA does not list: {}",
@@ -137,6 +174,28 @@ pub fn regressions(report: &Report, baseline: &Report) -> Vec<String> {
         ));
     }
     problems
+}
+
+/// Models the catalog newly lists, and the recorded answers do not, for
+/// the model years from `open_from` on. They are not regressions: the
+/// answers should be recorded again when convenient.
+pub fn newer(report: &Report, baseline: &Report, open_from: Option<u16>) -> Vec<String> {
+    newly(&report.extra, &baseline.extra)
+        .into_iter()
+        .filter(|entry| open(entry, open_from))
+        .collect()
+}
+
+/// A note about [`newer`] models for the output, or `None` when there are none.
+pub fn newer_note(newer: &[String], open_from: Option<u16>) -> Option<String> {
+    let from = open_from.filter(|_| !newer.is_empty())?;
+    Some(format!(
+        "{} models listed for {from} or later are not in NHTSA's recorded answers. \
+         The release is newer than the recording, so they are not counted; \
+         record the answers again: {}",
+        newer.len(),
+        sample(newer)
+    ))
 }
 
 /// The report as text.
@@ -243,9 +302,9 @@ mod tests {
     #[test]
     fn a_new_difference_is_a_regression_and_a_known_one_is_not() {
         let baseline = report(2, &["2019 Honda: Accord"], &[]);
-        assert!(regressions(&baseline, &baseline).is_empty());
+        assert!(regressions(&baseline, &baseline, None).is_empty());
         // One fewer difference is an improvement.
-        assert!(regressions(&report(2, &[], &[]), &baseline).is_empty());
+        assert!(regressions(&report(2, &[], &[]), &baseline, None).is_empty());
 
         let worse = report(
             2,
@@ -253,7 +312,7 @@ mod tests {
             &["2019 Ford: Pinto"],
         );
         assert_eq!(
-            regressions(&worse, &baseline),
+            regressions(&worse, &baseline, None),
             vec![
                 "1 models NHTSA lists are newly missing: 2019 Honda: Fit",
                 "1 models are newly listed that NHTSA does not list: 2019 Ford: Pinto",
@@ -262,15 +321,81 @@ mod tests {
     }
 
     #[test]
+    fn a_model_newer_than_the_recording_is_not_a_regression() {
+        let baseline = report(2, &["2026 Lexus: GX"], &[]);
+        // The next release: the GX has arrived, and so have models NHTSA
+        // added after the lists were recorded.
+        let now = report(
+            2,
+            &[],
+            &[
+                "2019 Honda: Fit",
+                "2026 Honda: Prelude",
+                "2027 Honda: Civic",
+            ],
+        );
+        assert_eq!(
+            regressions(&now, &baseline, Some(2026)),
+            vec!["1 models are newly listed that NHTSA does not list: 2019 Honda: Fit"]
+        );
+        assert_eq!(
+            newer(&now, &baseline, Some(2026)),
+            vec!["2026 Honda: Prelude", "2027 Honda: Civic"]
+        );
+        // With no recording date, nothing is excused.
+        assert_eq!(
+            regressions(&now, &baseline, None),
+            vec![
+                "3 models are newly listed that NHTSA does not list: \
+                 2019 Honda: Fit; 2026 Honda: Prelude; 2027 Honda: Civic"
+            ]
+        );
+        assert!(newer(&now, &baseline, None).is_empty());
+        // A model NHTSA listed and the catalog lost is a regression in any year.
+        let lost = report(2, &["2026 Honda: Accord", "2026 Lexus: GX"], &[]);
+        assert_eq!(regressions(&lost, &baseline, Some(2026)).len(), 1);
+        // A difference already in the baseline is neither.
+        let known = report(2, &[], &["2026 Honda: Prelude"]);
+        assert!(newer(&known, &known, Some(2026)).is_empty());
+
+        let note = newer_note(&newer(&now, &baseline, Some(2026)), Some(2026)).unwrap();
+        assert!(
+            note.starts_with("2 models listed for 2026 or later"),
+            "{note}"
+        );
+        assert!(
+            note.ends_with(": 2026 Honda: Prelude; 2027 Honda: Civic"),
+            "{note}"
+        );
+        assert_eq!(newer_note(&[], Some(2026)), None);
+    }
+
+    #[test]
+    fn the_open_years_start_with_the_year_of_the_recording() {
+        let fixtures = |recorded: serde_json::Value| -> Fixtures {
+            serde_json::from_value(serde_json::json!({"recorded": recorded, "answers": []}))
+                .unwrap()
+        };
+        assert_eq!(fixtures("2026-10-01".into()).open_from(), Some(2026));
+        assert_eq!(fixtures("2027".into()).open_from(), Some(2027));
+        for garbled in ["", "soon", "-2026", "20261001", "99999-01-01"] {
+            assert_eq!(fixtures(garbled.into()).open_from(), None, "{garbled:?}");
+        }
+        assert_eq!(fixtures(serde_json::Value::Null).open_from(), None);
+        let unstamped: Fixtures = serde_json::from_str(r#"{"answers": []}"#).unwrap();
+        assert_eq!(unstamped.open_from(), None);
+    }
+
+    #[test]
     fn swapping_one_difference_for_another_is_still_a_regression() {
         let baseline = report(2, &["2019 Honda: Accord"], &[]);
         let swapped = report(2, &["2019 Honda: Fit"], &[]);
-        assert_eq!(regressions(&swapped, &baseline).len(), 1);
+        assert_eq!(regressions(&swapped, &baseline, None).len(), 1);
     }
 
     #[test]
     fn a_fixture_of_another_size_needs_a_new_baseline() {
-        let problems = regressions(&report(3, &[], &[]), &report(2, &[], &[]));
+        let problems = regressions(&report(3, &[], &[]), &report(2, &[], &[]), None);
         assert_eq!(
             problems,
             vec!["3 make-years were compared and the baseline has 2; record a new baseline"]
@@ -288,7 +413,7 @@ mod tests {
             missing: many,
             extra: Vec::new(),
         };
-        let problems = regressions(&now, &report(2, &[], &[]));
+        let problems = regressions(&now, &report(2, &[], &[]), None);
         assert!(
             problems[0].starts_with("8 models NHTSA lists are newly missing: 2019 Honda: M0; ")
         );

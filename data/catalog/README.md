@@ -51,7 +51,14 @@ Add `--scope all` to include trailers, motorcycles, buses and the rest, or `--sc
 cargo run --release -p open-data -- catalog-parity --data data/build/wenmar-open-2026.09.sqlite3
 ```
 
-This compares the catalog's models with NHTSA's recorded lists and fails if a model is newly missing or newly extra. Names are compared without regard to case.
+This compares the catalog's models with NHTSA's recorded lists. Names are compared without regard to case. It fails when:
+
+- a model NHTSA lists is newly missing from the catalog, for any model year;
+- a model is newly in the catalog and not in NHTSA's list, for a model year before the year the lists were recorded.
+
+NHTSA keeps adding models to the current model year and the next, and each monthly release carries them. The lists here are recorded once and the monthly build runs against them unchanged, so for the model years from the year of the recording on (2026 and later, for lists recorded on 2026-10-01) a model the lists do not have is printed as newer than the recording and does not fail the check. Without this the monthly release would stop almost every month until the lists were recorded again. The cost is that a fault which lists too many models only in those years is printed, not caught; the five earlier sample years still catch one that affects every year.
+
+When the check prints such models, record the lists again (below) so they are compared in full.
 
 ## Known differences
 

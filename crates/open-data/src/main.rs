@@ -276,7 +276,12 @@ fn main() -> Result<()> {
                         .with_context(|| format!("opening {}", baseline_path.display()))?,
                 ))
                 .with_context(|| format!("reading {}", baseline_path.display()))?;
-                let problems = catalog_parity::regressions(&report, &baseline);
+                let open_from = recorded.open_from();
+                let newer = catalog_parity::newer(&report, &baseline, open_from);
+                if let Some(note) = catalog_parity::newer_note(&newer, open_from) {
+                    println!("{note}");
+                }
+                let problems = catalog_parity::regressions(&report, &baseline, open_from);
                 if !problems.is_empty() {
                     for problem in &problems {
                         eprintln!("regression: {problem}");
