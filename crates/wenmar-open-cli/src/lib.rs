@@ -9,8 +9,10 @@ pub mod cli;
 pub mod data;
 pub mod env;
 pub mod error;
+pub mod jq;
 pub mod local;
 pub mod output;
+pub mod render;
 pub mod request;
 
 use std::ffi::OsString;
@@ -33,9 +35,16 @@ pub fn run(
     stdout: &mut dyn Write,
     stderr: &mut dyn Write,
 ) -> u8 {
-    let mode = Mode::choose(env.stdout_terminal);
+    let mut mode = Mode::before_parsing(&args, env.stdout_terminal);
     let outcome = match Cli::try_parse_from(args) {
-        Ok(cli) => execute(cli, env, &mode, stdout),
+        Ok(cli) => {
+            mode = Mode::choose(
+                cli.global.json,
+                cli.global.jq.as_deref(),
+                env.stdout_terminal,
+            );
+            execute(cli, env, &mode, stdout)
+        }
         Err(problem) => match problem.kind() {
             ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => stdout
                 .write_all(problem.render().to_string().as_bytes())
@@ -78,6 +87,6 @@ fn execute(cli: Cli, env: &Env, mode: &Mode, stdout: &mut dyn Write) -> Result<(
         }
     };
     let backend = Backend::open(env, &cli.global)?;
-    let value = backend.run(request)?;
-    output::answer(stdout, mode, &value)
+    let value = backend.run(request.clone())?;
+    output::answer(stdout, mode, &value, |value| render::text(&request, value))
 }

@@ -411,17 +411,3 @@ fn reading_leaves_the_data_directory_untouched() {
     assert_eq!(fixture.files(), ["wenmar-open.sqlite3"]);
     assert_eq!(std::fs::read(fixture.file()).unwrap(), before);
 }
-
-#[test]
-fn at_a_terminal_json_is_indented() {
-    let fixture = common::data_dir();
-    let env = wenmar_open_cli::env::Env {
-        stdout_terminal: true,
-        ..common::env(&fixture)
-    };
-    let run = common::run(&env, &["vehicles", "years"]);
-    assert_eq!(
-        run.stdout,
-        "[\n  2023,\n  2022,\n  2020,\n  2019,\n  2018\n]\n"
-    );
-}

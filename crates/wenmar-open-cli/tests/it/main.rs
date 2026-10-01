@@ -3,4 +3,5 @@
 
 mod commands;
 mod common;
+mod output;
 mod process;

@@ -23,6 +23,14 @@ pub struct Cli {
 /// Options every command takes, before or after the command's name.
 #[derive(Debug, Clone, Default, Args)]
 pub struct Global {
+    /// Print JSON even at a terminal. JSON is what is printed anyway when
+    /// the output is piped.
+    #[arg(long, global = true)]
+    pub json: bool,
+    /// Filter the JSON with a jq expression, such as `.make` or `.[].id`.
+    /// Text results are printed without quotes.
+    #[arg(long, global = true, value_name = "EXPR")]
+    pub jq: Option<String>,
     /// The directory holding the data file. Also WENMAR_OPEN_DATA_DIR.
     #[arg(long, global = true, value_name = "DIR")]
     pub data_dir: Option<PathBuf>,
