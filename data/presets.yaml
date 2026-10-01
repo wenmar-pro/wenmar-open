@@ -1,0 +1,41 @@
+# Trims and engines added where vPIC's own data is thin. Written by hand.
+#
+# from, to    The model years a preset applies to. `to` may be left out.
+# submodels   Added to the trims vPIC lists for that model and year.
+# engines     Used only when vPIC lists no engine at all for that model and year.
+presets:
+  - {make: "Toyota", model: "Camry", from: 2012, submodels: ["LE", "SE", "XLE", "XSE", "TRD"], engines: ["2.5L", "3.5L V6", "2.5L Hybrid"]}
+  - {make: "Toyota", model: "Corolla", from: 2012, submodels: ["L", "LE", "SE", "XLE", "Apex", "FX"], engines: ["1.8L", "2.0L", "1.8L Hybrid", "2.0L Hybrid"]}
+  - {make: "Toyota", model: "RAV4", from: 2012, submodels: ["LE", "XLE", "Adventure", "Limited", "TRD Off-Road", "Prime"], engines: ["2.5L", "2.5L Hybrid", "2.5L PHEV"]}
+  - {make: "Toyota", model: "Highlander", from: 2012, submodels: ["L", "LE", "XLE", "Limited", "Platinum"], engines: ["2.4L Turbo", "3.5L V6", "2.5L Hybrid"]}
+  - {make: "Toyota", model: "Tacoma", from: 2012, submodels: ["SR", "SR5", "TRD Sport", "TRD Off-Road", "Limited"], engines: ["2.7L", "3.5L V6"]}
+  - {make: "Honda", model: "Civic", from: 2012, submodels: ["LX", "Sport", "EX", "EX-L", "Touring", "Si", "Type R"], engines: ["1.5L Turbo", "2.0L", "2.0L Turbo"]}
+  - {make: "Honda", model: "Accord", from: 2012, submodels: ["LX", "Sport", "EX", "EX-L", "Touring"], engines: ["1.5L Turbo", "2.0L Turbo", "2.0L Hybrid"]}
+  - {make: "Honda", model: "CR-V", from: 2012, submodels: ["LX", "EX", "EX-L", "Touring", "Sport"], engines: ["1.5L Turbo", "2.0L Hybrid"]}
+  - {make: "Ford", model: "F-150", from: 2012, submodels: ["XL", "XLT", "Lariat", "Platinum", "King Ranch", "Raptor", "Tremor"], engines: ["2.7L EcoBoost", "3.5L EcoBoost", "5.0L V8", "3.3L V6", "3.5L PowerBoost", "3.0L Diesel"]}
+  - {make: "Ford", model: "F-250", from: 2012, submodels: ["XL", "XLT", "Lariat", "Platinum", "King Ranch"], engines: ["6.2L V8", "7.3L V8", "6.7L Diesel"]}
+  - {make: "Ford", model: "Escape", from: 2012, submodels: ["S", "SE", "SEL", "Titanium", "ST-Line", "Active", "Platinum"], engines: ["1.5L Turbo", "2.0L Turbo", "2.5L Hybrid"]}
+  - {make: "Ford", model: "Explorer", from: 2012, submodels: ["Base", "XLT", "Limited", "ST", "Platinum", "King Ranch"], engines: ["2.3L Turbo", "3.3L V6", "3.0L Turbo"]}
+  - {make: "Ford", model: "Mustang", from: 2012, submodels: ["EcoBoost", "GT", "Mach 1", "Shelby GT500", "Bullitt"], engines: ["2.3L Turbo", "5.0L V8", "5.2L V8"]}
+  - {make: "Chevrolet", model: "Silverado", from: 2012, submodels: ["WT", "Custom", "LT", "LTZ", "High Country", "Trail Boss", "Z71"], engines: ["2.7L Turbo", "4.3L V6", "5.3L V8", "6.2L V8", "3.0L Diesel"]}
+  - {make: "Chevrolet", model: "Equinox", from: 2012, submodels: ["LS", "LT", "RS", "Premier", "Activ"], engines: ["1.5L Turbo", "2.0L Turbo"]}
+  - {make: "Chevrolet", model: "Malibu", from: 2012, submodels: ["LS", "LT", "RS", "Premier"], engines: ["1.5L Turbo"]}
+  - {make: "Chevrolet", model: "Tahoe", from: 2012, submodels: ["LS", "LT", "RST", "Premier", "High Country", "Z71"], engines: ["5.3L V8", "6.2L V8", "3.0L Diesel"]}
+  - {make: "Chevrolet", model: "Suburban", from: 2012, submodels: ["LS", "LT", "RST", "Premier", "High Country"], engines: ["5.3L V8", "6.2L V8", "3.0L Diesel"]}
+  - {make: "Nissan", model: "Altima", from: 2012, submodels: ["S", "SV", "SR", "SL", "Platinum"], engines: ["2.5L", "2.0L Turbo"]}
+  - {make: "Nissan", model: "Rogue", from: 2012, submodels: ["S", "SV", "SL", "Platinum"], engines: ["1.5L Turbo", "2.5L"]}
+  - {make: "Jeep", model: "Wrangler", from: 2012, submodels: ["Sport", "Sahara", "Rubicon", "Willys", "High Altitude", "392"], engines: ["2.0L Turbo", "3.6L V6", "6.4L V8", "2.0L Hybrid", "3.0L Diesel"]}
+  - {make: "Jeep", model: "Grand Cherokee", from: 2012, submodels: ["Laredo", "Altitude", "Limited", "Overland", "Summit", "SRT", "Trackhawk"], engines: ["3.6L V6", "5.7L V8", "6.4L V8", "2.0L Hybrid"]}
+  - {make: "Hyundai", model: "Elantra", from: 2012, submodels: ["SE", "SEL", "Limited", "N Line", "N"], engines: ["1.6L Turbo", "2.0L", "1.6L"]}
+  - {make: "Hyundai", model: "Sonata", from: 2012, submodels: ["SE", "SEL", "Limited", "N Line"], engines: ["1.6L Turbo", "2.5L"]}
+  - {make: "Hyundai", model: "Tucson", from: 2012, submodels: ["SE", "SEL", "N Line", "Limited", "XRT"], engines: ["1.6L Turbo", "2.5L", "1.6L Hybrid"]}
+  - {make: "Mazda", model: "CX-5", from: 2012, submodels: ["S", "Select", "Preferred", "Premium", "Carbon Edition", "Turbo"], engines: ["2.5L", "2.5L Turbo"]}
+  - {make: "Subaru", model: "Outback", from: 2012, submodels: ["Base", "Premium", "Limited", "Touring", "Onyx", "Wilderness"], engines: ["2.5L", "2.4L Turbo"]}
+  - {make: "Subaru", model: "Forester", from: 2012, submodels: ["Base", "Premium", "Sport", "Limited", "Touring", "Wilderness"], engines: ["2.5L"]}
+  - {make: "Volkswagen", model: "Jetta", from: 2012, submodels: ["S", "SE", "SEL", "R-Line", "GLI"], engines: ["1.4L Turbo", "1.5L Turbo", "2.0L Turbo"]}
+  - {make: "Volkswagen", model: "Tiguan", from: 2012, submodels: ["S", "SE", "SEL", "R-Line"], engines: ["1.4L Turbo", "2.0L Turbo"]}
+  - {make: "Ram", model: "1500", from: 2012, submodels: ["Tradesman", "Big Horn", "Laramie", "Rebel", "Limited", "TRX"], engines: ["3.6L V6", "5.7L V8", "3.0L Diesel"]}
+  - {make: "Ram", model: "2500", from: 2012, submodels: ["Tradesman", "Big Horn", "Laramie", "Power Wagon", "Limited"], engines: ["6.4L V8", "6.7L Diesel"]}
+  - {make: "Ford", model: "Transit", from: 2012, submodels: ["XL", "XLT", "Limited"], engines: ["3.5L V6", "3.5L EcoBoost", "2.0L Diesel"]}
+  - {make: "GMC", model: "Sierra", from: 2012, submodels: ["Base", "SLE", "SLT", "AT4", "Denali"], engines: ["2.7L Turbo", "5.3L V8", "6.2L V8", "3.0L Diesel"]}
+  - {make: "Chevrolet", model: "Express", from: 2012, submodels: ["Base", "LS", "LT"], engines: ["4.3L V6", "6.0L V8", "2.8L Diesel"]}

@@ -1,0 +1,68 @@
+# Makes listed first, in this order, when someone picks a vehicle. Every other
+# make follows in alphabetical order.
+#
+# name     How the make is shown. It is matched to vPIC's make without regard
+#          to case or punctuation, so "Rivian" finds vPIC's "RIVIAN".
+# aliases  Other things people type for this make.
+makes:
+  - name: Toyota
+    aliases: [yota]
+  - name: Ford
+  - name: Chevrolet
+    aliases: [chevy, chev]
+  - name: Honda
+  - name: Nissan
+  - name: Hyundai
+  - name: Kia
+  - name: Jeep
+  - name: Ram
+  - name: GMC
+  - name: Subaru
+    aliases: [subie]
+  - name: Volkswagen
+    aliases: [vw]
+  - name: BMW
+    aliases: [bimmer, beemer]
+  - name: Mercedes-Benz
+    aliases: [mercedes, merc, benz, mb]
+  - name: Mazda
+  - name: Dodge
+  - name: Lexus
+  - name: Tesla
+  - name: Audi
+  - name: Chrysler
+  - name: Buick
+  - name: Cadillac
+    aliases: [caddy]
+  - name: Acura
+  - name: Volvo
+  - name: Mitsubishi
+    aliases: [mitsu]
+  - name: Infiniti
+    aliases: [infinity]
+  - name: Lincoln
+  - name: Land Rover
+    aliases: [range rover]
+  - name: Porsche
+  - name: MINI
+  - name: Genesis
+  - name: Jaguar
+    aliases: [jag]
+  - name: Fiat
+  - name: Alfa Romeo
+    aliases: [alfa]
+  - name: Rivian
+  - name: Polestar
+  - name: Lucid
+  - name: Pontiac
+  - name: Saturn
+  - name: Mercury
+  - name: Oldsmobile
+    aliases: [olds]
+  - name: Suzuki
+  - name: Saab
+  - name: Hummer
+  - name: Isuzu
+  - name: Plymouth
+  - name: smart
+  - name: Maserati

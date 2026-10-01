@@ -1,0 +1,7 @@
+# Spellings to use for trims and series where vPIC's own spelling is poor.
+# The left side is matched without regard to case, after spaces are tidied.
+# Changing an entry changes the id of that submodel, so treat it as a rename.
+submodels:
+  "Si/Si HPT": "Si"
+  "DEl SOl S": "del Sol S"
+  "DEl SOl Si": "del Sol Si"
