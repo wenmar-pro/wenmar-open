@@ -15,3 +15,8 @@ pub mod suggest;
 
 pub use data::{DataError, Element, Manufacturer, Pattern, VinData};
 pub use memory::MemoryData;
+pub mod engine;
+pub mod result;
+
+pub use engine::Engine;
+pub use result::{Decoded, ManufacturerInfo, Plant, Safety, Warning, WarningCode};
