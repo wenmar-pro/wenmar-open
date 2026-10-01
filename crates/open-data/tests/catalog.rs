@@ -15,7 +15,8 @@ use wenmar_vehicles::{Catalog, Scope};
 ///   (incomplete vehicle) uses the same schema in 2019. Its engines are in a
 ///   second schema that applies from 2018, keyed on position 8.
 /// - Honda Civic, 2016 onwards, code 2HG (passenger car). The engine is in
-///   position 6 and the trim in position 8.
+///   position 6 and the trim in position 8. The Si's trim is `Si/Si HPT`,
+///   as in vPIC, which the curated names turn into `Si`.
 /// - Honda CR-V, 1979 to 1982, code 2HK (MPV), with nothing but a model.
 /// - Two trailer makes whose names differ only in punctuation.
 fn dump() -> String {
@@ -138,7 +139,7 @@ COPY vpic.pattern (id, vinschemaid, keys, elementid, attributeid, createdon, upd
 246~24~****[5G]~24~4~2018-01-01 00:00:00~\\N
 210~21~FC1**~28~1863~2016-01-01 00:00:00~\\N
 211~21~FC2**~28~1863~2016-01-01 00:00:00~\\N
-212~21~FC1*5~38~Si~2016-01-01 00:00:00~\\N
+212~21~FC1*5~38~Si/Si HPT~2016-01-01 00:00:00~\\N
 213~21~FC2*5~38~LX~2016-01-01 00:00:00~\\N
 214~21~FC2*6~38~lx~2016-01-01 00:00:00~\\N
 215~21~FC1*9~38~TOURING~2016-01-01 00:00:00~\\N
@@ -207,6 +208,7 @@ fn curated() -> Curated {
                 aliases: vec!["chevy".to_owned()],
             },
         ],
+        submodel_names: [("si/si hpt".to_owned(), "Si".to_owned())].into(),
         ..Curated::default()
     }
 }
@@ -387,7 +389,7 @@ fn preset(make: &str, model: &str, from: u16, submodels: &[&str], engines: &[&st
 
 #[test]
 fn derives_submodels_and_engines() {
-    let (_built, summary, connection) = built("details", &Curated::default());
+    let (_built, summary, connection) = built("details", &curated());
 
     // Details are numbered in the order model years first need them.
     assert_eq!(
@@ -449,6 +451,11 @@ fn derives_submodels_and_engines() {
             "3|3.5L Turbo V6|G|vpic",
             "3|5.0L V8|5|vpic",
         ]
+    );
+    // What was renamed, for readers that meet the old spelling in a decode.
+    assert_eq!(
+        rows(&connection, "SELECT raw, name FROM catalog_rename"),
+        vec!["si/si hpt|Si"]
     );
     // Each Civic trim comes with one of the two engines; the Raptor with both.
     assert_eq!(
@@ -656,9 +663,11 @@ fn the_catalog_command_answers_in_json() {
     );
 
     // A 2019 Civic Si: FC1 is the 1.5L Turbo, and 5 in position 8 the Si.
+    // The decode's trim is `Si/Si HPT`; the catalog's submodel is `Si`.
     let selection = ask(Query::Vin {
         vin: "2HGFC1E50KH000001".to_owned(),
     });
+    assert_eq!(selection["entry"]["submodel"], "Si");
     assert_eq!(selection["vehicle_id"], "2019_honda_civic");
     assert_eq!(selection["submodel_id"], "si");
     assert_eq!(selection["engine_id"], "1-5l-turbo");

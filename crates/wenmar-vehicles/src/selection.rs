@@ -29,8 +29,9 @@ pub struct Selection {
 
 /// The one submodel the names point to. `None` when they point to none or
 /// to several: vPIC sometimes lists trims together, as in `S, SE, SEL`, and
-/// guessing one would be wrong more often than right.
-fn only_submodel<'r>(rows: &'r [SubmodelRow], names: &[&str]) -> Option<&'r SubmodelRow> {
+/// guessing one would be wrong more often than right. The names are the
+/// catalog's, so a spelling the build replaced is replaced first.
+fn only_submodel<'r>(rows: &'r [SubmodelRow], names: &[String]) -> Option<&'r SubmodelRow> {
     let wanted: Vec<String> = names
         .iter()
         .map(|name| slug(name))
@@ -82,16 +83,24 @@ impl<S: Source> Catalog<S> {
             return Ok(None);
         };
 
+        // As the build reads them: a trim value may list several trims, a
+        // series is one name, and either may have been given a new name.
         let submodels = self.submodel_rows(vehicle.detail_id)?;
         let submodel = decoded
             .trim
             .as_deref()
-            .and_then(|trim| only_submodel(&submodels, &trim.split(',').collect::<Vec<_>>()))
+            .and_then(|trim| {
+                let names: Vec<String> = trim
+                    .split(',')
+                    .map(|part| self.submodel_name(part))
+                    .collect();
+                only_submodel(&submodels, &names)
+            })
             .or_else(|| {
                 decoded
                     .series
                     .as_deref()
-                    .and_then(|series| only_submodel(&submodels, &[series]))
+                    .and_then(|series| only_submodel(&submodels, &[self.submodel_name(series)]))
             });
 
         let engines = self.engine_rows(vehicle.detail_id, submodel.map(|row| row.id))?;

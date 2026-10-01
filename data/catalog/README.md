@@ -70,4 +70,4 @@ Recording makes 144 requests to NHTSA's API, one a second. Read every difference
 
 ## Changing the lists
 
-A change to `makes.yaml`, `names.yaml` or `presets.yaml` takes effect at the next build. Renaming a submodel in `names.yaml` changes its id.
+A change to `makes.yaml`, `names.yaml` or `presets.yaml` takes effect at the next build. Renaming a submodel in `names.yaml` changes its id. The data file keeps each replaced spelling in `catalog_rename`, so a VIN whose decode still carries vPIC's spelling (`Si/Si HPT`) selects the submodel under its new name (`Si`).

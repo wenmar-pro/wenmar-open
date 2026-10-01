@@ -329,9 +329,20 @@ fn count(transaction: &Transaction<'_>, table: &str) -> Result<u64> {
     Ok(u64::try_from(rows).unwrap_or(0))
 }
 
-/// Fills `catalog_detail`, `catalog_submodel`, `catalog_engine`,
-/// `catalog_submodel_engine` and `catalog_vehicle.detail_id`. Must run
-/// after `vehicles::build`.
+/// Writes the spellings the curated list replaces, so that a reader given
+/// vPIC's spelling by a decode finds the submodel under its new name.
+fn write_renames(transaction: &Transaction<'_>, curated: &Curated) -> Result<()> {
+    let mut insert =
+        transaction.prepare_cached("INSERT INTO catalog_rename (raw, name) VALUES (?1, ?2)")?;
+    for (raw, name) in &curated.submodel_names {
+        insert.execute(params![raw, name])?;
+    }
+    Ok(())
+}
+
+/// Fills `catalog_detail`, `catalog_submodel`, `catalog_rename`,
+/// `catalog_engine`, `catalog_submodel_engine` and
+/// `catalog_vehicle.detail_id`. Must run after `vehicles::build`.
 pub fn build(
     transaction: &Transaction<'_>,
     curated: &Curated,
@@ -343,6 +354,7 @@ pub fn build(
     let rows = load_rows(transaction).context("reading the patterns")?;
     let engine_models = load_engine_models(transaction).context("reading the engine models")?;
     let speller = load_speller(transaction, curated).context("reading the trim names")?;
+    write_renames(transaction, curated).context("writing the replaced spellings")?;
 
     // A tally per set of schemas and model, shared by the years of the set.
     let mut names = Interner::default();

@@ -83,7 +83,9 @@ fn connection() -> Connection {
                (5, 3, '5.3L V8', 'CR', 'vpic'),
                (6, 3, '6.2L', 'J', 'vpic'),
                (7, 4, '2.0L', NULL, 'preset');
-             INSERT INTO catalog_submodel_engine VALUES (2, 1);"
+             INSERT INTO catalog_submodel_engine VALUES (2, 1);
+             INSERT INTO catalog_rename VALUES
+               ('si/si hpt', 'Si'), ('touring edition', 'Touring'), ('1500 ld', '1500');"
         ))
         .unwrap();
     connection
@@ -808,6 +810,52 @@ fn a_list_of_trims_selects_no_submodel() {
     );
     let selection = catalog().selection(&decoded).unwrap().unwrap();
     assert_eq!(selection.submodel_id.as_deref(), Some("si"));
+}
+
+#[test]
+fn a_trim_the_build_renamed_selects_the_submodel_it_became() {
+    // vPIC's trim for the Civic Si is `Si/Si HPT`. The build stores it as
+    // `Si`, and a decode still says `Si/Si HPT`.
+    let trim = |raw: &str| {
+        let decoded = decode(
+            "2HG",
+            "Honda",
+            CIVIC,
+            &[
+                ("FC1**", Element::Model, "Civic"),
+                ("FC1**", Element::Trim, raw),
+                ("FC1**", Element::DisplacementL, "1.5"),
+                ("FC1**", Element::Turbo, "Yes"),
+            ],
+        );
+        catalog().selection(&decoded).unwrap().unwrap()
+    };
+    let selection = trim("Si/Si HPT");
+    assert_eq!(selection.submodel_id.as_deref(), Some("si"));
+    assert_eq!(selection.entry.id, "2019_honda_civic_si_1-5l-turbo");
+    // Matched as the build matches it: any case, spaces tidied.
+    assert_eq!(trim("SI/SI   hpt").submodel_id.as_deref(), Some("si"));
+    // Each trim of a list is renamed on its own, as the build does.
+    assert_eq!(
+        trim("Touring Edition, EX").submodel_id.as_deref(),
+        Some("touring")
+    );
+    assert_eq!(trim("Si/Si HPT, Touring Edition").submodel_id, None);
+    // A spelling that was not renamed is still not found.
+    assert_eq!(trim("Si/Si").submodel_id, None);
+
+    // A series is renamed the same way.
+    let decoded = decode(
+        "1GC",
+        "Chevrolet",
+        "1GCUYDED0KZ000001",
+        &[
+            ("*****", Element::Model, "Silverado"),
+            ("*****", Element::Series, "1500 LD"),
+        ],
+    );
+    let selection = catalog().selection(&decoded).unwrap().unwrap();
+    assert_eq!(selection.submodel_id.as_deref(), Some("1500"));
 }
 
 #[test]

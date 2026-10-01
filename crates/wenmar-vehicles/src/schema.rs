@@ -78,6 +78,14 @@ CREATE TABLE catalog_submodel (
 );
 CREATE INDEX catalog_submodel_detail ON catalog_submodel (detail_id);
 
+-- Trim and series spellings the build replaced with another name. `raw` is
+-- the spelling replaced, in lowercase with single spaces. A decode still
+-- carries the old spelling, so the reader needs these to find the submodel.
+CREATE TABLE catalog_rename (
+    raw  TEXT NOT NULL,
+    name TEXT NOT NULL
+);
+
 CREATE TABLE catalog_engine (
     id        INTEGER PRIMARY KEY,
     detail_id INTEGER NOT NULL,

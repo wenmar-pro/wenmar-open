@@ -315,6 +315,7 @@ fn leaves_no_staging_tables_behind() {
             "catalog_engine",
             "catalog_make",
             "catalog_model",
+            "catalog_rename",
             "catalog_submodel",
             "catalog_submodel_engine",
             "catalog_type",

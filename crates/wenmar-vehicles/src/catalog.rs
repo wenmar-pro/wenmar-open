@@ -1,5 +1,7 @@
 //! The catalog: the cascade a person steps through, and entries by id.
 
+use std::collections::HashMap;
+
 use serde::Serialize;
 
 use crate::id::VehicleId;
@@ -7,7 +9,7 @@ use crate::index::{MakeIndex, MakeRef, Scope, term};
 use crate::source::{Source, SourceError, Value};
 use crate::sql;
 use crate::summary::{self, Parts};
-use crate::text::{normalize, slug};
+use crate::text::{normalize, slug, squeeze};
 
 /// Why a catalog question could not be answered.
 #[derive(Debug, thiserror::Error)]
@@ -196,6 +198,9 @@ pub struct Catalog<S> {
     pub(crate) source: S,
     pub(crate) index: MakeIndex,
     types: Vec<(u32, String)>,
+    /// Trim and series spellings the build replaced, in lowercase with
+    /// single spaces, each with the name it became.
+    renames: HashMap<String, String>,
     pub(crate) years: (u16, u16),
 }
 
@@ -226,6 +231,11 @@ impl<S: Source> Catalog<S> {
             const TABLE: &str = "catalog_alias";
             aliases.push((text(&row, 0, TABLE)?, integer(&row, 1, TABLE)?));
         }
+        let mut renames = HashMap::new();
+        for row in run(sql::RENAMES)? {
+            const TABLE: &str = "catalog_rename";
+            renames.insert(text(&row, 0, TABLE)?, text(&row, 1, TABLE)?);
+        }
         let mut types = Vec::new();
         for row in run(sql::TYPES)? {
             const TABLE: &str = "catalog_type";
@@ -250,6 +260,7 @@ impl<S: Source> Catalog<S> {
             index: MakeIndex::new(makes, &aliases),
             source,
             types,
+            renames,
             years,
         })
     }
@@ -262,6 +273,18 @@ impl<S: Source> Catalog<S> {
     /// The first and last model year. `(0, 0)` when the catalog is empty.
     pub fn year_range(&self) -> (u16, u16) {
         self.years
+    }
+
+    /// The catalog's name for a trim or series as vPIC spells it. The
+    /// build replaces some spellings (`Si/Si HPT` is stored as `Si`), and a
+    /// decode still carries the old one. A spelling that was not replaced
+    /// comes back with its spaces tidied.
+    pub(crate) fn submodel_name(&self, raw: &str) -> String {
+        let name = squeeze(raw);
+        match self.renames.get(&name.to_lowercase()) {
+            Some(renamed) => renamed.clone(),
+            None => name,
+        }
     }
 
     /// vPIC's vehicle types, by id.

@@ -11,6 +11,9 @@ pub const MAKES: &str = "SELECT id, slug, name, norm, rank, types, light FROM ca
 
 pub const ALIASES: &str = "SELECT norm, make_id FROM catalog_alias";
 
+/// Spellings the build replaced: the old one in lowercase, and the name.
+pub const RENAMES: &str = "SELECT raw, name FROM catalog_rename";
+
 pub const TYPES: &str = "SELECT id, name FROM catalog_type ORDER BY id";
 
 /// `?1` light flag, `?2` type bit, `?3` leading digits of the year.
