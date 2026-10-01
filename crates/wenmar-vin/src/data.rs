@@ -70,6 +70,19 @@ pub enum Element {
     AirbagsSide,
     AirbagsCurtain,
     AirbagsKnee,
+    TractionControl,
+    DynamicBrakeSupport,
+    RearCrossTraffic,
+    ParkAssist,
+    PedestrianBraking,
+    LaneCentering,
+    WheelSizeFront,
+    WheelSizeRear,
+    Seats,
+    SeatRows,
+    /// Gross vehicle weight rating.
+    Gvwr,
+    BasePrice,
     /// A vPIC element this crate does not interpret, by its `element.id`.
     /// It is never shown in a decode, but it counts when NHTSA's rule for
     /// choosing between two model years is applied.
@@ -89,8 +102,8 @@ impl Element {
             Element::AirbagsFront => 64,
             Element::Series | Element::Trim => 61,
             Element::EngineModel => 55,
-            // Gross vehicle weight rating, seat belt type, axles.
-            Element::Other(25) => 70,
+            Element::Gvwr => 70,
+            // Seat belt type, axles.
             Element::Other(79) => 65,
             Element::Other(41) => 15,
             _ => 0,
@@ -136,6 +149,18 @@ impl Element {
             107 => Element::AirbagsSide,
             55 => Element::AirbagsCurtain,
             69 => Element::AirbagsKnee,
+            100 => Element::TractionControl,
+            170 => Element::DynamicBrakeSupport,
+            183 => Element::RearCrossTraffic,
+            105 => Element::ParkAssist,
+            171 => Element::PedestrianBraking,
+            194 => Element::LaneCentering,
+            119 => Element::WheelSizeFront,
+            120 => Element::WheelSizeRear,
+            33 => Element::Seats,
+            61 => Element::SeatRows,
+            25 => Element::Gvwr,
+            136 => Element::BasePrice,
             _ => return None,
         })
     }

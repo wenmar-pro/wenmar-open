@@ -685,7 +685,7 @@ fn elements_carry_nhtsa_weights() {
         (Element::EngineModel, 55),
         // Weighted by NHTSA but not named by this crate: GVWR, seat belt
         // type, axles.
-        (Element::Other(25), 70),
+        (Element::Gvwr, 70),
         (Element::Other(79), 65),
         (Element::Other(41), 15),
         (Element::Doors, 0),
@@ -698,14 +698,14 @@ fn elements_carry_nhtsa_weights() {
 
 #[test]
 fn elements_the_crate_does_not_name_still_count_towards_the_year() {
-    // The later year weighs 99 + 61 = 160. The earlier weighs 99 + 70 = 169,
-    // because gross vehicle weight rating (vPIC element 25) weighs 70.
+    // The later year weighs 99 + 61 = 160. The earlier weighs 99 + 65 = 164,
+    // because seat belt type (vPIC element 79) weighs 65.
     let decoded = decode(
         heavy_two_cycles()
             .with_pattern(1, "K2***", Element::Model, "Newer Coach")
             .with_pattern(1, "K2***", Element::Trim, "Deluxe")
             .with_pattern(2, "K2***", Element::Model, "Older Coach")
-            .with_pattern(2, "K2***", Element::Other(25), "Class 8"),
+            .with_pattern(2, "K2***", Element::Other(79), "Class 8"),
     );
     assert_eq!(decoded.year, Some(1993));
 }
@@ -1173,4 +1173,78 @@ fn what_the_spec_sheet_adds_counts_towards_a_heavy_vehicles_year() {
             ),
     );
     assert_eq!(decoded.year, Some(1993));
+}
+
+#[test]
+fn equipment_and_dimensions_are_reported() {
+    let decoded = decode(
+        one_schema()
+            .with_pattern(1, "K2***", Element::Model, "Kona")
+            .with_pattern(1, "K2***", Element::TractionControl, "Standard")
+            .with_pattern(1, "K2***", Element::DynamicBrakeSupport, "Standard")
+            .with_pattern(1, "K2***", Element::RearCrossTraffic, "Optional")
+            .with_pattern(1, "K2***", Element::ParkAssist, "Optional")
+            .with_pattern(1, "K2***", Element::PedestrianBraking, "Standard")
+            .with_pattern(1, "K2***", Element::LaneCentering, "Standard")
+            .with_pattern(1, "K2***", Element::WheelSizeFront, "18")
+            .with_pattern(1, "K2***", Element::WheelSizeRear, "18")
+            .with_pattern(1, "K2***", Element::Seats, "5")
+            .with_pattern(1, "K2***", Element::SeatRows, "2")
+            .with_pattern(
+                1,
+                "K2***",
+                Element::Gvwr,
+                "Class 1C: 4,001 - 5,000 lb (1,814 - 2,268 kg)",
+            )
+            .with_pattern(1, "K2***", Element::BasePrice, "24650.00"),
+    );
+    let json = serde_json::to_value(&decoded).unwrap();
+    assert_eq!(json["safety"]["traction_control"], json!("Standard"));
+    assert_eq!(json["safety"]["dynamic_brake_support"], json!("Standard"));
+    assert_eq!(json["safety"]["rear_cross_traffic"], json!("Optional"));
+    assert_eq!(json["safety"]["park_assist"], json!("Optional"));
+    assert_eq!(json["safety"]["pedestrian_braking"], json!("Standard"));
+    assert_eq!(json["safety"]["lane_centering"], json!("Standard"));
+    assert_eq!(json["wheel_size_front"], json!(18));
+    assert_eq!(json["wheel_size_rear"], json!(18));
+    assert_eq!(json["seats"], json!(5));
+    assert_eq!(json["seat_rows"], json!(2));
+    assert_eq!(
+        json["gvwr"],
+        json!("Class 1C: 4,001 - 5,000 lb (1,814 - 2,268 kg)")
+    );
+    assert_eq!(json["base_price_usd"], json!(24650.0));
+}
+
+#[test]
+fn a_base_price_that_is_not_a_positive_amount_is_left_out() {
+    for value in ["0", "-1", "free", "NaN", "1e300"] {
+        let decoded = decode(
+            one_schema()
+                .with_pattern(1, "K2***", Element::Model, "Kona")
+                .with_pattern(1, "K2***", Element::BasePrice, value),
+        );
+        assert_eq!(decoded.base_price_usd, None, "{value}");
+    }
+}
+
+#[test]
+fn the_new_elements_have_vpic_ids() {
+    for (id, element) in [
+        (100, Element::TractionControl),
+        (170, Element::DynamicBrakeSupport),
+        (183, Element::RearCrossTraffic),
+        (105, Element::ParkAssist),
+        (171, Element::PedestrianBraking),
+        (194, Element::LaneCentering),
+        (119, Element::WheelSizeFront),
+        (120, Element::WheelSizeRear),
+        (33, Element::Seats),
+        (61, Element::SeatRows),
+        (25, Element::Gvwr),
+        (136, Element::BasePrice),
+    ] {
+        assert_eq!(Element::from_vpic_id(id), Some(element), "{id}");
+    }
+    assert_eq!(Element::Gvwr.weight(), 70);
 }

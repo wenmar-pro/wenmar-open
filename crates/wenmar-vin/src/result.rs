@@ -35,6 +35,24 @@ pub struct Decoded {
     pub engine: Option<Engine>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub safety: Option<Safety>,
+    /// Front wheel diameter in inches.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wheel_size_front: Option<u8>,
+    /// Rear wheel diameter in inches.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wheel_size_rear: Option<u8>,
+    /// Number of seats.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub seats: Option<u8>,
+    /// Number of rows of seats.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub seat_rows: Option<u8>,
+    /// Gross vehicle weight rating class, as NHTSA words it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gvwr: Option<String>,
+    /// Manufacturer base price in US dollars, when NHTSA has one.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub base_price_usd: Option<f64>,
     pub manufacturer: ManufacturerInfo,
     pub plant: Plant,
     pub warnings: Vec<Warning>,
@@ -99,6 +117,24 @@ pub struct Safety {
     pub airbags_curtain: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub airbags_knee: Option<String>,
+    /// Traction control.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub traction_control: Option<String>,
+    /// Dynamic brake support.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dynamic_brake_support: Option<String>,
+    /// Rear cross traffic alert.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rear_cross_traffic: Option<String>,
+    /// Parking assist.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub park_assist: Option<String>,
+    /// Pedestrian automatic emergency braking.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pedestrian_braking: Option<String>,
+    /// Lane centering assistance.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lane_centering: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

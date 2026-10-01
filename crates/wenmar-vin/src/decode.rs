@@ -226,6 +226,12 @@ impl<D: VinData> Decoder<D> {
             transmission_speeds: count(Element::TransmissionSpeeds),
             engine: build_engine(&values),
             safety: build_safety(&values),
+            wheel_size_front: count(Element::WheelSizeFront),
+            wheel_size_rear: count(Element::WheelSizeRear),
+            seats: count(Element::Seats),
+            seat_rows: count(Element::SeatRows),
+            gvwr: text(Element::Gvwr),
+            base_price_usd: text(Element::BasePrice).and_then(|value| price(&value)),
             manufacturer: ManufacturerInfo {
                 wmi: manufacturer.wmi,
                 name: manufacturer.name.trim().to_owned(),
@@ -507,6 +513,13 @@ fn build_engine(values: &Values) -> Option<Engine> {
     Some(engine)
 }
 
+/// A base price in dollars. Anything that is not a finite amount above zero
+/// and at most 100,000,000 is not a price.
+fn price(value: &str) -> Option<f64> {
+    let amount: f64 = value.trim().parse().ok()?;
+    (amount.is_finite() && amount > 0.0 && amount <= 100_000_000.0).then_some(amount)
+}
+
 fn build_safety(values: &Values) -> Option<Safety> {
     let safety = Safety {
         abs: text(values, Element::Abs),
@@ -523,6 +536,12 @@ fn build_safety(values: &Values) -> Option<Safety> {
         airbags_side: text(values, Element::AirbagsSide),
         airbags_curtain: text(values, Element::AirbagsCurtain),
         airbags_knee: text(values, Element::AirbagsKnee),
+        traction_control: text(values, Element::TractionControl),
+        dynamic_brake_support: text(values, Element::DynamicBrakeSupport),
+        rear_cross_traffic: text(values, Element::RearCrossTraffic),
+        park_assist: text(values, Element::ParkAssist),
+        pedestrian_braking: text(values, Element::PedestrianBraking),
+        lane_centering: text(values, Element::LaneCentering),
     };
     (safety != Safety::default()).then_some(safety)
 }
