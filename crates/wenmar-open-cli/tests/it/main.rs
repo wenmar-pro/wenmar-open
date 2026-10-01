@@ -3,6 +3,7 @@
 
 mod commands;
 mod common;
+mod data;
 mod output;
 mod process;
 mod remote;

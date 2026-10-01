@@ -59,6 +59,33 @@ pub enum Command {
         #[command(subcommand)]
         command: VehiclesCommand,
     },
+    /// The local data file, for answers without a connection.
+    Data {
+        #[command(subcommand)]
+        command: DataCommand,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum DataCommand {
+    /// Download the published data file and put it in place.
+    ///
+    /// The file is about 30 MB to download and 120 MB on disk. It replaces
+    /// the one in place only once it has arrived whole and been checked.
+    Pull {
+        /// The data version to download, such as 2026.09. The default is
+        /// the newest.
+        #[arg(value_name = "VERSION")]
+        data_version: Option<String>,
+        /// Download even if that version is already in place.
+        #[arg(long)]
+        force: bool,
+        /// Where the releases are listed. Also WENMAR_OPEN_RELEASES.
+        #[arg(long, value_name = "URL")]
+        releases: Option<String>,
+    },
+    /// Say whether there is a data file, which version it is, and where.
+    Status,
 }
 
 #[derive(Debug, Subcommand)]

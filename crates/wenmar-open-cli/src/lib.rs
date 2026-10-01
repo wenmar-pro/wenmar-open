@@ -12,6 +12,7 @@ pub mod error;
 pub mod jq;
 pub mod local;
 pub mod output;
+pub mod pull;
 pub mod remote;
 pub mod render;
 pub mod request;
@@ -23,7 +24,7 @@ use clap::Parser;
 use clap::error::ErrorKind;
 
 use crate::backend::Backend;
-use crate::cli::{Cli, Command};
+use crate::cli::{Cli, Command, DataCommand};
 use crate::env::Env;
 use crate::error::{CliError, USAGE};
 use crate::output::Mode;
@@ -97,6 +98,15 @@ fn open(
     Ok(backend)
 }
 
+fn to_json<T: serde::Serialize>(value: &T) -> Result<serde_json::Value, CliError> {
+    serde_json::to_value(value).map_err(|error| {
+        CliError::new(
+            error::IO,
+            format!("the answer could not be written: {error}"),
+        )
+    })
+}
+
 fn execute(
     cli: Cli,
     env: &Env,
@@ -107,6 +117,28 @@ fn execute(
     let request = match cli.command {
         Some(Command::Vin { command }) => command.request(),
         Some(Command::Vehicles { command }) => command.request(),
+        Some(Command::Data { command }) => {
+            let directory = env.data_directory(cli.global.data_dir.as_deref())?;
+            return match command {
+                DataCommand::Status => {
+                    let status = data::inspect(&directory.join(env::DATA_FILE));
+                    output::answer(stdout, mode, &to_json(&status)?, render::status)
+                }
+                DataCommand::Pull {
+                    data_version,
+                    force,
+                    releases,
+                } => {
+                    let pulled = pull::pull(
+                        &directory,
+                        &env.releases_url(releases.as_deref()),
+                        data_version.as_deref(),
+                        force,
+                    )?;
+                    output::answer(stdout, mode, &to_json(&pulled)?, render::pulled)
+                }
+            };
+        }
         None => {
             return Err(CliError::new(USAGE, "a command is required")
                 .with_hint("Run `wenmar-open --help` for the commands."));

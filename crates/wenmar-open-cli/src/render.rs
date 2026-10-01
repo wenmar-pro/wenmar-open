@@ -265,6 +265,62 @@ fn batch(value: &Value) -> String {
     parts.join("\n")
 }
 
+/// A size in megabytes, as `122.0 MB`.
+fn megabytes(value: &Value) -> Option<String> {
+    let bytes = value.as_u64()?;
+    let tenths = bytes.saturating_mul(10) / (1024 * 1024);
+    Some(format!("{}.{} MB", tenths / 10, tenths % 10))
+}
+
+/// What `data status` reports, as text.
+pub fn status(value: &Value) -> String {
+    let path = cell(value, "path");
+    if value["installed"] != true {
+        return format!(
+            "There is no data file at {path}.\nAnswers come from the hosted API. Run `wenmar-open data pull` to download the data file and work without a connection.\n"
+        );
+    }
+    if let Some(problem) = field(value, "problem") {
+        return format!(
+            "The data file at {path} cannot be used: {problem}.\nRun `wenmar-open data pull` to replace it.\n"
+        );
+    }
+    let mut rows = vec![vec!["Data file".to_owned(), path]];
+    rows.push(vec![
+        "Version".to_owned(),
+        format!(
+            "{} (schema {})",
+            cell(value, "data_version"),
+            cell(value, "schema_version")
+        ),
+    ]);
+    if let Some(built) = field(value, "built_at") {
+        let from = field(value, "vpic_release")
+            .map(|release| format!(" from {release}"))
+            .unwrap_or_default();
+        rows.push(vec!["Built".to_owned(), format!("{built}{from}")]);
+    }
+    if let Some(size) = megabytes(&value["bytes"]) {
+        rows.push(vec!["Size".to_owned(), size]);
+    }
+    table(&rows)
+}
+
+/// What `data pull` did, as text.
+pub fn pulled(value: &Value) -> String {
+    let (version, path) = (cell(value, "data_version"), cell(value, "path"));
+    if value["updated"] != true {
+        return format!("Data {version} is already in place at {path}.\n");
+    }
+    let size = megabytes(&value["bytes"])
+        .map(|size| format!(" ({size})"))
+        .unwrap_or_default();
+    let replaced = field(value, "previous")
+        .map(|previous| format!(" It replaces {previous}."))
+        .unwrap_or_default();
+    format!("Data {version} is in place at {path}{size}.{replaced}\n")
+}
+
 /// The answer to a request, as text.
 pub fn text(request: &Request, value: &Value) -> String {
     let action = match request {
@@ -541,7 +597,59 @@ Vehicle types  Passenger Car
     }
 
     #[test]
+    fn the_data_file_is_described_in_a_few_lines() {
+        let installed = json!({
+            "installed": true,
+            "usable": true,
+            "path": "/data/wenmar-open.sqlite3",
+            "bytes": 127_926_272,
+            "data_version": "2026.09",
+            "schema_version": "3",
+            "reads_schema_version": "3",
+            "vpic_release": "vPICList_lite_2026_09",
+            "built_at": "2026-10-01 04:25:57"
+        });
+        assert_eq!(
+            status(&installed),
+            "\
+Data file  /data/wenmar-open.sqlite3
+Version    2026.09 (schema 3)
+Built      2026-10-01 04:25:57 from vPICList_lite_2026_09
+Size       122.0 MB
+"
+        );
+        let missing = json!({ "installed": false, "usable": false, "path": "/data/wenmar-open.sqlite3", "reads_schema_version": "3" });
+        assert_eq!(
+            status(&missing),
+            "There is no data file at /data/wenmar-open.sqlite3.\nAnswers come from the hosted API. Run `wenmar-open data pull` to download the data file and work without a connection.\n"
+        );
+        let old = json!({ "installed": true, "usable": false, "path": "/d/f", "problem": "it has schema version 2 and this build reads version 3" });
+        assert_eq!(
+            status(&old),
+            "The data file at /d/f cannot be used: it has schema version 2 and this build reads version 3.\nRun `wenmar-open data pull` to replace it.\n"
+        );
+    }
+
+    #[test]
+    fn a_pull_says_what_it_did() {
+        assert_eq!(
+            pulled(
+                &json!({ "updated": true, "data_version": "2026.09", "previous": "2026.08", "path": "/d/f", "bytes": 127_926_272 })
+            ),
+            "Data 2026.09 is in place at /d/f (122.0 MB). It replaces 2026.08.\n"
+        );
+        assert_eq!(
+            pulled(&json!({ "updated": false, "data_version": "2026.09", "path": "/d/f" })),
+            "Data 2026.09 is already in place at /d/f.\n"
+        );
+    }
+
+    #[test]
     fn json_of_another_shape_is_rendered_without_failing() {
+        for value in [json!(null), json!(7), json!({}), json!([1])] {
+            let _ = status(&value);
+            let _ = pulled(&value);
+        }
         for value in [
             json!(null),
             json!(7),
