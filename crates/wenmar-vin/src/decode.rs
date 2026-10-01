@@ -90,9 +90,13 @@ impl<D: VinData> Decoder<D> {
                 model_year::candidates(&vin, current, manufacturer.light_vehicle)
             }
         };
-        // Position 7 does not settle the cycle for every vehicle type, so each
-        // candidate year is decoded and the best is kept: one that resolves a
+        // For cars, MPVs and light trucks position 7 settles the cycle, so the
+        // first candidate year that has any schema is final, as in NHTSA's
+        // decoder. A new model missing from the data must not turn into a
+        // 30-year-old one. For other vehicles the cycle is not settled, so
+        // each candidate is decoded and the best is kept: one that resolves a
         // model, else one that resolves anything, else the likeliest year.
+        let conclusive = manufacturer.light_vehicle;
         let key = vin.match_key();
         let mut best: Option<Attempt> = None;
         for candidate in &years {
@@ -129,7 +133,7 @@ impl<D: VinData> Decoder<D> {
                     year_from,
                 });
             }
-            if score == 2 {
+            if score == 2 || conclusive {
                 break;
             }
         }

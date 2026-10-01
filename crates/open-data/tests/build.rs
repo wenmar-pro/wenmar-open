@@ -47,6 +47,7 @@ COPY vpic.wmi (id, wmi, manufacturerid, vehicletypeid, countryid, publicavailabi
 2~KMH~500~7~3~2015-01-01 00:00:00~\\N
 3~1M8~500~5~\\N~2015-01-01 00:00:00~\\N
 4~ZZZ~500~7~3~2099-01-01 00:00:00~\\N
+5~NUL~500~7~3~\\N~\\N
 \\.
 COPY vpic.wmi_make (wmiid, makeid) FROM stdin;
 1~498
@@ -261,4 +262,34 @@ fn a_table_with_no_rows_is_staged_and_dropped_like_any_other() {
     );
     let summary = build(with_empty.as_bytes(), &built.path, &info()).unwrap();
     assert_eq!(summary.patterns, 4);
+}
+
+#[test]
+fn a_code_with_no_public_date_is_left_out() {
+    // NHTSA's decoder requires the date to be on or before now, which a
+    // missing date never is.
+    let built = Built::new("no-date");
+    build(dump().as_bytes(), &built.path, &info()).unwrap();
+    let connection = Connection::open(&built.path).unwrap();
+    assert_eq!(
+        text(&connection, "SELECT code FROM wmi WHERE code = 'NUL'"),
+        Vec::<String>::new()
+    );
+}
+
+#[test]
+fn a_dump_that_yields_no_patterns_is_an_error() {
+    // If NHTSA changes the dump's layout, the build must fail loudly instead
+    // of producing a data file that decodes nothing.
+    let built = Built::new("thin");
+    let full = dump();
+    let start = full.find("COPY vpic.pattern ").unwrap();
+    let header_end = start + full[start..].find('\n').unwrap() + 1;
+    let block_end = header_end + full[header_end..].find("\\.\n").unwrap();
+    let without_rows = format!("{}{}", &full[..header_end], &full[block_end..]);
+    let error = build(without_rows.as_bytes(), &built.path, &info())
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("no patterns"), "{error}");
+    assert!(!built.path.exists());
 }

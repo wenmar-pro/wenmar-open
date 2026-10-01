@@ -129,7 +129,7 @@ fn shape_manufacturers(transaction: &Transaction<'_>, built_at: &str) -> Result<
          LEFT JOIN raw_manufacturer m ON m.id = w.manufacturerid
          LEFT JOIN raw_country c ON c.id = w.countryid
          LEFT JOIN raw_vehicletype vt ON vt.id = w.vehicletypeid
-         WHERE w.publicavailabilitydate IS NULL OR w.publicavailabilitydate <= ?1",
+         WHERE w.publicavailabilitydate <= ?1",
         [built_at],
     )?;
     Ok(())
@@ -257,6 +257,17 @@ fn build_into<R: BufRead>(dump: R, output: &Path, info: &BuildInfo) -> Result<Su
     shape_manufacturers(&transaction, &info.built_at)?;
     shape_schema_links(&transaction)?;
     shape_patterns(&transaction, &staged)?;
+    // A change in the dump's layout must fail here, not ship a file that
+    // decodes nothing.
+    for (table, what) in [
+        ("wmi", "manufacturer codes"),
+        ("wmi_schema", "schema links"),
+        ("pattern", "patterns"),
+    ] {
+        if count(&transaction, table)? == 0 {
+            bail!("the dump produced no {what}; its layout may have changed");
+        }
+    }
     for (key, value) in [
         ("schema_version", SCHEMA_VERSION),
         ("data_version", info.data_version.as_str()),
