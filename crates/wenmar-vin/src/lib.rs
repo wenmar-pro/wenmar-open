@@ -5,3 +5,5 @@ pub mod vin;
 
 pub use error::{InvalidChar, VinError};
 pub use vin::Vin;
+pub mod check_digit;
+pub use check_digit::CheckDigit;
