@@ -144,4 +144,69 @@ fn control_characters_in_the_data_do_not_reach_a_terminal() {
     let run = common::run(&common::env(&fixture), &["vin", "decode", HOSTILE]);
     assert_eq!(run.json()["model"], "Kona\u{1b}[31m\u{7} Red");
     assert!(!run.stdout.contains('\u{1b}'));
+    // --jq writes text without its quotes: at a terminal it is cleaned as
+    // any other text is, and piped it is the text exactly.
+    for expression in [".model", "[.model, .make] | join(\"\\r\\n\")"] {
+        let args = ["vin", "decode", HOSTILE, "--jq", expression];
+        let run = common::run(&terminal(&fixture), &args);
+        assert_eq!(run.code, 0, "{}", run.stderr);
+        assert!(
+            run.stdout.starts_with("Kona\u{fffd}[31m\u{fffd} Red"),
+            "{:?}",
+            run.stdout
+        );
+        assert!(
+            !run.stdout
+                .chars()
+                .any(|character| character.is_control() && character != '\n'),
+            "{:?}",
+            run.stdout
+        );
+        let run = common::run(&common::env(&fixture), &args);
+        assert!(
+            run.stdout.starts_with("Kona\u{1b}[31m\u{7} Red"),
+            "{:?}",
+            run.stdout
+        );
+    }
+}
+
+#[test]
+fn the_jq_command_filters_json_from_standard_input() {
+    let fixture = common::empty_dir();
+    let env = common::env(&fixture);
+    let run = common::run_with_input(
+        &env,
+        &["jq", "--", ".[].id"],
+        br#"[{"id":"ford"},{"id":7}]"#,
+    );
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(run.stdout, "ford\n7\n");
+    // An expression may start with a dash.
+    let run = common::run_with_input(&env, &["jq", "--", "-(.a)"], br#"{"a":1}"#);
+    assert_eq!(run.stdout, "-1\n");
+    // What it fails with is what --jq fails with.
+    let run = common::run_with_input(&env, &["jq", "--", ".["], b"1");
+    assert_eq!((run.code, run.stdout.as_str()), (2, ""));
+    assert_eq!(run.error()["error"]["code"], "usage");
+    let run = common::run_with_input(&env, &["jq", "--", ".a"], b"1");
+    assert_eq!(run.code, 1);
+    assert_eq!(
+        run.error()["error"]["message"],
+        "the --jq expression failed: cannot index 1 with \"a\""
+    );
+    let run = common::run_with_input(&env, &["jq", "--", "."], b"not json");
+    assert_eq!(run.code, 1);
+    assert_eq!(run.error()["error"]["code"], "jq_error");
+    // It never waits for a person to type.
+    let typing = Env {
+        stdin_terminal: true,
+        ..common::env(&fixture)
+    };
+    let run = common::run(&typing, &["jq", "--", "."]);
+    assert_eq!(run.code, 2);
+    assert_eq!(run.error()["error"]["code"], "usage");
+    // It is --jq's own worker, and the help does not list it.
+    let run = common::run(&env, &["--help"]);
+    assert!(!run.stdout.contains("  jq "), "{}", run.stdout);
 }

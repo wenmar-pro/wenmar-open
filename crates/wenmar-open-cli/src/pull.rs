@@ -236,10 +236,10 @@ fn not_written(path: &Path, cause: &std::io::Error) -> CliError {
 }
 
 /// Downloads `url` and unpacks it into `part`. Returns the unpacked size.
-fn download(url: &str, part: &Path) -> Result<u64, CliError> {
-    // No limit on the whole transfer: the file is large and a connection
-    // may be slow. A connection that stops answering still ends it.
-    let response = remote::agent(None)
+fn download(url: &str, part: &Path, patience: Patience) -> Result<u64, CliError> {
+    // A server that takes the request and does not answer, or stops part
+    // way through the body, ends the download when `patience` runs out.
+    let response = remote::download_agent(patience.response, patience.body)
         .get(url)
         .call()
         .map_err(|error| not_whole(&error))?;
@@ -309,12 +309,44 @@ fn verify(part: &Path, release: &Release) -> Result<Status, CliError> {
     Ok(status)
 }
 
+/// How long a download may wait for the server.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Patience {
+    /// For the answer to begin, once the request has been sent.
+    pub response: Duration,
+    /// For the whole body to arrive, once the answer has begun. It is a
+    /// limit on the body as a whole and not on a pause in it, so it has to
+    /// leave room for a slow connection: the default is half an hour, which
+    /// a 50 MB download meets at 28 KB a second.
+    pub body: Duration,
+}
+
+impl Default for Patience {
+    fn default() -> Patience {
+        Patience {
+            response: Duration::from_secs(30),
+            body: Duration::from_secs(30 * 60),
+        }
+    }
+}
+
 /// Downloads a data release into `directory` and puts it in place.
 pub fn pull(
     directory: &Path,
     releases_url: &str,
     version: Option<&str>,
     force: bool,
+) -> Result<Pulled, CliError> {
+    pull_with(directory, releases_url, version, force, Patience::default())
+}
+
+/// [`pull`], waiting for the download only as long as `patience` says.
+pub fn pull_with(
+    directory: &Path,
+    releases_url: &str,
+    version: Option<&str>,
+    force: bool,
+    patience: Patience,
 ) -> Result<Pulled, CliError> {
     let path = directory.join(DATA_FILE);
     let release = find(releases_url, version)?;
@@ -342,7 +374,7 @@ pub fn pull(
     remove_stale_parts(directory);
 
     let part = Part(directory.join(format!("{DATA_FILE}.{}.part", std::process::id())));
-    let bytes = download(&release.url, &part.0)?;
+    let bytes = download(&release.url, &part.0, patience)?;
     verify(&part.0, &release)?;
     std::fs::rename(&part.0, &path).map_err(|error| {
         CliError::new(

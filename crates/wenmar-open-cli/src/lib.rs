@@ -44,11 +44,7 @@ pub fn run(
     let mut mode = Mode::before_parsing(&args, env.stdout_terminal);
     let outcome = match Cli::try_parse_from(args) {
         Ok(cli) => {
-            mode = Mode::choose(
-                cli.global.json,
-                cli.global.jq.as_deref(),
-                env.stdout_terminal,
-            );
+            mode = Mode::choose(cli.global.json, cli.global.jq.as_deref(), env);
             execute(cli, env, &mode, stdin, stdout, stderr)
         }
         Err(problem) => match problem.kind() {
@@ -143,6 +139,9 @@ fn execute(
             } else {
                 Err(doctor::unhealthy())
             };
+        }
+        Some(Command::Jq { expression }) => {
+            return jq::command(&expression, env, stdin, stdout);
         }
         Some(Command::Vin { command }) => command.request(),
         Some(Command::Vehicles { command }) => command.request(),

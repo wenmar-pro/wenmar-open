@@ -188,6 +188,89 @@ fn an_interrupted_download_changes_nothing() {
     );
 }
 
+/// A server that reads a request, sends `sent`, and then holds the
+/// connection open without another byte for as long as the tests run.
+/// Returns its host and port.
+fn stalling(sent: Vec<u8>) -> String {
+    use std::io::{BufRead, BufReader};
+
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let host = listener.local_addr().unwrap().to_string();
+    std::thread::spawn(move || {
+        let mut held = Vec::new();
+        for stream in listener.incoming() {
+            let Ok(mut stream) = stream else { continue };
+            let mut reader = BufReader::new(stream.try_clone().unwrap());
+            loop {
+                let mut line = String::new();
+                if reader.read_line(&mut line).unwrap_or(0) == 0 || line == "\r\n" {
+                    break;
+                }
+            }
+            let _ = stream.write_all(&sent);
+            let _ = stream.flush();
+            held.push(stream);
+        }
+    });
+    host
+}
+
+#[test]
+fn a_download_that_stops_arriving_ends_and_changes_nothing() {
+    use std::time::Duration;
+
+    use wenmar_open_cli::pull::{self, Patience};
+
+    let file = packed("3", "2026.09");
+    // A quarter of the body arrives and then nothing more does.
+    let mut part_way = format!(
+        "HTTP/1.1 200 OK\r\nContent-Type: application/gzip\r\nContent-Length: {}\r\n\r\n",
+        file.len()
+    )
+    .into_bytes();
+    part_way.extend_from_slice(&file[..file.len() / 4]);
+    // Or the server takes the request and never answers it.
+    let silent = Vec::new();
+
+    for sent in [part_way, silent] {
+        let host = stalling(sent);
+        let server = server::serve(move |request: &Seen| match request.target.as_str() {
+            "/releases?per_page=100" => Reply::json(200, &json!([release(&host, "2026.09")])),
+            _ => Reply::json(404, &json!({ "message": "Not Found" })),
+        });
+        let fixture = common::empty_dir();
+        common::write_data_file(&fixture.file(), "3", "2026.07");
+        let before = std::fs::read(fixture.file()).unwrap();
+
+        // The pull runs on a thread of its own, so that one which waits
+        // for ever fails this test and does not hang it.
+        let directory = fixture.directory().to_path_buf();
+        let releases = format!("{}/releases", server.url());
+        let patience = Patience {
+            response: Duration::from_millis(500),
+            body: Duration::from_millis(500),
+        };
+        let (done, outcome) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            let _ = done.send(pull::pull_with(
+                &directory, &releases, None, false, patience,
+            ));
+        });
+        let error = outcome
+            .recv_timeout(Duration::from_secs(20))
+            .expect("the download was still waiting after 20 seconds")
+            .unwrap_err();
+        assert_eq!(error.code, "download_failed", "{error:?}");
+        assert_eq!(error.exit_code(), 1);
+        assert_eq!(
+            error.hint(),
+            Some("Nothing was changed. Run `wenmar-open data pull` again.")
+        );
+        assert_eq!(fixture.files(), ["wenmar-open.sqlite3"]);
+        assert_eq!(std::fs::read(fixture.file()).unwrap(), before);
+    }
+}
+
 #[test]
 fn a_corrupted_download_changes_nothing() {
     let file = packed("3", "2026.09");

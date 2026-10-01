@@ -35,6 +35,9 @@ pub struct Env {
     pub home: Option<PathBuf>,
     /// `PATH`, for finding `claude` and `codex`.
     pub path: Option<std::ffi::OsString>,
+    /// This program's own file. `--jq` runs its expression in a second
+    /// process of it; without one the expression runs in this process.
+    pub program: Option<PathBuf>,
     pub stdin_terminal: bool,
     pub stdout_terminal: bool,
     /// `NO_COLOR` is set to something.
@@ -56,6 +59,7 @@ impl Env {
             platform_data_dir: dirs::data_dir(),
             home: dirs::home_dir(),
             path: variable("PATH"),
+            program: std::env::current_exe().ok(),
             stdin_terminal: std::io::stdin().is_terminal(),
             stdout_terminal: std::io::stdout().is_terminal(),
             no_color: variable("NO_COLOR").is_some(),

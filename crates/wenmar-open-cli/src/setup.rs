@@ -302,12 +302,13 @@ mod tests {
         }
     }
 
-    /// The names of every command that has no commands under it.
+    /// The names of every command that has no commands under it. A hidden
+    /// command is the tool's own and is not one to tell an agent about.
     fn leaves(command: &clap::Command, prefix: &str, found: &mut Vec<String>) {
         let name = format!("{prefix}{}", command.get_name());
         let mut under = command
             .get_subcommands()
-            .filter(|sub| sub.get_name() != "help")
+            .filter(|sub| sub.get_name() != "help" && !sub.is_hide_set())
             .peekable();
         if under.peek().is_none() {
             found.push(name);

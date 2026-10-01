@@ -92,6 +92,17 @@ pub enum Command {
     },
     /// Check the data file and the API, and say which of them answers.
     Doctor,
+    /// Filter JSON from standard input with a jq expression.
+    ///
+    /// This is what `--jq` runs, in a process of its own: an expression
+    /// that calls itself without end uses up the stack, which ends the
+    /// process it runs in, and this way that is not the one that answers.
+    #[command(hide = true)]
+    Jq {
+        /// The jq expression.
+        #[arg(allow_hyphen_values = true)]
+        expression: String,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -212,6 +223,12 @@ pub enum VehiclesCommand {
         term: Option<String>,
     },
     /// Catalog entries for free text, best first: 2019 civic si
+    ///
+    /// The local data file reads the text as a year, a make, a model and a
+    /// submodel, in that order. The hosted API also finds a model from its
+    /// own words in any order, such as `type r` or `hd 2500`. So a search
+    /// that finds nothing from the data file may still find something
+    /// with --online.
     Search {
         /// What someone would type. Several words need no quotes.
         #[arg(required = true, value_name = "TEXT")]

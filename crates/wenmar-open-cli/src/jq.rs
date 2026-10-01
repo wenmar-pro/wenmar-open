@@ -3,13 +3,26 @@
 //! The `jaq` crates run the expression. A result that is text is written
 //! as it is, without quotes, so `--jq .make` gives `Hyundai`; anything
 //! else is written as one line of JSON.
+//!
+//! The interpreter calls itself as the expression does, and nothing in it
+//! counts how deep it is. An expression that calls itself without end, such
+//! as `def f: 1 + f; f`, uses up the stack, and that ends the process it
+//! runs in on the spot: it cannot be caught. So `--jq` hands the expression
+//! to a second process of this program, the hidden `jq` command, and
+//! reports what became of it.
+
+use std::io::{BufRead, Write};
+use std::path::Path;
+use std::process::{Command, Stdio};
 
 use jaq_core::load::{Arena, File, Loader};
 use jaq_core::{Compiler, Ctx, Vars, data, unwrap_valr};
 use jaq_json::Val;
 use serde_json::Value;
 
+use crate::env::Env;
 use crate::error::{CliError, JQ_ERROR, USAGE};
+use crate::output::{self, Mode};
 
 /// The longest expression read, in bytes.
 const LONGEST: usize = 1_000;
@@ -45,7 +58,99 @@ fn refuse() -> CliError {
         .with_hint("It is a jq expression, such as `.make` or `.[].id`.")
 }
 
-/// The lines `expression` writes for `value`, in order.
+/// The hidden command that runs an expression in a process of its own.
+const WORKER: &str = "jq";
+
+fn unreadable_answer() -> CliError {
+    CliError::new(JQ_ERROR, "the answer could not be given to --jq")
+}
+
+/// The worker ended without saying why: it was ended from outside, as it
+/// is when the stack or the memory runs out.
+fn stopped() -> CliError {
+    CliError::new(JQ_ERROR, "the --jq expression stopped before it finished").with_hint(
+        "An expression that calls itself without end, or builds something very large, runs out of room.",
+    )
+}
+
+/// What `expression` writes for `value`: each result and the end of its
+/// line. With a `worker`, this program's own file, the expression runs in
+/// a second process; without one, or if that process cannot be started, it
+/// runs in this one.
+pub fn written(expression: &str, value: &Value, worker: Option<&Path>) -> Result<String, CliError> {
+    if !within_bounds(expression) {
+        return Err(refuse());
+    }
+    if let Some(outcome) = worker.and_then(|program| apart(program, expression, value)) {
+        return outcome;
+    }
+    let mut lines = filter(expression, value)?.join("\n");
+    if !lines.is_empty() {
+        lines.push('\n');
+    }
+    Ok(lines)
+}
+
+/// Runs the expression in a second process. `None` when it could not be
+/// started.
+fn apart(program: &Path, expression: &str, value: &Value) -> Option<Result<String, CliError>> {
+    let mut child = Command::new(program)
+        .args([WORKER, "--"])
+        .arg(expression)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .ok()?;
+    // The worker reads all of this before it writes anything. If it has
+    // ended already, the write fails and how it ended says why.
+    if let Some(mut input) = child.stdin.take() {
+        let _ = input.write_all(value.to_string().as_bytes());
+    }
+    let Ok(output) = child.wait_with_output() else {
+        return Some(Err(stopped()));
+    };
+    if output.status.success() {
+        return Some(String::from_utf8(output.stdout).map_err(|_| stopped()));
+    }
+    // An error the worker reported is JSON, as every error is. What a
+    // process says as it is ended is not, and is not passed on.
+    let reported = serde_json::from_slice::<Value>(&output.stderr)
+        .ok()
+        .and_then(|body| CliError::from_body(&body));
+    Some(Err(reported.unwrap_or_else(stopped)))
+}
+
+/// The hidden `jq` command: filters the JSON on standard input with
+/// `expression`, in this process.
+pub fn command(
+    expression: &str,
+    env: &Env,
+    stdin: &mut dyn BufRead,
+    stdout: &mut dyn Write,
+) -> Result<(), CliError> {
+    if env.stdin_terminal {
+        return Err(
+            CliError::new(USAGE, "jq reads JSON from standard input").with_hint(
+                "Add --jq to a command instead, as in `wenmar-open vehicles makes --jq .[].id`.",
+            ),
+        );
+    }
+    let mut text = String::new();
+    stdin
+        .read_to_string(&mut text)
+        .map_err(|_| unreadable_answer())?;
+    let value: Value = serde_json::from_str(&text).map_err(|_| unreadable_answer())?;
+    let here = Mode::Jq {
+        expression: expression.to_owned(),
+        terminal: env.stdout_terminal,
+        worker: None,
+    };
+    output::answer(stdout, &here, &value, |_| String::new())
+}
+
+/// The lines `expression` writes for `value`, in order, worked out in this
+/// process.
 pub fn filter(expression: &str, value: &Value) -> Result<Vec<String>, CliError> {
     if !within_bounds(expression) {
         return Err(refuse());
@@ -82,7 +187,7 @@ fn run(expression: &str, value: &Value) -> Result<Vec<String>, CliError> {
         .map_err(|_| refuse())?;
 
     let input = jaq_json::read::parse_single(value.to_string().as_bytes())
-        .map_err(|_| CliError::new(JQ_ERROR, "the answer could not be given to --jq"))?;
+        .map_err(|_| unreadable_answer())?;
     let context = Ctx::<data::JustLut<Val>>::new(&compiled.lut, Vars::new([]));
     let mut lines = Vec::new();
     for result in compiled.id.run((context, input)).map(unwrap_valr) {
@@ -158,6 +263,29 @@ mod tests {
             assert!(expression.len() <= 1_000);
             let _ = filter(&expression, &json!({ "a": null }));
         }
+    }
+
+    #[test]
+    fn what_is_written_is_each_result_and_the_end_of_its_line() {
+        let value = json!([{ "id": "ford" }, { "id": "kia" }]);
+        assert_eq!(written(".[].id", &value, None).unwrap(), "ford\nkia\n");
+        assert_eq!(written("empty", &value, None).unwrap(), "");
+        assert_eq!(written(".[", &value, None).unwrap_err().code, "usage");
+    }
+
+    #[test]
+    fn a_worker_that_cannot_be_started_leaves_the_expression_to_this_process() {
+        let nowhere = tempfile::tempdir().unwrap();
+        let missing = nowhere.path().join("wenmar-open");
+        let value = json!({ "make": "Hyundai" });
+        assert_eq!(
+            written(".make", &value, Some(&missing)).unwrap(),
+            "Hyundai\n"
+        );
+        // One too long or too deep is refused before anything is started.
+        let deep = format!("{}1{}", "(".repeat(33), ")".repeat(33));
+        let error = written(&deep, &value, Some(&missing)).unwrap_err();
+        assert_eq!(error.code, "usage");
     }
 
     #[test]

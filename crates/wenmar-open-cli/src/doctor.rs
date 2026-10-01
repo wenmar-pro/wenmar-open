@@ -91,12 +91,13 @@ pub fn unhealthy() -> CliError {
         .with_hint("Check the connection, or run `wenmar-open data pull` when there is one.")
 }
 
-/// Every command that has no commands under it, with what it does.
+/// Every command that has no commands under it, with what it does. A
+/// hidden command is the tool's own and is left out, as the help leaves it.
 fn commands(command: &clap::Command, prefix: &str, found: &mut Vec<Value>) {
     let name = format!("{prefix}{}", command.get_name());
     let mut under = command
         .get_subcommands()
-        .filter(|sub| sub.get_name() != "help")
+        .filter(|sub| sub.get_name() != "help" && !sub.is_hide_set())
         .peekable();
     if under.peek().is_none() {
         let about = command

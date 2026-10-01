@@ -345,6 +345,19 @@ fn help_and_version_go_to_standard_output() {
 }
 
 #[test]
+fn the_help_and_the_skill_say_that_search_finds_more_online() {
+    let env = common::env(&common::empty_dir());
+    let run = common::run(&env, &["vehicles", "search", "--help"]);
+    assert_eq!(run.code, 0);
+    for text in [run.stdout.as_str(), wenmar_open_cli::setup::SKILL] {
+        // The data file reads the text as a year, a make, a model and a
+        // submodel. The hosted API also finds a model from its own words.
+        assert!(text.contains("type r"), "{text}");
+        assert!(text.contains("--online"), "{text}");
+    }
+}
+
+#[test]
 fn with_no_data_file_the_error_says_how_to_get_one() {
     let fixture = common::empty_dir();
     let run = common::run(

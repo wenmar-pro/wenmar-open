@@ -41,6 +41,12 @@ wenmar-open vehicles search chevy 1500 --limit 5
 wenmar-open vehicles search f150 --jq '.[0].id'
 ```
 
+Search finds more online than offline. From the local data file the text is read as a year, a make, a model and a submodel, in that order. The hosted API also finds a model from its own words in any order, such as `type r` or `hd 2500`. So an empty list from the data file does not mean the vehicle does not exist: ask again with `--online`, or write the model out, as in `civic type r`.
+
+```bash
+wenmar-open vehicles search type r --online
+```
+
 Or step by step. Each step offers only what is valid for the steps before it:
 
 ```bash

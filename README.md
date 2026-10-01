@@ -121,6 +121,8 @@ cargo build -p wenmar-open-cli
 
 It answers from a local data file when there is one and from the hosted API otherwise. `wenmar-open data pull` downloads the data file, after which nothing needs a connection. `--offline` and `--online` force one or the other, and `--api URL` or `WENMAR_OPEN_API` names another server.
 
+Free-text search finds more online than offline. The data file reads the text as a year, a make, a model and a submodel, in that order. The hosted API also finds a model from its own words in any order, so `vehicles search type r` finds the Civic Type R with `--online` and nothing from the data file, where `vehicles search civic type r` finds it.
+
 Piped, the output is JSON; at a terminal it is text. `--json` prints JSON at a terminal too, and `--jq EXPR` filters it with a jq expression. An error is JSON on standard error, in the API's shape, with a non-zero exit code.
 
 For AI agents: `wenmar-open mcp` is an MCP server on standard input and output with two tools, `wenmar_vin` and `wenmar_vehicles`. `wenmar-open setup claude` or `wenmar-open setup codex` writes a skill file that describes the commands and prints the command that registers the MCP server. `wenmar-open doctor` says whether the data file and the API can answer.

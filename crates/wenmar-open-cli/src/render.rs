@@ -23,6 +23,12 @@ pub fn clean(text: &str) -> String {
         .collect()
 }
 
+/// Text of several lines, with every control character replaced except the
+/// ends of the lines.
+pub fn clean_lines(text: &str) -> String {
+    text.split('\n').map(clean).collect::<Vec<_>>().join("\n")
+}
+
 /// A JSON value as one piece of text: a string without its quotes, a
 /// number or boolean as written. `None` for null, lists and objects.
 fn scalar(value: &Value) -> Option<String> {

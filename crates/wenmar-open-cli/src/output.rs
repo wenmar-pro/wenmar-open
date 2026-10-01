@@ -1,11 +1,13 @@
 //! What is written to standard output and standard error.
 
 use std::io::Write;
+use std::path::PathBuf;
 
 use serde_json::Value;
 
+use crate::env::Env;
 use crate::error::CliError;
-use crate::jq;
+use crate::{jq, render};
 
 /// How answers are written.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -15,17 +17,28 @@ pub enum Mode {
     /// JSON. Indented at a terminal, one line otherwise.
     Json { pretty: bool },
     /// The JSON, filtered with a jq expression.
-    Jq(String),
+    Jq {
+        expression: String,
+        /// Whether a terminal shows the results. Text results are written
+        /// without quotes, so there they are cleaned as other text is.
+        terminal: bool,
+        /// The program that runs the expression in a process of its own.
+        worker: Option<PathBuf>,
+    },
 }
 
 impl Mode {
     /// `--jq` wins, then `--json`. Without either: text at a terminal and
     /// JSON anywhere else.
-    pub fn choose(json: bool, jq: Option<&str>, stdout_terminal: bool) -> Mode {
+    pub fn choose(json: bool, jq: Option<&str>, env: &Env) -> Mode {
         match jq {
-            Some(expression) => Mode::Jq(expression.to_owned()),
-            None if json || !stdout_terminal => Mode::Json {
-                pretty: stdout_terminal,
+            Some(expression) => Mode::Jq {
+                expression: expression.to_owned(),
+                terminal: env.stdout_terminal,
+                worker: env.program.clone(),
+            },
+            None if json || !env.stdout_terminal => Mode::Json {
+                pretty: env.stdout_terminal,
             },
             None => Mode::Text,
         }
@@ -74,12 +87,17 @@ pub fn answer(
     match mode {
         Mode::Text => write(out, &text(value)),
         Mode::Json { pretty } => write(out, &(json_text(value, *pretty) + "\n")),
-        Mode::Jq(expression) => {
-            let mut lines = jq::filter(expression, value)?.join("\n");
-            if !lines.is_empty() {
-                lines.push('\n');
+        Mode::Jq {
+            expression,
+            terminal,
+            worker,
+        } => {
+            let lines = jq::written(expression, value, worker.as_deref())?;
+            if *terminal {
+                write(out, &render::clean_lines(&lines))
+            } else {
+                write(out, &lines)
             }
-            write(out, &lines)
         }
     }
 }
@@ -89,15 +107,15 @@ pub fn answer(
 pub fn error(err: &mut dyn Write, mode: &Mode, error: &CliError) {
     let text = match mode {
         Mode::Text => {
-            let mut text = format!("error: {}\n", crate::render::clean(&error.message));
+            let mut text = format!("error: {}\n", render::clean(&error.message));
             if let Some(hint) = error.hint() {
-                text.push_str(&crate::render::clean(hint));
+                text.push_str(&render::clean(hint));
                 text.push('\n');
             }
             text
         }
         Mode::Json { pretty } => json_text(&error.body(), *pretty) + "\n",
-        Mode::Jq(_) => json_text(&error.body(), false) + "\n",
+        Mode::Jq { .. } => json_text(&error.body(), false) + "\n",
     };
     // There is nowhere left to report a failure to write this.
     let _ = write(err, &text);
@@ -112,17 +130,43 @@ mod tests {
 
     use super::*;
 
+    /// `--jq` with this expression, run in this process.
+    fn jq(expression: &str, terminal: bool) -> Mode {
+        Mode::Jq {
+            expression: expression.to_owned(),
+            terminal,
+            worker: None,
+        }
+    }
+
     #[test]
     fn json_when_piped_text_at_a_terminal_and_flags_override() {
-        assert_eq!(Mode::choose(false, None, true), Mode::Text);
+        let piped = Env::default();
+        let terminal = Env {
+            stdout_terminal: true,
+            ..Env::default()
+        };
+        assert_eq!(Mode::choose(false, None, &terminal), Mode::Text);
         assert_eq!(
-            Mode::choose(false, None, false),
+            Mode::choose(false, None, &piped),
             Mode::Json { pretty: false }
         );
-        assert_eq!(Mode::choose(true, None, true), Mode::Json { pretty: true });
         assert_eq!(
-            Mode::choose(true, Some(".id"), true),
-            Mode::Jq(".id".to_owned())
+            Mode::choose(true, None, &terminal),
+            Mode::Json { pretty: true }
+        );
+        assert_eq!(Mode::choose(true, Some(".id"), &terminal), jq(".id", true));
+        let installed = Env {
+            program: Some(PathBuf::from("/bin/wenmar-open")),
+            ..Env::default()
+        };
+        assert_eq!(
+            Mode::choose(false, Some(".id"), &installed),
+            Mode::Jq {
+                expression: ".id".to_owned(),
+                terminal: false,
+                worker: Some(PathBuf::from("/bin/wenmar-open")),
+            }
         );
     }
 
@@ -161,11 +205,7 @@ mod tests {
 
     #[test]
     fn a_closed_pipe_is_its_own_outcome_in_every_mode() {
-        for mode in [
-            Mode::Text,
-            Mode::Json { pretty: false },
-            Mode::Jq(".".to_owned()),
-        ] {
+        for mode in [Mode::Text, Mode::Json { pretty: false }, jq(".", false)] {
             let error =
                 answer(&mut Closed, &mode, &json!([1]), |_| "text\n".to_owned()).unwrap_err();
             assert_eq!(error.code, "pipe_closed", "{mode:?}");
@@ -184,7 +224,7 @@ mod tests {
             String::from_utf8(text).unwrap(),
             "error: There is no data file.\nPull it.\n"
         );
-        for mode in [Mode::Json { pretty: false }, Mode::Jq(".".to_owned())] {
+        for mode in [Mode::Json { pretty: false }, jq(".", false)] {
             let mut json = Vec::new();
             error(&mut json, &mode, &failure);
             let body: Value = serde_json::from_slice(&json).unwrap();
@@ -195,10 +235,25 @@ mod tests {
     #[test]
     fn jq_with_no_results_writes_nothing() {
         let mut out = Vec::new();
-        answer(&mut out, &Mode::Jq("empty".to_owned()), &json!(1), |_| {
-            String::new()
-        })
-        .unwrap();
+        answer(&mut out, &jq("empty", false), &json!(1), |_| String::new()).unwrap();
         assert!(out.is_empty());
+    }
+
+    #[test]
+    fn jq_text_is_cleaned_for_a_terminal_and_exact_otherwise() {
+        let value = json!(["Kona\u{1b}]0;owned\u{7}", "two\nlines", { "a": "\u{1b}" }]);
+        let written = |terminal: bool| {
+            let mut out = Vec::new();
+            answer(&mut out, &jq(".[]", terminal), &value, |_| String::new()).unwrap();
+            String::from_utf8(out).unwrap()
+        };
+        assert_eq!(
+            written(true),
+            "Kona\u{fffd}]0;owned\u{fffd}\ntwo\nlines\n{\"a\":\"\\u001b\"}\n"
+        );
+        assert_eq!(
+            written(false),
+            "Kona\u{1b}]0;owned\u{7}\ntwo\nlines\n{\"a\":\"\\u001b\"}\n"
+        );
     }
 }

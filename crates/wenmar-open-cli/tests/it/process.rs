@@ -110,3 +110,69 @@ fn an_mcp_client_that_goes_away_ends_the_server_quietly() {
     assert_eq!(output.status.code(), Some(0));
     assert_eq!(String::from_utf8_lossy(&output.stderr), "");
 }
+
+/// `--jq`, run by the real binary, which hands the expression to a process
+/// of its own.
+fn filtered(fixture: &common::Fixture, expression: &str) -> std::process::Output {
+    binary()
+        .env("WENMAR_OPEN_DATA_DIR", fixture.directory())
+        .args(["vehicles", "years", "--jq", expression])
+        .output()
+        .unwrap()
+}
+
+#[test]
+fn a_jq_expression_that_exhausts_the_stack_is_an_error_and_not_a_crash() {
+    let fixture = common::data_dir();
+    // Short and shallow, and it calls itself without end.
+    let output = filtered(&fixture, "def f: 1 + f; f");
+    assert_eq!(output.status.code(), Some(1), "{output:?}");
+    assert!(output.stdout.is_empty());
+    let error: serde_json::Value = serde_json::from_slice(&output.stderr)
+        .unwrap_or_else(|_| panic!("{}", String::from_utf8_lossy(&output.stderr)));
+    assert_eq!(error["error"]["code"], "jq_error");
+    assert_eq!(
+        error["error"]["message"],
+        "the --jq expression stopped before it finished"
+    );
+}
+
+#[test]
+fn jq_in_a_process_of_its_own_answers_and_fails_as_it_does_in_this_one() {
+    let fixture = common::data_dir();
+    let output = filtered(&fixture, ".[0], length");
+    assert_eq!(output.status.code(), Some(0));
+    assert_eq!(String::from_utf8_lossy(&output.stdout), "2023\n5\n");
+    assert!(output.stderr.is_empty());
+    let output = filtered(&fixture, "empty");
+    assert_eq!(output.status.code(), Some(0));
+    assert!(output.stdout.is_empty());
+    // An expression that starts with a dash is still an expression.
+    let output = binary()
+        .env("WENMAR_OPEN_DATA_DIR", fixture.directory())
+        .args(["vehicles", "years", "--jq=-(.[0])"])
+        .output()
+        .unwrap();
+    assert_eq!(String::from_utf8_lossy(&output.stdout), "-2023\n");
+
+    let error = |output: &std::process::Output| -> serde_json::Value {
+        assert!(output.stdout.is_empty());
+        serde_json::from_slice(&output.stderr).unwrap()
+    };
+    let output = filtered(&fixture, ".[");
+    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(
+        error(&output),
+        serde_json::json!({ "error": {
+            "code": "usage",
+            "message": "the --jq expression could not be read",
+            "details": { "hint": "It is a jq expression, such as `.make` or `.[].id`." }
+        } })
+    );
+    let output = filtered(&fixture, ".[0].x");
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(
+        error(&output)["error"]["message"],
+        "the --jq expression failed: cannot index 2023 with \"x\""
+    );
+}

@@ -38,6 +38,21 @@ pub fn agent(timeout: Option<Duration>) -> ureq::Agent {
         .into()
 }
 
+/// An agent for a large download. The transfer as a whole has no limit,
+/// but the answer must begin within `response` and the body arrive within
+/// `body`, so a server that stops sending does not keep the tool waiting
+/// for ever.
+pub fn download_agent(response: Duration, body: Duration) -> ureq::Agent {
+    ureq::Agent::config_builder()
+        .http_status_as_error(false)
+        .timeout_connect(Some(CONNECT_TIMEOUT))
+        .timeout_recv_response(Some(response))
+        .timeout_recv_body(Some(body))
+        .user_agent(user_agent())
+        .build()
+        .into()
+}
+
 /// Whether `url` is an address this tool will make a request to.
 pub fn is_http(url: &str) -> bool {
     ["http://", "https://"].iter().any(|scheme| {
