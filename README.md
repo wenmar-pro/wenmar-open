@@ -11,7 +11,7 @@ Wenmar Open is built and hosted by [Wenmar Pro](https://wenmarpro.com), shop man
 - **A website** at `open.wenmarpro.com` where a service advisor or tech can paste a VIN and get the vehicle back.
 - **A JSON API** at `open.wenmarpro.com/v1`, open to any origin, with no key and no account.
 - **A Rust crate**, `wenmar-vin`, for decoding VINs in-process and offline.
-- **An npm package**, a small typed client for the hosted API.
+- **An npm package**, a small typed client for the hosted API, with an optional offline mode that decodes locally.
 
 VIN decoding and a year/make/model/trim/engine catalog come first. More shop data follows; see the [roadmap](#roadmap).
 
