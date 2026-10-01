@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/wenmar-vin", "crates/wenmar-vehicles", "crates/open-data"]
+members = ["crates/wenmar-vin", "crates/wenmar-vehicles", "crates/open-data", "crates/open-server"]
 
 [workspace.package]
 edition = "2024"
@@ -13,3 +13,11 @@ homepage = "https://open.wenmarpro.com"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
+
+# Dependencies carry no debug information: it is most of the size of
+# `target/`, and backtraces keep file and line for this workspace's own code.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false

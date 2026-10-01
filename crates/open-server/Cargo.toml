@@ -1,0 +1,37 @@
+[package]
+name = "open-server"
+version = "0.1.0"
+description = "The Wenmar Open website and JSON API."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "query", "tokio"] }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal", "sync", "time"] }
+tower-http = { version = "0.6", features = ["cors", "catch-panic"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+turso = { version = "0.8.1", default-features = false, features = ["fts"] }
+utoipa = { version = "5", features = ["axum_extras"] }
+utoipa-axum = "0.2"
+wenmar-vehicles = { version = "0.1.0", path = "../wenmar-vehicles" }
+wenmar-vin = { version = "0.1.0", path = "../wenmar-vin" }
+
+[dev-dependencies]
+http-body-util = "0.1.5"
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+tempfile = "3.27.0"
+tokio = { version = "1", features = ["test-util"] }
+tower = { version = "0.5", features = ["util"] }
+wenmar-vehicles = { path = "../wenmar-vehicles", features = ["sqlite"] }
+wenmar-vin = { path = "../wenmar-vin", features = ["sqlite"] }
+
+[[test]]
+name = "it"
+path = "tests/it/main.rs"
