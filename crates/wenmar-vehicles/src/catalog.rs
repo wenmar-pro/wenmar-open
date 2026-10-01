@@ -329,7 +329,7 @@ impl<S: Source> Catalog<S> {
             .collect())
     }
 
-    /// Models of a make, by name. `make` is a name, an alias or an id form.
+    /// Models of a make, by name. `make` is an id form, a name or an alias.
     /// An unknown make has no models.
     pub fn models(
         &self,
@@ -380,17 +380,28 @@ impl<S: Source> Catalog<S> {
             .collect()
     }
 
-    /// The model year a person means by a make and a model, each given as a
-    /// name, an alias or an id form.
+    /// The model year a person means by a make and a model, each given as
+    /// an id form, a name or an alias.
     pub(crate) fn vehicle(
         &self,
         make: &str,
         model: &str,
         year: u16,
     ) -> Result<Option<Vehicle<'_>>, CatalogError> {
-        let Some(make) = self.index.resolve(make, Scope::All) else {
-            return Ok(None);
-        };
+        match self.index.resolve(make, Scope::All) {
+            Some(make) => self.vehicle_in(make, model, year),
+            None => Ok(None),
+        }
+    }
+
+    /// The model year of a make a person means by a model, given as a
+    /// name or an id form.
+    pub(crate) fn vehicle_in<'a>(
+        &self,
+        make: &'a MakeRef,
+        model: &str,
+        year: u16,
+    ) -> Result<Option<Vehicle<'a>>, CatalogError> {
         let rows = self.query(
             sql::MODEL,
             &[

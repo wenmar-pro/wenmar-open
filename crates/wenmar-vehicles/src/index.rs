@@ -100,6 +100,8 @@ pub struct MakeIndex {
     makes: Vec<MakeRef>,
     by_id: HashMap<i64, usize>,
     by_slug: HashMap<String, usize>,
+    /// Lowercase name to the makes called that, in listing order.
+    by_name: HashMap<String, Vec<usize>>,
     /// Matching form of a name or alias to the makes it may mean, best first.
     by_form: HashMap<String, Vec<usize>>,
     aliases: HashMap<usize, Vec<String>>,
@@ -122,6 +124,11 @@ impl MakeIndex {
         for (position, make) in makes.iter().enumerate() {
             index.by_id.insert(make.id, position);
             index.by_slug.insert(make.slug.clone(), position);
+            index
+                .by_name
+                .entry(make.name.to_lowercase())
+                .or_default()
+                .push(position);
             index
                 .by_form
                 .entry(make.norm.clone())
@@ -173,14 +180,33 @@ impl MakeIndex {
             .find(|make| scope.admits(make.types, make.light))
     }
 
-    /// The make a person means by a name, an alias or an id form. A name
-    /// or alias is tried first, so `mb` means Mercedes-Benz even though a
-    /// trailer maker has the id form `mb`.
+    /// The make a person means by an id form, a name or an alias, tried in
+    /// that order. The id form comes first so that an id the make step
+    /// hands out always names the same make in the next step, even when
+    /// another make shares its matching form or has it as an alias. `mb`
+    /// is Mercedes-Benz by alias, except where a trailer maker with the id
+    /// form `mb` is in scope.
     pub fn resolve(&self, text: &str, scope: Scope) -> Option<&MakeRef> {
-        self.by_form(&normalize(text), scope).or_else(|| {
-            self.by_slug(text)
-                .filter(|make| scope.admits(make.types, make.light))
-        })
+        self.by_slug(text.trim())
+            .filter(|make| scope.admits(make.types, make.light))
+            .or_else(|| self.named(text, scope))
+    }
+
+    /// The make a name means: the make called exactly that, without regard
+    /// to case, and otherwise the make the matching form means. Two makes
+    /// can share a matching form (`B & B Trailers` and `B+B Trailers`), and
+    /// a make's name can be another's alias. For a name that is known not
+    /// to be an id form, such as the make of a decoded VIN.
+    pub fn named(&self, text: &str, scope: Scope) -> Option<&MakeRef> {
+        self.by_name
+            .get(&text.trim().to_lowercase())
+            .and_then(|positions| {
+                positions
+                    .iter()
+                    .filter_map(|position| self.makes.get(*position))
+                    .find(|make| scope.admits(make.types, make.light))
+            })
+            .or_else(|| self.by_form(&normalize(text), scope))
     }
 
     /// Makes in listing order whose name or alias starts with the term.
@@ -338,11 +364,39 @@ mod tests {
     fn a_shared_name_goes_to_the_make_in_scope_listed_first() {
         let index = index();
         let found = |scope: Scope| index.resolve("mb", scope).map(|make| make.id);
-        // The alias of a popular make beats a trailer maker's real name.
-        assert_eq!(found(Scope::All), Some(5));
+        // `mb` is the trailer maker's id form and its name, so where it is
+        // in scope it is the make meant.
+        assert_eq!(found(Scope::All), Some(6));
+        // Elsewhere it is the alias of a popular make.
         assert_eq!(found(Scope::Light), Some(5));
+        assert_eq!(index.by_form("mb", Scope::All).map(|make| make.id), Some(5));
         assert_eq!(found(Scope::Type(6)), Some(6));
         assert_eq!(index.resolve("ranger-trailers", Scope::Light), None);
+    }
+
+    #[test]
+    fn an_id_form_then_an_exact_name_come_before_a_shared_matching_form() {
+        // Listed in this order. The second holds the plain id form.
+        let mut first = make(8, "B & B Trailers", None, TRAILER);
+        first.slug = "b-b-trailers-2".to_owned();
+        let second = make(9, "B+B Trailers", None, TRAILER);
+        let index = MakeIndex::new(
+            vec![first, second, make(10, "Infiniti", Some(1), CAR)],
+            &[("bbtrailers".to_owned(), 10)],
+        );
+        let found = |text: &str| index.resolve(text, Scope::All).map(|make| make.id);
+        assert_eq!(found("b-b-trailers"), Some(9));
+        assert_eq!(found("b-b-trailers-2"), Some(8));
+        assert_eq!(found(" b-b-trailers "), Some(9));
+        assert_eq!(found("B+B Trailers"), Some(9));
+        assert_eq!(found("b+b trailers"), Some(9));
+        assert_eq!(found("B & B Trailers"), Some(8));
+        // Neither an id form nor a name: the make listed first, here by alias.
+        assert_eq!(found("BB Trailers"), Some(10));
+        // A decoded name is never read as an id form.
+        let named = |text: &str| index.named(text, Scope::All).map(|make| make.id);
+        assert_eq!(named("B+B Trailers"), Some(9));
+        assert_eq!(named("b-b-trailers"), Some(10));
     }
 
     #[test]

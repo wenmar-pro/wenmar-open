@@ -46,12 +46,18 @@ WHERE d.make_id = ?1
 ORDER BY d.name COLLATE NOCASE, d.id
 LIMIT ?5";
 
-/// The model a person means. `?1` make id, `?2` name as given, `?3` its id
-/// form, `?4` its matching form. An exact name wins, then an exact id form.
+/// The model a person means. `?1` make id, `?2` text as given, `?3` its id
+/// form, `?4` its matching form. Text that is an id form as it stands wins,
+/// so an id the model step hands out names the same model in the next
+/// step. Then the name as written, the name without regard to case, the id
+/// form of the text, and last the matching form. Two models of a make can
+/// share a matching form, as `H Series` and `H-Series` do.
 pub const MODEL: &str = "
 SELECT id, slug, name, year_from, year_to FROM catalog_model
-WHERE make_id = ?1 AND (name = ?2 COLLATE NOCASE OR slug = ?3 OR norm = ?4)
-ORDER BY (name = ?2 COLLATE NOCASE) DESC, (slug = ?3) DESC, light DESC, year_to DESC, id
+WHERE make_id = ?1
+  AND (slug = ?2 OR name = ?2 COLLATE NOCASE OR slug = ?3 OR norm = ?4)
+ORDER BY (slug = ?2) DESC, (name = ?2) DESC, (name = ?2 COLLATE NOCASE) DESC,
+         (slug = ?3) DESC, light DESC, year_to DESC, id
 LIMIT 1";
 
 /// `?1` make id, `?2` id form.

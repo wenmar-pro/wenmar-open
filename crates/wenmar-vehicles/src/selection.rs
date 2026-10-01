@@ -5,6 +5,7 @@ use wenmar_vin::Decoded;
 
 use crate::catalog::{Catalog, CatalogError, EngineRow, Entry, Known, SubmodelRow};
 use crate::id::VehicleId;
+use crate::index::Scope;
 use crate::source::Source;
 use crate::summary::short;
 use crate::text::slug;
@@ -73,7 +74,11 @@ impl<S: Source> Catalog<S> {
         ) else {
             return Ok(None);
         };
-        let Some(vehicle) = self.vehicle(make, model, year)? else {
+        // A decode carries names, so the make is never read as an id form.
+        let Some(make) = self.index.named(make, Scope::All) else {
+            return Ok(None);
+        };
+        let Some(vehicle) = self.vehicle_in(make, model, year)? else {
             return Ok(None);
         };
 

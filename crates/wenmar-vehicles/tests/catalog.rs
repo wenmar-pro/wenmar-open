@@ -843,3 +843,115 @@ fn a_decode_the_catalog_cannot_place_selects_nothing() {
     assert_eq!(decoded.year, None);
     assert_eq!(catalog.selection(&decoded).unwrap(), None);
 }
+
+// ----- names that share an id form or a matching form -----
+
+/// The small catalog, plus what the real data has that it does not:
+///
+/// - Two trailer makers whose names differ only in punctuation. The one
+///   with the lower id holds the plain id form, and is listed second.
+/// - Infiniti, with the alias `infinity`, and a trailer maker called
+///   Infinity.
+/// - Oshkosh, with `H Series` to 2012 and `H-Series` from 2013.
+fn twins() -> Catalog<SqliteSource> {
+    let connection = connection();
+    connection
+        .execute_batch(
+            "INSERT INTO catalog_make VALUES
+               (1602, 'b-b-trailers', 'B+B Trailers', 'bbtrailers', NULL, 64, 0),
+               (7310, 'b-b-trailers-2', 'B & B Trailers', 'bbtrailers', NULL, 64, 0),
+               (4800, 'infiniti', 'Infiniti', 'infiniti', 20, 4, 1),
+               (12764, 'infinity', 'Infinity', 'infinity', NULL, 64, 0),
+               (700, 'oshkosh', 'Oshkosh', 'oshkosh', NULL, 8, 1);
+             INSERT INTO catalog_alias VALUES ('infinity', 4800);
+             INSERT INTO catalog_model VALUES
+               (9300, 1602, 'dump', 'Dump', 'dump', 2019, 2019, 64, 0),
+               (9301, 7310, 'utility', 'Utility', 'utility', 2019, 2019, 64, 0),
+               (9302, 4800, 'q50', 'Q50', 'q50', 2019, 2019, 4, 1),
+               (9303, 12764, 'cargo', 'Cargo', 'cargo', 2019, 2019, 64, 0),
+               (9304, 700, 'h-series', 'H Series', 'hseries', 1995, 2012, 8, 1),
+               (9305, 700, 'h-series-2', 'H-Series', 'hseries', 2013, 2027, 8, 1);
+             INSERT INTO catalog_vehicle VALUES
+               (20, 2019, 1602, 9300, 64, 0, NULL),
+               (21, 2019, 7310, 9301, 64, 0, NULL),
+               (22, 2019, 4800, 9302, 4, 1, NULL),
+               (23, 2019, 12764, 9303, 64, 0, NULL),
+               (24, 2000, 700, 9304, 8, 1, 10),
+               (25, 2019, 700, 9305, 8, 1, 11);
+             INSERT INTO catalog_detail VALUES (10, NULL, NULL, NULL), (11, NULL, NULL, NULL);
+             INSERT INTO catalog_engine VALUES
+               (20, 10, '8.3L', NULL, 'vpic'),
+               (21, 11, '12.8L', NULL, 'vpic');",
+        )
+        .unwrap();
+    Catalog::new(SqliteSource::from_connection(connection).unwrap()).unwrap()
+}
+
+#[test]
+fn every_make_id_names_its_own_make_in_the_next_step() {
+    let catalog = twins();
+    let models = |make: &str, scope: Scope| -> Vec<String> {
+        catalog
+            .models(make, None, scope, "", 50)
+            .unwrap()
+            .into_iter()
+            .map(|model| model.name)
+            .collect()
+    };
+    // The id the make step hands out, whichever make is listed first.
+    assert_eq!(models("b-b-trailers", Scope::All), vec!["Dump"]);
+    assert_eq!(models("b-b-trailers-2", Scope::All), vec!["Utility"]);
+    // An exact name, when two makes share a matching form.
+    assert_eq!(models("B+B Trailers", Scope::All), vec!["Dump"]);
+    assert_eq!(models("b & b trailers", Scope::All), vec!["Utility"]);
+    // An id form or a name beats another make's alias.
+    assert_eq!(models("infinity", Scope::All), vec!["Cargo"]);
+    assert_eq!(models("Infinity", Scope::All), vec!["Cargo"]);
+    // Out of scope, the id form names nothing and the alias still works.
+    assert_eq!(models("infinity", Scope::Light), vec!["Q50"]);
+
+    // Every id handed out leads back to the same make.
+    for make in catalog.makes(None, Scope::All, "", 500).unwrap() {
+        let found = catalog.index().resolve(&make.id, Scope::All).unwrap();
+        assert_eq!(found.name, make.name, "{}", make.id);
+        let found = catalog.index().resolve(&make.name, Scope::All).unwrap();
+        assert_eq!(found.slug, make.id, "{}", make.name);
+    }
+}
+
+#[test]
+fn every_model_id_names_its_own_model_in_the_next_step() {
+    let catalog = twins();
+    let engines = |model: &str, year: u16| -> Vec<String> {
+        catalog
+            .engines("oshkosh", model, year, None, "")
+            .unwrap()
+            .into_iter()
+            .map(|engine| engine.label)
+            .collect()
+    };
+    // The ids the model step hands out.
+    assert_eq!(engines("h-series", 2000), vec!["8.3L"]);
+    assert_eq!(engines("h-series-2", 2019), vec!["12.8L"]);
+    assert!(engines("h-series", 2019).is_empty());
+    // The names as written.
+    assert_eq!(engines("H Series", 2000), vec!["8.3L"]);
+    assert_eq!(engines("H-Series", 2019), vec!["12.8L"]);
+    // Anything looser goes to the newer model, as before.
+    assert_eq!(engines("hseries", 2019), vec!["12.8L"]);
+}
+
+#[test]
+fn a_decoded_make_reaches_the_make_of_that_name() {
+    let catalog = twins();
+    for (make, model, id) in [
+        ("B+B Trailers", "Dump", "2019_b-b-trailers_dump"),
+        ("B & B TRAILERS", "Utility", "2019_b-b-trailers-2_utility"),
+        ("INFINITY", "Cargo", "2019_infinity_cargo"),
+        ("INFINITI", "Q50", "2019_infiniti_q50"),
+    ] {
+        let decoded = decode("2HG", make, CIVIC, &[("FC1**", Element::Model, model)]);
+        let selection = catalog.selection(&decoded).unwrap().unwrap();
+        assert_eq!(selection.vehicle_id, id);
+    }
+}
