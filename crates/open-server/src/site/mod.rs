@@ -27,10 +27,10 @@ use crate::error::ApiError;
 use crate::headers;
 use crate::state::AppState;
 
-/// What a browser may load on a page of this site: its own stylesheet and
-/// script, and nothing else. An injected `<script>` would not run even if
-/// one got past the escaping.
-pub const CONTENT_SECURITY_POLICY: &str = "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; form-action 'self'; base-uri 'none'; frame-ancestors 'none'";
+/// What a browser may load on a page of this site: its own stylesheet,
+/// script, fonts and images, and nothing else. An injected `<script>` would
+/// not run even if one got past the escaping.
+pub const CONTENT_SECURITY_POLICY: &str = "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self'; font-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'";
 
 /// How long a page may be cached. Pages change only with the data file or
 /// the server, and the `ETag` names both.
@@ -338,6 +338,23 @@ pub fn router() -> Router<AppState> {
         .route("/sitemaps/{file}", get(seo::sitemap))
         .route("/assets/site.css", get(assets::stylesheet))
         .route("/assets/site.js", get(assets::script))
+        .route(
+            "/assets/fonts/dm-sans-latin-wght.woff2",
+            get(assets::font_sans),
+        )
+        .route(
+            "/assets/fonts/jetbrains-mono-latin-400.woff2",
+            get(assets::font_mono),
+        )
+        .route("/assets/fonts/OFL-DM-Sans.txt", get(assets::licence_sans))
+        .route(
+            "/assets/fonts/OFL-JetBrains-Mono.txt",
+            get(assets::licence_mono),
+        )
+        .route("/assets/favicon.svg", get(assets::favicon_svg))
+        .route("/assets/favicon-96.png", get(assets::favicon_png))
+        .route("/assets/apple-touch-icon.png", get(assets::touch_icon))
+        .route("/assets/og.png", get(assets::share_image))
 }
 
 #[cfg(test)]

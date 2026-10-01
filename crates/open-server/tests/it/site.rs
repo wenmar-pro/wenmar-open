@@ -51,7 +51,7 @@ async fn pages_load_nothing_from_anywhere_else() {
     let response = app.get("/nothing").await;
     assert_eq!(
         header(&response, "content-security-policy"),
-        "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
+        "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self'; font-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
     );
     assert_eq!(header(&response, "x-content-type-options"), "nosniff");
     assert_eq!(

@@ -15,6 +15,7 @@ mod search;
 mod search_speed;
 mod serve;
 mod site;
+mod site_assets;
 mod site_catalog;
 mod site_home;
 mod site_pages;

@@ -17,9 +17,15 @@ pub struct Palette {
     pub inset: &'static str,
     pub border: &'static str,
     pub border_strong: &'static str,
+    /// The edge of a text field or a picker. At least 3 to 1 against the
+    /// page and the card, which a field needs to be seen as a field.
+    pub control: &'static str,
     pub heading: &'static str,
     pub body: &'static str,
     pub secondary: &'static str,
+    /// A warning's text and its ground: the brand's amber status pair.
+    pub warn_text: &'static str,
+    pub warn_bg: &'static str,
 }
 
 pub const LIGHT: Palette = Palette {
@@ -28,9 +34,12 @@ pub const LIGHT: Palette = Palette {
     inset: "#f1f5f9",
     border: "#e2e8f0",
     border_strong: "#cbd5e1",
+    control: "#64748b",
     heading: "#0f172a",
     body: "#0f172a",
     secondary: "#334155",
+    warn_text: "#92400e",
+    warn_bg: "#fffbeb",
 };
 
 pub const DARK: Palette = Palette {
@@ -39,15 +48,20 @@ pub const DARK: Palette = Palette {
     inset: "#27272a",
     border: "#27272a",
     border_strong: "#3f3f46",
+    control: "#71717a",
     heading: "#fafafa",
     body: "#d4d4d8",
     secondary: "#a1a1aa",
+    warn_text: "#fbbf24",
+    warn_bg: "#451a03",
 };
 
-/// No font file is downloaded: the brand faces are used when the visitor
-/// has them, and the system's own otherwise.
+/// The brand faces are served by this site (`assets/fonts/`). After each
+/// comes what is used while it loads or if it does not: for the sans, a
+/// face made of the visitor's own Arial with DM Sans's proportions, so the
+/// text does not move when the brand face arrives.
 pub const FONT_SANS: &str =
-    "\"DM Sans\", system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif";
+    "\"DM Sans\", \"DM Sans Fallback\", system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif";
 pub const FONT_MONO: &str =
     "\"JetBrains Mono\", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 
@@ -58,7 +72,11 @@ pub const TEXT_BODY: u8 = 16;
 pub const TEXT_SMALL: u8 = 14;
 pub const TEXT_SECTION: u8 = 18;
 pub const TEXT_TITLE: u8 = 24;
+pub const WEIGHT_MEDIUM: u16 = 500;
 pub const WEIGHT_SEMIBOLD: u16 = 600;
+/// The wordmark. At 20 pixels and bold it is large text, for which red on
+/// the page colour is enough contrast.
+pub const TEXT_WORDMARK: u8 = 20;
 
 pub const RADIUS: u8 = 8;
 /// The smallest height and width of anything that can be tapped.
@@ -66,15 +84,18 @@ pub const TOUCH: u8 = 44;
 
 fn palette(palette: &Palette) -> String {
     format!(
-        "--page:{};--surface:{};--inset:{};--border:{};--border-strong:{};--heading:{};--body:{};--secondary:{};",
+        "--page:{};--surface:{};--inset:{};--border:{};--border-strong:{};--control:{};--heading:{};--body:{};--secondary:{};--warn-text:{};--warn-bg:{};",
         palette.page,
         palette.surface,
         palette.inset,
         palette.border,
         palette.border_strong,
+        palette.control,
         palette.heading,
         palette.body,
-        palette.secondary
+        palette.secondary,
+        palette.warn_text,
+        palette.warn_bg
     )
 }
 
@@ -82,7 +103,7 @@ fn palette(palette: &Palette) -> String {
 /// visitor's system asks for it.
 pub fn css() -> String {
     format!(
-        ":root{{color-scheme:light dark;--brand:{BRAND};--brand-hover:{BRAND_HOVER};--sans:{FONT_SANS};--mono:{FONT_MONO};--text:{TEXT_BODY}px;--small:{TEXT_SMALL}px;--section:{TEXT_SECTION}px;--title:{TEXT_TITLE}px;--semibold:{WEIGHT_SEMIBOLD};--radius:{RADIUS}px;--touch:{TOUCH}px;{}}}\n@media (prefers-color-scheme:dark){{:root{{{}}}}}\n",
+        ":root{{color-scheme:light dark;--brand:{BRAND};--brand-hover:{BRAND_HOVER};--sans:{FONT_SANS};--mono:{FONT_MONO};--text:{TEXT_BODY}px;--small:{TEXT_SMALL}px;--section:{TEXT_SECTION}px;--title:{TEXT_TITLE}px;--wordmark:{TEXT_WORDMARK}px;--medium:{WEIGHT_MEDIUM};--semibold:{WEIGHT_SEMIBOLD};--radius:{RADIUS}px;--touch:{TOUCH}px;{}}}\n@media (prefers-color-scheme:dark){{:root{{{}}}}}\n",
         palette(&LIGHT),
         palette(&DARK)
     )
@@ -101,8 +122,55 @@ mod tests {
             css.contains("@media (prefers-color-scheme:dark){:root{--page:#0e0e10;"),
             "{css}"
         );
-        assert!(css.contains("\"DM Sans\", system-ui"), "{css}");
+        assert!(
+            css.contains("\"DM Sans\", \"DM Sans Fallback\", system-ui"),
+            "{css}"
+        );
         assert!(css.contains("--touch:44px;"), "{css}");
+        assert!(css.contains("--control:#64748b;"), "{css}");
+        assert!(css.contains("--control:#71717a;"), "{css}");
+        assert!(css.contains("--wordmark:20px;"), "{css}");
+    }
+
+    #[test]
+    fn every_pair_of_text_and_ground_meets_wcag_aa() {
+        for (scheme, palette) in [("light", &LIGHT), ("dark", &DARK)] {
+            // Text of ordinary size: 4.5 to 1.
+            for text in [palette.heading, palette.body, palette.secondary] {
+                for ground in [palette.page, palette.surface, palette.inset] {
+                    assert!(
+                        contrast(text, ground) >= 4.5,
+                        "{scheme}: {text} on {ground} is {:.2}",
+                        contrast(text, ground)
+                    );
+                }
+            }
+            assert!(
+                contrast(palette.warn_text, palette.warn_bg) >= 4.5,
+                "{scheme}: a warning is {:.2}",
+                contrast(palette.warn_text, palette.warn_bg)
+            );
+            // The edge of a field: 3 to 1 against what it sits on.
+            for ground in [palette.page, palette.surface] {
+                assert!(
+                    contrast(palette.control, ground) >= 3.0,
+                    "{scheme}: a field's edge on {ground} is {:.2}",
+                    contrast(palette.control, ground)
+                );
+            }
+            // The focus outline, and the red half of the wordmark, which is
+            // large text: 3 to 1.
+            for ground in [palette.page, palette.surface, palette.inset] {
+                assert!(
+                    contrast(BRAND, ground) >= 3.0,
+                    "{scheme}: red on {ground} is {:.2}",
+                    contrast(BRAND, ground)
+                );
+            }
+        }
+        // White text on the brand button.
+        assert!(contrast("#ffffff", BRAND) >= 4.5);
+        assert!(contrast("#ffffff", BRAND_HOVER) >= 4.5);
     }
 
     /// Relative luminance and contrast, as WCAG 2 defines them.
@@ -121,23 +189,5 @@ mod tests {
     fn contrast(one: &str, other: &str) -> f64 {
         let (one, other) = (luminance(one), luminance(other));
         (one.max(other) + 0.05) / (one.min(other) + 0.05)
-    }
-
-    #[test]
-    fn text_colours_are_readable_on_their_backgrounds() {
-        for palette in [&LIGHT, &DARK] {
-            for text in [palette.heading, palette.body, palette.secondary] {
-                for background in [palette.page, palette.surface, palette.inset] {
-                    assert!(
-                        contrast(text, background) >= 4.5,
-                        "{text} on {background} is {:.2}",
-                        contrast(text, background)
-                    );
-                }
-            }
-        }
-        // White text on the brand button.
-        assert!(contrast("#ffffff", BRAND) >= 4.5);
-        assert!(contrast("#ffffff", BRAND_HOVER) >= 4.5);
     }
 }
