@@ -10,3 +10,4 @@ mod process;
 mod remote;
 mod server;
 mod setup;
+mod tui;

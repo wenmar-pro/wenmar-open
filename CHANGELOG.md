@@ -34,3 +34,8 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - A Markdown version of every reference page at the same address with `.md` added, listed in `/llms.txt`.
 - `robots.txt` and sitemaps for the reference pages. Result pages for single VINs are never indexed, and neither are the pages of makes and model years that are not cars, MPVs or trucks.
 - `open-server`: every `ETag`, and the address of the stylesheet and the script, names the build as well as the data version, so a deploy that changes a page reaches a visitor who holds the old one.
+- `wenmar-open` command-line tool: `vin decode`, `vehicles years|makes|models|submodels|engines|search|entry`, JSON when piped and text at a terminal, `--json` and `--jq`, and the API's error codes on standard error with an exit code for each kind of failure.
+- `wenmar-open data pull` and `data status`: the published data file, downloaded and checked before it replaces the one in place. Without a data file the tool asks the hosted API; `--offline` and `--online` force either.
+- `wenmar-open mcp`: an MCP server on standard input and output with the hosted endpoint's two tools. `wenmar-open setup claude|codex` installs a skill file and prints the command that registers the server. `wenmar-open doctor` checks the data file and the API.
+- `wenmar-open` with no command opens a one-screen terminal interface.
+- `open-mcp` crate: the MCP tool definitions shared by the server and the command-line tool.

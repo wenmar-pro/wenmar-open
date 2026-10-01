@@ -19,6 +19,7 @@ pub mod remote;
 pub mod render;
 pub mod request;
 pub mod setup;
+pub mod tui;
 
 use std::ffi::OsString;
 use std::io::{BufRead, Write};
@@ -166,6 +167,10 @@ fn execute(
                     output::answer(stdout, mode, &to_json(&pulled)?, render::pulled)
                 }
             };
+        }
+        None if env.stdin_terminal && env.stdout_terminal => {
+            let backend = open(env, &cli.global, mode, stderr)?;
+            return tui::run(backend, env.no_color);
         }
         None => {
             // With nobody at a terminal there is nothing to open: say what

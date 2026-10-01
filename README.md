@@ -125,6 +125,8 @@ Piped, the output is JSON; at a terminal it is text. `--json` prints JSON at a t
 
 For AI agents: `wenmar-open mcp` is an MCP server on standard input and output with two tools, `wenmar_vin` and `wenmar_vehicles`. `wenmar-open setup claude` or `wenmar-open setup codex` writes a skill file that describes the commands and prints the command that registers the MCP server. `wenmar-open doctor` says whether the data file and the API can answer.
 
+Run with no command at a terminal, `wenmar-open` opens a one-screen interface: type a VIN or a vehicle such as `2019 civic si`, press Enter, and read the answer. Esc clears the line, and Esc again leaves.
+
 `open-data` is the maintainers' tool for building the data file. `wenmar-open` is the one for using it.
 
 ## Data releases
