@@ -114,8 +114,35 @@ async fn long_words_wrap_and_wide_things_scroll() {
     // Nothing has a fixed width wider than a small phone.
     for declaration in css.split(['{', '}', ';']) {
         if let Some(width) = declaration.trim().strip_prefix("width:") {
-            assert!(width.ends_with('%'), "a fixed width: {declaration}");
+            assert!(
+                width.ends_with('%') || width == "auto",
+                "a fixed width: {declaration}"
+            );
         }
+    }
+    // A table whose last column is sentences sizes its other columns to
+    // what they hold, on one line, and the sentences get the rest: equal
+    // thirds leave them 95 pixels on a phone.
+    assert!(css.contains("table.prose{table-layout:auto}"));
+    assert!(
+        css.contains(
+            "table.prose th,table.prose td:not(:last-child){width:auto;white-space:nowrap}"
+        )
+    );
+    let guides = common::app().await;
+    let (_, html) = page(&guides, "/guides/how-to-read-a-vin").await;
+    assert_eq!(
+        html.matches(r#"<table class="prose">"#).count(),
+        1,
+        "{html}"
+    );
+    // Columns of a character or a year each stay as they are.
+    for path in ["/guides/model-year", "/guides/check-digit"] {
+        let (_, html) = page(&guides, path).await;
+        assert!(
+            html.contains("<table>") && !html.contains("class=\"prose\""),
+            "{path}"
+        );
     }
     // The name used in the fixture for this is real: a page with it renders.
     let app = common::app_with_rows(

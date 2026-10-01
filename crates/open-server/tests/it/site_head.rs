@@ -399,3 +399,63 @@ async fn reference_pages_lead_to_each_other_and_to_the_guides() {
     }
     assert!(followed >= 20, "{followed} links followed");
 }
+
+#[tokio::test]
+async fn a_description_stops_at_the_end_of_a_sentence() {
+    // Names as long as the ones on file: the fullest wording of each of
+    // these descriptions is longer than a search result shows.
+    let app = common::app_with_rows(
+        "INSERT INTO wmi VALUES ('4C9337', 'Crary Industries Incorporated', 'Crary', 'United States (USA)', 'Trailer', 0, 6);
+         INSERT INTO catalog_make VALUES
+           (8300, 'crary-agricultural-solutions', 'Crary Agricultural Solutions', 'craryagriculturalsolutions', NULL, 64, 0),
+           (8400, 'excalibur-automobile-corporation', 'Excalibur Automobile Corporation', 'excaliburautomobilecorporation', NULL, 4, 1);
+         INSERT INTO wmi_make VALUES ('4C9337', 8300);
+         INSERT INTO wmi_schema VALUES ('4C9337', 60, 2000, 2000);
+         INSERT INTO catalog_model VALUES (9960, 8400, 'series-iv', 'Series IV', 'seriesiv', 1980, 1984, 4, 1);
+         INSERT INTO catalog_detail VALUES (9, NULL, NULL, NULL);
+         INSERT INTO catalog_vehicle VALUES
+           (50, 1980, 8400, 9960, 4, 1, NULL),
+           (51, 1984, 8400, 9960, 4, 1, 9);
+         INSERT INTO catalog_submodel VALUES
+           (20, 9, 'Phaeton', 'phaeton', 'trim', 1, NULL, NULL, NULL),
+           (21, 9, 'Roadster', 'roadster', 'trim', 1, NULL, NULL, NULL),
+           (22, 9, 'Royale', 'royale', 'trim', 1, NULL, NULL, NULL),
+           (23, 9, 'Sedan', 'sedan', 'trim', 1, NULL, NULL, NULL);
+         INSERT INTO catalog_engine VALUES
+           (30, 9, '5.0L V8', NULL, 'vpic'),
+           (31, 9, '5.7L V8', NULL, 'vpic'),
+           (32, 9, '7.4L V8', NULL, 'vpic'),
+           (33, 9, '8.2L V8', NULL, 'vpic');",
+    )
+    .await;
+    for (path, expected) in [
+        // The makes do not fit, so they are left out; the years do.
+        (
+            "/wmi/4C9337",
+            "A VIN that starts with 4C9 and has 337 in positions 12 to 14 was built by Crary Industries Incorporated in United States (USA). Model years on file: 2000.",
+        ),
+        // The second sentence in its shorter wording.
+        (
+            "/makes/excalibur-automobile-corporation",
+            "Excalibur Automobile Corporation models for every model year from 1980 to 1984, with trims and engines. Decode Excalibur Automobile Corporation VINs free.",
+        ),
+        // The one sentence without its last clause.
+        (
+            "/makes/excalibur-automobile-corporation/series-iv/1984",
+            "The 1984 Excalibur Automobile Corporation Series IV has 4 trims (Phaeton, Roadster, Royale and more) and 4 engines (5.0L V8, 5.7L V8, 7.4L V8 and more).",
+        ),
+    ] {
+        let (status, html) = page(&app, path).await;
+        assert_eq!(status, StatusCode::OK, "{path}");
+        let text = description(&html);
+        assert!(text.ends_with('.'), "{path}: {text}");
+        assert!(text.chars().count() <= 160, "{path}: {text}");
+        assert_eq!(text, expected, "{path}");
+        // A shared link says the same.
+        assert_eq!(
+            meta(&html, r#"<meta property="og:description" content=""#),
+            expected,
+            "{path}"
+        );
+    }
+}

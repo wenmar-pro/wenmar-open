@@ -361,21 +361,30 @@ pub async fn make(
         let canonical = format!("{}{path}", state.config().base_url);
         return markdown::response(make_markdown(&view), &canonical);
     }
-    let description = match (view.years.last(), view.years.first()) {
+    let name = &view.name;
+    let models = match (view.years.last(), view.years.first()) {
         (Some(first), Some(last)) if first != last => format!(
-            "{name} models for every model year from {first} to {last}, with trims and engines. Decode {name} VINs free, with no account and no key.",
-            name = view.name
+            "{name} models for every model year from {first} to {last}, with trims and engines."
         ),
         _ => format!(
-            "{name} models for {year}, with trims and engines. Decode {name} VINs free, with no account and no key.",
-            name = view.name,
+            "{name} models for {year}, with trims and engines.",
             year = view.year
         ),
     };
+    let description = seo::description(
+        &[
+            &[models],
+            &[
+                format!("Decode {name} VINs free, with no account and no key."),
+                format!("Decode {name} VINs free."),
+            ],
+        ],
+        160,
+    );
     let page = Page::new(
         &state,
         seo::title(&format!("{} VIN decoder and models by year", view.name)),
-        seo::clip(&description, 160),
+        description,
     )
     .in_section("makes")
     .under(vec![("Makes".to_owned(), "/makes".to_owned())]);
@@ -635,29 +644,50 @@ fn describe_model_year(view: &ModelYearView, name: &str) -> String {
         .iter()
         .map(|engine| engine.label.as_str())
         .collect();
-    let trims_in_words = format!(
-        "{} ({})",
-        seo::count(view.trims_total, "trim"),
-        seo::first_of(&trims)
-    );
-    let engines_in_words = format!(
-        "{} ({})",
-        seo::count(engines.len(), "engine"),
-        seo::first_of(&engines)
-    );
-    let text = match (trims.is_empty(), engines.is_empty()) {
-        (true, true) => format!(
-            "The {name}, from NHTSA's data. No trims or engines are on file for this model year."
+    let trims_counted = seo::count(view.trims_total, "trim");
+    let engines_counted = seo::count(engines.len(), "engine");
+    let trims_in_words = format!("{trims_counted} ({})", seo::first_of(&trims));
+    let engines_in_words = format!("{engines_counted} ({})", seo::first_of(&engines));
+    // Each sentence from its fullest wording to its shortest: the closing
+    // clause goes first, then the names, and the counts stay.
+    let (what, missing) = match (trims.is_empty(), engines.is_empty()) {
+        (true, true) => (
+            vec![format!("The {name}, from NHTSA's data.")],
+            Some("No trims or engines are on file for this model year."),
         ),
-        (false, true) => format!("The {name} has {trims_in_words}. No engines are on file."),
-        (true, false) => format!(
-            "The {name} has {engines_in_words}, with the VIN character for each engine. No trims are on file."
+        (false, true) => (
+            vec![
+                format!("The {name} has {trims_in_words}."),
+                format!("The {name} has {trims_counted}."),
+            ],
+            Some("No engines are on file."),
         ),
-        (false, false) => format!(
-            "The {name} has {trims_in_words} and {engines_in_words}, with the VIN character for each engine."
+        (true, false) => (
+            vec![
+                format!(
+                    "The {name} has {engines_in_words}, with the VIN character for each engine."
+                ),
+                format!("The {name} has {engines_in_words}."),
+                format!("The {name} has {engines_counted}."),
+            ],
+            Some("No trims are on file."),
+        ),
+        (false, false) => (
+            vec![
+                format!(
+                    "The {name} has {trims_in_words} and {engines_in_words}, with the VIN character for each engine."
+                ),
+                format!("The {name} has {trims_in_words} and {engines_in_words}."),
+                format!(
+                    "The {name} has {trims_counted} and {engines_counted}, with the VIN character for each engine."
+                ),
+                format!("The {name} has {trims_counted} and {engines_counted}."),
+            ],
+            None,
         ),
     };
-    seo::clip(&text, 160)
+    let missing: Vec<String> = missing.iter().map(|text| (*text).to_owned()).collect();
+    seo::description(&[&what, &missing], 160)
 }
 
 pub async fn model_year(

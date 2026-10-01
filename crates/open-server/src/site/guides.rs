@@ -133,6 +133,7 @@ fn how_to_read(base: &str) -> Doc {
                         cells(&["11", "U", "The plant the vehicle was built in."]),
                         cells(&["12 to 17", "001140", "The serial number of this vehicle."]),
                     ],
+                    prose: true,
                 },
             ),
             with_links(
@@ -318,6 +319,7 @@ fn model_year(base: &str) -> Doc {
                     caption: "Model year by tenth character".to_owned(),
                     head: cells(&["Character", "1980 to 2009", "2010 to 2039"]),
                     rows,
+                    prose: false,
                 },
             ),
             section(
@@ -371,6 +373,7 @@ fn check_digit(base: &str) -> Doc {
                     caption: "The value of each letter".to_owned(),
                     head: cells(&["Value", "Letters"]),
                     rows: letters,
+                    prose: false,
                 },
             ),
             with_table(
@@ -382,6 +385,7 @@ fn check_digit(base: &str) -> Doc {
                     caption: "The weight of each position".to_owned(),
                     head: cells(&["Position", "Weight"]),
                     rows: weights,
+                    prose: false,
                 },
             ),
             section("A worked example", &[&worked_example()]),

@@ -205,19 +205,25 @@ pub async fn wmi(
             format!("A VIN that starts with {first} and has {rest} in positions 12 to 14"),
         ),
     };
-    let mut description = format!("{begins} was built by {}", view.manufacturer);
+    // Whole sentences, in the order they matter: who built it, under which
+    // makes, and for which model years.
+    let built = format!("{begins} was built by {}", view.manufacturer);
+    let mut who = Vec::new();
     if let Some(country) = &view.country {
-        description.push_str(&format!(" in {country}"));
+        who.push(format!("{built} in {country}."));
     }
-    description.push('.');
+    who.push(format!("{built}."));
+    let mut makes = Vec::new();
     if !view.makes.is_empty() {
         let names: Vec<&str> = view.makes.iter().map(|make| make.1.as_str()).collect();
-        description.push_str(&format!(" Makes: {}.", seo::first_of(&names)));
+        makes.push(format!("Makes: {}.", seo::first_of(&names)));
     }
-    if let Some(years) = &years {
-        description.push_str(&format!(" Model years on file: {years}."));
-    }
-    let page = Page::new(&state, seo::title(&title), seo::clip(&description, 160))
+    let on_file: Vec<String> = years
+        .iter()
+        .map(|years| format!("Model years on file: {years}."))
+        .collect();
+    let description = seo::description(&[&who, &makes, &on_file], 160);
+    let page = Page::new(&state, seo::title(&title), description)
         .indexed(&state, &path)
         .with_markdown(&format!("{path}.md"))
         .in_section("guides")

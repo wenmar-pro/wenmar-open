@@ -55,6 +55,8 @@ th,td{text-align:left;vertical-align:top;padding:8px 8px 8px 0;border-bottom:1px
 tbody th{width:44%;color:var(--secondary);font-weight:400}
 td{font-weight:var(--medium)}
 thead th{color:var(--heading);font-weight:var(--semibold)}
+table.prose{table-layout:auto}
+table.prose th,table.prose td:not(:last-child){width:auto;white-space:nowrap}
 .scroll{overflow-x:auto}
 ul.plain{list-style:none;padding:0;margin:0 0 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0 12px}
 ul.links{grid-template-columns:1fr}

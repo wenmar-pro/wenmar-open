@@ -297,9 +297,46 @@ pub fn title(text: &str) -> String {
     }
 }
 
-/// A description of at most `most` characters, cut at the end of a word
-/// and not left hanging on a comma or an open bracket.
-pub fn clip(text: &str, most: usize) -> String {
+/// A description of at most `most` characters, made of whole sentences.
+///
+/// Each sentence comes in one or more wordings, the fullest first. The
+/// first wording that fits after what is already there is used, and a
+/// sentence with no wording that fits is left out, so the text never stops
+/// in the middle of one. The first sentence is the one the page cannot do
+/// without: if none of its wordings fits, the last is cut at a word and
+/// ends with an ellipsis, and nothing follows it.
+pub fn description(sentences: &[&[String]], most: usize) -> String {
+    let mut text = String::new();
+    let mut length = 0;
+    for (index, wordings) in sentences.iter().enumerate() {
+        let gap = usize::from(index > 0);
+        let fits = wordings
+            .iter()
+            .map(|wording| (wording, wording.chars().count()))
+            .find(|(_, characters)| length + gap + characters <= most);
+        match fits {
+            Some((wording, characters)) => {
+                if index > 0 {
+                    text.push(' ');
+                }
+                text.push_str(wording);
+                length += gap + characters;
+            }
+            None if index == 0 => {
+                let room = wordings.last().filter(|_| most > 0);
+                return room.map_or_else(String::new, |shortest| {
+                    format!("{}\u{2026}", clip(shortest, most.saturating_sub(1)))
+                });
+            }
+            None => {}
+        }
+    }
+    text
+}
+
+/// A text of at most `most` characters, cut at the end of a word and not
+/// left hanging on a comma or an open bracket.
+fn clip(text: &str, most: usize) -> String {
     if text.chars().count() <= most {
         return text.to_owned();
     }
@@ -378,6 +415,51 @@ mod tests {
         // Counted in characters, and never cut inside one.
         assert_eq!(clip("naïve café olé", 10), "naïve café");
         assert!(clip(&"word ".repeat(100), 160).chars().count() <= 160);
+    }
+
+    #[test]
+    fn a_description_is_made_of_whole_sentences() {
+        let words = |texts: &[&str]| -> Vec<String> {
+            texts.iter().map(|text| (*text).to_owned()).collect()
+        };
+        let (built, makes, years) = (
+            words(&["Built by Acme in Canada.", "Built by Acme."]),
+            words(&["Makes: Acme, Apex, Atlas and more."]),
+            words(&["Model years: 1990 to now."]),
+        );
+        let all: [&[String]; 3] = [&built, &makes, &years];
+        // Everything, where there is room.
+        assert_eq!(
+            description(&all, 160),
+            "Built by Acme in Canada. Makes: Acme, Apex, Atlas and more. Model years: 1990 to now."
+        );
+        // A sentence that does not fit is left out, and a later one that
+        // fits is kept.
+        assert_eq!(
+            description(&all, 55),
+            "Built by Acme in Canada. Model years: 1990 to now."
+        );
+        assert_eq!(description(&all, 30), "Built by Acme in Canada.");
+        // The fullest wording that fits is the one used, to the character.
+        assert_eq!(description(&all, 24), "Built by Acme in Canada.");
+        assert_eq!(description(&all, 23), "Built by Acme.");
+        // A fuller first sentence comes before a second one.
+        assert_eq!(
+            description(&[&built, &years], 40),
+            "Built by Acme in Canada."
+        );
+        // The first sentence is never left out: cut at a word, it says so.
+        assert_eq!(description(&all, 13), "Built by\u{2026}");
+        assert_eq!(description(&[&makes, &years], 13), "Makes: Acme\u{2026}");
+        // Nothing to say, and nothing said.
+        assert_eq!(description(&[], 160), "");
+        assert_eq!(description(&[&[], &years], 160), "");
+        // Counted in characters, and never past the limit.
+        let long = words(&[&"naïve café ".repeat(40)]);
+        for most in [0, 1, 2, 10, 160] {
+            let text = description(&[&long, &years], most);
+            assert!(text.chars().count() <= most, "{most}: {text}");
+        }
     }
 
     #[test]

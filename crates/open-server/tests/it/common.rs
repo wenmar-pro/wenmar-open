@@ -542,9 +542,9 @@ pub fn assert_basics(html: &str, path: &str) {
             "{path}: no label for {id}"
         );
     }
-    // A table says what its rows are.
+    // A table says what its rows are, with a class or without one.
     assert_eq!(
-        html.matches("<table>").count(),
+        html.matches("<table").count(),
         html.matches("<caption>").count(),
         "{path}: every table has a caption"
     );

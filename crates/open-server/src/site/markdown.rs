@@ -77,6 +77,9 @@ pub struct Table {
     pub caption: String,
     pub head: Vec<String>,
     pub rows: Vec<Vec<String>>,
+    /// Whether the last column holds sentences and the others a word or
+    /// two. A page gives such a table's last column the room.
+    pub prose: bool,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -184,6 +187,7 @@ mod tests {
                     caption: "Codes".to_owned(),
                     head: vec!["Code".to_owned(), "Year".to_owned()],
                     rows: vec![vec!["P".to_owned(), "2023".to_owned()]],
+                    prose: false,
                 }),
                 ..Section::default()
             }],

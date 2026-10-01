@@ -9,7 +9,7 @@
 {% endfor -%}
 {% if let Some(table) = section.table -%}
 <div class="scroll">
-<table>
+<table{% if table.prose %} class="prose"{% endif %}>
 <caption>{{ table.caption }}</caption>
 <thead><tr>{% for cell in table.head %}<th scope="col">{{ cell }}</th>{% endfor %}</tr></thead>
 <tbody>
