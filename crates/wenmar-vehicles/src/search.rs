@@ -5,7 +5,7 @@ use std::collections::HashSet;
 
 use crate::catalog::{Catalog, CatalogError, Entry, integer, text, year};
 use crate::id::VehicleId;
-use crate::index::{MakeRef, Scope};
+use crate::index::{MAX_FORM, MakeRef, Scope};
 use crate::parse::{Parsed, parse};
 use crate::source::{Source, Value};
 use crate::sql;
@@ -29,6 +29,16 @@ struct Hit {
     rank: Option<u32>,
     year: u16,
     id: String,
+}
+
+/// Words joined into one matching form and cut to [`MAX_FORM`], as every
+/// form given to a `LIKE` is. A longer one names no submodel, and some
+/// engines refuse a long pattern: Cloudflare D1 allows 50 bytes.
+fn joined(words: &[String]) -> String {
+    let mut form = words.concat();
+    // A matching form is ASCII, so any byte offset is a character boundary.
+    form.truncate(MAX_FORM);
+    form
 }
 
 struct Lookup<'a> {
@@ -213,7 +223,7 @@ impl<S: Source> Catalog<S> {
                     sql::SEARCH_SUBMODELS,
                     &[
                         integer(row, 4, TABLE)?.into(),
-                        rest.concat().as_str().into(),
+                        joined(rest).as_str().into(),
                         year_value.clone(),
                         lookup.light.into(),
                         lookup.bit.into(),
@@ -249,7 +259,7 @@ impl<S: Source> Catalog<S> {
                 sql::SEARCH_MAKE_SUBMODELS,
                 &[
                     make.id.into(),
-                    words.concat().as_str().into(),
+                    joined(words).as_str().into(),
                     year_value,
                     lookup.light.into(),
                     lookup.bit.into(),
@@ -278,5 +288,19 @@ impl<S: Source> Catalog<S> {
             }
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn words_joined_for_a_like_are_cut_to_the_longest_form() {
+        assert_eq!(joined(&["si".to_owned()]), "si");
+        assert_eq!(joined(&["crew".to_owned(), "cab".to_owned()]), "crewcab");
+        let long = vec!["a".repeat(40); 5];
+        assert_eq!(joined(&long).len(), MAX_FORM);
+        assert_eq!(joined(&[]), "");
     }
 }
