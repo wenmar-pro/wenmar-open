@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use open_data::build::{BuildInfo, build};
+use open_data::catalog::curated::Curated;
 use rusqlite::Connection;
 use wenmar_vin::sqlite::SqliteData;
 use wenmar_vin::{DecodeOptions, Decoder};
@@ -178,7 +179,7 @@ fn text(connection: &Connection, sql: &str) -> Vec<String> {
 #[test]
 fn builds_a_file_the_decoder_can_use() {
     let built = Built::new("decode");
-    let summary = build(dump().as_bytes(), &built.path, &info()).unwrap();
+    let summary = build(dump().as_bytes(), &built.path, &info(), &Curated::default()).unwrap();
     assert_eq!(
         (
             summary.manufacturers,
@@ -188,6 +189,15 @@ fn builds_a_file_the_decoder_can_use() {
             summary.engine_rows
         ),
         (3, 1, 5, 2, 1)
+    );
+    // The Kona, 2022 to 2027.
+    assert_eq!(
+        (
+            summary.catalog.makes,
+            summary.catalog.models,
+            summary.catalog.vehicles
+        ),
+        (1, 1, 6)
     );
 
     let data = SqliteData::open(&built.path).unwrap();
@@ -226,7 +236,7 @@ fn builds_a_file_the_decoder_can_use() {
 #[test]
 fn keeps_only_what_nhtsa_would_decode() {
     let built = Built::new("filter");
-    build(dump().as_bytes(), &built.path, &info()).unwrap();
+    build(dump().as_bytes(), &built.path, &info(), &Curated::default()).unwrap();
     let connection = Connection::open(&built.path).unwrap();
 
     assert_eq!(
@@ -256,7 +266,7 @@ fn keeps_only_what_nhtsa_would_decode() {
 #[test]
 fn shapes_manufacturers() {
     let built = Built::new("wmi");
-    build(dump().as_bytes(), &built.path, &info()).unwrap();
+    build(dump().as_bytes(), &built.path, &info(), &Curated::default()).unwrap();
     let connection = Connection::open(&built.path).unwrap();
 
     assert_eq!(
@@ -282,7 +292,7 @@ fn shapes_manufacturers() {
 #[test]
 fn leaves_no_staging_tables_behind() {
     let built = Built::new("clean");
-    build(dump().as_bytes(), &built.path, &info()).unwrap();
+    build(dump().as_bytes(), &built.path, &info(), &Curated::default()).unwrap();
     let connection = Connection::open(&built.path).unwrap();
     assert_eq!(
         text(
@@ -290,6 +300,15 @@ fn leaves_no_staging_tables_behind() {
             "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name"
         ),
         vec![
+            "catalog_alias",
+            "catalog_detail",
+            "catalog_engine",
+            "catalog_make",
+            "catalog_model",
+            "catalog_submodel",
+            "catalog_submodel_engine",
+            "catalog_type",
+            "catalog_vehicle",
             "engine_model_row",
             "meta",
             "pattern",
@@ -307,7 +326,7 @@ fn leaves_no_staging_tables_behind() {
 #[test]
 fn shapes_specification_rows() {
     let built = Built::new("specs");
-    build(dump().as_bytes(), &built.path, &info()).unwrap();
+    build(dump().as_bytes(), &built.path, &info(), &Curated::default()).unwrap();
     let connection = Connection::open(&built.path).unwrap();
 
     assert_eq!(
@@ -358,7 +377,7 @@ fn a_sheet_with_a_key_that_cannot_be_kept_is_left_out() {
     // Dropping only the key would leave a sheet that applies to more vehicles
     // than NHTSA applies it to.
     let built = Built::new("spec-keys");
-    build(dump().as_bytes(), &built.path, &info()).unwrap();
+    build(dump().as_bytes(), &built.path, &info(), &Curated::default()).unwrap();
     let connection = Connection::open(&built.path).unwrap();
     assert_eq!(
         text(
@@ -372,7 +391,7 @@ fn a_sheet_with_a_key_that_cannot_be_kept_is_left_out() {
 #[test]
 fn shapes_engine_model_rows() {
     let built = Built::new("engines");
-    build(dump().as_bytes(), &built.path, &info()).unwrap();
+    build(dump().as_bytes(), &built.path, &info(), &Curated::default()).unwrap();
     let connection = Connection::open(&built.path).unwrap();
     assert_eq!(
         text(
@@ -388,7 +407,7 @@ fn shapes_engine_model_rows() {
 #[test]
 fn keeps_raw_attributes() {
     let built = Built::new("attributes");
-    build(dump().as_bytes(), &built.path, &info()).unwrap();
+    build(dump().as_bytes(), &built.path, &info(), &Curated::default()).unwrap();
     let connection = Connection::open(&built.path).unwrap();
     assert_eq!(
         text(
@@ -402,7 +421,7 @@ fn keeps_raw_attributes() {
 #[test]
 fn links_manufacturer_codes_to_their_makes_and_vehicle_types() {
     let built = Built::new("wmi-make");
-    build(dump().as_bytes(), &built.path, &info()).unwrap();
+    build(dump().as_bytes(), &built.path, &info(), &Curated::default()).unwrap();
     let connection = Connection::open(&built.path).unwrap();
     assert_eq!(
         text(
@@ -424,7 +443,13 @@ fn links_manufacturer_codes_to_their_makes_and_vehicle_types() {
 fn a_dump_without_the_specification_tables_still_builds() {
     // NHTSA's tables are required for patterns only.
     let built = Built::new("no-specs");
-    let summary = build(patterns_only().as_bytes(), &built.path, &info()).unwrap();
+    let summary = build(
+        patterns_only().as_bytes(),
+        &built.path,
+        &info(),
+        &Curated::default(),
+    )
+    .unwrap();
     assert_eq!(
         (summary.patterns, summary.spec_rows, summary.engine_rows),
         (5, 0, 0)
@@ -440,9 +465,14 @@ fn a_dump_without_the_specification_tables_still_builds() {
 fn a_dump_missing_a_needed_table_is_an_error() {
     let built = Built::new("missing");
     let partial = "COPY vpic.make (id, name) FROM stdin;\n498\tHyundai\n\\.\n";
-    let error = build(partial.as_bytes(), &built.path, &info())
-        .unwrap_err()
-        .to_string();
+    let error = build(
+        partial.as_bytes(),
+        &built.path,
+        &info(),
+        &Curated::default(),
+    )
+    .unwrap_err()
+    .to_string();
     assert!(error.contains("missing table"), "{error}");
 }
 
@@ -450,7 +480,7 @@ fn a_dump_missing_a_needed_table_is_an_error() {
 fn refuses_to_overwrite_an_existing_file() {
     let built = Built::new("exists");
     std::fs::write(&built.path, b"already here").unwrap();
-    let error = build(dump().as_bytes(), &built.path, &info())
+    let error = build(dump().as_bytes(), &built.path, &info(), &Curated::default())
         .unwrap_err()
         .to_string();
     assert!(error.contains("already exists"), "{error}");
@@ -463,7 +493,13 @@ fn a_table_with_no_rows_is_staged_and_dropped_like_any_other() {
         "{}COPY vpic.decodingoutput (id, name) FROM stdin;\n\\.\n",
         dump()
     );
-    let summary = build(with_empty.as_bytes(), &built.path, &info()).unwrap();
+    let summary = build(
+        with_empty.as_bytes(),
+        &built.path,
+        &info(),
+        &Curated::default(),
+    )
+    .unwrap();
     assert_eq!(summary.patterns, 5);
 }
 
@@ -472,7 +508,7 @@ fn a_code_with_no_public_date_is_left_out() {
     // NHTSA's decoder requires the date to be on or before now, which a
     // missing date never is.
     let built = Built::new("no-date");
-    build(dump().as_bytes(), &built.path, &info()).unwrap();
+    build(dump().as_bytes(), &built.path, &info(), &Curated::default()).unwrap();
     let connection = Connection::open(&built.path).unwrap();
     assert_eq!(
         text(&connection, "SELECT code FROM wmi WHERE code = 'NUL'"),
@@ -490,9 +526,14 @@ fn a_dump_that_yields_no_patterns_is_an_error() {
     let header_end = start + full[start..].find('\n').unwrap() + 1;
     let block_end = header_end + full[header_end..].find("\\.\n").unwrap();
     let without_rows = format!("{}{}", &full[..header_end], &full[block_end..]);
-    let error = build(without_rows.as_bytes(), &built.path, &info())
-        .unwrap_err()
-        .to_string();
+    let error = build(
+        without_rows.as_bytes(),
+        &built.path,
+        &info(),
+        &Curated::default(),
+    )
+    .unwrap_err()
+    .to_string();
     assert!(error.contains("no patterns"), "{error}");
     assert!(!built.path.exists());
 }

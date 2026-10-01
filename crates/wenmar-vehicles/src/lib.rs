@@ -5,6 +5,7 @@
 //! become ids, and [`summary`] writes the one-line description of a vehicle.
 
 pub mod id;
+pub mod schema;
 pub mod summary;
 pub mod text;
 

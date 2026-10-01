@@ -8,6 +8,8 @@ use anyhow::{Context, Result, bail};
 use rusqlite::{Connection, Transaction, params_from_iter};
 use wenmar_vin::sqlite::{SCHEMA, SCHEMA_VERSION};
 
+use crate::catalog::curated::Curated;
+use crate::catalog::{self, CatalogSummary};
 use crate::dump::{Table, read_tables};
 
 /// What gets stamped into the data file.
@@ -23,13 +25,14 @@ pub struct BuildInfo {
 }
 
 /// Row counts of the finished file.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Summary {
     pub manufacturers: u64,
     pub schema_links: u64,
     pub patterns: u64,
     pub spec_rows: u64,
     pub engine_rows: u64,
+    pub catalog: CatalogSummary,
 }
 
 /// Used only for NHTSA's error correction, and by far the largest table.
@@ -371,14 +374,19 @@ fn count(connection: &Connection, table: &str) -> Result<u64> {
 }
 
 /// Builds a data file at `output` from a vPIC plain-text dump.
-pub fn build<R: BufRead>(dump: R, output: &Path, info: &BuildInfo) -> Result<Summary> {
+pub fn build<R: BufRead>(
+    dump: R,
+    output: &Path,
+    info: &BuildInfo,
+    curated: &Curated,
+) -> Result<Summary> {
     if output.exists() {
         bail!(
             "{} already exists; remove it or choose another path",
             output.display()
         );
     }
-    let result = build_into(dump, output, info);
+    let result = build_into(dump, output, info, curated);
     if result.is_err() {
         // Never leave a half-built file that could be mistaken for a good one.
         let _ = std::fs::remove_file(output);
@@ -386,11 +394,17 @@ pub fn build<R: BufRead>(dump: R, output: &Path, info: &BuildInfo) -> Result<Sum
     result
 }
 
-fn build_into<R: BufRead>(dump: R, output: &Path, info: &BuildInfo) -> Result<Summary> {
+fn build_into<R: BufRead>(
+    dump: R,
+    output: &Path,
+    info: &BuildInfo,
+    curated: &Curated,
+) -> Result<Summary> {
     let mut connection =
         Connection::open(output).with_context(|| format!("creating {}", output.display()))?;
     connection.execute_batch("PRAGMA journal_mode = OFF; PRAGMA synchronous = OFF;")?;
     connection.execute_batch(SCHEMA)?;
+    connection.execute_batch(wenmar_vehicles::schema::SCHEMA)?;
 
     let transaction = connection.transaction()?;
     let staged = stage(&transaction, dump)?;
@@ -416,6 +430,7 @@ fn build_into<R: BufRead>(dump: R, output: &Path, info: &BuildInfo) -> Result<Su
             bail!("the dump produced no {what}; its layout may have changed");
         }
     }
+    let catalog = catalog::build(&transaction, curated, catalog::last_year(&info.built_at)?)?;
     for (key, value) in [
         ("schema_version", SCHEMA_VERSION),
         ("data_version", info.data_version.as_str()),
@@ -441,5 +456,6 @@ fn build_into<R: BufRead>(dump: R, output: &Path, info: &BuildInfo) -> Result<Su
         patterns: count(&connection, "pattern")?,
         spec_rows: count(&connection, "spec_row")?,
         engine_rows: count(&connection, "engine_model_row")?,
+        catalog,
     })
 }

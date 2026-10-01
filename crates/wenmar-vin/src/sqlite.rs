@@ -10,7 +10,7 @@ use crate::data::{
 
 /// Version of the table layout below. A data file records the version it was
 /// built with, and a mismatch is refused.
-pub const SCHEMA_VERSION: &str = "2";
+pub const SCHEMA_VERSION: &str = "3";
 
 /// The data file's tables. The data build creates the file with this.
 pub const SCHEMA: &str = "

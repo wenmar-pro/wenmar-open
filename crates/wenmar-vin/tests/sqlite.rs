@@ -225,3 +225,21 @@ fn decodes_equipment_through_the_decoder() {
 fn opening_a_missing_file_is_an_error() {
     assert!(SqliteData::open("/nonexistent/wenmar-open.sqlite3").is_err());
 }
+
+#[test]
+fn refuses_a_version_2_data_file() {
+    let connection = connection();
+    connection
+        .execute(
+            "UPDATE meta SET value = '2' WHERE key = 'schema_version'",
+            [],
+        )
+        .unwrap();
+    let error = SqliteData::from_connection(connection)
+        .unwrap_err()
+        .to_string();
+    assert_eq!(
+        error,
+        "data file has schema version 2, this build reads version 3; rebuild the data file with open-data build"
+    );
+}

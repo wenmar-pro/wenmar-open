@@ -6,6 +6,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 use open_data::build::{BuildInfo, build};
+use open_data::catalog::curated::Curated;
 use open_data::{fetch, parity};
 use wenmar_vin::sqlite::SqliteData;
 use wenmar_vin::{DecodeOptions, Decoder};
@@ -39,6 +40,9 @@ enum Command {
         /// Data version such as 2026.09. Defaults to the one in the dump's file name.
         #[arg(long)]
         data_version: Option<String>,
+        /// Directory holding catalog/makes.yaml, catalog/names.yaml and presets.yaml.
+        #[arg(long, default_value = "data")]
+        curated: PathBuf,
     },
     /// Decode one VIN against a data file and print the JSON.
     Decode {
@@ -105,6 +109,7 @@ fn main() -> Result<()> {
             dump,
             out,
             data_version,
+            curated,
         } => {
             let stem = dump
                 .file_stem()
@@ -123,10 +128,11 @@ fn main() -> Result<()> {
                 vpic_release: stem,
                 built_at: now(),
             };
+            let curated = Curated::load(&curated)?;
             let reader = BufReader::new(
                 File::open(&dump).with_context(|| format!("opening {}", dump.display()))?,
             );
-            let summary = build(reader, &out, &info)?;
+            let summary = build(reader, &out, &info, &curated)?;
             println!(
                 "{}: {} manufacturer codes, {} schema links, {} patterns, {} specification rows, {} engine-model rows",
                 out.display(),
@@ -136,6 +142,16 @@ fn main() -> Result<()> {
                 summary.spec_rows,
                 summary.engine_rows
             );
+            println!(
+                "catalog: {} makes, {} models, {} model-years ({} cars, MPVs and trucks)",
+                summary.catalog.makes,
+                summary.catalog.models,
+                summary.catalog.vehicles,
+                summary.catalog.light_vehicles
+            );
+            for entry in &summary.catalog.unmatched {
+                eprintln!("warning: nothing in vPIC matches {entry}");
+            }
         }
         Command::Decode { data, vin } => {
             let source = SqliteData::open(&data).map_err(|error| anyhow::anyhow!("{error}"))?;
