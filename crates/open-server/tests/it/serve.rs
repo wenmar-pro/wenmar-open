@@ -247,7 +247,11 @@ async fn stopping_finishes_the_request_in_flight_and_closes_idle_connections() {
         b"GET /v1/vin/KM8K2CAB4PU001140 HTTP/1.1\r\nhost: x\r\n\r\n",
     )
     .await;
-    tokio::time::sleep(Duration::from_millis(100)).await;
+    // The request has reached the application and waits for the data file.
+    common::until("the request in flight", || {
+        app.state.places().available_permits() < open_server::MOST_IN_FLIGHT
+    })
+    .await;
 
     drop(served.stop);
     // The idle connection is closed; the server waits for the other.
@@ -292,10 +296,15 @@ async fn connections_over_the_limit_wait_until_one_closes() {
         },
     )
     .await;
-    // Two connections that send nothing take both places.
+    // Two connections take both places. Each has been answered once, so
+    // the server is known to hold it, and is then kept open with nothing
+    // more sent.
     let first = TcpStream::connect(served.address).await.unwrap();
     let second = TcpStream::connect(served.address).await.unwrap();
-    tokio::time::sleep(Duration::from_millis(100)).await;
+    for held in [&first, &second] {
+        write_all(held, b"GET /health HTTP/1.1\r\nhost: x\r\n\r\n").await;
+        assert!(read_response(held).await.starts_with("HTTP/1.1 200"));
+    }
 
     // A third is not served yet, however complete its request.
     let third = TcpStream::connect(served.address).await.unwrap();

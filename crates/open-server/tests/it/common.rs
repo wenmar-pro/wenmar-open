@@ -401,6 +401,19 @@ pub fn header<'r>(response: &'r Response<Body>, name: &str) -> &'r str {
         .unwrap()
 }
 
+/// Waits until `condition` holds, for something the server does in its own
+/// time. A fixed pause is not enough: on a busy machine the server can be
+/// later than any pause a test would want to make every time.
+pub async fn until(what: &str, condition: impl Fn() -> bool) {
+    for _ in 0..10_000 {
+        if condition() {
+            return;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(2)).await;
+    }
+    panic!("{what}: not within 20 seconds");
+}
+
 /// Database work that does not finish until it is told to, for tests of
 /// what the server does while the data file is busy.
 #[derive(Clone, Default)]

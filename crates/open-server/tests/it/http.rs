@@ -261,7 +261,11 @@ async fn more_requests_at_once_than_the_server_holds_are_refused_at_once() {
             router.oneshot(request).await.unwrap().status()
         }));
     }
-    tokio::time::sleep(Duration::from_millis(100)).await;
+    // Each of them has been let in and is waiting for a connection.
+    common::until("every place taken", || {
+        app.state.places().available_permits() == 0
+    })
+    .await;
 
     // One more is told so straight away, in the error shape.
     let refused = tokio::time::timeout(Duration::from_secs(2), app.get("/v1/meta"))
