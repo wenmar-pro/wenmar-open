@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Decode a VIN</h1>
+<form class="vin" action="/vin" method="get">
+<label for="vin">VIN</label>
+<input id="vin" name="vin" type="text" required maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="vin-help">
+<button class="primary" type="submit">Decode</button>
+<p class="help" id="vin-help">17 characters, from the driver's door jamb, the dash at the windshield, or the ownership. Spaces and dashes are fine.</p>
+</form>
+<h2 id="pick-heading">No VIN? Pick the vehicle</h2>
+<form class="pick" action="/pick" method="get" aria-labelledby="pick-heading">
+<label for="year">Year</label>
+<select id="year" name="year">
+{% for year in years -%}
+<option value="{{ year }}">{{ year }}</option>
+{% endfor -%}
+</select>
+<label for="make">Make</label>
+<select id="make" name="make">
+<option value="">Every make</option>
+{% for make in makes -%}
+<option value="{{ make.id }}">{{ make.name }}</option>
+{% endfor -%}
+</select>
+<button type="submit">Show models</button>
+</form>
+<p class="note">Free, with no account and no key. The data is what manufacturers reported to NHTSA.</p>
+{% endblock %}

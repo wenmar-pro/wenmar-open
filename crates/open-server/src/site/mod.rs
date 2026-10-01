@@ -5,6 +5,7 @@
 //! `.md` added, for AI agents.
 
 pub mod assets;
+pub mod home;
 pub mod tokens;
 
 use askama::Template;
@@ -213,6 +214,9 @@ pub async fn page_headers(State(state): State<AppState>, request: Request, next:
 /// The pages.
 pub fn router() -> Router<AppState> {
     Router::new()
+        .route("/", get(home::home))
+        .route("/vin", get(home::vin_form))
+        .route("/pick", get(home::pick))
         .route("/assets/site.css", get(assets::stylesheet))
         .route("/assets/site.js", get(assets::script))
 }

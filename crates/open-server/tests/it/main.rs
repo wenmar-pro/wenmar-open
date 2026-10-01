@@ -15,4 +15,5 @@ mod search;
 mod search_speed;
 mod serve;
 mod site;
+mod site_home;
 mod vin_rows;
