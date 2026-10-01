@@ -99,6 +99,20 @@ CREATE INDEX engine_model_row_name ON engine_model_row (engine_model);
 /// vPIC's id for the Model element, whose rows also carry the make.
 const MODEL_ELEMENT_ID: i64 = 28;
 
+/// Reads the specification rows for a manufacturer code (`?1`), model id
+/// (`?2`) and model year (`?3`). It has no `ORDER BY`: sorting by row id in
+/// SQL makes SQLite walk the whole of `spec_row` in id order instead of
+/// starting from the few schemas that apply. The rows are sorted afterwards.
+const SPECS_SQL: &str = "
+SELECT r.id, r.spec_pattern_id, r.is_key, r.element_id, r.attribute, r.value, r.changed_on
+FROM spec_row r
+JOIN spec_schema s ON s.id = r.schema_id
+WHERE s.make_id IN (SELECT make_id FROM wmi_make WHERE wmi = ?1)
+  AND s.vehicle_type_id = (SELECT vehicle_type_id FROM wmi WHERE code = ?1)
+  AND EXISTS (SELECT 1 FROM spec_schema_model m WHERE m.schema_id = s.id AND m.model_id = ?2)
+  AND (NOT EXISTS (SELECT 1 FROM spec_schema_year y WHERE y.schema_id = s.id)
+       OR EXISTS (SELECT 1 FROM spec_schema_year y WHERE y.schema_id = s.id AND y.year = ?3))";
+
 /// Decoding data read from a Wenmar Open data file.
 #[derive(Debug)]
 pub struct SqliteData {
@@ -256,17 +270,7 @@ impl VinData for SqliteData {
         let Ok(model_id) = model_attribute.trim().parse::<i64>() else {
             return Ok(Vec::new());
         };
-        let mut statement = self.connection.prepare_cached(
-            "SELECT r.id, r.spec_pattern_id, r.is_key, r.element_id, r.attribute, r.value, r.changed_on
-             FROM spec_row r
-             JOIN spec_schema s ON s.id = r.schema_id
-             WHERE s.make_id IN (SELECT make_id FROM wmi_make WHERE wmi = ?1)
-               AND s.vehicle_type_id = (SELECT vehicle_type_id FROM wmi WHERE code = ?1)
-               AND EXISTS (SELECT 1 FROM spec_schema_model m WHERE m.schema_id = s.id AND m.model_id = ?2)
-               AND (NOT EXISTS (SELECT 1 FROM spec_schema_year y WHERE y.schema_id = s.id)
-                    OR EXISTS (SELECT 1 FROM spec_schema_year y WHERE y.schema_id = s.id AND y.year = ?3))
-             ORDER BY r.id",
-        )?;
+        let mut statement = self.connection.prepare_cached(SPECS_SQL)?;
         let rows = statement.query_map((wmi, model_id, year), |row| {
             let element_id: i64 = row.get(3)?;
             Ok(SpecRow {
@@ -279,10 +283,40 @@ impl VinData for SqliteData {
                 changed_on: row.get(6)?,
             })
         })?;
-        Ok(rows.collect::<Result<_, _>>()?)
+        let mut rows: Vec<SpecRow> = rows.collect::<Result<_, _>>()?;
+        rows.sort_by_key(|row| row.id);
+        Ok(rows)
     }
 }
 
 fn element_from_id(element_id: i64) -> Element {
     Element::from_vpic_id(element_id).unwrap_or(Element::Other(element_id))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_specification_query_does_not_read_every_specification_row() {
+        let connection = Connection::open_in_memory().unwrap();
+        connection.execute_batch(SCHEMA).unwrap();
+        let mut statement = connection
+            .prepare(&format!("EXPLAIN QUERY PLAN {SPECS_SQL}"))
+            .unwrap();
+        let plan: Vec<String> = statement
+            .query_map(("KM8", 900, 2023), |row| row.get::<_, String>(3))
+            .unwrap()
+            .collect::<Result<_, _>>()
+            .unwrap();
+        // Rows must be reached through their schema, which is narrowed first.
+        assert!(
+            plan.iter().any(|step| step.contains("spec_row_schema")),
+            "{plan:#?}"
+        );
+        assert!(
+            !plan.iter().any(|step| step.starts_with("SCAN r")),
+            "{plan:#?}"
+        );
+    }
 }
