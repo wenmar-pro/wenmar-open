@@ -1,6 +1,8 @@
 //! Builds the vehicle catalog tables of the data file.
 
+pub mod cells;
 pub mod curated;
+pub mod keys;
 pub mod vehicles;
 
 use anyhow::{Context, Result, bail};
