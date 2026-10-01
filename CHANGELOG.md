@@ -33,3 +33,4 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - The website, served by `open-server`: a home page with a VIN box and a year and make picker, a result page for a VIN, and reference pages for makes, model years and manufacturer codes, with docs, data and about pages. Pages are rendered on the server and work without JavaScript.
 - A Markdown version of every reference page at the same address with `.md` added, listed in `/llms.txt`.
 - `robots.txt` and sitemaps for the reference pages. Result pages for single VINs are never indexed, and neither are the pages of makes and model years that are not cars, MPVs or trucks.
+- `open-server`: every `ETag`, and the address of the stylesheet and the script, names the build as well as the data version, so a deploy that changes a page reaches a visitor who holds the old one.

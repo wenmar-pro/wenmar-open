@@ -33,7 +33,7 @@ use crate::state::AppState;
 pub const CONTENT_SECURITY_POLICY: &str = "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; form-action 'self'; base-uri 'none'; frame-ancestors 'none'";
 
 /// How long a page may be cached. Pages change only with the data file or
-/// the server.
+/// the server, and the `ETag` names both.
 pub const CACHE_PAGE: &str = "public, max-age=3600";
 
 /// A link to Wenmar Pro. The marker lets Wenmar Pro count visits that came
@@ -57,6 +57,7 @@ pub struct Page {
     /// Whether search engines may index the page.
     pub index: bool,
     pub data_version: String,
+    /// Names the build in the address of the stylesheet and the script.
     pub asset_version: &'static str,
     pub pro_header: String,
 }
@@ -71,7 +72,7 @@ impl Page {
             markdown: None,
             index: false,
             data_version: state.db().meta().data_version.clone(),
-            asset_version: env!("CARGO_PKG_VERSION"),
+            asset_version: crate::BUILD_ID,
             pro_header: pro_link("header"),
         }
     }

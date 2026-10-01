@@ -131,6 +131,54 @@ async fn something_the_visitor_already_has_is_304() {
 }
 
 #[tokio::test]
+async fn what_an_earlier_build_sent_is_not_what_the_visitor_already_has() {
+    let app = common::app().await;
+    // Before the tag named the build, every build of one crate version over
+    // one data file had this tag, so a reworded page or a fixed stylesheet
+    // was answered 304 until the next data release.
+    let version = env!("CARGO_PKG_VERSION");
+    let older = format!("W/\"2026.09-{version}\"");
+    for path in ["/", "/about", "/assets/site.css", "/assets/site.js"] {
+        let response = app
+            .send(
+                Request::get(path)
+                    .header("if-none-match", &older)
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await;
+        assert_eq!(response.status(), StatusCode::OK, "{path}");
+        let etag = header(&response, "etag");
+        assert_ne!(etag, older, "{path}");
+        assert!(
+            etag.starts_with(&format!("W/\"2026.09-{version}-")),
+            "{path}: {etag}"
+        );
+    }
+    // A page asks for the stylesheet and the script at an address that names
+    // the build, so new markup is never paired with an old stylesheet that a
+    // browser may keep for a week.
+    let (_, html) = page(&app, "/").await;
+    let build = open_server::BUILD_ID;
+    assert_eq!(build.len(), 16, "{build}");
+    assert!(
+        build.bytes().all(|byte| byte.is_ascii_hexdigit()),
+        "{build}"
+    );
+    assert!(html.contains(&format!(
+        r#"<link rel="stylesheet" href="/assets/site.css?v={build}">"#
+    )));
+    assert!(html.contains(&format!(
+        r#"<script src="/assets/site.js?v={build}" defer></script>"#
+    )));
+    let response = app.get("/").await;
+    assert_eq!(
+        header(&response, "etag"),
+        format!("W/\"2026.09-{version}-{build}\"")
+    );
+}
+
+#[tokio::test]
 async fn json_answers_are_marked_as_not_for_indexing() {
     let app = common::app().await;
     for path in ["/v1/meta", "/v1/vin/KM8K2CAB4PU001140", "/v1/nothing"] {

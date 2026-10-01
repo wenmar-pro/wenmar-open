@@ -8,8 +8,9 @@ use axum::response::{IntoResponse, Response};
 
 use crate::site::tokens;
 
-/// Assets are addressed with the server's version (`?v=`), so they can be
-/// cached for a long time.
+/// Assets are addressed with the build id (`?v=`), which changes whenever
+/// the stylesheet, the script or a page does, so they can be cached for a
+/// long time.
 const CACHE_ASSET: &str = "public, max-age=604800";
 
 fn asset(content_type: &'static str, body: &'static str) -> Response {

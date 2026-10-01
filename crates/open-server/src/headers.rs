@@ -2,7 +2,8 @@
 //!
 //! An answer is the same until the data file or the server changes, so
 //! successful `GET`s may be cached for a day and carry an `ETag` made of
-//! both versions. Everything else is `no-store`.
+//! the data version, the server's version and the build id. Everything
+//! else is `no-store`.
 
 use axum::body::Body;
 use axum::extract::{Request, State};
@@ -17,8 +18,16 @@ pub const X_DATA_VERSION: &str = "x-data-version";
 pub const CACHE_FOR_A_DAY: &str = "public, max-age=86400";
 
 /// The `ETag` of every cacheable response of this data file and this build.
+///
+/// The version number alone does not name a build: a page is reworded or
+/// the stylesheet fixed without it changing. [`crate::BUILD_ID`] does.
 pub fn etag(meta: &Meta) -> String {
-    format!("W/\"{}-{}\"", meta.data_version, env!("CARGO_PKG_VERSION"))
+    format!(
+        "W/\"{}-{}-{}\"",
+        meta.data_version,
+        env!("CARGO_PKG_VERSION"),
+        crate::BUILD_ID
+    )
 }
 
 /// Whether an `If-None-Match` header names `etag`. Weak and strong forms of
@@ -90,6 +99,16 @@ mod tests {
             built_at: String::new(),
         };
         assert_eq!(
+            etag(&meta),
+            format!(
+                "W/\"2026.09-{}-{}\"",
+                env!("CARGO_PKG_VERSION"),
+                crate::BUILD_ID
+            )
+        );
+        // The build is named by more than the version number, which stays
+        // the same from one deploy to the next.
+        assert_ne!(
             etag(&meta),
             format!("W/\"2026.09-{}\"", env!("CARGO_PKG_VERSION"))
         );

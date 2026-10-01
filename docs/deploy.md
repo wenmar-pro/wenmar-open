@@ -152,6 +152,8 @@ Each month, or when a data release is published:
 
 Cached answers carry the old version in their `ETag`, so clients fetch fresh ones on their own.
 
+The same holds for a deploy that changes the server and not the data. The `ETag` of every page and answer, and the address of the stylesheet and the script (`?v=`), carry a build id that is worked out from the templates, the assets and the code when the image is built. A reworded page or a fixed stylesheet therefore reaches visitors who hold the old one without the crate's version number being changed. Building the same source again gives the same id, so a redeploy that changes nothing keeps caches warm.
+
 ## If something goes wrong
 
 - **The new container does not become healthy.** Kamal leaves the previous one serving. `kamal app logs` shows why; the usual cause is a data file of the wrong schema version, which the image build should already have refused.

@@ -15,6 +15,10 @@ pub mod site;
 pub mod state;
 pub mod vin_rows;
 
+#[cfg(test)]
+#[path = "../build_id.rs"]
+mod build_id;
+
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -29,6 +33,13 @@ use tower_http::cors::{Any, CorsLayer};
 
 use crate::error::ApiError;
 use crate::state::AppState;
+
+/// A name for this build: 16 hexadecimal digits worked out from the
+/// templates, the assets and the code when the crate is compiled. It is in
+/// every `ETag` and in the address of the stylesheet and the script, so
+/// that a deploy which changes a page is seen by a browser or a CDN that
+/// holds the old one, whether or not the crate's version number changed.
+pub const BUILD_ID: &str = env!("OPEN_BUILD_ID");
 
 /// Largest request body read: a batch of 50 VINs is under 2 KB.
 pub const BODY_LIMIT: usize = 16 * 1024;

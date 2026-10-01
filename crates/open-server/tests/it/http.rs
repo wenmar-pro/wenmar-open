@@ -49,7 +49,11 @@ async fn a_data_response_carries_the_version_and_may_be_cached() {
         );
         assert_eq!(
             header(&response, "etag"),
-            format!("W/\"2026.09-{}\"", env!("CARGO_PKG_VERSION")),
+            format!(
+                "W/\"2026.09-{}-{}\"",
+                env!("CARGO_PKG_VERSION"),
+                open_server::BUILD_ID
+            ),
             "{path}"
         );
         assert_eq!(header(&response, "x-content-type-options"), "nosniff");
@@ -81,6 +85,20 @@ async fn an_unchanged_response_is_304_with_no_body() {
         .send(
             Request::get("/v1/meta")
                 .header("if-none-match", "W/\"2026.08-0.1.0\"")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await;
+    assert_eq!(stale.status(), StatusCode::OK);
+
+    // Nor is the tag of another build of the server over the same data.
+    let stale = app
+        .send(
+            Request::get("/v1/meta")
+                .header(
+                    "if-none-match",
+                    format!("W/\"2026.09-{}\"", env!("CARGO_PKG_VERSION")),
+                )
                 .body(Body::empty())
                 .unwrap(),
         )
