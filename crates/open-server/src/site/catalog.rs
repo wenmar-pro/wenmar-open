@@ -363,11 +363,11 @@ pub async fn make(
     }
     let description = match (view.years.last(), view.years.first()) {
         (Some(first), Some(last)) if first != last => format!(
-            "{name} models for every model year from {first} to {last}, with trims and engines. Decode a {name} VIN free, with no account and no key.",
+            "{name} models for every model year from {first} to {last}, with trims and engines. Decode {name} VINs free, with no account and no key.",
             name = view.name
         ),
         _ => format!(
-            "{name} models for {year}, with trims and engines. Decode a {name} VIN free, with no account and no key.",
+            "{name} models for {year}, with trims and engines. Decode {name} VINs free, with no account and no key.",
             name = view.name,
             year = view.year
         ),

@@ -281,7 +281,7 @@ async fn titles_and_descriptions_are_for_what_people_search_and_are_unique() {
     let (_, html) = page(&app, "/makes/honda").await;
     assert_eq!(
         description(&html),
-        "Honda models for every model year from 2018 to 2020, with trims and engines. Decode a Honda VIN free, with no account and no key."
+        "Honda models for every model year from 2018 to 2020, with trims and engines. Decode Honda VINs free, with no account and no key."
     );
     // A six-character code is not something a VIN starts with.
     let (_, html) = page(&app, "/wmi/1A9881").await;
@@ -344,7 +344,10 @@ async fn reference_pages_lead_to_each_other_and_to_the_guides() {
     let app = common::app().await;
     // A make: its models, its years, a VIN box, its codes.
     let (_, html) = page(&app, "/makes/hyundai").await;
-    assert!(html.contains("<h2>Decode a Hyundai VIN</h2>"));
+    // The heading has no "a" before the name: "a Audi" would be wrong, and
+    // no rule picks the article for every make on file.
+    assert!(html.contains("<h2>Hyundai VIN decoder</h2>"));
+    assert!(!html.contains("Decode a Hyundai"));
     assert_eq!(html.matches(r#"class="primary""#).count(), 1);
     assert!(html.contains(r#"<li><a class="mono" href="/wmi/KM8">KM8</a></li>"#));
     assert!(html.contains(r#"<a href="/guides/wmi">"#));

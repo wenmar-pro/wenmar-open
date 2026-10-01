@@ -21,7 +21,7 @@
 {% endfor -%}
 </ul>
 </nav>
-<h2>Decode a {{ view.name }} VIN</h2>
+<h2>{{ view.name }} VIN decoder</h2>
 {% include "vin_form.html" %}
 {% if !view.codes.is_empty() -%}
 <h2>Manufacturer codes</h2>
