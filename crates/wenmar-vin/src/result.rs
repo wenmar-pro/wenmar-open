@@ -5,6 +5,7 @@ use crate::engine::Engine;
 
 /// A decoded VIN. Fields that could not be determined are left out of JSON.
 #[derive(Debug, Clone, PartialEq, Serialize)]
+#[non_exhaustive]
 pub struct Decoded {
     pub vin: String,
     /// Whether the check digit is correct.
@@ -40,6 +41,7 @@ pub struct Decoded {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[non_exhaustive]
 pub struct ManufacturerInfo {
     pub wmi: String,
     pub name: String,
@@ -51,6 +53,7 @@ pub struct ManufacturerInfo {
 
 /// Where the vehicle was built. `code` is position 11 of the VIN.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[non_exhaustive]
 pub struct Plant {
     pub code: char,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -66,6 +69,7 @@ pub struct Plant {
 /// Safety equipment as the manufacturer reported it, for example `Standard`,
 /// `Optional`, or a system type such as `Direct`.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize)]
+#[non_exhaustive]
 pub struct Safety {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub abs: Option<String>,
@@ -99,6 +103,7 @@ pub struct Safety {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum WarningCode {
     /// Position 9 does not match the rest of the VIN.
     InvalidCheckDigit,
@@ -112,6 +117,7 @@ pub enum WarningCode {
 
 /// Something the caller should know about a decode that still succeeded.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[non_exhaustive]
 pub struct Warning {
     pub code: WarningCode,
     pub message: String,

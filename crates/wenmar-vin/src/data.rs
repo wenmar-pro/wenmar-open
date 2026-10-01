@@ -15,6 +15,7 @@ pub struct Manufacturer {
 
 /// A vehicle attribute a pattern can describe.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[non_exhaustive]
 pub enum Element {
     Make,
     Model,
@@ -78,8 +79,12 @@ pub trait VinData {
     /// Ids of the schemas valid for this manufacturer code and model year.
     fn schemas(&self, wmi: &str, year: u16) -> Result<Vec<i64>, DataError>;
 
-    /// Every pattern belonging to the given schemas.
-    fn patterns(&self, schema_ids: &[i64]) -> Result<Vec<Pattern>, DataError>;
+    /// Patterns belonging to the given schemas.
+    ///
+    /// `match_key` is the VIN's match key (see [`crate::Vin::match_key`]). An
+    /// implementation may use it to leave out patterns that cannot match, but
+    /// must return every pattern that does. The decoder checks each one again.
+    fn patterns(&self, schema_ids: &[i64], match_key: &str) -> Result<Vec<Pattern>, DataError>;
 }
 
 impl<T: VinData + ?Sized> VinData for &T {
@@ -91,7 +96,7 @@ impl<T: VinData + ?Sized> VinData for &T {
         (**self).schemas(wmi, year)
     }
 
-    fn patterns(&self, schema_ids: &[i64]) -> Result<Vec<Pattern>, DataError> {
-        (**self).patterns(schema_ids)
+    fn patterns(&self, schema_ids: &[i64], match_key: &str) -> Result<Vec<Pattern>, DataError> {
+        (**self).patterns(schema_ids, match_key)
     }
 }

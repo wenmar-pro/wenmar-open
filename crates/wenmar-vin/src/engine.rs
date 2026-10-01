@@ -2,6 +2,7 @@ use serde::Serialize;
 
 /// What is known about a vehicle's engine.
 #[derive(Debug, Clone, PartialEq, Default, Serialize)]
+#[non_exhaustive]
 pub struct Engine {
     /// Short form such as `2.0L Turbo`. Filled in by [`label`].
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -9,7 +10,7 @@ pub struct Engine {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub displacement_l: Option<f32>,
+    pub displacement_l: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cylinders: Option<u8>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -65,7 +66,7 @@ pub fn label(engine: &Engine) -> Option<String> {
 mod tests {
     use super::*;
 
-    fn engine(displacement_l: f32) -> Engine {
+    fn engine(displacement_l: f64) -> Engine {
         Engine {
             displacement_l: Some(displacement_l),
             ..Engine::default()

@@ -10,6 +10,7 @@ pub struct InvalidChar {
 
 /// Why a string is not a well-formed VIN.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[non_exhaustive]
 pub enum VinError {
     #[error("a VIN has 17 characters, this has {0}")]
     InvalidLength(usize),

@@ -89,7 +89,7 @@ impl VinData for MemoryData {
         Ok(ids)
     }
 
-    fn patterns(&self, schema_ids: &[i64]) -> Result<Vec<Pattern>, DataError> {
+    fn patterns(&self, schema_ids: &[i64], _match_key: &str) -> Result<Vec<Pattern>, DataError> {
         Ok(self
             .patterns
             .iter()
@@ -142,17 +142,17 @@ mod tests {
     #[test]
     fn returns_patterns_for_the_requested_schemas_only() {
         let data = data();
-        let patterns = data.patterns(&[1]).unwrap();
+        let patterns = data.patterns(&[1], "K2CAB|PU001140").unwrap();
         assert_eq!(patterns.len(), 1);
         assert_eq!(patterns[0].value, "Kona");
         assert_eq!(patterns[0].id, 1);
-        assert_eq!(data.patterns(&[]).unwrap(), Vec::new());
+        assert_eq!(data.patterns(&[], "K2CAB|PU001140").unwrap(), Vec::new());
     }
 
     #[test]
     fn a_reference_to_data_is_also_data() {
         fn count(data: impl VinData) -> usize {
-            data.patterns(&[1, 2]).unwrap().len()
+            data.patterns(&[1, 2], "K2CAB|PU001140").unwrap().len()
         }
         let data = data();
         assert_eq!(count(&data), 2);

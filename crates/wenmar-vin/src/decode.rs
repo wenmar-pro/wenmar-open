@@ -14,6 +14,7 @@ use crate::vin::Vin;
 
 /// Why a VIN could not be decoded at all.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum DecodeError {
     /// The input is not a well-formed VIN.
     #[error("{error}")]
@@ -79,19 +80,42 @@ impl<D: VinData> Decoder<D> {
                 model_year::candidates(&vin, current)
             }
         };
-        let mut year = years.first().copied();
-        let mut schema_ids = Vec::new();
+        // Position 7 does not settle the cycle for every vehicle type, so each
+        // candidate year is decoded and the best is kept: one that resolves a
+        // model, else one that resolves anything, else the likeliest year.
+        let key = vin.match_key();
+        let mut best: Option<(u8, u16, Vec<Pattern>)> = None;
         for candidate in &years {
-            let found = self
+            let schema_ids = self
                 .data
                 .schemas(&manufacturer.wmi, *candidate)
                 .map_err(DecodeError::Data)?;
-            if !found.is_empty() {
-                year = Some(*candidate);
-                schema_ids = found;
+            if schema_ids.is_empty() {
+                continue;
+            }
+            let matched: Vec<Pattern> = self
+                .data
+                .patterns(&schema_ids, &key)
+                .map_err(DecodeError::Data)?
+                .into_iter()
+                .filter(|row| usable(&row.value) && pattern::matches(&row.keys, &key))
+                .collect();
+            let score = if matched.iter().any(|row| row.element == Element::Model) {
+                2
+            } else {
+                u8::from(!matched.is_empty())
+            };
+            if best.as_ref().is_none_or(|(current, _, _)| score > *current) {
+                best = Some((score, *candidate, matched));
+            }
+            if score == 2 {
                 break;
             }
         }
+        let (year, matched) = match best {
+            Some((_, year, matched)) => (Some(year), matched),
+            None => (years.first().copied(), Vec::new()),
+        };
         if year.is_none() {
             warnings.push(warning(
                 WarningCode::ModelYearUnknown,
@@ -99,14 +123,6 @@ impl<D: VinData> Decoder<D> {
             ));
         }
 
-        let key = vin.match_key();
-        let matched: Vec<Pattern> = self
-            .data
-            .patterns(&schema_ids)
-            .map_err(DecodeError::Data)?
-            .into_iter()
-            .filter(|candidate| usable(&candidate.value) && pattern::matches(&candidate.keys, &key))
-            .collect();
         let values = select(&matched);
 
         if matched.is_empty() {
@@ -129,7 +145,7 @@ impl<D: VinData> Decoder<D> {
             valid: check_digit.valid,
             check_digit,
             year,
-            make: text(Element::Make).or_else(|| manufacturer.make.clone()),
+            make: text(Element::Make).or_else(|| clean(manufacturer.make.clone())),
             model: text(Element::Model),
             series: text(Element::Series),
             trim: text(Element::Trim),
@@ -142,9 +158,9 @@ impl<D: VinData> Decoder<D> {
             safety: build_safety(&values),
             manufacturer: ManufacturerInfo {
                 wmi: manufacturer.wmi,
-                name: manufacturer.name,
-                country: manufacturer.country,
-                vehicle_type: manufacturer.vehicle_type,
+                name: manufacturer.name.trim().to_owned(),
+                country: clean(manufacturer.country),
+                vehicle_type: clean(manufacturer.vehicle_type),
             },
             plant: Plant {
                 code: vin.plant_char(),
@@ -189,6 +205,13 @@ fn warning(code: WarningCode, message: &str) -> Warning {
 fn usable(value: &str) -> bool {
     let value = value.trim();
     !value.is_empty() && !value.eq_ignore_ascii_case("not applicable")
+}
+
+/// Trims a value from the data and drops it if it is a placeholder.
+fn clean(value: Option<String>) -> Option<String> {
+    value
+        .map(|value| value.trim().to_owned())
+        .filter(|value| usable(value))
 }
 
 /// The schema this VIN most likely belongs to.
@@ -238,6 +261,17 @@ fn select(matched: &[Pattern]) -> Values<'_> {
             best.insert(candidate.element, candidate);
         }
     }
+    // vPIC stores the make against the model, so the make must come from the
+    // pattern that supplied the model, not be chosen on its own.
+    if let Some(model) = best.get(&Element::Model).copied()
+        && let Some(make) = matched.iter().find(|row| {
+            row.element == Element::Make
+                && row.schema_id == model.schema_id
+                && row.keys == model.keys
+        })
+    {
+        best.insert(Element::Make, make);
+    }
     best.into_iter()
         .map(|(element, chosen)| (element, chosen.value.as_str()))
         .collect()
@@ -254,15 +288,21 @@ fn count(values: &Values<'_>, element: Element) -> Option<u8> {
 }
 
 /// vPIC writes drive types as `FWD/Front-Wheel Drive`. Shops use the part
-/// before the slash.
+/// before the slash. Values where the slash separates alternatives, such as
+/// `2WD/4WD`, are kept whole.
 fn short_form(value: &str) -> String {
-    value.split('/').next().unwrap_or(value).trim().to_owned()
+    match value.split_once('/') {
+        Some((short, rest)) if !short.trim().is_empty() && rest.contains("Wheel Drive") => {
+            short.trim().to_owned()
+        }
+        _ => value.to_owned(),
+    }
 }
 
 fn build_engine(values: &Values<'_>) -> Option<Engine> {
     let displacement_l = values
         .get(&Element::DisplacementL)
-        .and_then(|value| value.trim().parse::<f32>().ok())
+        .and_then(|value| value.trim().parse::<f64>().ok())
         .filter(|litres| litres.is_finite() && *litres > 0.0);
     let mut engine = Engine {
         label: None,
