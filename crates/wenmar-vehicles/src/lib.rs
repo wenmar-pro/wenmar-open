@@ -20,6 +20,7 @@ pub mod source;
 pub mod sql;
 pub mod summary;
 pub mod text;
+pub mod vin_rows;
 
 pub use catalog::{Catalog, CatalogError, EngineOption, Entry, Make, Model, Submodel};
 pub use id::VehicleId;
