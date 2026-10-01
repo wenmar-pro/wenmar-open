@@ -1,0 +1,19 @@
+[package]
+name = "wenmar-vin"
+version = "0.1.0"
+description = "VIN decoding for auto repair shops: validation, check digit, model year, and pattern matching over NHTSA vPIC data."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "README.md"
+keywords = ["vin", "vehicle", "automotive", "nhtsa", "vpic"]
+categories = ["parser-implementations"]
+
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
