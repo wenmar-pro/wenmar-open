@@ -101,7 +101,7 @@ The package `wenmar-open-data` is not published by this workflow. It will need a
    mise run release-check
    ```
 
-   It runs the tests, checks that every version agrees and that the changelog has the section, and runs `cargo publish --dry-run` and `npm pack --dry-run`. It publishes nothing. Commit when it passes.
+   It runs the tests, checks that every version agrees and that the changelog has the section, checks that every action in `release.yml` is pinned to a commit, and runs `cargo publish --dry-run` and `npm pack --dry-run`. It publishes nothing. It is run before the commit, on the changes of steps 1 and 2 as they are in the working tree. Commit when it passes.
 
 4. **Merge `dev` into `main`** in the usual way, and wait for CI on `main`.
 

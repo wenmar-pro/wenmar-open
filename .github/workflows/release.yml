@@ -17,6 +17,12 @@ name: Release
 #
 # Every publishing step first asks the registry whether the version is
 # already there and skips it if so, so a run that failed can be run again.
+#
+# Every action is pinned to a commit, with its version in a comment, and no
+# checkout keeps its credentials: the crates and npm jobs can ask a registry
+# for a publishing token, so the code they run must not change under a tag.
+# scripts/release-check.sh fails if either stops being true. To move to a
+# newer version, change the commit and the comment together.
 
 on:
   push:
@@ -40,10 +46,13 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
+          persist-credentials: false
 
+      # The checkout kept no credentials. The repository is public, so this
+      # fetch needs none.
       - name: The tag is a commit on main
         run: |
           set -euo pipefail
@@ -60,7 +69,7 @@ jobs:
       - name: Install pinned toolchain
         run: rustup toolchain install
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "24"
 
@@ -89,7 +98,9 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Install pinned toolchain
         run: rustup toolchain install
@@ -120,7 +131,7 @@ jobs:
       - name: Ask crates.io for a short-lived token
         id: auth
         if: steps.pending.outputs.crates != ''
-        uses: rust-lang/crates-io-auth-action@v1
+        uses: rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18 # v1.0.5
 
       - name: Publish, in dependency order
         if: steps.pending.outputs.crates != ''
@@ -145,9 +156,11 @@ jobs:
       run:
         working-directory: clients/js
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
@@ -191,7 +204,9 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       VERSION: ${{ needs.verify.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Create the GitHub release, unless it exists
         run: |
@@ -239,7 +254,9 @@ jobs:
       VERSION: ${{ needs.verify.outputs.version }}
       TARGET: ${{ matrix.target }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Install pinned toolchain and the target
         run: |

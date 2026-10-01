@@ -14,6 +14,7 @@
 #                               the release workflow sets it)
 #
 # `mise run release-check` runs `mise run check` and `mise run js` first.
+# scripts/release-check-test.sh tests this script; run it after changing it.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -70,6 +71,48 @@ if [ -n "${RELEASE_TAG:-}" ]; then
     fail "the tag is $RELEASE_TAG and the version is $version: the tag must be v$version"
   echo "tag: $RELEASE_TAG"
 fi
+
+step "The release workflow's actions"
+# The jobs that publish may ask crates.io and npm for a publishing token. A
+# tag such as v4 can be moved to other code by whoever controls the action;
+# a commit cannot. A checkout that keeps its credentials leaves the job's
+# GitHub token in .git/config for every later step to read.
+node - .github/workflows/release.yml <<'EOF' || fail "the release workflow's actions are not as a release needs them"
+const fs = require("node:fs");
+const file = process.argv[2];
+const lines = fs.readFileSync(file, "utf8").split("\n");
+const indent = (line) => line.length - line.trimStart().length;
+let ok = true;
+let count = 0;
+const refuse = (index, message) => {
+  console.error(`release-check: ${file}:${index + 1}: ${message}`);
+  ok = false;
+};
+lines.forEach((line, index) => {
+  const uses = line.match(/^\s*(?:- )?uses:\s*(\S+)\s*(?:#\s*(.*?)\s*)?$/);
+  if (!uses) return;
+  count += 1;
+  const [, action, comment] = uses;
+  const [name, ref] = action.split("@");
+  console.log(`${action}${comment ? ` (${comment})` : ""}`);
+  if (!/^[0-9a-f]{40}$/.test(ref ?? "")) {
+    refuse(index, `${action} is not pinned to a commit: write ${name}@<the 40 characters of the commit> # <version>`);
+  } else if (!/^v\d+\.\d+\.\d+$/.test(comment ?? "")) {
+    refuse(index, `${name} is pinned to a commit with no comment saying which version it is, such as # v4.4.0`);
+  }
+  if (name !== "actions/checkout") return;
+  // The step is the lines from its "- " to the next line indented no deeper.
+  let first = index;
+  while (!/^\s*- /.test(lines[first])) first -= 1;
+  let last = first + 1;
+  while (last < lines.length && (lines[last].trim() === "" || indent(lines[last]) > indent(lines[first]))) last += 1;
+  if (!lines.slice(first, last).some((inside) => /^\s*persist-credentials:\s*false\s*$/.test(inside))) {
+    refuse(index, "this checkout does not have persist-credentials: false");
+  }
+});
+if (count === 0) refuse(0, "no action found; has the file changed shape?");
+process.exit(ok ? 0 : 1);
+EOF
 
 step "Which crates are published"
 cargo metadata --no-deps --format-version 1 --locked > "$scratch/metadata.json"
@@ -137,15 +180,18 @@ for crate in $PUBLISHED; do
   cargo package --list --locked --allow-dirty -p "$crate"
 done
 
+# --allow-dirty: docs/releasing.md runs this check before the release's
+# changes are committed, and without the flag cargo refuses a Cargo.toml that
+# differs from the last commit. A real `cargo publish` never has the flag.
 step "cargo publish --dry-run"
 if [ "${RELEASE_CHECK_FULL:-0}" = "1" ]; then
-  cargo publish --dry-run --locked -p wenmar-vin -p wenmar-vehicles -p wenmar-open-turso
+  cargo publish --dry-run --locked --allow-dirty -p wenmar-vin -p wenmar-vehicles -p wenmar-open-turso
 else
   # The two small crates are built from their packages. The turso adapter is
   # packaged and its dependencies resolved, but it is not built: building it
   # from its package needs a second copy of turso in target/.
-  cargo publish --dry-run --locked -p wenmar-vin -p wenmar-vehicles
-  cargo publish --dry-run --locked --no-verify -p wenmar-vin -p wenmar-vehicles -p wenmar-open-turso
+  cargo publish --dry-run --locked --allow-dirty -p wenmar-vin -p wenmar-vehicles
+  cargo publish --dry-run --locked --allow-dirty --no-verify -p wenmar-vin -p wenmar-vehicles -p wenmar-open-turso
   echo "wenmar-open-turso was packaged but not built from its package."
   echo "RELEASE_CHECK_FULL=1 builds it; the release workflow does."
 fi
