@@ -3,12 +3,13 @@
 
 Asks NHTSA's public batch decoder about every VIN in the list, 50 at a time,
 and writes the non-empty fields of each answer. Nothing is written unless every
-VIN got an answer.
+VIN got an answer. `recorded_year` is the UTC year of the recording.
 
     python3 tools/corpus/record.py VIN_LIST_JSON OUTPUT_JSON
 """
 import datetime
 import json
+import os
 import sys
 import time
 import urllib.parse
@@ -43,12 +44,14 @@ for start in range(0, len(vins), BATCH):
     print(f"{min(start + BATCH, len(vins))} of {len(vins)}", flush=True)
     time.sleep(1)
 
-unanswered = [vin for vin in vins if vin not in answers]
+# Every real answer names at least the manufacturer or an error code.
+unanswered = [vin for vin in vins if not answers.get(vin)]
 if unanswered:
     sys.exit(f"NHTSA returned no answer for {len(unanswered)} VINs, for example {unanswered[:3]}")
 
 today = datetime.datetime.now(datetime.timezone.utc).date()
-with open(output_path, "w") as handle:
+partial_path = output_path + ".partial"
+with open(partial_path, "w") as handle:
     json.dump(
         {
             "recorded": today.isoformat(),
@@ -61,4 +64,5 @@ with open(output_path, "w") as handle:
         sort_keys=True,
     )
     handle.write("\n")
+os.replace(partial_path, output_path)
 print(f"{len(vins)} answers written to {output_path}")

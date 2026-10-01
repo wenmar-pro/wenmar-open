@@ -2,7 +2,7 @@
 
 `nhtsa.json` holds NHTSA's own answers for a set of VINs, recorded from their public API. `baseline.json` holds how closely this project's decoder agreed with them when the baseline was last updated. NHTSA's data is in the public domain.
 
-The VINs are synthetic. Each is generated from vPIC's patterns so that it describes a real model, with the serial number `000001`, plus a few VINs already published as examples. None comes from a customer or a real registration.
+The VINs are synthetic. Each is generated from vPIC's patterns so that it describes a real model. The serial number is `000001` wherever the patterns leave it free; a few low-volume manufacturers encode part of their code in those positions. Four VINs already published as examples are added. None comes from a customer or a real registration.
 
 ## Check agreement
 
@@ -22,12 +22,15 @@ This prints a table and fails if any field agrees less than the baseline. Per fi
 
 ## Known differences
 
-As of the 2026.09 data and 443 VINs, make and model agree on 442 (the other is empty on both sides) and year on 442. No difference found so far comes from the decoding rules.
+As of the 2026.09 data and 518 VINs, the model year agrees on all 518, including 60 heavy vehicles whose manufacturer code is used in both 30-year cycles. The make agrees on 517.
 
-- **Sources not read yet** account for almost every `missing` value: NHTSA fills transmission (24 VINs), drive type (9), ABS (77), ESC (78), TPMS (132) and the driver-assistance fields from its vehicle-specification tables, engine-model patterns and defaults. Reading those is planned.
-- **A heavy vehicle whose year NHTSA settles by its error check:** 1 VIN. `3WKKJHAA6HC000001` is 1987 here and 2017 at NHTSA. NHTSA prefers the year with fewer character errors, using a table of valid characters per manufacturer and year that this project does not carry. The same VIN accounts for the one `fuel` difference and the `extra` engine values.
-- **NHTSA's live data is newer than the monthly release:** 1 VIN. `1N6CM0K55KA000001` has body `Cargo Van` in the 2026.09 release and `Van` from the live API.
-- **A synthetic VIN that NHTSA corrected before decoding:** 1 VIN. `JH2JA5556NA000001` (error code 4) gets a different motorcycle body class.
+The differences that remain, by cause:
+
+- **Sources not read yet** account for every `missing` value and for 12 `displacement_cc` differences. NHTSA fills transmission, drive type, ABS, ESC, TPMS, the driver-assistance fields, and exact cubic centimetres from its vehicle-specification tables, engine-model patterns and defaults. Reading those is planned.
+- **Names spelled differently in the live API than in the monthly release:** 9 models (`Promaster` here, `ProMaster` at NHTSA; `LAND CRUISER`, `Land Cruiser`), 17 body classes (`Off-road Vehicle`, `Off-Road Vehicle`), 3 transmissions and 3 engine configurations. Only capitalisation differs.
+- **Data that changed after the release:** `JH2JA5557NY000001` is body `Motorcycle - Underbone` in the release and `Dual-Sport` live. `2C6WX38AX6A000001` decodes from the release but NHTSA's live API reports no detailed data for it (error code 8), which accounts for every `extra` value on make, model, series, body, doors and drive type. `1BAM2CXA4BB000001` has trim `Front Engine` in the release and none live.
+
+Not covered by this corpus: for heavy vehicles NHTSA also prefers the model year with fewer invalid or unexplained characters. That check is not implemented, and elements filled from the sources above do not yet count towards the choice. A wider probe during review found about 1 in 70 heavy vehicles with schemas in both cycles affected, mostly trailers. Cars, MPVs and light trucks are not affected.
 
 ## Refresh
 
@@ -37,4 +40,4 @@ python3 tools/corpus/record.py data/build/corpus-vins.json data/corpus/nhtsa.jso
 cargo run --release -p open-data -- parity --data data/build/wenmar-open-2026.09.sqlite3 --update-baseline
 ```
 
-Regenerating changes the VINs only if the data file changed. Recording asks NHTSA's API about 10 requests. Review the table before committing a new baseline: it should only ever get better.
+The generator samples with a fixed seed from rows read in a fixed order, so the same data file gives the same VINs. Recording makes about 11 requests to NHTSA's API. The check compares VIN by VIN: review every VIN that newly differs before committing a new baseline.

@@ -1,7 +1,7 @@
 use serde_json::json;
 use wenmar_vin::{
-    DataError, DecodeError, DecodeOptions, Decoder, Element, Manufacturer, MemoryData, Pattern,
-    VinData, VinError, WarningCode,
+    DataError, DecodeError, DecodeOptions, Decoder, Element, Engine, Manufacturer, MemoryData,
+    Pattern, VinData, VinError, WarningCode,
 };
 
 const KONA: &str = "KM8K2CAB4PU001140";
@@ -809,18 +809,60 @@ fn an_engine_too_small_for_a_tenth_of_a_litre_has_no_litre_figure() {
     }
 }
 
-#[test]
-fn cubic_centimetres_come_from_cubic_inches_before_litres() {
-    // NHTSA converts cubic inches to cc ahead of litres to cc, so a 2.3 L,
-    // 140 cubic inch engine is 2294 cc, not 2300.
-    let decoded = decode(
+/// A 2.3 L, 140 cubic inch engine, each unit changed at the given time.
+fn two_units(litres_changed: &str, cubic_inches_changed: &str) -> Engine {
+    decode(
         one_schema()
-            .with_pattern(1, "K2***", Element::DisplacementL, "2.3")
-            .with_pattern(1, "K2***", Element::DisplacementCi, "140"),
+            .with_pattern_changed(1, "K2***", Element::DisplacementL, "2.3", litres_changed)
+            .with_pattern_changed(
+                1,
+                "K2***",
+                Element::DisplacementCi,
+                "140",
+                cubic_inches_changed,
+            ),
+    )
+    .engine
+    .unwrap()
+}
+
+#[test]
+fn cubic_centimetres_come_from_the_more_recently_changed_unit() {
+    // NHTSA converts from whichever pattern ranks first, so 140 cubic inches
+    // gives 2294 cc and 2.3 litres gives 2300.
+    assert_eq!(
+        two_units("2020-01-01", "2010-01-01").displacement_cc,
+        Some(2300)
     );
-    let engine = decoded.engine.unwrap();
-    assert_eq!(engine.displacement_l, Some(2.3));
+    assert_eq!(
+        two_units("2010-01-01", "2020-01-01").displacement_cc,
+        Some(2294)
+    );
+}
+
+#[test]
+fn with_equal_dates_cubic_centimetres_come_from_cubic_inches() {
+    let engine = two_units("2015-01-01", "2015-01-01");
     assert_eq!(engine.displacement_cc, Some(2294));
+    assert_eq!(engine.displacement_l, Some(2.3));
+}
+
+#[test]
+fn litres_come_from_the_more_recently_changed_unit_when_not_stated() {
+    // 2354 cc is 2.4 L; 140 cubic inches is 2.3 L.
+    let litres = |cc_changed: &str, ci_changed: &str| {
+        decode(
+            one_schema()
+                .with_pattern_changed(1, "K2***", Element::DisplacementCc, "2354", cc_changed)
+                .with_pattern_changed(1, "K2***", Element::DisplacementCi, "140", ci_changed),
+        )
+        .engine
+        .unwrap()
+        .displacement_l
+    };
+    assert_eq!(litres("2010-01-01", "2020-01-01"), Some(2.3));
+    assert_eq!(litres("2020-01-01", "2010-01-01"), Some(2.4));
+    assert_eq!(litres("2015-01-01", "2015-01-01"), Some(2.4));
 }
 
 #[test]

@@ -45,7 +45,8 @@ pub struct Decoder<D> {
     data: D,
 }
 
-type Values<'a> = HashMap<Element, &'a str>;
+/// The winning pattern for each element.
+type Values<'a> = HashMap<Element, &'a Pattern>;
 
 /// The result of decoding against one candidate model year.
 struct Attempt {
@@ -210,7 +211,7 @@ impl<D: VinData> Decoder<D> {
             drivetrain: text(Element::DriveType).map(|value| short_form(&value)),
             transmission: text(Element::TransmissionStyle),
             transmission_speeds: count(Element::TransmissionSpeeds),
-            engine: build_engine(&values),
+            engine: build_engine(&values, &year_from),
             safety: build_safety(&values),
             manufacturer: ManufacturerInfo {
                 wmi: manufacturer.wmi,
@@ -313,19 +314,17 @@ fn select<'a>(matched: &'a [Pattern], year_from: &HashMap<i64, u16>) -> Values<'
     {
         best.insert(Element::Make, make);
     }
-    best.into_iter()
-        .map(|(element, chosen)| (element, chosen.value.as_str()))
-        .collect()
+    best
 }
 
 fn text(values: &Values<'_>, element: Element) -> Option<String> {
-    values.get(&element).map(|value| value.trim().to_owned())
+    values.get(&element).map(|row| row.value.trim().to_owned())
 }
 
 fn count(values: &Values<'_>, element: Element) -> Option<u8> {
     values
         .get(&element)
-        .and_then(|value| value.trim().parse().ok())
+        .and_then(|row| row.value.trim().parse().ok())
 }
 
 /// vPIC writes drive types as `FWD/Front-Wheel Drive`. Shops use the part
@@ -340,25 +339,49 @@ fn short_form(value: &str) -> String {
     }
 }
 
-fn build_engine(values: &Values<'_>) -> Option<Engine> {
+fn build_engine(values: &Values<'_>, year_from: &HashMap<i64, u16>) -> Option<Engine> {
     let number = |element: Element| {
         values
             .get(&element)
-            .and_then(|value| value.trim().parse::<f64>().ok())
+            .and_then(|row| row.value.trim().parse::<f64>().ok())
             .filter(|amount| amount.is_finite() && *amount > 0.0)
     };
-    // NHTSA's conversions, for vehicles reported in only one unit. Cubic
-    // inches are converted to cc ahead of litres, as NHTSA does.
+    // NHTSA converts between units from whichever pattern ranks first: the
+    // later schema, then the more recent change.
+    let recency = |element: Element| {
+        values.get(&element).map(|row| {
+            (
+                year_from.get(&row.schema_id).copied().unwrap_or(0),
+                row.changed_on.as_str(),
+            )
+        })
+    };
     const CC_PER_CUBIC_INCH: f64 = 16.387_064;
     // No road vehicle in vPIC comes close; anything larger is bad data.
     const LARGEST_LITRES: f64 = 100.0;
-    let cubic_centimetres = number(Element::DisplacementCc)
-        .or_else(|| number(Element::DisplacementCi).map(|ci| ci * CC_PER_CUBIC_INCH))
-        .or_else(|| number(Element::DisplacementL).map(|litres| litres * 1000.0))
+    let stated_cc = number(Element::DisplacementCc);
+    let stated_litres = number(Element::DisplacementL);
+    let from_cubic_inches = number(Element::DisplacementCi).map(|ci| ci * CC_PER_CUBIC_INCH);
+
+    // With equal recency NHTSA converts cubic inches to cc before litres.
+    let litres_first = recency(Element::DisplacementL) > recency(Element::DisplacementCi);
+    let cubic_centimetres = stated_cc
+        .or(match (from_cubic_inches, stated_litres) {
+            (Some(_), Some(litres)) if litres_first => Some(litres * 1000.0),
+            (Some(cc), _) => Some(cc),
+            (None, litres) => litres.map(|litres| litres * 1000.0),
+        })
         .filter(|cc| *cc <= LARGEST_LITRES * 1000.0);
-    let litres = number(Element::DisplacementL)
-        .filter(|litres| *litres <= LARGEST_LITRES)
-        .or_else(|| cubic_centimetres.map(|cc| cc / 1000.0));
+
+    // With equal recency NHTSA converts cc to litres before cubic inches.
+    let cubic_inches_first = recency(Element::DisplacementCi) > recency(Element::DisplacementCc);
+    let litres = stated_litres
+        .or(match (stated_cc, from_cubic_inches) {
+            (Some(_), Some(cc)) if cubic_inches_first => Some(cc / 1000.0),
+            (Some(cc), _) => Some(cc / 1000.0),
+            (None, cc) => cc.map(|cc| cc / 1000.0),
+        })
+        .filter(|litres| *litres <= LARGEST_LITRES);
     // An engine under a twentieth of a litre would round to 0.0; it is
     // described by its cubic centimetres alone.
     let displacement_l = litres
@@ -378,7 +401,7 @@ fn build_engine(values: &Values<'_>) -> Option<Engine> {
         fuel: text(values, Element::FuelTypePrimary),
         turbo: values
             .get(&Element::Turbo)
-            .map(|value| value.trim().eq_ignore_ascii_case("yes")),
+            .map(|row| row.value.trim().eq_ignore_ascii_case("yes")),
         electrification: text(values, Element::ElectrificationLevel),
     };
     if engine == Engine::default() {
