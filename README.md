@@ -71,10 +71,6 @@ Labor times depend on finding a source that can be redistributed freely. The sta
 
 Corrections to decodes are the most useful contribution. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Acknowledgements
-
-The decoding approach is informed by [Corgi](https://github.com/cardog-ai/corgi), an ISC-licensed TypeScript VIN decoder by Cardog. See [NOTICE.md](NOTICE.md).
-
 ## License
 
 Code is [MIT](LICENSE). Third-party notices and data terms are in [NOTICE.md](NOTICE.md).
