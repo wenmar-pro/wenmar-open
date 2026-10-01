@@ -4,11 +4,13 @@ use std::path::Path;
 
 use rusqlite::{Connection, OpenFlags, OptionalExtension, params_from_iter};
 
-use crate::data::{DataError, Element, Manufacturer, Pattern, SchemaRef, VinData};
+use crate::data::{
+    DataError, Element, EngineRow, Manufacturer, Pattern, SchemaRef, SpecRow, VinData,
+};
 
 /// Version of the table layout below. A data file records the version it was
 /// built with, and a mismatch is refused.
-pub const SCHEMA_VERSION: &str = "1";
+pub const SCHEMA_VERSION: &str = "2";
 
 /// The data file's tables. The data build creates the file with this.
 pub const SCHEMA: &str = "
@@ -18,13 +20,20 @@ CREATE TABLE meta (
 );
 
 CREATE TABLE wmi (
-    code          TEXT PRIMARY KEY,
-    manufacturer  TEXT NOT NULL,
-    make          TEXT,
-    country       TEXT,
-    vehicle_type  TEXT,
-    light_vehicle INTEGER NOT NULL
+    code            TEXT PRIMARY KEY,
+    manufacturer    TEXT NOT NULL,
+    make            TEXT,
+    country         TEXT,
+    vehicle_type    TEXT,
+    light_vehicle   INTEGER NOT NULL,
+    vehicle_type_id INTEGER
 );
+
+CREATE TABLE wmi_make (
+    wmi     TEXT NOT NULL,
+    make_id INTEGER NOT NULL
+);
+CREATE INDEX wmi_make_wmi ON wmi_make (wmi);
 
 CREATE TABLE wmi_schema (
     wmi       TEXT NOT NULL,
@@ -41,9 +50,50 @@ CREATE TABLE pattern (
     element_id INTEGER NOT NULL,
     value      TEXT NOT NULL,
     changed_on TEXT NOT NULL,
-    make       TEXT
+    make       TEXT,
+    attribute  TEXT NOT NULL
 );
 CREATE INDEX pattern_schema ON pattern (schema_id);
+
+CREATE TABLE spec_schema (
+    id              INTEGER PRIMARY KEY,
+    make_id         INTEGER NOT NULL,
+    vehicle_type_id INTEGER
+);
+
+CREATE TABLE spec_schema_model (
+    schema_id INTEGER NOT NULL,
+    model_id  INTEGER NOT NULL
+);
+CREATE INDEX spec_schema_model_model ON spec_schema_model (model_id);
+
+CREATE TABLE spec_schema_year (
+    schema_id INTEGER NOT NULL,
+    year      INTEGER NOT NULL
+);
+CREATE INDEX spec_schema_year_schema ON spec_schema_year (schema_id);
+
+CREATE TABLE spec_row (
+    id              INTEGER PRIMARY KEY,
+    spec_pattern_id INTEGER NOT NULL,
+    schema_id       INTEGER NOT NULL,
+    is_key          INTEGER NOT NULL,
+    element_id      INTEGER NOT NULL,
+    attribute       TEXT NOT NULL,
+    value           TEXT NOT NULL,
+    changed_on      TEXT NOT NULL
+);
+CREATE INDEX spec_row_schema ON spec_row (schema_id);
+
+CREATE TABLE engine_model_row (
+    id           INTEGER PRIMARY KEY,
+    engine_model TEXT NOT NULL,
+    element_id   INTEGER NOT NULL,
+    attribute    TEXT NOT NULL,
+    value        TEXT NOT NULL,
+    changed_on   TEXT NOT NULL
+);
+CREATE INDEX engine_model_row_name ON engine_model_row (engine_model);
 ";
 
 /// vPIC's id for the Model element, whose rows also carry the make.
@@ -76,7 +126,7 @@ impl SqliteData {
         match version.as_deref() {
             Some(SCHEMA_VERSION) => Ok(Self { connection }),
             Some(other) => Err(format!(
-                "data file has schema version {other}, this build reads version {SCHEMA_VERSION}"
+                "data file has schema version {other}, this build reads version {SCHEMA_VERSION}; rebuild the data file with open-data build"
             )
             .into()),
             None => Err("not a Wenmar Open data file: meta has no schema_version".into()),
@@ -138,7 +188,7 @@ impl VinData for SqliteData {
         // narrows the rows to those that can match. The decoder checks again.
         let placeholders = vec!["?"; schema_ids.len()].join(", ");
         let sql = format!(
-            "SELECT id, schema_id, keys, element_id, value, changed_on, make, value
+            "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute
              FROM pattern
              WHERE schema_id IN ({placeholders})
                AND ?{} GLOB (REPLACE(keys, '*', '?') || '*')",
@@ -154,7 +204,7 @@ impl VinData for SqliteData {
         let mut patterns = Vec::new();
         while let Some(row) = rows.next()? {
             let element_id: i64 = row.get(3)?;
-            let element = Element::from_vpic_id(element_id).unwrap_or(Element::Other(element_id));
+            let element = element_from_id(element_id);
             let pattern = Pattern {
                 id: row.get(0)?,
                 schema_id: row.get(1)?,
@@ -178,4 +228,61 @@ impl VinData for SqliteData {
         }
         Ok(patterns)
     }
+
+    fn engine_model(&self, name: &str) -> Result<Vec<EngineRow>, DataError> {
+        let mut statement = self.connection.prepare_cached(
+            "SELECT id, element_id, attribute, value, changed_on
+             FROM engine_model_row WHERE engine_model = ?1 ORDER BY id",
+        )?;
+        let rows = statement.query_map([name.trim().to_lowercase()], |row| {
+            let element_id: i64 = row.get(1)?;
+            Ok(EngineRow {
+                id: row.get(0)?,
+                element: element_from_id(element_id),
+                attribute: row.get(2)?,
+                value: row.get(3)?,
+                changed_on: row.get(4)?,
+            })
+        })?;
+        Ok(rows.collect::<Result<_, _>>()?)
+    }
+
+    fn specs(
+        &self,
+        wmi: &str,
+        model_attribute: &str,
+        year: u16,
+    ) -> Result<Vec<SpecRow>, DataError> {
+        let Ok(model_id) = model_attribute.trim().parse::<i64>() else {
+            return Ok(Vec::new());
+        };
+        let mut statement = self.connection.prepare_cached(
+            "SELECT r.id, r.spec_pattern_id, r.is_key, r.element_id, r.attribute, r.value, r.changed_on
+             FROM spec_row r
+             JOIN spec_schema s ON s.id = r.schema_id
+             WHERE s.make_id IN (SELECT make_id FROM wmi_make WHERE wmi = ?1)
+               AND s.vehicle_type_id = (SELECT vehicle_type_id FROM wmi WHERE code = ?1)
+               AND EXISTS (SELECT 1 FROM spec_schema_model m WHERE m.schema_id = s.id AND m.model_id = ?2)
+               AND (NOT EXISTS (SELECT 1 FROM spec_schema_year y WHERE y.schema_id = s.id)
+                    OR EXISTS (SELECT 1 FROM spec_schema_year y WHERE y.schema_id = s.id AND y.year = ?3))
+             ORDER BY r.id",
+        )?;
+        let rows = statement.query_map((wmi, model_id, year), |row| {
+            let element_id: i64 = row.get(3)?;
+            Ok(SpecRow {
+                id: row.get(0)?,
+                spec_pattern_id: row.get(1)?,
+                is_key: row.get::<_, i64>(2)? != 0,
+                element: element_from_id(element_id),
+                attribute: row.get(4)?,
+                value: row.get(5)?,
+                changed_on: row.get(6)?,
+            })
+        })?;
+        Ok(rows.collect::<Result<_, _>>()?)
+    }
+}
+
+fn element_from_id(element_id: i64) -> Element {
+    Element::from_vpic_id(element_id).unwrap_or(Element::Other(element_id))
 }
