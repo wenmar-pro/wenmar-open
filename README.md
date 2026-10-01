@@ -42,7 +42,7 @@ Responses are plain JSON with no wrapper object. Each response reports the versi
 
 ## Repository layout
 
-Planned. None of these exist yet.
+Only `crates/wenmar-vin` exists so far. The rest is planned.
 
 | Path | What it is |
 |---|---|
