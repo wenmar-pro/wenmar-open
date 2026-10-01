@@ -1,26 +1,82 @@
+use std::net::{Ipv4Addr, SocketAddr};
 use std::process::ExitCode;
 
 use open_server::config::Config;
-use open_server::db::Db;
+use open_server::state::AppState;
 
-/// For now the binary only opens the data file and says what it holds.
-/// Task 3 makes it serve.
+async fn shutdown() {
+    let interrupt = async {
+        let _ = tokio::signal::ctrl_c().await;
+    };
+    #[cfg(unix)]
+    let terminate = async {
+        use tokio::signal::unix::{SignalKind, signal};
+        match signal(SignalKind::terminate()) {
+            Ok(mut stream) => {
+                stream.recv().await;
+            }
+            Err(_) => std::future::pending::<()>().await,
+        }
+    };
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+    tokio::select! {
+        () = interrupt => {}
+        () = terminate => {}
+    }
+}
+
 async fn run() -> Result<(), String> {
     let config = Config::from_env()?;
-    let db = Db::open(&config.data, config.connections)
+    let port = config.port;
+    let data = config.data.clone();
+    let state = AppState::open(config)
         .await
         .map_err(|error| error.to_string())?;
-    println!(
-        "data file {} is version {} ({})",
-        config.data.display(),
-        db.meta().data_version,
-        db.meta().vpic_release
+    let meta = state.db().meta().clone();
+
+    // `open-server check` opens the data file and stops. The image build
+    // runs it, so an image with a missing or outdated data file is never made.
+    if std::env::args().nth(1).as_deref() == Some("check") {
+        println!(
+            "data file {} is version {} ({})",
+            data.display(),
+            meta.data_version,
+            meta.vpic_release
+        );
+        return Ok(());
+    }
+
+    let address = SocketAddr::from((Ipv4Addr::UNSPECIFIED, port));
+    let listener = tokio::net::TcpListener::bind(address)
+        .await
+        .map_err(|error| format!("cannot listen on {address}: {error}"))?;
+    tracing::info!(
+        "serving data version {} on http://{address}",
+        meta.data_version
     );
-    Ok(())
+    let app = open_server::app(state);
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .with_graceful_shutdown(shutdown())
+    .await
+    .map_err(|error| error.to_string())
 }
 
 #[tokio::main]
 async fn main() -> ExitCode {
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                // turso warns at every start that a read-only file stays in
+                // SQLite's legacy journal mode. That is intended here.
+                .unwrap_or_else(|_| {
+                    tracing_subscriber::EnvFilter::new("info,turso_core=error,tantivy=warn")
+                }),
+        )
+        .init();
     match run().await {
         Ok(()) => ExitCode::SUCCESS,
         Err(message) => {

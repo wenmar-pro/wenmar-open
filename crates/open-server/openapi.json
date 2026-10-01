@@ -1,0 +1,90 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Wenmar Open",
+    "description": "Free vehicle data for auto repair shops: VIN decoding and a year, make, model, submodel and engine catalog. No API key and no account. Responses are plain JSON with no wrapper. Errors are `{ \"error\": { \"code\", \"message\", \"details\" } }`. Fields and endpoints are only ever added. One address may make 600 requests a minute.",
+    "license": {
+      "name": "MIT",
+      "identifier": "MIT"
+    },
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": "https://open.wenmarpro.com"
+    }
+  ],
+  "paths": {
+    "/v1/meta": {
+      "get": {
+        "tags": [
+          "Data"
+        ],
+        "summary": "The data version, the vPIC release it came from, and when it was built.",
+        "operationId": "meta",
+        "responses": {
+          "200": {
+            "description": "About the data being served.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "MetaResponse": {
+        "type": "object",
+        "description": "What is being served.",
+        "required": [
+          "data_version",
+          "vpic_release",
+          "built_at",
+          "server_version"
+        ],
+        "properties": {
+          "built_at": {
+            "type": "string",
+            "description": "When the data file was built, in UTC.",
+            "example": "2026-10-01 04:25:57"
+          },
+          "data_version": {
+            "type": "string",
+            "description": "The data release, such as `2026.09`. Also sent as `X-Data-Version`.",
+            "example": "2026.09"
+          },
+          "server_version": {
+            "type": "string",
+            "description": "The version of the server.",
+            "example": "0.1.0"
+          },
+          "vpic_release": {
+            "type": "string",
+            "description": "The NHTSA vPIC release the data was built from.",
+            "example": "vPICList_lite_2026_09"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "VIN",
+      "description": "Decode vehicle identification numbers."
+    },
+    {
+      "name": "Vehicles",
+      "description": "Years, makes, models, submodels and engines, each step limited to what is valid for the steps before it."
+    },
+    {
+      "name": "Data",
+      "description": "About the data being served."
+    }
+  ]
+}

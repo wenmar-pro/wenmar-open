@@ -208,3 +208,94 @@ pub fn files(fixture: &Fixture) -> Vec<String> {
     names.sort();
     names
 }
+
+// ----- the application under test -----
+
+use axum::Router;
+use axum::body::Body;
+use axum::http::{Request, Response, StatusCode};
+use http_body_util::BodyExt;
+use open_server::config::Config;
+use open_server::state::AppState;
+use serde_json::Value;
+use tower::ServiceExt;
+
+/// The application over a fixture data file. Keep the fixture alive for as
+/// long as the application is used.
+pub struct TestApp {
+    pub router: Router,
+    _fixture: Fixture,
+}
+
+pub fn config(fixture: &Fixture) -> Config {
+    Config {
+        data: fixture.path(),
+        port: 0,
+        connections: 2,
+        trusted_proxies: 0,
+        requests_per_minute: 600,
+        base_url: "https://open.example".to_owned(),
+    }
+}
+
+pub async fn app_with(change: impl FnOnce(&mut Config)) -> TestApp {
+    let fixture = data_file();
+    let mut config = config(&fixture);
+    change(&mut config);
+    let state = AppState::open(config).await.unwrap();
+    TestApp {
+        router: open_server::app(state),
+        _fixture: fixture,
+    }
+}
+
+pub async fn app() -> TestApp {
+    app_with(|_| {}).await
+}
+
+impl TestApp {
+    pub async fn send(&self, request: Request<Body>) -> Response<Body> {
+        self.router.clone().oneshot(request).await.unwrap()
+    }
+
+    pub async fn get(&self, path: &str) -> Response<Body> {
+        self.send(Request::get(path).body(Body::empty()).unwrap())
+            .await
+    }
+
+    /// `GET`s a path and reads the body as JSON.
+    pub async fn json(&self, path: &str) -> (StatusCode, Value) {
+        let response = self.get(path).await;
+        let status = response.status();
+        (status, body_json(response).await)
+    }
+
+    pub async fn post_json(&self, path: &str, body: &str) -> Response<Body> {
+        self.send(
+            Request::post(path)
+                .header("content-type", "application/json")
+                .body(Body::from(body.to_owned()))
+                .unwrap(),
+        )
+        .await
+    }
+}
+
+pub async fn body_text(response: Response<Body>) -> String {
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    String::from_utf8(bytes.to_vec()).unwrap()
+}
+
+pub async fn body_json(response: Response<Body>) -> Value {
+    let text = body_text(response).await;
+    serde_json::from_str(&text).unwrap_or_else(|_| panic!("not JSON: {text}"))
+}
+
+pub fn header<'r>(response: &'r Response<Body>, name: &str) -> &'r str {
+    response
+        .headers()
+        .get(name)
+        .unwrap_or_else(|| panic!("no {name} header"))
+        .to_str()
+        .unwrap()
+}

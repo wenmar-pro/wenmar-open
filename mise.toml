@@ -47,3 +47,16 @@ if [ -z "$data" ]; then
 fi
 cargo run --release -q -p open-data -- catalog-parity --data "$data"
 '''
+
+
+[tasks.serve]
+description = "Run the API on http://localhost:3000 with the newest data file in data/build"
+run = '''
+set -eu
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+if [ -z "$data" ]; then
+  echo "No data file in data/build. Run: mise run data" >&2
+  exit 1
+fi
+OPEN_DATA="$data" OPEN_BASE_URL="http://localhost:${PORT:-3000}" cargo run -q -p open-server
+'''

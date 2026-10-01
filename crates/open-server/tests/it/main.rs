@@ -3,4 +3,6 @@
 
 mod common;
 mod db;
+mod http;
+mod openapi;
 mod vin_rows;
