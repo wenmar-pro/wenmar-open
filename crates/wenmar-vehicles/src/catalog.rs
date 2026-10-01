@@ -183,6 +183,9 @@ fn model_row(row: &[Value]) -> Result<ModelRow, CatalogError> {
 /// A cap on list sizes a caller cannot exceed.
 const MOST: usize = 500;
 
+/// The digits in a model year.
+const YEAR_DIGITS: usize = 4;
+
 fn limit(limit: usize) -> Value {
     Value::Integer(i64::try_from(limit.min(MOST)).unwrap_or(0))
 }
@@ -280,7 +283,9 @@ impl<S: Source> Catalog<S> {
             return Ok(Vec::new());
         };
         let term = term.trim();
-        if !term.bytes().all(|byte| byte.is_ascii_digit()) {
+        // A model year has four digits, so a longer term names none. It
+        // must not reach the `LIKE`, which refuses a very long pattern.
+        if term.len() > YEAR_DIGITS || !term.bytes().all(|byte| byte.is_ascii_digit()) {
             return Ok(Vec::new());
         }
         self.query(sql::YEARS, &[light.into(), bit.into(), term.into()])?

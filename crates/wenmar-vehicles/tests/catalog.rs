@@ -165,6 +165,21 @@ fn years_newest_first() {
     assert!(catalog.years(Scope::Light, "20x").unwrap().is_empty());
 }
 
+#[test]
+fn a_year_term_of_any_length_finds_nothing_and_errors_nothing() {
+    let catalog = catalog();
+    // SQLite refuses a `LIKE` pattern of tens of thousands of characters.
+    for digits in ["20190", "00002019", &"1".repeat(100_000)] {
+        assert_eq!(
+            catalog.years(Scope::All, digits).unwrap(),
+            Vec::<u16>::new(),
+            "{} digits",
+            digits.len()
+        );
+    }
+    assert_eq!(catalog.years(Scope::All, " 2019 ").unwrap(), vec![2019]);
+}
+
 fn make_names(
     catalog: &Catalog<SqliteSource>,
     year: Option<u16>,
