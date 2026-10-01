@@ -1,0 +1,40 @@
+[package]
+name = "wenmar-open-cli"
+version = "0.1.0"
+description = "The wenmar-open command-line tool: VIN decoding and the vehicle catalog, online or offline."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+publish = false
+
+[[bin]]
+name = "wenmar-open"
+path = "src/main.rs"
+
+[lib]
+name = "wenmar_open_cli"
+path = "src/lib.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+dirs = "6"
+flate2 = "1"
+jaq-core = "3.1.1"
+jaq-json = "2.0.3"
+jaq-std = "3.0.3"
+ratatui = "0.29"
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+serde.workspace = true
+serde_json.workspace = true
+ureq = { version = "3", default-features = false, features = ["rustls"] }
+wenmar-vehicles = { version = "0.1.0", path = "../wenmar-vehicles", features = ["sqlite"] }
+wenmar-vin = { version = "0.1.0", path = "../wenmar-vin", features = ["sqlite"] }
+
+[dev-dependencies]
+tempfile = "3.27.0"
+
+[[test]]
+name = "it"
+path = "tests/it/main.rs"
