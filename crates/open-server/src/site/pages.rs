@@ -113,15 +113,35 @@ pub fn docs(state: &AppState) -> Doc {
                     "Fields and endpoints are only ever added. Nothing that has shipped is removed or given a new meaning.",
                 ],
             ),
-            with_links(
+            with_code(
                 section(
-                    "For programs and AI agents",
-                    &["The OpenAPI description is generated from the server's own code. The MCP endpoint speaks Streamable HTTP, needs no key, and has two tools: wenmar_vin and wenmar_vehicles."],
+                    "For AI agents",
+                    &[
+                        "An assistant that can fetch a web address can decode a VIN with one request. There is no key to ask for and nothing to sign up to.",
+                        "The answer is JSON: the year, make, model, trim, engine and safety equipment, and a list of warnings. A wrong check digit is a warning, not an error.",
+                    ],
+                ),
+                format!("curl {base}/v1/vin/KM8K2CAB4PU001140"),
+            ),
+            with_links(
+                with_code(
+                    section(
+                        "MCP server",
+                        &["The same lookups are tools on a Model Context Protocol server: wenmar_vin and wenmar_vehicles. It speaks Streamable HTTP and needs no key. Add this address as a remote server or a custom connector:"],
+                    ),
+                    format!("{base}/mcp"),
                 ),
                 &[
                     ("OpenAPI description", format!("{base}/v1/openapi.json")),
-                    ("MCP endpoint", format!("{base}/mcp")),
                     ("llms.txt", format!("{base}/llms.txt")),
+                    (
+                        "The documentation as one file: llms-full.txt",
+                        format!("{base}/llms-full.txt"),
+                    ),
+                    (
+                        "API catalog",
+                        format!("{base}/.well-known/api-catalog"),
+                    ),
                 ],
             ),
         ],

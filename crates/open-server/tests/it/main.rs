@@ -6,6 +6,7 @@ mod api_vin;
 mod capture;
 mod common;
 mod db;
+mod discovery;
 mod http;
 mod limit;
 mod log;

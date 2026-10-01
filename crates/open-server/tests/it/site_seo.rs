@@ -4,17 +4,123 @@ use axum::http::StatusCode;
 
 use crate::common::{self, header, page};
 
+/// The groups of a robots.txt: for each, its user agents and its rules.
+fn groups(robots: &str) -> Vec<(Vec<&str>, Vec<&str>)> {
+    let mut groups: Vec<(Vec<&str>, Vec<&str>)> = Vec::new();
+    let mut in_rules = true;
+    for line in robots.lines() {
+        if let Some(agent) = line.strip_prefix("User-agent: ") {
+            if in_rules {
+                groups.push((Vec::new(), Vec::new()));
+                in_rules = false;
+            }
+            groups.last_mut().unwrap().0.push(agent);
+        } else if line.starts_with("Allow: ") || line.starts_with("Disallow: ") {
+            in_rules = true;
+            groups.last_mut().unwrap().1.push(line);
+        }
+    }
+    groups
+}
+
 #[tokio::test]
-async fn robots_txt_allows_everything_and_names_the_sitemap() {
+async fn robots_txt_states_a_policy_for_ai_crawlers() {
     let app = common::app().await;
     let (status, robots) = page(&app, "/robots.txt").await;
     assert_eq!(status, StatusCode::OK);
-    // Result pages are kept out of search engines by `noindex`, which a
-    // crawler can only see if it is allowed to fetch the page.
+    // Every line is a comment, blank, or one of four plain directives:
+    // nothing experimental that a parser might choke on.
+    for line in robots.lines() {
+        assert!(
+            line.is_empty()
+                || line.starts_with("# ")
+                || line == "#"
+                || line.starts_with("User-agent: ")
+                || line.starts_with("Allow: ")
+                || line.starts_with("Disallow: ")
+                || line.starts_with("Sitemap: "),
+            "{line}"
+        );
+    }
+    assert!(robots.ends_with("\nSitemap: https://open.example/sitemap.xml\n"));
+
+    let groups = groups(&robots);
+    assert_eq!(groups.len(), 3, "{robots}");
+    // Everyone: everything. A search engine must be able to fetch a result
+    // page to see that it is not to be indexed.
+    assert_eq!(groups[0], (vec!["*"], vec!["Allow: /"]));
+    // Crawlers that build training sets or AI search indexes: everything
+    // but single VINs, as pages and as API answers.
+    let (crawlers, rules) = &groups[1];
     assert_eq!(
-        robots,
-        "User-agent: *\nAllow: /\n\nSitemap: https://open.example/sitemap.xml\n"
+        rules,
+        &["Allow: /", "Disallow: /vin/", "Disallow: /v1/vin/"]
     );
+    for token in [
+        "GPTBot",
+        "OAI-SearchBot",
+        "ClaudeBot",
+        "Claude-SearchBot",
+        "Google-Extended",
+        "PerplexityBot",
+        "Applebot-Extended",
+        "Amazonbot",
+        "meta-externalagent",
+        "CCBot",
+    ] {
+        assert!(crawlers.contains(&token), "{token}");
+    }
+    // Fetchers acting for one person who asked: everything, a decode
+    // included. That request is what the service is for.
+    let (fetchers, rules) = &groups[2];
+    assert_eq!(rules, &["Allow: /"]);
+    for token in ["Claude-User", "ChatGPT-User", "Perplexity-User"] {
+        assert!(fetchers.contains(&token), "{token}");
+    }
+    // No agent is in two groups, where the second would be ignored.
+    let mut seen = std::collections::HashSet::new();
+    for (agents, _) in &groups {
+        for agent in agents {
+            assert!(seen.insert(agent.to_ascii_lowercase()), "{agent} twice");
+        }
+    }
+    // What the rules mean for an address, read the way a crawler reads
+    // them: the longest rule that matches wins.
+    let allowed = |rules: &[&str], path: &str| {
+        rules
+            .iter()
+            .filter_map(|rule| rule.split_once(": "))
+            .filter(|(_, prefix)| path.starts_with(prefix))
+            .max_by_key(|(_, prefix)| prefix.len())
+            .is_none_or(|(kind, _)| kind == "Allow")
+    };
+    let crawler = &groups[1].1;
+    for path in [
+        "/",
+        "/makes/honda",
+        "/makes/honda/civic/2019",
+        "/wmi/KM8",
+        "/guides/wmi",
+        "/docs",
+        "/llms.txt",
+        "/llms-full.txt",
+        "/v1/openapi.json",
+        "/v1/vehicles/years",
+    ] {
+        assert!(allowed(crawler, path), "a crawler is kept from {path}");
+        assert!(allowed(&groups[2].1, path), "a fetcher is kept from {path}");
+    }
+    for path in ["/vin/KM8K2CAB4PU001140", "/v1/vin/KM8K2CAB4PU001140"] {
+        assert!(!allowed(crawler, path), "a crawler may fetch {path}");
+        assert!(
+            allowed(&groups[0].1, path),
+            "a search engine must see noindex"
+        );
+        assert!(
+            allowed(&groups[2].1, path),
+            "a person's assistant is kept out"
+        );
+    }
 }
 
 #[tokio::test]

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.wenmarpro/wenmar-open",
+  "title": "Wenmar Open",
+  "description": "Free VIN decoder and vehicle catalog from NHTSA vPIC data. Read-only, no key.",
+  "version": "0.1.0",
+  "websiteUrl": "https://open.wenmarpro.com",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://open.wenmarpro.com/mcp"
+    }
+  ]
+}

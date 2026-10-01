@@ -33,14 +33,123 @@ fn text(content_type: &'static str, body: String) -> Response {
         .into_response()
 }
 
+/// Crawlers that build AI training sets or AI search indexes, by the
+/// tokens their operators publish. They are welcome on everything but
+/// single VINs. `Google-Extended` and `Applebot-Extended` are not crawlers:
+/// they are the names under which Google and Apple take instructions about
+/// AI use.
+pub const AI_CRAWLERS: [&str; 13] = [
+    "GPTBot",
+    "OAI-SearchBot",
+    "ClaudeBot",
+    "Claude-SearchBot",
+    "Google-Extended",
+    "PerplexityBot",
+    "Applebot-Extended",
+    "Amazonbot",
+    "meta-externalagent",
+    "CCBot",
+    "MistralAI-Training",
+    "MistralAI-Index",
+    "YouBot",
+];
+
+/// Fetchers that act for one person who asked an assistant a question.
+/// They are welcome everywhere, a VIN decode included. Several of them say
+/// they do not read robots.txt for such requests; naming them states the
+/// policy either way.
+pub const AI_FETCHERS: [&str; 8] = [
+    "Claude-User",
+    "ChatGPT-User",
+    "Perplexity-User",
+    "MistralAI-User",
+    "DuckAssistBot",
+    "Amzn-User",
+    "meta-externalfetcher",
+    "Google-Agent",
+];
+
+/// The text of `/robots.txt` for a site at `base`.
+pub fn robots_text(base: &str) -> String {
+    let agents = |tokens: &[&str]| -> String {
+        tokens
+            .iter()
+            .map(|token| format!("User-agent: {token}\n"))
+            .collect()
+    };
+    format!(
+        "# Wenmar Open: free vehicle data. Anyone may read the reference pages,
+# the guides, the API documentation and the API.
+#
+# A page or an API answer for one VIN describes one real vehicle. It is not
+# for search indexes or training sets. Search engines may fetch a result
+# page, and are told \"noindex\" on it.
+
+User-agent: *
+Allow: /
+
+# Crawlers that build AI training sets or AI search indexes: welcome
+# everywhere except the pages and API answers for single VINs.
+{}Allow: /
+Disallow: /vin/
+Disallow: /v1/vin/
+
+# Fetchers that act for one person who asked an assistant a question:
+# welcome everywhere, a VIN decode included.
+{}Allow: /
+
+Sitemap: {base}/sitemap.xml
+",
+        agents(&AI_CRAWLERS),
+        agents(&AI_FETCHERS)
+    )
+}
+
 pub async fn robots(State(state): State<AppState>) -> Response {
     text(
         "text/plain; charset=utf-8",
-        format!(
-            "User-agent: *\nAllow: /\n\nSitemap: {}/sitemap.xml\n",
-            state.config().base_url
-        ),
+        robots_text(&state.config().base_url),
     )
+}
+
+/// `/.well-known/api-catalog` (RFC 9727): where a program looks for a
+/// site's APIs. It names the OpenAPI description and the documentation.
+pub async fn api_catalog(State(state): State<AppState>) -> Response {
+    let base = &state.config().base_url;
+    let catalog = serde_json::json!({
+        "linkset": [{
+            "anchor": format!("{base}/v1"),
+            "service-desc": [
+                { "href": format!("{base}/v1/openapi.json"), "type": "application/json" }
+            ],
+            "service-doc": [
+                { "href": format!("{base}/docs"), "type": "text/html" }
+            ]
+        }]
+    });
+    let mut response = (
+        [
+            (
+                header::CONTENT_TYPE,
+                HeaderValue::from_static(
+                    "application/linkset+json; profile=\"https://www.rfc-editor.org/info/rfc9727\"",
+                ),
+            ),
+            (
+                header::CACHE_CONTROL,
+                HeaderValue::from_static("public, max-age=3600"),
+            ),
+        ],
+        catalog.to_string(),
+    )
+        .into_response();
+    // The RFC asks for this header on a HEAD request; a GET carries it too.
+    if let Ok(link) = HeaderValue::from_str(&format!(
+        "<{base}/.well-known/api-catalog>; rel=\"api-catalog\""
+    )) {
+        response.headers_mut().insert(header::LINK, link);
+    }
+    response
 }
 
 /// The date the data was built, for `lastmod`, when it is a date.
@@ -229,6 +338,23 @@ pub fn first_of(names: &[&str]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn no_crawler_is_named_twice_and_none_is_one_of_the_fetchers() {
+        let mut seen = std::collections::HashSet::new();
+        for token in AI_CRAWLERS.iter().chain(AI_FETCHERS.iter()) {
+            assert!(seen.insert(token.to_ascii_lowercase()), "{token}");
+            assert!(
+                token
+                    .bytes()
+                    .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-'),
+                "{token}"
+            );
+        }
+        let robots = robots_text("https://open.example");
+        assert_eq!(robots.matches("User-agent: ").count(), 1 + 13 + 8);
+        assert_eq!(robots.matches("Disallow: ").count(), 2);
+    }
 
     #[test]
     fn the_sites_name_is_added_where_there_is_room() {

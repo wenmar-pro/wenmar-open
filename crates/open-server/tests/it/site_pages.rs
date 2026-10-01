@@ -21,7 +21,6 @@ async fn the_docs_page_states_the_limit_and_shows_examples_to_copy() {
     assert!(
         html.contains(r#"<a href="https://open.example/v1/openapi.json">OpenAPI description</a>"#)
     );
-    assert!(html.contains(r#"<a href="https://open.example/mcp">MCP endpoint</a>"#));
 }
 
 #[tokio::test]

@@ -234,7 +234,11 @@ pub async fn fallback(State(state): State<AppState>, uri: Uri) -> Response {
 }
 
 fn is_page(path: &str) -> bool {
-    !(path.starts_with("/v1/") || path == "/v1" || path == "/mcp" || path == "/health")
+    !(path.starts_with("/v1/")
+        || path == "/v1"
+        || path == "/mcp"
+        || path == "/health"
+        || path == "/.well-known/api-catalog")
 }
 
 /// What a browser may do with any page of this site, whatever its status.

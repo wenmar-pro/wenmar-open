@@ -137,6 +137,8 @@ pub fn app(state: AppState) -> Router {
         .route("/v1/openapi.json", get(openapi))
         .route("/health", get(api::meta::health))
         .route("/llms.txt", get(llms::llms_txt))
+        .route("/llms-full.txt", get(llms::llms_full_txt))
+        .route("/.well-known/api-catalog", get(site::seo::api_catalog))
         .route(
             "/mcp",
             axum::routing::post(mcp::post)
