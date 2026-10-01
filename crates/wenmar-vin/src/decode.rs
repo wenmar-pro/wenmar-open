@@ -1,5 +1,5 @@
 use std::cmp::Reverse;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::check_digit;
@@ -49,12 +49,41 @@ type Values<'a> = HashMap<Element, &'a str>;
 
 /// The result of decoding against one candidate model year.
 struct Attempt {
-    /// 2 if a model was resolved, 1 if anything was, 0 if nothing matched.
-    score: u8,
     year: u16,
     matched: Vec<Pattern>,
     /// Latest start year of each schema for this manufacturer code.
     year_from: HashMap<i64, u16>,
+}
+
+impl Attempt {
+    /// What NHTSA compares when the cycle is not settled: how much weight the
+    /// resolved elements carry, then how many patterns matched, then the
+    /// later year.
+    fn standing(&self) -> (u32, usize, u16) {
+        (element_weight(&self.matched), self.matched.len(), self.year)
+    }
+}
+
+/// vPIC's weight for displacement, which NHTSA converts between units
+/// before scoring, so it counts once.
+const DISPLACEMENT_WEIGHT: u32 = 98;
+
+fn element_weight(matched: &[Pattern]) -> u32 {
+    let elements: HashSet<Element> = matched.iter().map(|row| row.element).collect();
+    let has_displacement = [
+        Element::DisplacementL,
+        Element::DisplacementCc,
+        Element::DisplacementCi,
+    ]
+    .iter()
+    .any(|element| elements.contains(element));
+    let weight: u32 = elements.iter().map(|element| element.weight()).sum();
+    weight
+        + if has_displacement {
+            DISPLACEMENT_WEIGHT
+        } else {
+            0
+        }
 }
 
 impl<D: VinData> Decoder<D> {
@@ -94,8 +123,7 @@ impl<D: VinData> Decoder<D> {
         // first candidate year that has any schema is final, as in NHTSA's
         // decoder. A new model missing from the data must not turn into a
         // 30-year-old one. For other vehicles the cycle is not settled, so
-        // each candidate is decoded and the best is kept: one that resolves a
-        // model, else one that resolves anything, else the likeliest year.
+        // every candidate is decoded and the one that explains more is kept.
         let conclusive = manufacturer.light_vehicle;
         let key = vin.match_key();
         let mut best: Option<Attempt> = None;
@@ -120,21 +148,20 @@ impl<D: VinData> Decoder<D> {
                 .into_iter()
                 .filter(|row| usable(&row.value) && pattern::matches(&row.keys, &key))
                 .collect();
-            let score = if matched.iter().any(|row| row.element == Element::Model) {
-                2
-            } else {
-                u8::from(!matched.is_empty())
+            let attempt = Attempt {
+                year: *candidate,
+                matched,
+                year_from,
             };
-            if best.as_ref().is_none_or(|current| score > current.score) {
-                best = Some(Attempt {
-                    score,
-                    year: *candidate,
-                    matched,
-                    year_from,
-                });
-            }
-            if score == 2 || conclusive {
+            if conclusive {
+                best = Some(attempt);
                 break;
+            }
+            if best
+                .as_ref()
+                .is_none_or(|current| attempt.standing() > current.standing())
+            {
+                best = Some(attempt);
             }
         }
         let (year, matched, year_from) = match best {

@@ -73,6 +73,22 @@ pub enum Element {
 }
 
 impl Element {
+    /// How much NHTSA's decoder counts this element when it compares two
+    /// candidate model years (`element.weight` in vPIC). Displacement is
+    /// weighed once, by the decoder, whatever unit it is in.
+    pub fn weight(self) -> u32 {
+        match self {
+            Element::Make | Element::Model | Element::BodyClass | Element::PlantCountry => 99,
+            Element::PlantCity | Element::PlantState => 98,
+            Element::FuelTypePrimary => 91,
+            Element::EngineCylinders => 88,
+            Element::AirbagsFront => 64,
+            Element::Series | Element::Trim => 61,
+            Element::EngineModel => 55,
+            _ => 0,
+        }
+    }
+
     /// The element for a vPIC `element.id`, if this crate uses it.
     pub fn from_vpic_id(id: i64) -> Option<Element> {
         Some(match id {

@@ -627,3 +627,76 @@ fn vpic_element_ids_map_to_elements() {
     assert_eq!(Element::from_vpic_id(96), None);
     assert_eq!(Element::from_vpic_id(-1), None);
 }
+#[test]
+fn a_heavy_vehicle_takes_the_year_that_explains_more_of_the_vin() {
+    // Like a 1989 coach whose code is also used in 2019: both cycles resolve
+    // a model, but only the earlier one also explains the engine.
+    let decoded = decode(
+        heavy_two_cycles()
+            .with_pattern(1, "K2***", Element::Model, "Newer Coach")
+            .with_pattern(2, "K2***", Element::Model, "Older Coach")
+            .with_pattern(2, "K2***", Element::FuelTypePrimary, "Diesel")
+            .with_pattern(2, "K2***", Element::DisplacementCi, "736"),
+    );
+    assert_eq!(decoded.year, Some(1993));
+    assert_eq!(decoded.model.as_deref(), Some("Older Coach"));
+}
+
+#[test]
+fn with_equal_weight_a_heavy_vehicle_takes_the_year_with_more_matching_patterns() {
+    // Doors carries no weight, so only the pattern count separates the years.
+    let decoded = decode(
+        heavy_two_cycles()
+            .with_pattern(1, "K2***", Element::Model, "Newer Coach")
+            .with_pattern(2, "K2***", Element::Model, "Older Coach")
+            .with_pattern(2, "K2***", Element::Doors, "2"),
+    );
+    assert_eq!(decoded.year, Some(1993));
+}
+
+#[test]
+fn with_everything_equal_a_heavy_vehicle_takes_the_later_year() {
+    let decoded = decode(
+        heavy_two_cycles()
+            .with_pattern(1, "K2***", Element::Model, "Newer Coach")
+            .with_pattern(2, "K2***", Element::Model, "Older Coach"),
+    );
+    assert_eq!(decoded.year, Some(2023));
+}
+
+#[test]
+fn displacement_counts_once_whatever_the_unit() {
+    // The later year weighs 99 + 99 + 61 = 259. The earlier weighs 99 + 98 =
+    // 197 if displacement counts once, and 393 if each unit were counted.
+    let decoded = decode(
+        heavy_two_cycles()
+            .with_pattern(1, "K2***", Element::Model, "Newer Coach")
+            .with_pattern(1, "K2***", Element::BodyClass, "Bus")
+            .with_pattern(1, "K2***", Element::Trim, "Deluxe")
+            .with_pattern(2, "K2***", Element::Model, "Older Coach")
+            .with_pattern(2, "K2***", Element::DisplacementL, "12.1")
+            .with_pattern(2, "K2***", Element::DisplacementCc, "12061")
+            .with_pattern(2, "K2***", Element::DisplacementCi, "736"),
+    );
+    assert_eq!(decoded.year, Some(2023));
+}
+
+#[test]
+fn a_heavy_vehicle_that_matches_nothing_keeps_the_later_year() {
+    let decoded = decode(
+        heavy_two_cycles()
+            .with_pattern(1, "Z9***", Element::Model, "Newer Coach")
+            .with_pattern(2, "Z9***", Element::Model, "Older Coach"),
+    );
+    assert_eq!(decoded.year, Some(2023));
+    assert_eq!(codes(&decoded), vec![WarningCode::NoPatterns]);
+}
+
+#[test]
+fn elements_carry_nhtsa_weights() {
+    assert_eq!(Element::Model.weight(), 99);
+    assert_eq!(Element::PlantCity.weight(), 98);
+    assert_eq!(Element::FuelTypePrimary.weight(), 91);
+    assert_eq!(Element::Trim.weight(), 61);
+    assert_eq!(Element::Doors.weight(), 0);
+}
