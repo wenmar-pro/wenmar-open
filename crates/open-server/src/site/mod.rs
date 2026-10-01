@@ -9,6 +9,7 @@ pub mod catalog;
 pub mod home;
 pub mod markdown;
 pub mod pages;
+pub mod seo;
 pub mod tokens;
 pub mod vin;
 pub mod wmi;
@@ -234,6 +235,9 @@ pub fn router() -> Router<AppState> {
         .route("/data.md", get(pages::data_md))
         .route("/about", get(pages::about_html))
         .route("/about.md", get(pages::about_md))
+        .route("/robots.txt", get(seo::robots))
+        .route("/sitemap.xml", get(seo::index))
+        .route("/sitemaps/{file}", get(seo::sitemap))
         .route("/assets/site.css", get(assets::stylesheet))
         .route("/assets/site.js", get(assets::script))
 }
