@@ -5,9 +5,10 @@
 //! blocking thread pool, through [`Db::run`], because the catalog library's
 //! [`Source`] is a blocking call.
 //!
-//! Work the engine answers slowly, such as a free-text search, goes through
-//! [`Db::run_slow`], which may use only some of the connections. The rest
-//! are always there for a VIN decode.
+//! Work that costs the engine more than a few lookups, such as a free-text
+//! search or a list of years that has to be read from every model year,
+//! goes through [`Db::run_slow`], which may use only some of the
+//! connections. The rest are always there for a VIN decode.
 
 use std::path::Path;
 use std::sync::{Arc, Mutex, PoisonError};

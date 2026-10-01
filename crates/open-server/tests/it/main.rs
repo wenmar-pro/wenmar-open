@@ -12,5 +12,6 @@ mod log;
 mod mcp;
 mod openapi;
 mod search;
+mod search_speed;
 mod serve;
 mod vin_rows;

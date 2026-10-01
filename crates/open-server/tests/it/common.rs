@@ -190,6 +190,97 @@ pub fn data_file() -> Fixture {
     build(wenmar_vehicles::schema::SCHEMA_VERSION, true)
 }
 
+/// How many makes, models and model years [`large_data_file`] adds.
+pub const LARGE_MAKES: usize = 40;
+pub const LARGE_MODELS: usize = LARGE_MAKES * 50;
+
+/// A data file with a catalog large enough that reading every model year
+/// takes far longer than looking a few of them up: the small catalog, and
+/// beside it forty makes of fifty models each, in up to thirty model years.
+///
+/// Every make has the same fifty model names (`Atlas 0` to `Halo 4`), so a
+/// name is shared by forty models and only the order settles which come
+/// first. Every fourth make builds trailers. One model in ten has trims.
+pub fn large_data_file() -> Fixture {
+    use wenmar_vehicles::text::{normalize, slug};
+
+    const STEMS: [&str; 10] = [
+        "Atlas", "Arrow", "Bolt", "Civet", "Comet", "Delta", "Echo", "Falcon", "Gale", "Halo",
+    ];
+    let fixture = data_file();
+    let mut connection = Connection::open(fixture.path()).unwrap();
+    let transaction = connection.transaction().unwrap();
+    let mut vehicle = 1_000;
+    for make in 0..i64::try_from(LARGE_MAKES).unwrap() {
+        let make_id = 7_000 + make;
+        let name = format!("Maker {make:02}");
+        let (types, light) = if make % 4 == 3 { (64, 0) } else { (8, 1) };
+        transaction
+            .execute(
+                "INSERT INTO catalog_make VALUES (?1, ?2, ?3, ?4, NULL, ?5, ?6)",
+                rusqlite::params![make_id, slug(&name), name, normalize(&name), types, light],
+            )
+            .unwrap();
+        for model in 0..50_i64 {
+            let model_id = 20_000 + make * 100 + model;
+            let stem = STEMS[usize::try_from(model % 10).unwrap()];
+            let name = format!("{stem} {}", model / 10);
+            let (first, last) = (1990 + model % 7, 2019 - make % 5);
+            transaction
+                .execute(
+                    "INSERT INTO catalog_model VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+                    rusqlite::params![
+                        model_id,
+                        make_id,
+                        slug(&name),
+                        name,
+                        normalize(&name),
+                        first,
+                        last,
+                        types,
+                        light
+                    ],
+                )
+                .unwrap();
+            let detail = (model % 10 == 0).then_some(model_id);
+            if let Some(detail) = detail {
+                transaction
+                    .execute(
+                        "INSERT INTO catalog_detail VALUES (?1, NULL, NULL, NULL)",
+                        [detail],
+                    )
+                    .unwrap();
+                for (index, trim) in ["Base", "Sport", "Sport Plus", "1500"].iter().enumerate() {
+                    transaction
+                        .execute(
+                            "INSERT INTO catalog_submodel VALUES
+                               (?1, ?2, ?3, ?4, 'trim', 1, NULL, NULL, NULL)",
+                            rusqlite::params![
+                                detail * 10 + i64::try_from(index).unwrap(),
+                                detail,
+                                trim,
+                                normalize(trim)
+                            ],
+                        )
+                        .unwrap();
+                }
+            }
+            for year in first..=last {
+                vehicle += 1;
+                transaction
+                    .execute(
+                        "INSERT INTO catalog_vehicle VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                        rusqlite::params![vehicle, year, make_id, model_id, types, light, detail],
+                    )
+                    .unwrap();
+            }
+        }
+    }
+    transaction.commit().unwrap();
+    connection.close().unwrap();
+    fixture
+}
+
 /// A data file built before the catalog existed.
 pub fn old_data_file() -> Fixture {
     build("2", false)

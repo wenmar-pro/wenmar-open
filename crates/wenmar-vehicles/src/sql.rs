@@ -89,22 +89,66 @@ WHERE e.detail_id = ?1
        OR e.id IN (SELECT engine_id FROM catalog_submodel_engine WHERE submodel_id = ?2))
 ORDER BY e.label, e.id";
 
-/// Models by matching form, with the newest year each exists in. `?1` form,
-/// `?2` 1 to also match it as a prefix, `?3` make id or NULL, `?4` year or
-/// NULL, `?5` light flag, `?6` type bit, `?7` limit. Columns: make id, model
-/// id form, newest year, whether the form matched exactly, model id.
+// ----- search -----
+//
+// `catalog_vehicle` has a row for every model year, about sixteen for each
+// model, so a search statement must never read it from end to end. Each
+// one below starts from the models, or the one make, that the text can
+// name, and reaches their years through `catalog_vehicle_model`.
+//
+// The order of the tables is written out with `CROSS JOIN`. SQLite
+// documents it as "join in the order written", and it is otherwise an
+// ordinary join. Left to choose, an engine may start from `catalog_vehicle`
+// instead: SQLite did for the models, and turso did for the models and for
+// the submodels of a make. Two tests hold both engines to this:
+// `the_search_statements_do_not_read_every_model_year` in this crate, for
+// SQLite, and `the_search_statements_reach_model_years_through_an_index`
+// in the server, for turso.
+
+/// Models with exactly this matching form, with the newest year each
+/// exists in. `?1` form, `?2` make id or NULL, `?3` year or NULL, `?4`
+/// light flag, `?5` type bit, `?6` limit. Columns: make id, model id form,
+/// newest year, whether the form matched exactly (always 1), model id.
+///
+/// A model's `light` and `types` are those of all its years together, so a
+/// model outside the scope has no year inside it and is passed over before
+/// its years are read.
 pub const SEARCH_MODELS: &str = "
 SELECT d.make_id, d.slug, MAX(v.year), d.norm = ?1, d.id
 FROM catalog_model d
-JOIN catalog_vehicle v ON v.model_id = d.id
-JOIN catalog_make m ON m.id = d.make_id
-WHERE (d.norm = ?1 OR (?2 = 1 AND d.norm LIKE ?1 || '%'))
-  AND (?3 IS NULL OR d.make_id = ?3)
-  AND (?4 IS NULL OR v.year = ?4)
-  AND (?5 = 0 OR v.light = 1) AND (?6 = 0 OR (v.types & ?6) <> 0)
+CROSS JOIN catalog_vehicle v ON v.model_id = d.id
+CROSS JOIN catalog_make m ON m.id = d.make_id
+WHERE d.norm = ?1
+  AND (?2 IS NULL OR d.make_id = ?2)
+  AND (?4 = 0 OR d.light = 1) AND (?5 = 0 OR (d.types & ?5) <> 0)
+  AND (?3 IS NULL OR v.year = ?3)
+  AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)
 GROUP BY d.id
 ORDER BY (d.norm = ?1) DESC, m.rank IS NULL, m.rank, d.name COLLATE NOCASE, d.id
-LIMIT ?7";
+LIMIT ?6";
+
+/// The same for models whose matching form begins with `?1`, the ones that
+/// match it exactly first. Parameters and columns as [`SEARCH_MODELS`].
+///
+/// A matching form holds only `0` to `9` and `a` to `z`, and `{` is the
+/// character after `z`, so the forms that begin with `civ` are the ones
+/// from `civ` up to, and not including, `civ{`. Unlike a `LIKE`, the text
+/// is never a pattern. Both engines read `catalog_model` from end to end
+/// for this, one row for each model, which takes turso about a millisecond
+/// on the 31,470 models of the 2026.09 data file.
+pub const SEARCH_MODELS_PREFIX: &str = "
+SELECT d.make_id, d.slug, MAX(v.year), d.norm = ?1, d.id
+FROM catalog_model d
+CROSS JOIN catalog_vehicle v ON v.model_id = d.id
+CROSS JOIN catalog_make m ON m.id = d.make_id
+WHERE d.norm >= ?1 AND d.norm < ?1 || '{'
+  AND (?2 IS NULL OR d.make_id = ?2)
+  AND (?4 = 0 OR d.light = 1) AND (?5 = 0 OR (d.types & ?5) <> 0)
+  AND (?3 IS NULL OR v.year = ?3)
+  AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)
+GROUP BY d.id
+ORDER BY (d.norm = ?1) DESC, m.rank IS NULL, m.rank, d.name COLLATE NOCASE, d.id
+LIMIT ?6";
 
 /// The models of a make, with the newest year each exists in. `?1` make id,
 /// `?2` year or NULL, `?3` light flag, `?4` type bit, `?5` limit.
@@ -136,15 +180,20 @@ LIMIT ?6";
 /// the words name no model. `?1` make id, `?2` form, `?3` year or NULL,
 /// `?4` light flag, `?5` type bit, `?6` limit. Columns: model id form,
 /// submodel name, newest year, exact match.
+///
+/// The make's models come first, then each model's years, then each year's
+/// submodels. The last two terms of the order settle rows that are equal
+/// in everything before them, so the answer does not depend on the engine.
 pub const SEARCH_MAKE_SUBMODELS: &str = "
 SELECT d.slug, s.name, MAX(v.year), s.norm = ?2
 FROM catalog_model d
-JOIN catalog_vehicle v ON v.model_id = d.id
-JOIN catalog_submodel s ON s.detail_id = v.detail_id
+CROSS JOIN catalog_vehicle v ON v.model_id = d.id
+CROSS JOIN catalog_submodel s ON s.detail_id = v.detail_id
 WHERE d.make_id = ?1
   AND (s.norm = ?2 OR s.norm LIKE ?2 || '%')
   AND (?3 IS NULL OR v.year = ?3)
   AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)
 GROUP BY d.id, s.name
-ORDER BY (s.norm = ?2) DESC, MAX(v.year) DESC, d.name COLLATE NOCASE, s.name COLLATE NOCASE
+ORDER BY (s.norm = ?2) DESC, MAX(v.year) DESC, d.name COLLATE NOCASE, s.name COLLATE NOCASE,
+         d.id, s.name
 LIMIT ?6";

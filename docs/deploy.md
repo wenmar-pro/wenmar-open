@@ -159,10 +159,16 @@ These are fixed in the code. They keep one client, or a few, from using up the c
 | Time to answer a request | 10 seconds | `503` with code `unavailable` |
 | Connections open at once | 1,024 | Further connections wait until one closes |
 | Time for a connection to send a request head, including the wait between two requests on a connection kept open | 120 seconds | The connection is closed |
-| Slow reads of the data file at once: free-text search, and years narrowed by `term` or by a vehicle type | Half of `OPEN_CONNECTIONS` | They wait their turn; the other connections stay free for VIN decodes and the rest of the catalog |
+| Heavier reads of the data file at once: free-text search, and years narrowed by `term` or by a vehicle type | Half of `OPEN_CONNECTIONS` | They wait their turn; the other connections stay free for VIN decodes and the rest of the catalog |
 
 `/health` is exempt from the request limit and from the abuse ceiling, so the proxy's check is answered while the service is refusing other requests. It is not exempt from the connection limit.
 
 The 120 seconds must stay longer than the time the proxy keeps an idle connection to the service open, so that the proxy closes first. If the proxy's log ever shows `502` for requests the service never logged, compare the two.
 
-Free-text search is still slow for the engine: each search reads the whole catalog several times. The limits above keep that from affecting decodes, but they do not make search fast, and a burst of searches is answered `503` after 10 seconds. Measure search in the release image under `--cpus 0.5` before announcing it.
+Free-text search reaches model years through an index. On the 2026.09 data file, in a release build on a development machine with every core free, a search is answered in 1 to 8 ms, 50 searches sent at once are all answered within 100 ms, and VIN decodes sent during them take 3 ms. Years narrowed by `term` or by a vehicle type still read every model year: 60 to 110 ms. Neither has been measured in the release image under `--cpus 0.5`. Do that before announcing search, against the container from "Try the image first":
+
+```bash
+for q in a chevy+1500 ram+1500+2019+big+horn "a+b+c+d+e+f+g+h&scope=all"; do
+  curl -s -o /dev/null -w "%{http_code} %{time_total}s $q\n" "http://localhost:3999/v1/vehicles/search?q=$q"
+done
+```

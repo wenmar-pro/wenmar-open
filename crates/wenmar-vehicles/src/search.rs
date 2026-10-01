@@ -169,12 +169,16 @@ impl<S: Source> Catalog<S> {
         for count in (1..=words.len().min(MODEL_WORDS)).rev() {
             let (head, rest) = words.split_at(count);
             let form = head.concat();
+            // Only the whole text may match the start of a name.
+            let statement = if rest.is_empty() {
+                sql::SEARCH_MODELS_PREFIX
+            } else {
+                sql::SEARCH_MODELS
+            };
             let rows = self.query(
-                sql::SEARCH_MODELS,
+                statement,
                 &[
                     form.as_str().into(),
-                    // Only the whole text may match as a prefix.
-                    i64::from(rest.is_empty()).into(),
                     make_value.clone(),
                     year_value.clone(),
                     lookup.light.into(),

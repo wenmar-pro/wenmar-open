@@ -239,9 +239,10 @@ pub async fn search_op(state: &AppState, query: SearchQuery) -> Result<Vec<Entry
     let limit = limit(query.limit, SEARCH_DEFAULT, SEARCH_MOST);
 
     // First the catalog's own reading: a year, a make, a model, a submodel.
-    // It scans the catalog several times over, which takes the engine long
-    // enough that a search must never hold every connection: it runs as
-    // slow work, and VIN decodes keep theirs.
+    // It is a dozen or more statements, a few milliseconds in all on the
+    // real data file. That is still several times a VIN decode, and the
+    // text is the caller's to choose, so a search runs as slow work: a
+    // burst of them waits for its own connections, and decodes keep theirs.
     let typed = text.clone();
     let entries = state
         .db()

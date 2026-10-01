@@ -1003,3 +1003,105 @@ fn a_decoded_make_reaches_the_make_of_that_name() {
         assert_eq!(selection.vehicle_id, id);
     }
 }
+
+// ----- how search reads the tables -----
+
+/// The steps SQLite takes to answer a statement.
+fn plan(connection: &Connection, sql: &str) -> Vec<String> {
+    let mut statement = connection
+        .prepare(&format!("EXPLAIN QUERY PLAN {sql}"))
+        .unwrap();
+    // The plan does not depend on the values, so every parameter is NULL.
+    let nulls = vec![rusqlite::types::Null; statement.parameter_count()];
+    statement
+        .query_map(rusqlite::params_from_iter(nulls), |row| {
+            row.get::<_, String>(3)
+        })
+        .unwrap()
+        .collect::<Result<_, _>>()
+        .unwrap()
+}
+
+// `catalog_vehicle` has a row for every model year: 490,000 in the 2026.09
+// data file, against 31,470 models. A search runs a dozen of these
+// statements, so none of them may read that table from end to end.
+#[test]
+fn the_search_statements_do_not_read_every_model_year() {
+    use wenmar_vehicles::sql;
+
+    let connection = connection();
+    for (name, statement) in [
+        ("SEARCH_MODELS", sql::SEARCH_MODELS),
+        ("SEARCH_MODELS_PREFIX", sql::SEARCH_MODELS_PREFIX),
+        ("SEARCH_MAKE_MODELS", sql::SEARCH_MAKE_MODELS),
+        ("SEARCH_SUBMODELS", sql::SEARCH_SUBMODELS),
+        ("SEARCH_MAKE_SUBMODELS", sql::SEARCH_MAKE_SUBMODELS),
+    ] {
+        let plan = plan(&connection, statement);
+        // Model years are reached from their model.
+        assert!(
+            plan.iter()
+                .any(|step| step.starts_with("SEARCH v USING INDEX catalog_vehicle_model")),
+            "{name}: {plan:#?}"
+        );
+        assert!(
+            !plan.iter().any(|step| step.starts_with("SCAN v")),
+            "{name}: {plan:#?}"
+        );
+    }
+}
+
+#[test]
+fn search_gives_the_newest_year_inside_the_scope() {
+    let connection = connection();
+    // A model that was a truck until 2018 and has been a trailer since. A
+    // model's types, and its make's, are those of all its years together.
+    connection
+        .execute_batch(
+            "UPDATE catalog_make SET types = 1096 WHERE id = 460;
+             INSERT INTO catalog_model VALUES
+               (1803, 460, 'hauler', 'Hauler', 'hauler', 2017, 2019, 72, 1);
+             INSERT INTO catalog_vehicle VALUES
+               (20, 2017, 460, 1803, 8, 1, NULL),
+               (21, 2018, 460, 1803, 8, 1, NULL),
+               (22, 2019, 460, 1803, 64, 0, NULL);",
+        )
+        .unwrap();
+    let catalog = Catalog::new(SqliteSource::from_connection(connection).unwrap()).unwrap();
+    let ids = |text: &str, scope: Scope| -> Vec<String> {
+        catalog
+            .search(text, scope, 10)
+            .unwrap()
+            .into_iter()
+            .map(|entry| entry.id)
+            .collect()
+    };
+    for text in ["hauler", "haul", "ford hauler", "ford haul"] {
+        assert_eq!(ids(text, Scope::Light), ["2018_ford_hauler"], "{text}");
+        assert_eq!(ids(text, Scope::All), ["2019_ford_hauler"], "{text}");
+        assert_eq!(ids(text, Scope::Type(3)), ["2018_ford_hauler"], "{text}");
+        assert_eq!(ids(text, Scope::Type(6)), ["2019_ford_hauler"], "{text}");
+        assert_eq!(ids(text, Scope::Type(2)), Vec::<String>::new(), "{text}");
+    }
+    assert_eq!(ids("2019 hauler", Scope::Light), Vec::<String>::new());
+    assert_eq!(ids("2019 hauler", Scope::All), ["2019_ford_hauler"]);
+    assert_eq!(ids("2017 haul", Scope::Light), ["2017_ford_hauler"]);
+}
+
+#[test]
+fn only_the_whole_text_matches_the_start_of_a_model_name() {
+    let catalog = catalog();
+    // `civ` begins Civic, and is everything that was typed.
+    assert_eq!(found(&catalog, "civ"), vec!["2020_honda_civic"]);
+    assert_eq!(found(&catalog, "honda civ"), vec!["2020_honda_civic"]);
+    // With more words after it, a model has to be named in full.
+    assert_eq!(found(&catalog, "civ si"), Vec::<String>::new());
+    assert_eq!(found(&catalog, "2019 civ si"), Vec::<String>::new());
+    // A matching form is letters and digits, so nothing typed is a pattern.
+    assert_eq!(
+        found(&catalog, "c%"),
+        vec!["2020_honda_civic", "2019_honda_cr-v"]
+    );
+    assert_eq!(found(&catalog, "cr_"), vec!["2019_honda_cr-v"]);
+    assert_eq!(found(&catalog, "_iv"), Vec::<String>::new());
+}

@@ -27,5 +27,6 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - A limit of 600 requests a minute for one address, answered with `429` and `Retry-After`.
 - `mise run serve`, a `Dockerfile`, Kamal configuration and a deploy runbook in `docs/deploy.md`. Nothing is deployed yet.
 - `open-server`: free-text searches use at most half of the connections to the data file, so they cannot keep VIN decodes waiting.
+- `wenmar-vehicles`: free-text search no longer reads every model year for each statement. On the 2026.09 data file a search through the server takes 1 to 8 ms in a release build, where it took up to 530 ms. Results and their order are unchanged, and so is the data file.
 - `open-server`: limits on what a client may send and hold open. An address over 8 KB is answered `414` with the new error code `uri_too_long`; a request head over 32 KB is refused; at most 512 requests are answered at once and 1,024 connections kept open; a connection that does not send its request head within 120 seconds is closed.
 - `open-server`: request logs cut every part of an address that the caller chose to 11 characters, so a VIN typed at the wrong address is not logged whole either. The runbook says what the hosting proxy's own log records.
