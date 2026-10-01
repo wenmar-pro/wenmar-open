@@ -173,9 +173,39 @@ async fn print_is_black_on_white_whatever_the_scheme() {
     ] {
         assert!(print.contains(token), "{token}");
     }
-    assert!(
-        print.contains(".skip,.by,.top nav,.crumbs,.actions,form,.screen,.pro,.more{display:none}")
-    );
+    // `!important`, because a selector such as `ul.plain` outweighs `.screen`
+    // and would put the links list of a result page back on paper.
+    assert!(print.contains(
+        ".skip,.by,.top nav,.crumbs,.actions,form,.screen,.pro,.more{display:none!important}"
+    ));
+    // Nothing outside the print rules sets `display` with `!important`, which
+    // would outweigh that rule in turn, except the `hidden` attribute.
+    let screen = css.split("@media print{").next().unwrap();
+    assert_eq!(screen.matches("!important").count(), 1);
+    assert!(screen.contains("[hidden]{display:none!important}"));
+    // The wordmark and the data version line up with the tables.
+    assert!(print.contains(".top,footer{padding-left:0;padding-right:0}"));
+    // What a result page hides on paper carries one of those names.
+    let app = common::app().await;
+    let (_, html) = page(&app, "/vin/KM8K2CAB4PU001140").await;
+    assert!(html.contains(r#"<ul class="plain links screen">"#));
+    assert!(html.contains(r#"<p class="pro">"#));
+    assert!(html.contains(r#"<div class="actions">"#));
+}
+
+#[tokio::test]
+async fn a_small_phone_gets_two_header_rows_and_whole_words() {
+    // Seen in a browser at 320 pixels: the five navigation links need 221
+    // pixels and have 272, so the space between them must be under 12.
+    let css = stylesheet().await;
+    assert!(css.contains(
+        "@media (max-width:599px){.top nav{flex-basis:100%;margin-left:0;justify-content:space-between;gap:0 8px}}"
+    ));
+    // "Displacement," is 106 pixels wide and the label column of a spec
+    // sheet is 270 pixels times this, less 8 of padding.
+    assert!(css.contains("tbody th{width:44%;"));
+    // A link that wraps to a second line keeps clear of the next one.
+    assert!(css.contains("ul.plain a{padding:6px 0}"));
 }
 
 #[tokio::test]
