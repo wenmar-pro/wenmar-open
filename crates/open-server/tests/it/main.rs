@@ -18,4 +18,5 @@ mod site;
 mod site_catalog;
 mod site_home;
 mod site_vin;
+mod site_wmi;
 mod vin_rows;

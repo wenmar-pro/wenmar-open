@@ -10,6 +10,7 @@ pub mod home;
 pub mod markdown;
 pub mod tokens;
 pub mod vin;
+pub mod wmi;
 
 use askama::Template;
 use axum::Router;
@@ -225,6 +226,7 @@ pub fn router() -> Router<AppState> {
         .route("/makes.md", get(catalog::makes_md))
         .route("/makes/{make}", get(catalog::make))
         .route("/makes/{make}/{model}/{year}", get(catalog::model_year))
+        .route("/wmi/{code}", get(wmi::wmi))
         .route("/assets/site.css", get(assets::stylesheet))
         .route("/assets/site.js", get(assets::script))
 }

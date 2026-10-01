@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Manufacturer code <span class="mono">{{ view.code }}</span></h1>
+<p>A VIN that starts with <span class="mono">{{ first }}</span>{% if let Some(rest) = rest %} and has <span class="mono">{{ rest }}</span> in positions 12 to 14{% endif %} was built by {{ view.manufacturer }}.</p>
+<table>
+<caption>Manufacturer</caption>
+<tbody>
+<tr><th scope="row">Name</th><td>{{ view.manufacturer }}</td></tr>
+{% if let Some(make) = view.make -%}
+<tr><th scope="row">Make</th><td>{{ make }}</td></tr>
+{% endif -%}
+{% if let Some(country) = view.country -%}
+<tr><th scope="row">Country</th><td>{{ country }}</td></tr>
+{% endif -%}
+{% if let Some(vehicle_type) = view.vehicle_type -%}
+<tr><th scope="row">Vehicle type</th><td>{{ vehicle_type }}</td></tr>
+{% endif -%}
+{% if let Some(years) = years -%}
+<tr><th scope="row">Model years on file</th><td>{{ years }}</td></tr>
+{% endif -%}
+</tbody>
+</table>
+{% if !view.makes.is_empty() -%}
+<h2>Makes</h2>
+<ul class="plain">
+{% for make in view.makes -%}
+<li><a href="/makes/{{ make.0 }}">{{ make.1 }}</a></li>
+{% endfor -%}
+</ul>
+{% endif -%}
+<p><a href="/">Decode a VIN</a></p>
+{% endblock %}
