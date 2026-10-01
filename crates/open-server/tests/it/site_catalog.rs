@@ -372,3 +372,105 @@ async fn pages_for_trailers_and_buses_exist_but_are_not_offered_to_search_engine
     assert!(html.contains(r#"<a href="/makes/ranger-trailers">Ranger Trailers</a>"#));
     assert!(!html.contains(r#"name="robots""#));
 }
+
+#[tokio::test]
+async fn a_make_reached_by_alias_keeps_the_year_asked_for() {
+    let app = common::app().await;
+    for (path, to) in [
+        ("/makes/chevy?year=2019", "/makes/chevrolet?year=2019"),
+        (
+            "/makes/CHEVROLET.md?year=2019",
+            "/makes/chevrolet.md?year=2019",
+        ),
+        ("/makes/chevy?year=soon", "/makes/chevrolet"),
+        ("/makes/chevy", "/makes/chevrolet"),
+    ] {
+        let response = app.get(path).await;
+        assert_eq!(response.status(), StatusCode::PERMANENT_REDIRECT, "{path}");
+        assert_eq!(header(&response, "location"), to, "{path}");
+    }
+}
+
+#[tokio::test]
+async fn a_year_in_an_address_is_four_digits_and_nothing_else() {
+    let app = common::app().await;
+    for path in [
+        "/makes/honda/civic/+2019",
+        "/makes/honda/civic/%2B2019",
+        "/makes/honda/civic/02019",
+        "/makes/honda/civic/2019.0",
+        "/makes/honda/civic/+2019.md",
+        "/sitemaps/models-02019.xml",
+        "/sitemaps/models-+2019.xml",
+    ] {
+        let (status, _) = page(&app, path).await;
+        assert_eq!(status, StatusCode::NOT_FOUND, "{path}");
+    }
+    let (status, _) = page(&app, "/makes/honda/civic/2019").await;
+    assert_eq!(status, StatusCode::OK);
+}
+
+#[tokio::test]
+async fn the_two_forms_of_a_page_say_the_same_things() {
+    let app = common::app().await;
+    // A trim and an engine from this project's own list are marked in both.
+    let (_, html) = page(&app, "/makes/honda/civic/2020").await;
+    assert!(
+        html.contains(
+            r#"<tr><th scope="row">2.0L</th><td> <span class="note">from our own list, not NHTSA's</span></td></tr>"#
+        ),
+        "{html}"
+    );
+    let text = markdown(&app, "/makes/honda/civic/2020.md").await;
+    assert!(
+        text.contains("- 2.0L (from our own list, not NHTSA's)\n"),
+        "{text}"
+    );
+    let text = markdown(&app, "/makes/ford/f-150/2019.md").await;
+    // Whatever else the line says of the trim, it ends with the mark.
+    assert!(
+        text.lines()
+            .any(|line| line.starts_with("- XLT")
+                && line.ends_with("(from our own list, not NHTSA's)")),
+        "{text}"
+    );
+    assert!(
+        !text
+            .lines()
+            .any(|line| line.starts_with("- Raptor") && line.contains("our own list")),
+        "{text}"
+    );
+    // A list of makes for one year links on with the year, as the page does.
+    let (_, text) = page(&app, "/makes.md?year=2023").await;
+    assert!(
+        text.contains("- [Hyundai](/makes/hyundai.md?year=2023)\n"),
+        "{text}"
+    );
+}
+
+#[tokio::test]
+async fn a_list_that_is_cut_says_so() {
+    // 61 more trims on the 2018 and 2019 Civic, which already has three.
+    let mut rows = String::new();
+    for index in 0..61 {
+        rows.push_str(&format!(
+            "INSERT INTO catalog_submodel VALUES ({}, 1, 'Edition {index:02}', 'edition{index:02}', 'trim', 1, NULL, NULL, NULL);\n",
+            100 + index
+        ));
+    }
+    let app = common::app_with_rows(&rows).await;
+    let (status, html) = page(&app, "/makes/honda/civic/2019").await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(
+        html.contains("The first 60 of 64 trims are shown."),
+        "{html}"
+    );
+    let text = markdown(&app, "/makes/honda/civic/2019.md").await;
+    assert!(
+        text.contains("The first 60 of 64 trims are shown.\n"),
+        "{text}"
+    );
+    // A list that fits says nothing of the kind.
+    let (_, html) = page(&app, "/makes/ford/f-150/2019").await;
+    assert!(!html.contains("are shown."), "{html}");
+}

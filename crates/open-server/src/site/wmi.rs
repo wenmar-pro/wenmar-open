@@ -1,9 +1,11 @@
 //! `/wmi/{code}`: who a manufacturer code belongs to and what it builds.
 
 use askama::Template;
+use axum::extract::rejection::PathRejection;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Redirect, Response};
+use wenmar_vehicles::text::is_slug;
 use wenmar_vehicles::{Source, SourceError, Value};
 
 use crate::db::Worker;
@@ -65,6 +67,7 @@ fn load_wmi(worker: &Worker, code: &str) -> Result<Option<WmiView>, SourceError>
         .query(MAKES_SQL, &[code.into()])?
         .iter()
         .filter_map(|row| Some((optional(row, 0)?, optional(row, 1)?)))
+        .filter(|(slug, _)| is_slug(slug))
         .collect();
     makes.sort_by(|left, right| left.1.cmp(&right.1));
     makes.dedup();
@@ -147,7 +150,13 @@ fn wmi_markdown(view: &WmiView) -> String {
     text
 }
 
-pub async fn wmi(State(state): State<AppState>, Path(segment): Path<String>) -> Response {
+pub async fn wmi(
+    State(state): State<AppState>,
+    path: Result<Path<String>, PathRejection>,
+) -> Response {
+    let Ok(Path(segment)) = path else {
+        return site::not_found(&state);
+    };
     let (typed, format) = markdown::split(&segment);
     let code = typed.to_ascii_uppercase();
     if !is_code(&code) {

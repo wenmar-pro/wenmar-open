@@ -196,11 +196,11 @@ pub fn groups(decode: &VinDecode) -> Vec<Group> {
 }
 
 fn private(mut response: Response) -> Response {
+    // A failure is not kept at all: the next try may succeed.
+    let failed = response.status().is_client_error() || response.status().is_server_error();
+    let lifetime = if failed { "no-store" } else { CACHE_RESULT };
     let headers = response.headers_mut();
-    headers.insert(
-        header::CACHE_CONTROL,
-        HeaderValue::from_static(CACHE_RESULT),
-    );
+    headers.insert(header::CACHE_CONTROL, HeaderValue::from_static(lifetime));
     headers.insert("x-robots-tag", HeaderValue::from_static("noindex"));
     response
 }
@@ -303,6 +303,22 @@ pub async fn result(
                 ),
             )
         });
+    // A suggestion goes into an address, so it is checked like the ones on
+    // the "not a VIN" page, though the decoder only offers well-formed VINs.
+    let warnings: Vec<Warning> = decode
+        .warnings
+        .iter()
+        .cloned()
+        .map(|mut warning| {
+            warning.suggestions.retain(|suggestion| {
+                suggestion.len() == 17
+                    && suggestion
+                        .chars()
+                        .all(|character| character.is_ascii_alphanumeric())
+            });
+            warning
+        })
+        .collect();
     private(site::html(
         StatusCode::OK,
         &Result {
@@ -313,7 +329,7 @@ pub async fn result(
             ),
             vin: decode.vin.clone(),
             headline,
-            warnings: decode.warnings.clone(),
+            warnings,
             groups: groups(&decode),
             model_year,
             pro: site::pro_link("vin-result"),

@@ -26,4 +26,7 @@
 {% if popular.is_empty() && others.is_empty() -%}
 <p>No makes are on file for that year.</p>
 {% endif -%}
+{% if let Some(shown) = cut -%}
+<p class="note">Only the first {{ shown }} makes are listed.</p>
+{% endif -%}
 {% endblock %}

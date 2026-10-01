@@ -1,6 +1,7 @@
 //! The result page, `/vin/{vin}`.
 
-use axum::http::StatusCode;
+use axum::body::Body;
+use axum::http::{Request, StatusCode};
 
 use crate::common::{self, assert_basics, assert_no_injection, body_text, header, page, redirect};
 
@@ -142,4 +143,43 @@ async fn an_unknown_manufacturer_gets_a_page_that_says_so() {
     assert!(html.contains("<h1>We do not know this manufacturer</h1>"));
     assert!(html.contains("No manufacturer is registered for ZZZ."));
     assert_basics(&html, "/vin/ZZZK2CAB4PU001140");
+}
+
+#[tokio::test]
+async fn a_result_page_stays_private_when_revalidated() {
+    let app = common::app().await;
+    let etag = header(&app.get("/").await, "etag").to_owned();
+    // A result page has no tag of its own to send back.
+    let first = app.get("/vin/KM8K2CAB4PU001140").await;
+    assert!(first.headers().get("etag").is_none());
+    // The tag of a public page, or `*`, must not turn it into a public 304.
+    for tag in [etag.as_str(), "*"] {
+        let response = app
+            .send(
+                Request::get("/vin/KM8K2CAB4PU001140")
+                    .header("if-none-match", tag)
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await;
+        assert_eq!(response.status(), StatusCode::OK, "{tag}");
+        assert_eq!(header(&response, "cache-control"), "private, max-age=3600");
+        assert_eq!(header(&response, "x-robots-tag"), "noindex");
+        assert!(response.headers().get("etag").is_none());
+    }
+}
+
+#[tokio::test]
+async fn a_failure_on_a_result_page_is_not_kept() {
+    let app = common::app().await;
+    for (path, status) in [
+        ("/vin/KM8K2", StatusCode::BAD_REQUEST),
+        ("/vin/ZZZK2CAB4PU001140", StatusCode::NOT_FOUND),
+        ("/vin/%FF%FE", StatusCode::BAD_REQUEST),
+    ] {
+        let response = app.get(path).await;
+        assert_eq!(response.status(), status, "{path}");
+        assert_eq!(header(&response, "cache-control"), "no-store", "{path}");
+        assert_eq!(header(&response, "x-robots-tag"), "noindex", "{path}");
+    }
 }

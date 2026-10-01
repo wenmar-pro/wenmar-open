@@ -10,6 +10,9 @@
 {% endfor -%}
 </ul>
 {% endif -%}
+{% if view.models_cut -%}
+<p class="note">Only the first {{ view.models.len() }} models are listed.</p>
+{% endif -%}
 <h2 id="years">Other years</h2>
 <nav aria-labelledby="years">
 <ul class="plain">

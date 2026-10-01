@@ -4,6 +4,7 @@
 //! carry `noindex`, and they are not blocked in `robots.txt`, because a
 //! crawler must be able to fetch a page to see that it is not to be indexed.
 
+use axum::extract::rejection::PathRejection;
 use axum::extract::{Path, State};
 use axum::http::{HeaderValue, header};
 use axum::response::{IntoResponse, Response};
@@ -98,7 +99,13 @@ fn pairs(rows: Vec<Vec<Value>>) -> Vec<(String, String)> {
         .collect()
 }
 
-pub async fn sitemap(State(state): State<AppState>, Path(file): Path<String>) -> Response {
+pub async fn sitemap(
+    State(state): State<AppState>,
+    path: Result<Path<String>, PathRejection>,
+) -> Response {
+    let Ok(Path(file)) = path else {
+        return site::not_found(&state);
+    };
     let Some(name) = file.strip_suffix(".xml") else {
         return site::not_found(&state);
     };
@@ -125,7 +132,7 @@ pub async fn sitemap(State(state): State<AppState>, Path(file): Path<String>) ->
             }),
         "wmi" => state
             .db()
-            .run(|worker| worker.source.query(CODES_SQL, &[]))
+            .run_slow(|worker| worker.source.query(CODES_SQL, &[]))
             .await
             .map_err(ApiError::from)
             .and_then(|rows: Result<_, SourceError>| rows.map_err(ApiError::internal))
@@ -139,14 +146,11 @@ pub async fn sitemap(State(state): State<AppState>, Path(file): Path<String>) ->
                 codes.sort();
                 Some(codes)
             }),
-        other => match other
-            .strip_prefix("models-")
-            .and_then(|year| year.parse::<u16>().ok())
-        {
+        other => match other.strip_prefix("models-").and_then(site::year_in) {
             None => Ok(None),
             Some(year) => state
                 .db()
-                .run(move |worker| worker.source.query(MODELS_SQL, &[i64::from(year).into()]))
+                .run_slow(move |worker| worker.source.query(MODELS_SQL, &[i64::from(year).into()]))
                 .await
                 .map_err(ApiError::from)
                 .and_then(|rows: Result<_, SourceError>| rows.map_err(ApiError::internal))

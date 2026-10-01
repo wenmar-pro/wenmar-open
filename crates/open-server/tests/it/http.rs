@@ -214,7 +214,6 @@ async fn an_address_that_is_too_long_is_414_in_the_error_shape() {
         format!("/v1/vin/batch?x={long}"),
         format!("/v1/vin/{long}"),
         format!("/v1/vehicles/search?q={long}"),
-        format!("/{long}"),
         format!("/health?{long}"),
     ] {
         let response = app.get(&path).await;
@@ -236,6 +235,14 @@ async fn an_address_that_is_too_long_is_414_in_the_error_shape() {
             } })
         );
     }
+    // On a page's address the refusal is a page, and as short.
+    let response = app.get(&format!("/{long}")).await;
+    assert_eq!(response.status(), StatusCode::URI_TOO_LONG);
+    assert_eq!(header(&response, "cache-control"), "no-store");
+    assert!(header(&response, "content-type").starts_with("text/html"));
+    let text = body_text(response).await;
+    assert!(text.len() < 10_000, "{} bytes", text.len());
+    assert!(text.contains("<h1>That address is too long</h1>"), "{text}");
     // A refused address does not count against anything that follows.
     assert_eq!(app.get("/v1/meta").await.status(), StatusCode::OK);
 }

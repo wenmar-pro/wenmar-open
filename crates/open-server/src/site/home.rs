@@ -83,7 +83,7 @@ pub async fn pick(query: Result<Query<Pick>, QueryRejection>) -> Response {
     let Query(pick) = query.unwrap_or_default();
     let year = pick
         .year
-        .and_then(|year| year.trim().parse::<u16>().ok())
+        .and_then(|year| site::year_in(year.trim()))
         .map(|year| format!("?year={year}"))
         .unwrap_or_default();
     match pick.make.as_deref().map(str::trim) {

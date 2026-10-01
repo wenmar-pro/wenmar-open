@@ -3,7 +3,7 @@
 //! Each page is loaded once into a view, then shown as HTML or as Markdown.
 
 use askama::Template;
-use axum::extract::rejection::QueryRejection;
+use axum::extract::rejection::{PathRejection, QueryRejection};
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Redirect, Response};
@@ -49,7 +49,7 @@ fn year_of(query: Result<Query<YearQuery>, QueryRejection>) -> Option<u16> {
     query
         .ok()
         .and_then(|Query(query)| query.year)
-        .and_then(|year| year.trim().parse().ok())
+        .and_then(|year| site::year_in(year.trim()))
 }
 
 /// Runs a page's loader on a blocking thread.
@@ -61,6 +61,23 @@ where
     Ok(state.db().run(loader).await??)
 }
 
+/// The same as [`load`], for a page that reads every model year. Only half
+/// of the connections do such work at once, so a decode always has one.
+async fn load_slow<T, F>(state: &AppState, loader: F) -> Result<T, ApiError>
+where
+    F: FnOnce(&Worker) -> Result<T, CatalogError> + Send + 'static,
+    T: Send + 'static,
+{
+    Ok(state.db().run_slow(loader).await??)
+}
+
+/// Keeps the first `most` of a list and says whether anything was left off.
+fn cut<T>(mut list: Vec<T>, most: usize) -> (Vec<T>, bool) {
+    let over = list.len() > most;
+    list.truncate(most);
+    (list, over)
+}
+
 // ----- every make -----
 
 #[derive(Template)]
@@ -70,36 +87,54 @@ struct MakesPage {
     year: Option<u16>,
     popular: Vec<Make>,
     others: Vec<Make>,
+    /// How many makes are shown, when the list was cut.
+    cut: Option<usize>,
 }
 
-fn makes_markdown(year: Option<u16>, makes: &[Make]) -> String {
+fn makes_markdown(year: Option<u16>, makes: &[Make], cut: bool) -> String {
     let mut text = match year {
         Some(year) => format!("# Makes with a {year} model\n\n"),
         None => "# Makes\n\n".to_owned(),
     };
     text.push_str("Cars, multipurpose vehicles and trucks. Popular makes first.\n\n");
+    let query = year.map(|year| format!("?year={year}")).unwrap_or_default();
     for make in makes {
         text.push_str(&format!(
-            "- [{}](/makes/{}.md)\n",
+            "- [{}](/makes/{}.md{query})\n",
             escape(&make.name),
             make.id
+        ));
+    }
+    if cut {
+        text.push_str(&format!(
+            "\nOnly the first {} makes are listed.\n",
+            makes.len()
         ));
     }
     text
 }
 
 async fn makes_in(state: AppState, year: Option<u16>, format: Format) -> Response {
-    let makes = match load(&state, move |worker| {
-        worker.catalog.makes(year, Scope::Light, "", MOST_LISTED)
-    })
-    .await
-    {
-        Ok(makes) => makes.into_iter().map(Make::from).collect::<Vec<_>>(),
+    let loader = move |worker: &Worker| {
+        worker
+            .catalog
+            .makes(year, Scope::Light, "", MOST_LISTED + 1)
+    };
+    // A list for one year reads every model year of that year.
+    let loaded = match year {
+        Some(_) => load_slow(&state, loader).await,
+        None => load(&state, loader).await,
+    };
+    let (makes, cut_short) = match loaded {
+        Ok(makes) => cut(
+            makes.into_iter().map(Make::from).collect::<Vec<_>>(),
+            MOST_LISTED,
+        ),
         Err(error) => return site::failed(&state, &error),
     };
     if format == Format::Markdown {
         let canonical = format!("{}/makes", state.config().base_url);
-        return markdown::response(makes_markdown(year, &makes), &canonical);
+        return markdown::response(makes_markdown(year, &makes, cut_short), &canonical);
     }
     let page = Page::new(
         &state,
@@ -111,6 +146,7 @@ async fn makes_in(state: AppState, year: Option<u16>, format: Format) -> Respons
         None => page.indexed(&state, "/makes").with_markdown("/makes.md"),
         Some(_) => page,
     };
+    let cut = cut_short.then_some(MOST_LISTED);
     let (popular, others) = makes.into_iter().partition(|make| make.popular);
     site::html(
         StatusCode::OK,
@@ -119,6 +155,7 @@ async fn makes_in(state: AppState, year: Option<u16>, format: Format) -> Respons
             year,
             popular,
             others,
+            cut,
         },
     )
 }
@@ -148,6 +185,8 @@ pub struct MakeView {
     /// Every year the make has a model in, newest first.
     pub years: Vec<u16>,
     pub models: Vec<Model>,
+    /// Whether the make has more models that year than are listed.
+    pub models_cut: bool,
     /// Whether the make builds cars, MPVs or trucks. Only those are offered
     /// to search engines.
     pub light: bool,
@@ -194,15 +233,19 @@ fn load_make(
         return Ok(Found::Nothing);
     };
     let year = year.filter(|year| years.contains(year)).unwrap_or(newest);
-    let models = worker
-        .catalog
-        .models(&make.slug, Some(year), scope, "", MOST_LISTED)?;
+    let (models, models_cut) = cut(
+        worker
+            .catalog
+            .models(&make.slug, Some(year), scope, "", MOST_LISTED + 1)?,
+        MOST_LISTED,
+    );
     Ok(Found::View(MakeView {
         slug: make.slug.clone(),
         name: make.name.clone(),
         year,
         years,
         models: models.into_iter().map(Model::from).collect(),
+        models_cut,
         light: make.light,
     }))
 }
@@ -228,6 +271,12 @@ fn make_markdown(view: &MakeView) -> String {
             view.year
         ));
     }
+    if view.models_cut {
+        text.push_str(&format!(
+            "\nOnly the first {} models are listed.\n",
+            view.models.len()
+        ));
+    }
     text.push_str("\n## Other years\n\n");
     let years: Vec<String> = view
         .years
@@ -241,9 +290,13 @@ fn make_markdown(view: &MakeView) -> String {
 
 pub async fn make(
     State(state): State<AppState>,
-    Path(segment): Path<String>,
+    path: Result<Path<String>, PathRejection>,
     query: Result<Query<YearQuery>, QueryRejection>,
 ) -> Response {
+    // An address that is not text names no make.
+    let Ok(Path(segment)) = path else {
+        return site::not_found(&state);
+    };
     let (text, format) = markdown::split(&segment);
     let asked = year_of(query);
     let text = text.to_owned();
@@ -261,7 +314,10 @@ pub async fn make(
             } else {
                 ""
             };
-            return Redirect::permanent(&format!("/makes/{slug}{suffix}")).into_response();
+            let year = asked
+                .map(|year| format!("?year={year}"))
+                .unwrap_or_default();
+            return Redirect::permanent(&format!("/makes/{slug}{suffix}{year}")).into_response();
         }
         Found::Elsewhere(_) | Found::Nothing => return site::not_found(&state),
     };
@@ -304,6 +360,8 @@ pub struct TrimLine {
 /// An engine, with how a VIN tells it from the others.
 pub struct EngineLine {
     pub label: String,
+    /// Whether the engine comes from this project's list instead of NHTSA's.
+    pub preset: bool,
     /// The characters in position 8 of a VIN that mean this engine. Any one
     /// of them does: they are alternatives, not a sequence. Empty where the
     /// data does not settle it.
@@ -331,6 +389,8 @@ pub struct ModelYearView {
     pub make_slug: String,
     pub model_slug: String,
     pub trims: Vec<TrimLine>,
+    /// How many trims the model year has; `trims` holds at most 60 of them.
+    pub trims_total: usize,
     pub engines: Vec<EngineLine>,
     /// Whether this model year is a car, an MPV or a truck. Only those are
     /// offered to search engines.
@@ -350,13 +410,10 @@ fn load_model_year(
     let Some(entry) = worker.catalog.entry(&id)? else {
         return Ok(None);
     };
+    let submodels = worker.catalog.submodels(make, model, year, "")?;
+    let trims_total = submodels.len();
     let mut trims = Vec::new();
-    for submodel in worker
-        .catalog
-        .submodels(make, model, year, "")?
-        .into_iter()
-        .take(MOST_TRIMS)
-    {
+    for submodel in submodels.into_iter().take(MOST_TRIMS) {
         let details = worker
             .catalog
             .entry(&format!("{id}_{}", submodel.id))?
@@ -380,6 +437,7 @@ fn load_model_year(
         .into_iter()
         .map(|engine| EngineLine {
             label: engine.label,
+            preset: engine.preset,
             vin8: engine
                 .vin8
                 .unwrap_or_default()
@@ -404,6 +462,7 @@ fn load_model_year(
         make_slug: make.to_owned(),
         model_slug: model.to_owned(),
         trims,
+        trims_total,
         engines,
         light,
     }))
@@ -452,7 +511,17 @@ fn model_year_markdown(view: &ModelYearView) -> String {
         if !trim.details.is_empty() {
             text.push_str(&format!(": {}", escape(&trim.details)));
         }
+        if trim.kind == "preset" {
+            text.push_str(" (from our own list, not NHTSA's)");
+        }
         text.push('\n');
+    }
+    if view.trims_total > view.trims.len() {
+        text.push_str(&format!(
+            "\nThe first {} of {} trims are shown.\n",
+            view.trims.len(),
+            view.trims_total
+        ));
     }
     text.push_str("\n## Engines\n\n");
     if view.engines.is_empty() {
@@ -466,6 +535,9 @@ fn model_year_markdown(view: &ModelYearView) -> String {
                 escape(&any_of(&engine.vin8))
             ));
         }
+        if engine.preset {
+            text.push_str(" (from our own list, not NHTSA's)");
+        }
         text.push('\n');
     }
     text.push_str(&format!(
@@ -477,10 +549,13 @@ fn model_year_markdown(view: &ModelYearView) -> String {
 
 pub async fn model_year(
     State(state): State<AppState>,
-    Path((make, model, segment)): Path<(String, String, String)>,
+    path: Result<Path<(String, String, String)>, PathRejection>,
 ) -> Response {
+    let Ok(Path((make, model, segment))) = path else {
+        return site::not_found(&state);
+    };
     let (year, format) = markdown::split(&segment);
-    let Ok(year) = year.parse::<u16>() else {
+    let Some(year) = site::year_in(year) else {
         return site::not_found(&state);
     };
     let loaded = load(&state, move |worker| {
@@ -531,5 +606,12 @@ mod tests {
         assert_eq!(any_of(&['4', 'G']), "4 or G");
         assert_eq!(any_of(&['3', '4', '9']), "3, 4 or 9");
         assert_eq!(any_of(&['A', 'B', 'C', 'D']), "A, B, C or D");
+    }
+
+    #[test]
+    fn a_list_is_cut_at_the_most_and_says_so() {
+        assert_eq!(cut(vec![1, 2, 3], 2), (vec![1, 2], true));
+        assert_eq!(cut(vec![1, 2], 2), (vec![1, 2], false));
+        assert_eq!(cut(Vec::<u8>::new(), 2), (Vec::new(), false));
     }
 }

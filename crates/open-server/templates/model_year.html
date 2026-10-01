@@ -27,11 +27,14 @@
 {% endfor -%}
 </tbody>
 </table>
+{% if view.trims_total > view.trims.len() -%}
+<p class="note">The first {{ view.trims.len() }} of {{ view.trims_total }} trims are shown.</p>
+{% endif -%}
 <table>
 <caption>Engines</caption>
 <tbody>
 {% for engine in view.engines -%}
-<tr><th scope="row">{{ engine.label }}</th><td>{% if !engine.vin8.is_empty() %}Eighth VIN character {% for character in engine.vin8 %}{% if !loop.first %}{% if loop.last %} or {% else %}, {% endif %}{% endif %}<span class="mono">{{ character }}</span>{% endfor %}{% endif %}</td></tr>
+<tr><th scope="row">{{ engine.label }}</th><td>{% if !engine.vin8.is_empty() %}Eighth VIN character {% for character in engine.vin8 %}{% if !loop.first %}{% if loop.last %} or {% else %}, {% endif %}{% endif %}<span class="mono">{{ character }}</span>{% endfor %}{% endif %}{% if engine.preset %} <span class="note">from our own list, not NHTSA's</span>{% endif %}</td></tr>
 {% else -%}
 <tr><td>None on file.</td></tr>
 {% endfor -%}

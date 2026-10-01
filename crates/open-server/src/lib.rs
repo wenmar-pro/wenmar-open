@@ -131,6 +131,7 @@ pub fn app(state: AppState) -> Router {
     // long, counted against the ceiling, given a place among the requests
     // in flight, a time limit, CORS headers and a page's or the API's own
     // headers, and only then handled.
+    // On the way back, a refusal made on a page's address becomes a page.
     Router::new()
         .merge(v1)
         .route("/v1/openapi.json", get(openapi))
@@ -161,6 +162,12 @@ pub fn app(state: AppState) -> Router {
         .layer(middleware::from_fn(short_enough))
         .layer(CatchPanicLayer::custom(
             |_: Box<dyn std::any::Any + Send>| ApiError::Internal.into_response(),
+        ))
+        // Outside everything that can refuse a request, so that a person
+        // who is refused sees a page.
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            site::page_refusals,
         ))
         .layer(middleware::from_fn(log::log))
         .with_state(state)

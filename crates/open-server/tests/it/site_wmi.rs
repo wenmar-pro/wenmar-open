@@ -2,7 +2,7 @@
 
 use axum::http::StatusCode;
 
-use crate::common::{self, assert_basics, header, markdown, page};
+use crate::common::{self, assert_basics, assert_no_injection, header, markdown, page};
 
 #[tokio::test]
 async fn a_manufacturer_code_page_says_who_it_is_and_what_it_builds() {
@@ -68,4 +68,27 @@ async fn a_manufacturer_code_page_has_a_markdown_version() {
     assert!(text.contains("- Manufacturer: Hyundai Motor Co\n"));
     assert!(text.contains("- Model years on file: 1990 to now\n"));
     assert!(text.contains("- [Hyundai](/makes/hyundai.md)\n"));
+}
+
+#[tokio::test]
+async fn html_in_a_manufacturers_name_is_shown_as_text() {
+    let app = common::app_with_rows(
+        "INSERT INTO wmi VALUES ('ZX1', '<script>alert(1)</script> & \"Co\"', '<b>Bold</b>', '<img src=x onerror=alert(1)>', 'Trailer', 0, 6);
+         INSERT INTO wmi_make VALUES ('ZX1', 6000);",
+    )
+    .await;
+    let (status, html) = page(&app, "/wmi/ZX1").await;
+    assert_eq!(status, StatusCode::OK);
+    assert_no_injection(&html);
+    assert!(
+        html.contains("&#60;script&#62;alert(1)&#60;/script&#62; &#38; &#34;Co&#34;"),
+        "{html}"
+    );
+    let text = markdown(&app, "/wmi/ZX1.md").await;
+    assert!(text.contains(r"\<script\>"), "{text}");
+    let unescaped = text.replace(r"\<", "").replace(r"\>", "");
+    assert!(
+        !unescaped.contains('<') && !unescaped.contains('>'),
+        "{text}"
+    );
 }

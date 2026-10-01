@@ -60,7 +60,7 @@ cargo run --release -q -p open-data -- catalog-parity --data "$data"
 
 
 [tasks.serve]
-description = "Run the API on http://localhost:3000 with the newest data file in data/build"
+description = "Run the website and the API on http://localhost:3000 with the newest data file in data/build"
 run = '''
 set -eu
 data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)

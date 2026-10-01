@@ -18,7 +18,7 @@ use askama::Template;
 use axum::Router;
 use axum::body::Body;
 use axum::extract::{Request, State};
-use axum::http::{HeaderValue, Method, StatusCode, Uri, header};
+use axum::http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode, Uri, header};
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::get;
@@ -43,6 +43,16 @@ pub fn pro_link(placement: &str) -> String {
     format!(
         "https://wenmarpro.com/?utm_source=wenmar-open&utm_medium=referral&utm_campaign={placement}"
     )
+}
+
+/// A model year in an address: exactly four digits. `2019` has one address;
+/// `+2019` and `02019`, which a number parser would also accept, have none.
+pub fn year_in(text: &str) -> Option<u16> {
+    if text.len() == 4 && text.bytes().all(|byte| byte.is_ascii_digit()) {
+        text.parse().ok()
+    } else {
+        None
+    }
 }
 
 /// What the page layout needs from every page.
@@ -166,33 +176,8 @@ fn is_page(path: &str) -> bool {
     !(path.starts_with("/v1/") || path == "/v1" || path == "/mcp" || path == "/health")
 }
 
-/// Headers for every page: what the browser may load, how long the page
-/// may be cached, and a 304 when the visitor already has it.
-pub async fn page_headers(State(state): State<AppState>, request: Request, next: Next) -> Response {
-    let path = request.uri().path().to_owned();
-    if !is_page(&path) {
-        let mut response = next.run(request).await;
-        // JSON and MCP answers are not pages to index.
-        response
-            .headers_mut()
-            .insert("x-robots-tag", HeaderValue::from_static("noindex"));
-        return response;
-    }
-    let cacheable = matches!(*request.method(), Method::GET | Method::HEAD);
-    let unchanged = cacheable
-        && request
-            .headers()
-            .get(header::IF_NONE_MATCH)
-            .is_some_and(|value| headers::names(value, state.etag_text()));
-    let mut response = if unchanged {
-        let mut response = Response::new(Body::empty());
-        *response.status_mut() = StatusCode::NOT_MODIFIED;
-        response
-    } else {
-        next.run(request).await
-    };
-    let status = response.status();
-    let headers = response.headers_mut();
+/// What a browser may do with any page of this site, whatever its status.
+pub fn secure(headers: &mut HeaderMap) {
     headers.insert(
         header::CONTENT_SECURITY_POLICY,
         HeaderValue::from_static(CONTENT_SECURITY_POLICY),
@@ -207,7 +192,61 @@ pub async fn page_headers(State(state): State<AppState>, request: Request, next:
         header::REFERRER_POLICY,
         HeaderValue::from_static("strict-origin-when-cross-origin"),
     );
-    if cacheable && (status == StatusCode::OK || status == StatusCode::NOT_MODIFIED) {
+}
+
+/// Whether a handler said its answer is for this visitor alone, or for no
+/// cache at all.
+fn kept_private(headers: &HeaderMap) -> bool {
+    headers
+        .get(header::CACHE_CONTROL)
+        .and_then(|value| value.to_str().ok())
+        .is_some_and(|value| value.starts_with("private") || value.starts_with("no-store"))
+}
+
+/// Headers for every page: what the browser may load, how long the page
+/// may be cached, and a 304 when the visitor already has it.
+///
+/// The handler always runs. A 304 is sent only in place of a 200 that
+/// anyone may cache, so a result page, an error and a redirect are never
+/// answered "unchanged", and only a public page carries an `ETag`.
+pub async fn page_headers(State(state): State<AppState>, request: Request, next: Next) -> Response {
+    let path = request.uri().path().to_owned();
+    if !is_page(&path) {
+        let mut response = next.run(request).await;
+        // JSON and MCP answers are not pages to index.
+        response
+            .headers_mut()
+            .insert("x-robots-tag", HeaderValue::from_static("noindex"));
+        return response;
+    }
+    let cacheable = matches!(*request.method(), Method::GET | Method::HEAD);
+    let has_it = cacheable
+        && request
+            .headers()
+            .get(header::IF_NONE_MATCH)
+            .is_some_and(|value| headers::names(value, state.etag_text()));
+    let mut response = next.run(request).await;
+    let public =
+        cacheable && response.status() == StatusCode::OK && !kept_private(response.headers());
+    if public && has_it {
+        let mut unchanged = Response::new(Body::empty());
+        *unchanged.status_mut() = StatusCode::NOT_MODIFIED;
+        // What the handler said about the page still holds for the copy the
+        // visitor has.
+        for name in [
+            header::CACHE_CONTROL,
+            header::LINK,
+            HeaderName::from_static("x-robots-tag"),
+        ] {
+            if let Some(value) = response.headers().get(&name) {
+                unchanged.headers_mut().insert(name, value.clone());
+            }
+        }
+        response = unchanged;
+    }
+    let headers = response.headers_mut();
+    secure(headers);
+    if public {
         headers.insert(header::ETAG, state.etag().clone());
         if !headers.contains_key(header::CACHE_CONTROL) {
             headers.insert(header::CACHE_CONTROL, HeaderValue::from_static(CACHE_PAGE));
@@ -216,6 +255,64 @@ pub async fn page_headers(State(state): State<AppState>, request: Request, next:
         headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
     }
     response
+}
+
+/// Turns a refusal made before a page's handler ran into a page.
+///
+/// The ceiling on requests, the limit on requests in flight, the time
+/// limit, the limit on an address's length and a caught panic all answer
+/// with the API's JSON error. That is right under `/v1` and wrong for a
+/// person at a browser.
+pub async fn page_refusals(
+    State(state): State<AppState>,
+    request: Request,
+    next: Next,
+) -> Response {
+    let page = is_page(request.uri().path());
+    let response = next.run(request).await;
+    let status = response.status();
+    let (heading, message) = match status {
+        StatusCode::TOO_MANY_REQUESTS => (
+            "Too many requests",
+            "More requests came from this address in one minute than the limit allows. Wait a minute and try again.",
+        ),
+        StatusCode::URI_TOO_LONG => (
+            "That address is too long",
+            "A VIN has 17 characters. Go back to the start and type it again.",
+        ),
+        StatusCode::SERVICE_UNAVAILABLE => ("The server is busy", "Try again in a moment."),
+        StatusCode::INTERNAL_SERVER_ERROR => (
+            "Something went wrong",
+            "It is on our side, not yours. Try again in a moment.",
+        ),
+        _ => return response,
+    };
+    let is_json = response
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .is_some_and(|value| value.starts_with("application/json"));
+    if !page || !is_json {
+        return response;
+    }
+    let mut refusal = html(
+        status,
+        &Problem {
+            page: Page::new(&state, format!("{heading} - Wenmar Open"), message),
+            heading: heading.to_owned(),
+            message: message.to_owned(),
+            suggestions: Vec::new(),
+            retry: false,
+        },
+    );
+    let headers = refusal.headers_mut();
+    secure(headers);
+    headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    headers.insert("x-robots-tag", HeaderValue::from_static("noindex"));
+    if let Some(wait) = response.headers().get(header::RETRY_AFTER) {
+        headers.insert(header::RETRY_AFTER, wait.clone());
+    }
+    refusal
 }
 
 /// The pages.
@@ -241,4 +338,27 @@ pub fn router() -> Router<AppState> {
         .route("/sitemaps/{file}", get(seo::sitemap))
         .route("/assets/site.css", get(assets::stylesheet))
         .route("/assets/site.js", get(assets::script))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_year_in_an_address_is_exactly_four_digits() {
+        assert_eq!(year_in("2019"), Some(2019));
+        assert_eq!(year_in("1981"), Some(1981));
+        for bad in [
+            "+2019",
+            "02019",
+            "201",
+            "",
+            "20 9",
+            "2019.0",
+            "２０１９",
+            "-201",
+        ] {
+            assert_eq!(year_in(bad), None, "{bad}");
+        }
+    }
 }
