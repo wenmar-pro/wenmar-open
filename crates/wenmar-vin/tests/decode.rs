@@ -1176,6 +1176,93 @@ fn what_the_spec_sheet_adds_counts_towards_a_heavy_vehicles_year() {
 }
 
 #[test]
+fn what_the_engine_model_adds_counts_as_patterns_for_a_heavy_vehicles_year() {
+    // Equal weight (model 99, engine model 55) and two matching patterns in
+    // each year. Only the earlier year's engine model implies anything, and
+    // engine configuration carries no weight.
+    let decoded = decode(
+        heavy_two_cycles()
+            .with_pattern(1, "K2***", Element::Model, "Newer Coach")
+            .with_pattern(1, "K2***", Element::EngineModel, "N14")
+            .with_pattern(2, "K2***", Element::Model, "Older Coach")
+            .with_pattern(2, "K2***", Element::EngineModel, "L10")
+            .with_engine_row("L10", Element::EngineConfiguration, "In-Line", "2000-01-01"),
+    );
+    assert_eq!(decoded.year, Some(1993));
+}
+
+#[test]
+fn what_the_spec_sheet_adds_does_not_count_as_patterns_for_a_heavy_vehicles_year() {
+    // Equal weight and two matching patterns in each year. The earlier year's
+    // sheet adds doors, which carry no weight, so the later year stands.
+    let decoded = decode(
+        heavy_two_cycles()
+            .with_pattern_attribute(1, "K2***", Element::Model, "901", "Newer Coach")
+            .with_pattern_attribute(2, "K2***", Element::Model, "900", "Older Coach")
+            .with_pattern(1, "K2***", Element::Trim, "Base")
+            .with_pattern(2, "K2***", Element::Trim, "Base")
+            .with_spec_key("900", None, 10, Element::Trim, "Base")
+            .with_spec_value("900", None, 10, Element::Doors, "2", "2000-01-01"),
+    );
+    assert_eq!(decoded.year, Some(2023));
+}
+
+#[test]
+fn the_make_does_not_count_as_a_pattern_for_a_heavy_vehicles_year() {
+    // Equal weight: model and body class (99 + 99) against model and make.
+    // NHTSA takes the make from the model, not from a pattern, so each year
+    // has two patterns and the later year stands.
+    let decoded = decode(
+        heavy_two_cycles()
+            .with_pattern(1, "K2***", Element::Model, "Newer Coach")
+            .with_pattern(1, "K2***", Element::BodyClass, "Bus")
+            .with_pattern(2, "K2***", Element::Model, "Older Coach")
+            .with_pattern(2, "K2***", Element::Make, "Heavy Make")
+            .with_pattern(2, "K2***", Element::Doors, "2"),
+    );
+    assert_eq!(decoded.year, Some(2023));
+}
+
+#[test]
+fn every_matching_note_counts_as_a_pattern_for_a_heavy_vehicles_year() {
+    // Equal weight. NHTSA keeps every matching row of a note element (vPIC
+    // element 114) rather than one value, so the earlier year has three
+    // patterns against two.
+    let decoded = decode(
+        heavy_two_cycles()
+            .with_pattern(1, "K2***", Element::Model, "Newer Coach")
+            .with_pattern(1, "K2***", Element::Doors, "2")
+            .with_pattern(2, "K2***", Element::Model, "Older Coach")
+            .with_pattern(2, "K2***", Element::Other(114), "First note")
+            .with_pattern(2, "K****", Element::Other(114), "Second note"),
+    );
+    assert_eq!(decoded.year, Some(1993));
+}
+
+#[test]
+fn a_note_from_the_engine_model_counts_beside_a_note_from_the_vin() {
+    // Equal weight. Each year has a model, an engine model and a third
+    // value; the earlier year's engine model also brings a note on an element
+    // (129, other engine information) the VIN already gave a note for.
+    let decoded = decode(
+        heavy_two_cycles()
+            .with_pattern(1, "K2***", Element::Model, "Newer Coach")
+            .with_pattern(1, "K2***", Element::EngineModel, "N14")
+            .with_pattern(1, "K2***", Element::Doors, "2")
+            .with_pattern(2, "K2***", Element::Model, "Older Coach")
+            .with_pattern(2, "K2***", Element::EngineModel, "L10")
+            .with_pattern(2, "K2***", Element::Other(129), "Note from the VIN")
+            .with_engine_row(
+                "L10",
+                Element::Other(129),
+                "Note from the engine",
+                "2000-01-01",
+            ),
+    );
+    assert_eq!(decoded.year, Some(1993));
+}
+
+#[test]
 fn equipment_and_dimensions_are_reported() {
     let decoded = decode(
         one_schema()

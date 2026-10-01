@@ -45,9 +45,21 @@ pub struct Decoder<D> {
     data: D,
 }
 
+/// Where the value chosen for an element came from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Source {
+    /// A pattern that matched the VIN.
+    Pattern,
+    /// The engine model a pattern named.
+    EngineModel,
+    /// A specification sheet.
+    Specification,
+}
+
 /// The value chosen for an element, and where it ranks.
 #[derive(Debug, Clone)]
 struct Item {
+    source: Source,
     attribute: String,
     value: String,
     priority: i32,
@@ -64,16 +76,29 @@ struct Attempt {
     /// One value per element, from every source: the patterns, then the
     /// engine model, then the specification sheets.
     values: Values,
+    /// How many rows from the patterns and the engine model are notes, of
+    /// which NHTSA keeps every one instead of choosing a value.
+    notes: usize,
 }
 
 impl Attempt {
     /// What NHTSA compares when the cycle is not settled: how much weight the
-    /// resolved elements carry, whatever they came from, then how many
-    /// elements the patterns resolved, then the later year.
+    /// resolved elements carry, whatever they came from, then how many items
+    /// the patterns and the engine model gave, then the later year. An item
+    /// is a resolved element or a note. The make is not one: NHTSA takes it
+    /// from the model. Nor is anything from a specification sheet.
     fn standing(&self) -> (u32, usize, u16) {
         let resolved: HashSet<Element> = self.values.keys().copied().collect();
-        let from_patterns: HashSet<Element> = self.matched.iter().map(|row| row.element).collect();
-        (element_weight(&resolved), from_patterns.len(), self.year)
+        let elements = self
+            .values
+            .iter()
+            .filter(|(element, item)| {
+                **element != Element::Make
+                    && !is_note(**element)
+                    && item.source != Source::Specification
+            })
+            .count();
+        (element_weight(&resolved), elements + self.notes, self.year)
     }
 }
 
@@ -84,6 +109,15 @@ const SPECIFICATION_PRIORITY: i32 = -100;
 /// vPIC's weight for displacement, which NHTSA converts between units
 /// before scoring, so it counts once.
 const DISPLACEMENT_WEIGHT: u32 = 98;
+
+/// vPIC's note elements: note, other restraint system, engine, bus,
+/// motorcycle and trailer information, active safety system note, NCSA note.
+const NOTE_ELEMENT_IDS: [i64; 8] = [114, 121, 129, 150, 154, 155, 169, 186];
+
+/// Whether NHTSA keeps every row of this element, not only the best one.
+fn is_note(element: Element) -> bool {
+    matches!(element, Element::Other(id) if NOTE_ELEMENT_IDS.contains(&id))
+}
 
 fn element_weight(elements: &HashSet<Element>) -> u32 {
     let has_displacement = [
@@ -165,13 +199,15 @@ impl<D: VinData> Decoder<D> {
                 .filter(|row| usable(&row.value) && pattern::matches(&row.keys, &key))
                 .collect();
             let mut values = select(&matched, &year_from);
-            add_engine_model(&self.data, &mut values).map_err(DecodeError::Data)?;
+            let notes = matched.iter().filter(|row| is_note(row.element)).count()
+                + add_engine_model(&self.data, &mut values).map_err(DecodeError::Data)?;
             add_specifications(&self.data, &manufacturer.wmi, *candidate, &mut values)
                 .map_err(DecodeError::Data)?;
             let attempt = Attempt {
                 year: *candidate,
                 matched,
                 values,
+                notes,
             };
             if conclusive {
                 best = Some(attempt);
@@ -284,14 +320,19 @@ fn usable(value: &str) -> bool {
 }
 
 /// Adds what the engine model implies, for elements the VIN left empty.
-fn add_engine_model<D: VinData>(data: &D, values: &mut Values) -> Result<(), DataError> {
+/// Returns how many of its rows are notes.
+fn add_engine_model<D: VinData>(data: &D, values: &mut Values) -> Result<usize, DataError> {
     let Some(name) = values
         .get(&Element::EngineModel)
         .map(|item| item.value.clone())
     else {
-        return Ok(());
+        return Ok(0);
     };
     let mut rows = data.engine_model(&name)?;
+    let notes = rows
+        .iter()
+        .filter(|row| is_note(row.element) && usable(&row.value))
+        .count();
     // Latest change first, then lowest id, so the first row seen per element wins.
     rows.sort_by(|a, b| b.changed_on.cmp(&a.changed_on).then(a.id.cmp(&b.id)));
     for row in rows {
@@ -299,6 +340,7 @@ fn add_engine_model<D: VinData>(data: &D, values: &mut Values) -> Result<(), Dat
             values.insert(
                 row.element,
                 Item {
+                    source: Source::EngineModel,
                     attribute: row.attribute,
                     value: row.value,
                     priority: ENGINE_MODEL_PRIORITY,
@@ -307,7 +349,7 @@ fn add_engine_model<D: VinData>(data: &D, values: &mut Values) -> Result<(), Dat
             );
         }
     }
-    Ok(())
+    Ok(notes)
 }
 
 /// Adds values from the specification sheets whose key rows all match what
@@ -347,6 +389,7 @@ fn add_specifications<D: VinData>(
     additions.sort_by(|a, b| b.changed_on.cmp(&a.changed_on).then(a.id.cmp(&b.id)));
     for row in additions {
         values.entry(row.element).or_insert_with(|| Item {
+            source: Source::Specification,
             attribute: row.attribute.clone(),
             value: row.value.clone(),
             priority: SPECIFICATION_PRIORITY,
@@ -410,6 +453,7 @@ fn select(matched: &[Pattern], year_from: &HashMap<i64, u16>) -> Values {
         .map(|(element, row)| {
             let priority = i32::from(year_from.get(&row.schema_id).copied().unwrap_or(0));
             let item = Item {
+                source: Source::Pattern,
                 attribute: row.attribute.clone(),
                 value: row.value.clone(),
                 priority,
