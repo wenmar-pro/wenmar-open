@@ -154,9 +154,7 @@ impl VinData for SqliteData {
         let mut patterns = Vec::new();
         while let Some(row) = rows.next()? {
             let element_id: i64 = row.get(3)?;
-            let Some(element) = Element::from_vpic_id(element_id) else {
-                continue;
-            };
+            let element = Element::from_vpic_id(element_id).unwrap_or(Element::Other(element_id));
             let pattern = Pattern {
                 id: row.get(0)?,
                 schema_id: row.get(1)?,

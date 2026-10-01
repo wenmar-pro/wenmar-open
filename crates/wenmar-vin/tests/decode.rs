@@ -367,7 +367,7 @@ fn a_light_vehicle_keeps_its_year_even_when_only_the_other_cycle_has_a_model() {
 }
 
 #[test]
-fn for_a_heavy_vehicle_a_year_with_a_model_beats_a_year_with_only_other_details() {
+fn for_a_heavy_vehicle_a_model_outweighs_a_plant_city() {
     let decoded = decode(
         heavy_two_cycles()
             .with_pattern(1, "*****|*U", Element::PlantCity, "Ulsan")
@@ -670,11 +670,81 @@ fn a_heavy_vehicle_that_matches_nothing_keeps_the_later_year() {
 
 #[test]
 fn elements_carry_nhtsa_weights() {
-    assert_eq!(Element::Model.weight(), 99);
-    assert_eq!(Element::PlantCity.weight(), 98);
-    assert_eq!(Element::FuelTypePrimary.weight(), 91);
-    assert_eq!(Element::Trim.weight(), 61);
-    assert_eq!(Element::Doors.weight(), 0);
+    let expected = [
+        (Element::Make, 99),
+        (Element::Model, 99),
+        (Element::BodyClass, 99),
+        (Element::PlantCountry, 99),
+        (Element::PlantCity, 98),
+        (Element::PlantState, 98),
+        (Element::FuelTypePrimary, 91),
+        (Element::EngineCylinders, 88),
+        (Element::AirbagsFront, 64),
+        (Element::Series, 61),
+        (Element::Trim, 61),
+        (Element::EngineModel, 55),
+        // Weighted by NHTSA but not named by this crate: GVWR, seat belt
+        // type, axles.
+        (Element::Other(25), 70),
+        (Element::Other(79), 65),
+        (Element::Other(41), 15),
+        (Element::Doors, 0),
+        (Element::Other(40), 0),
+    ];
+    for (element, weight) in expected {
+        assert_eq!(element.weight(), weight, "{element:?}");
+    }
+}
+
+#[test]
+fn elements_the_crate_does_not_name_still_count_towards_the_year() {
+    // The later year weighs 99 + 61 = 160. The earlier weighs 99 + 70 = 169,
+    // because gross vehicle weight rating (vPIC element 25) weighs 70.
+    let decoded = decode(
+        heavy_two_cycles()
+            .with_pattern(1, "K2***", Element::Model, "Newer Coach")
+            .with_pattern(1, "K2***", Element::Trim, "Deluxe")
+            .with_pattern(2, "K2***", Element::Model, "Older Coach")
+            .with_pattern(2, "K2***", Element::Other(25), "Class 8"),
+    );
+    assert_eq!(decoded.year, Some(1993));
+}
+
+#[test]
+fn patterns_are_counted_once_per_element() {
+    // Equal weight. The later year has four matching rows but two elements;
+    // the earlier has three rows and three elements.
+    let decoded = decode(
+        heavy_two_cycles()
+            .with_pattern(1, "K2***", Element::Model, "Newer Coach")
+            .with_pattern(1, "K2***", Element::Doors, "2")
+            .with_pattern(1, "K****", Element::Doors, "4")
+            .with_pattern(1, "*2***", Element::Doors, "5")
+            .with_pattern(2, "K2***", Element::Model, "Older Coach")
+            .with_pattern(2, "K2***", Element::Doors, "2")
+            .with_pattern(2, "K2***", Element::Other(40), "6"),
+    );
+    assert_eq!(decoded.year, Some(1993));
+}
+
+#[test]
+fn displacement_weighs_ninety_eight() {
+    let earlier_has_displacement = |later: Element| {
+        decode(
+            heavy_two_cycles()
+                .with_pattern(1, "K2***", Element::Model, "Newer Coach")
+                .with_pattern(1, "K2***", later, "x")
+                .with_pattern(2, "K2***", Element::Model, "Older Coach")
+                .with_pattern(2, "K2***", Element::DisplacementCi, "736"),
+        )
+        .year
+    };
+    // 98 beats fuel type's 91 and loses to body class's 99.
+    assert_eq!(
+        earlier_has_displacement(Element::FuelTypePrimary),
+        Some(1993)
+    );
+    assert_eq!(earlier_has_displacement(Element::BodyClass), Some(2023));
 }
 
 #[test]
@@ -717,11 +787,50 @@ fn litres_are_rounded_to_one_decimal_place() {
 }
 
 #[test]
-fn a_small_engine_keeps_its_cubic_centimetres() {
+fn a_small_engine_is_labelled_in_cubic_centimetres() {
     let decoded = decode(one_schema().with_pattern(1, "K2***", Element::DisplacementCc, "649"));
     let engine = decoded.engine.unwrap();
     assert_eq!(engine.displacement_l, Some(0.6));
     assert_eq!(engine.displacement_cc, Some(649));
+    assert_eq!(engine.label.as_deref(), Some("649cc"));
+}
+
+#[test]
+fn an_engine_too_small_for_a_tenth_of_a_litre_has_no_litre_figure() {
+    for (element, value, cc) in [
+        (Element::DisplacementCc, "49", 49),
+        (Element::DisplacementL, "0.04", 40),
+    ] {
+        let decoded = decode(one_schema().with_pattern(1, "K2***", element, value));
+        let engine = decoded.engine.unwrap();
+        assert_eq!(engine.displacement_l, None, "{value}");
+        assert_eq!(engine.displacement_cc, Some(cc), "{value}");
+        assert_eq!(engine.label, Some(format!("{cc}cc")), "{value}");
+    }
+}
+
+#[test]
+fn cubic_centimetres_come_from_cubic_inches_before_litres() {
+    // NHTSA converts cubic inches to cc ahead of litres to cc, so a 2.3 L,
+    // 140 cubic inch engine is 2294 cc, not 2300.
+    let decoded = decode(
+        one_schema()
+            .with_pattern(1, "K2***", Element::DisplacementL, "2.3")
+            .with_pattern(1, "K2***", Element::DisplacementCi, "140"),
+    );
+    let engine = decoded.engine.unwrap();
+    assert_eq!(engine.displacement_l, Some(2.3));
+    assert_eq!(engine.displacement_cc, Some(2294));
+}
+
+#[test]
+fn an_absurd_displacement_is_left_out() {
+    for value in ["1e308", "1e300", "500"] {
+        let decoded = decode(one_schema().with_pattern(1, "K2***", Element::DisplacementL, value));
+        assert_eq!(decoded.engine, None, "{value:?} should give no engine");
+    }
+    let decoded = decode(one_schema().with_pattern(1, "K2***", Element::DisplacementCc, "9000000"));
+    assert_eq!(decoded.engine, None);
 }
 
 #[test]

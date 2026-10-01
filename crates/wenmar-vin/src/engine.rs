@@ -40,12 +40,17 @@ pub fn label(engine: &Engine) -> Option<String> {
         .unwrap_or_default()
         .to_ascii_uppercase();
 
-    let Some(displacement) = engine.displacement_l else {
-        let electric = electrification.contains("BEV") || fuel == "ELECTRIC";
-        return electric.then(|| "Electric".to_owned());
+    // Engines under a litre are named by their cubic centimetres, as on a
+    // motorcycle or scooter.
+    let mut label = match (engine.displacement_l, engine.displacement_cc) {
+        (Some(litres), _) if litres >= 1.0 => format!("{litres:.1}L"),
+        (_, Some(cc)) => format!("{cc}cc"),
+        (Some(litres), None) => format!("{litres:.1}L"),
+        (None, None) => {
+            let electric = electrification.contains("BEV") || fuel == "ELECTRIC";
+            return electric.then(|| "Electric".to_owned());
+        }
     };
-
-    let mut label = format!("{displacement:.1}L");
     if engine.turbo == Some(true) {
         label.push_str(" Turbo");
     }

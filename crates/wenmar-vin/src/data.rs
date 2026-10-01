@@ -70,6 +70,10 @@ pub enum Element {
     AirbagsSide,
     AirbagsCurtain,
     AirbagsKnee,
+    /// A vPIC element this crate does not interpret, by its `element.id`.
+    /// It is never shown in a decode, but it counts when NHTSA's rule for
+    /// choosing between two model years is applied.
+    Other(i64),
 }
 
 impl Element {
@@ -85,6 +89,10 @@ impl Element {
             Element::AirbagsFront => 64,
             Element::Series | Element::Trim => 61,
             Element::EngineModel => 55,
+            // Gross vehicle weight rating, seat belt type, axles.
+            Element::Other(25) => 70,
+            Element::Other(79) => 65,
+            Element::Other(41) => 15,
             _ => 0,
         }
     }

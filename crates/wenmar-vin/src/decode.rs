@@ -57,19 +57,23 @@ struct Attempt {
 
 impl Attempt {
     /// What NHTSA compares when the cycle is not settled: how much weight the
-    /// resolved elements carry, then how many patterns matched, then the
-    /// later year.
+    /// resolved elements carry, then how many elements were resolved, then
+    /// the later year.
     fn standing(&self) -> (u32, usize, u16) {
-        (element_weight(&self.matched), self.matched.len(), self.year)
+        let elements = elements(&self.matched);
+        (element_weight(&elements), elements.len(), self.year)
     }
+}
+
+fn elements(matched: &[Pattern]) -> HashSet<Element> {
+    matched.iter().map(|row| row.element).collect()
 }
 
 /// vPIC's weight for displacement, which NHTSA converts between units
 /// before scoring, so it counts once.
 const DISPLACEMENT_WEIGHT: u32 = 98;
 
-fn element_weight(matched: &[Pattern]) -> u32 {
-    let elements: HashSet<Element> = matched.iter().map(|row| row.element).collect();
+fn element_weight(elements: &HashSet<Element>) -> u32 {
     let has_displacement = [
         Element::DisplacementL,
         Element::DisplacementCc,
@@ -343,16 +347,26 @@ fn build_engine(values: &Values<'_>) -> Option<Engine> {
             .and_then(|value| value.trim().parse::<f64>().ok())
             .filter(|amount| amount.is_finite() && *amount > 0.0)
     };
-    // NHTSA's conversions, for vehicles reported in only one unit.
+    // NHTSA's conversions, for vehicles reported in only one unit. Cubic
+    // inches are converted to cc ahead of litres, as NHTSA does.
     const CC_PER_CUBIC_INCH: f64 = 16.387_064;
+    // No road vehicle in vPIC comes close; anything larger is bad data.
+    const LARGEST_LITRES: f64 = 100.0;
     let cubic_centimetres = number(Element::DisplacementCc)
+        .or_else(|| number(Element::DisplacementCi).map(|ci| ci * CC_PER_CUBIC_INCH))
         .or_else(|| number(Element::DisplacementL).map(|litres| litres * 1000.0))
-        .or_else(|| number(Element::DisplacementCi).map(|ci| ci * CC_PER_CUBIC_INCH));
-    let litres = number(Element::DisplacementL).or_else(|| cubic_centimetres.map(|cc| cc / 1000.0));
-    let displacement_l = litres.map(|litres| (litres * 10.0).round() / 10.0);
+        .filter(|cc| *cc <= LARGEST_LITRES * 1000.0);
+    let litres = number(Element::DisplacementL)
+        .filter(|litres| *litres <= LARGEST_LITRES)
+        .or_else(|| cubic_centimetres.map(|cc| cc / 1000.0));
+    // An engine under a twentieth of a litre would round to 0.0; it is
+    // described by its cubic centimetres alone.
+    let displacement_l = litres
+        .map(|litres| (litres * 10.0).round() / 10.0)
+        .filter(|litres| *litres >= 0.1);
     let displacement_cc = cubic_centimetres
         .map(f64::round)
-        .filter(|cc| *cc >= 1.0 && *cc <= f64::from(u32::MAX))
+        .filter(|cc| *cc >= 1.0)
         .map(|cc| cc as u32);
     let mut engine = Engine {
         label: None,

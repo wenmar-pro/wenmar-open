@@ -66,6 +66,9 @@ fn returns_matching_patterns_with_the_make_beside_the_model() {
             (Element::Model, "Kona"),
             (Element::Trim, "SE"),
             (Element::PlantCity, "Ulsan"),
+            // An element the crate does not name is still returned, so it
+            // counts when candidate model years are compared.
+            (Element::Other(96), "Internal Element"),
         ]
     );
     let model = patterns
