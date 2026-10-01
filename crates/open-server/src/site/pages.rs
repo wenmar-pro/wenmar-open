@@ -7,7 +7,7 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::Response;
 
-use crate::site::markdown::{self, Doc, Format, Section};
+use crate::site::markdown::{self, Doc, Format, Section, Table};
 use crate::site::{self, Page};
 use crate::state::AppState;
 
@@ -18,26 +18,35 @@ struct DocPage {
     doc: Doc,
 }
 
-fn section(heading: &str, paragraphs: &[&str]) -> Section {
+pub(crate) fn section(heading: &str, paragraphs: &[&str]) -> Section {
     Section {
         heading: heading.to_owned(),
         paragraphs: paragraphs.iter().map(|text| (*text).to_owned()).collect(),
-        code: None,
-        links: Vec::new(),
+        ..Section::default()
     }
 }
 
-fn with_code(mut section: Section, code: String) -> Section {
+pub(crate) fn with_code(mut section: Section, code: String) -> Section {
     section.code = Some(code);
     section
 }
 
-fn with_links(mut section: Section, links: &[(&str, String)]) -> Section {
+pub(crate) fn with_links(mut section: Section, links: &[(&str, String)]) -> Section {
     section.links = links
         .iter()
         .map(|(label, address)| ((*label).to_owned(), address.clone()))
         .collect();
     section
+}
+
+pub(crate) fn with_table(mut section: Section, table: Table) -> Section {
+    section.table = Some(table);
+    section
+}
+
+/// A page of prose as HTML.
+pub fn render(page: Page, doc: Doc) -> Response {
+    site::html(StatusCode::OK, &DocPage { page, doc })
 }
 
 /// The API reference.
@@ -210,15 +219,22 @@ pub fn about(_state: &AppState) -> Doc {
     }
 }
 
-fn show(state: &AppState, path: &str, description: &str, doc: Doc, format: Format) -> Response {
+fn show(
+    state: &AppState,
+    path: &'static str,
+    description: &str,
+    doc: Doc,
+    format: Format,
+) -> Response {
     if format == Format::Markdown {
         let canonical = format!("{}{path}", state.config().base_url);
         return markdown::response(markdown::doc(&doc), &canonical);
     }
     let page = Page::new(state, format!("{} - Wenmar Open", doc.title), description)
         .indexed(state, path)
-        .with_markdown(&format!("{path}.md"));
-    site::html(StatusCode::OK, &DocPage { page, doc })
+        .with_markdown(&format!("{path}.md"))
+        .in_section(path.trim_start_matches('/'));
+    render(page, doc)
 }
 
 const DOCS: &str =

@@ -110,11 +110,12 @@ pub async fn sitemap(
         return site::not_found(&state);
     };
     let paths: Result<Option<Vec<String>>, ApiError> = match name {
-        "pages" => Ok(Some(
-            ["/", "/makes", "/docs", "/data", "/about"]
-                .map(str::to_owned)
-                .to_vec(),
-        )),
+        "pages" => {
+            let mut paths: Vec<String> = ["/", "/makes", "/guides"].map(str::to_owned).to_vec();
+            paths.extend(site::guides::GUIDES.iter().map(|guide| guide.path()));
+            paths.extend(["/docs", "/data", "/about"].map(str::to_owned));
+            Ok(Some(paths))
+        }
         "makes" => state
             .db()
             .run(|worker| worker.catalog.makes(None, Scope::Light, "", 500))

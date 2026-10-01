@@ -20,6 +20,7 @@ struct Home {
     page: Page,
     years: Vec<u16>,
     makes: Vec<Make>,
+    guides: &'static [crate::site::guides::Guide],
 }
 
 pub async fn home(State(state): State<AppState>) -> Response {
@@ -45,6 +46,7 @@ pub async fn home(State(state): State<AppState>) -> Response {
             .with_mono(),
             years,
             makes: makes.into_iter().map(Make::from).collect(),
+            guides: &crate::site::guides::GUIDES,
         },
     )
 }

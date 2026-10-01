@@ -6,6 +6,7 @@
 
 pub mod assets;
 pub mod catalog;
+pub mod guides;
 pub mod home;
 pub mod markdown;
 pub mod pages;
@@ -373,6 +374,9 @@ pub fn router() -> Router<AppState> {
         .route("/makes/{make}", get(catalog::make))
         .route("/makes/{make}/{model}/{year}", get(catalog::model_year))
         .route("/wmi/{code}", get(wmi::wmi))
+        .route("/guides", get(guides::index_html))
+        .route("/guides.md", get(guides::index_md))
+        .route("/guides/{page}", get(guides::guide))
         .route("/docs", get(pages::docs_html))
         .route("/docs.md", get(pages::docs_md))
         .route("/data", get(pages::data_html))

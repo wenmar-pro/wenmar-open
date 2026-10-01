@@ -3,15 +3,28 @@
 <h1>{{ doc.title }}</h1>
 <p>{{ doc.intro }}</p>
 {% for section in doc.sections -%}
-<h2>{{ section.heading }}</h2>
+<h2 id="{{ section.anchor() }}">{{ section.heading }}</h2>
 {% for paragraph in section.paragraphs -%}
 <p>{{ paragraph }}</p>
 {% endfor -%}
+{% if let Some(table) = section.table -%}
+<div class="scroll">
+<table>
+<caption>{{ table.caption }}</caption>
+<thead><tr>{% for cell in table.head %}<th scope="col">{{ cell }}</th>{% endfor %}</tr></thead>
+<tbody>
+{% for row in table.rows -%}
+<tr>{% for cell in row %}{% if loop.first %}<th scope="row">{{ cell }}</th>{% else %}<td>{{ cell }}</td>{% endif %}{% endfor %}</tr>
+{% endfor -%}
+</tbody>
+</table>
+</div>
+{% endif -%}
 {% if let Some(code) = section.code -%}
 <pre><code>{{ code }}</code></pre>
 {% endif -%}
 {% if !section.links.is_empty() -%}
-<ul>
+<ul class="plain links">
 {% for link in section.links -%}
 <li><a href="{{ link.1 }}">{{ link.0 }}</a></li>
 {% endfor -%}
