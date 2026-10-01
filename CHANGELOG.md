@@ -39,3 +39,12 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - `wenmar-open mcp`: an MCP server on standard input and output with the hosted endpoint's two tools. `wenmar-open setup claude|codex` installs a skill file and prints the command that registers the server. `wenmar-open doctor` checks the data file and the API.
 - `wenmar-open` with no command opens a one-screen terminal interface.
 - `open-mcp` crate: the MCP tool definitions shared by the server and the command-line tool.
+- `clients/js`: the `wenmar-open` npm package, a typed client for the hosted API. No dependencies; ES modules; Node 20 and later, browsers and edge runtimes. One error class with the API's code, message, details and status, a request timeout, an abort signal, and `Retry-After` on a `429`. Its types are generated from the OpenAPI description, and a test fails when they are out of date.
+- `wenmar-open-turso` crate: opens a data file read-only through `turso`, decodes a VIN and reads the catalog from async code without blocking the runtime. It is the server's own data access, moved into a library.
+- `open-server` reads the data file through `wenmar-open-turso`. Its behaviour is unchanged.
+- One version for every crate and the npm package, set in `Cargo.toml` and `clients/js/package.json`. `wenmar-vin`, `wenmar-vehicles` and `wenmar-open-turso` can be published to crates.io.
+- `mise run js` builds and tests the npm client. `mise run release-check` checks that the versions agree and the changelog has an entry, and runs `cargo publish --dry-run` and `npm pack --dry-run`.
+- A release workflow: a `v*` tag on `main` publishes the three crates and the npm package through trusted publishing, with no stored token, and creates a GitHub release. `docs/releasing.md` is the runbook.
+- Each release has the `wenmar-open` command-line tool built for macOS (arm64, x86_64) and Linux (x86_64, arm64).
+- `docs/integrating.md`: how an application replaces calls to NHTSA's hosted API and a make and model sync job.
+- Data releases are no longer marked as the repository's latest release, so `releases/latest` is always a release of the code.

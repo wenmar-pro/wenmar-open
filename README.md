@@ -11,7 +11,7 @@ Wenmar Open is built and hosted by [Wenmar Pro](https://wenmarpro.com), shop man
 - **A website** at `open.wenmarpro.com` where a service advisor or tech can paste a VIN and get the vehicle back.
 - **A JSON API** at `open.wenmarpro.com/v1`, open to any origin, with no key and no account.
 - **A Rust crate**, `wenmar-vin`, for decoding VINs in-process and offline.
-- **An npm package**, a small typed client for the hosted API, with an optional offline mode that decodes locally.
+- **An npm package**, [`wenmar-open`](clients/js/README.md), a small typed client for the hosted API. An offline mode that decodes locally is planned.
 
 VIN decoding and a year/make/model/trim/engine catalog come first. More shop data follows; see the [roadmap](#roadmap).
 
@@ -52,6 +52,14 @@ Fields and endpoints are only ever added.
 - `/mcp` is a Model Context Protocol endpoint (Streamable HTTP, no key) with two tools: `wenmar_vin` and `wenmar_vehicles`.
 - `/llms.txt` describes the service for language models.
 
+## Using it from an application
+
+- From JavaScript or TypeScript: the [`wenmar-open`](clients/js/README.md) npm package. It has no dependencies and runs in Node 20 and later, browsers, Cloudflare Workers, Deno and Bun.
+- From Rust, with no network: `wenmar-vin` and `wenmar-vehicles` read a data file through `rusqlite`, and [`wenmar-open-turso`](crates/wenmar-open-turso/README.md) reads one through `turso` from async code.
+- Replacing calls to NHTSA's hosted API, or a job that copies makes and models: [docs/integrating.md](docs/integrating.md).
+
+Releases are described in [docs/releasing.md](docs/releasing.md).
+
 ## Running the server
 
 ```bash
@@ -66,7 +74,7 @@ Without mise: `OPEN_DATA=data/build/wenmar-open-2026.09.sqlite3 cargo run -p ope
 
 ## Repository layout
 
-`crates/wenmar-vin`, `crates/wenmar-vehicles`, `crates/open-data` and `crates/open-server` exist so far. The rest is planned.
+`crates/wenmar-vin`, `crates/wenmar-vehicles`, `crates/wenmar-open-turso`, `crates/open-data`, `crates/wenmar-open-cli`, `crates/open-mcp`, `crates/open-server` and `clients/js` exist so far. The rest is planned.
 
 | Path | What it is |
 |---|---|
@@ -76,7 +84,8 @@ Without mise: `OPEN_DATA=data/build/wenmar-open-2026.09.sqlite3 cargo run -p ope
 | `crates/wenmar-open-cli` | The `wenmar-open` command-line tool |
 | `crates/open-mcp` | The MCP tool definitions the server and the command-line tool share |
 | `crates/open-server` | The website, the JSON API and the MCP endpoint, served from one read-only data file |
-| `clients/js` | npm client for the hosted API |
+| `crates/wenmar-open-turso` | The data file read through `turso`: what the server uses, as a library for other async Rust programs |
+| `clients/js` | The `wenmar-open` npm package: a typed client for the hosted API |
 
 ## Building the data file
 
