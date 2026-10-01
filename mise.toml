@@ -3,7 +3,7 @@
 
 [tools]
 rust = "1.98.1"   # keep in sync with rust-toolchain.toml
-python = "3.14"   # tools/corpus
+python = "3.14"   # tools/corpus, tools/catalog
 
 [tasks.check]
 description = "Format check, lints and tests: what CI runs"
@@ -34,4 +34,16 @@ if [ -z "$data" ]; then
   exit 1
 fi
 cargo run --release -q -p open-data -- parity --data "$data"
+'''
+
+[tasks.catalog-parity]
+description = "Compare the catalog's models with NHTSA's recorded answers"
+run = '''
+set -eu
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+if [ -z "$data" ]; then
+  echo "No data file in data/build. Run: mise run data" >&2
+  exit 1
+fi
+cargo run --release -q -p open-data -- catalog-parity --data "$data"
 '''

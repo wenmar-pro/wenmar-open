@@ -2,7 +2,12 @@ use std::path::PathBuf;
 
 use open_data::build::{BuildInfo, Summary, build};
 use open_data::catalog::curated::{Curated, Preset, RankedMake};
+use open_data::catalog_parity;
+use open_data::inspect::{self, Query};
 use rusqlite::Connection;
+use serde_json::json;
+use wenmar_vehicles::sqlite::SqliteSource;
+use wenmar_vehicles::{Catalog, Scope};
 
 /// A hand-written dump. `~` stands for a tab.
 ///
@@ -532,5 +537,161 @@ fn presets_and_overrides_shape_the_details() {
     assert_eq!(
         summary.catalog.unmatched,
         vec!["make Chevrolet", "preset Ford Fiesta"]
+    );
+}
+
+fn reader(name: &str) -> (Built, Catalog<SqliteSource>) {
+    let (built, _summary, connection) = built(name, &curated());
+    drop(connection);
+    let catalog = Catalog::new(SqliteSource::open(&built.path).unwrap()).unwrap();
+    (built, catalog)
+}
+
+#[test]
+fn the_built_catalog_answers_through_the_reader() {
+    let (_built, catalog) = reader("reader");
+    assert_eq!(catalog.year_range(), (1981, 2027));
+
+    let names = |year: u16, scope: Scope| -> Vec<String> {
+        catalog
+            .makes(Some(year), scope, "", 50)
+            .unwrap()
+            .into_iter()
+            .map(|make| make.name)
+            .collect()
+    };
+    // Ranked makes first, in the curated order.
+    assert_eq!(names(2019, Scope::Light), vec!["Honda", "Ford"]);
+    assert_eq!(
+        names(2026, Scope::All),
+        vec!["Honda", "B & B Trailers", "B+B Trailers"]
+    );
+    assert_eq!(names(2026, Scope::Light), vec!["Honda"]);
+
+    let submodels: Vec<String> = catalog
+        .submodels("honda", "civic", 2019, "")
+        .unwrap()
+        .into_iter()
+        .map(|submodel| submodel.name)
+        .collect();
+    assert_eq!(submodels, vec!["EX", "EX-L", "LX", "Si", "Touring"]);
+
+    let engines = |make: &str, model: &str, submodel: Option<&str>| -> Vec<String> {
+        catalog
+            .engines(make, model, 2019, submodel, "")
+            .unwrap()
+            .into_iter()
+            .map(|engine| format!("{} @{}", engine.label, engine.vin8.unwrap_or_default()))
+            .collect()
+    };
+    assert_eq!(
+        engines("ford", "F-150", None),
+        vec!["3.5L Turbo V6 @G", "5.0L V8 @5"]
+    );
+    assert_eq!(engines("honda", "civic", Some("si")), vec!["1.5L Turbo @"]);
+
+    let entry = catalog
+        .entry("2019_honda_civic_si_1-5l-turbo")
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        entry.summary,
+        "2019 Honda Civic Si, 1.5L Turbo, Manual, Sedan"
+    );
+    assert_eq!(entry.vehicle_types, vec!["Passenger Car"]);
+
+    let found: Vec<String> = catalog
+        .search("2019 civic si", Scope::Light, 10)
+        .unwrap()
+        .into_iter()
+        .map(|entry| entry.id)
+        .collect();
+    assert_eq!(found, vec!["2019_honda_civic_si", "2019_honda_civic"]);
+    // An alias from the curated list, and the newest year of the model.
+    let found = catalog.search("blueoval", Scope::Light, 10).unwrap();
+    assert_eq!(found[0].id, "2020_ford_f-150");
+}
+
+#[test]
+fn the_catalog_command_answers_in_json() {
+    let (built, _catalog) = reader("inspect");
+    let ask = |query: Query| inspect::run(&built.path, Scope::Light, &query).unwrap();
+
+    assert_eq!(
+        ask(Query::Years {
+            term: "202".to_owned()
+        }),
+        json!([2027, 2026, 2025, 2024, 2023, 2022, 2021, 2020])
+    );
+    assert_eq!(
+        ask(Query::Makes {
+            year: Some(2019),
+            term: String::new(),
+            limit: 50
+        }),
+        json!([
+            {"id": "honda", "name": "Honda", "popular": true},
+            {"id": "ford", "name": "Ford", "popular": true}
+        ])
+    );
+    assert_eq!(
+        ask(Query::Models {
+            make: "honda".to_owned(),
+            year: Some(2019),
+            term: String::new(),
+            limit: 50
+        }),
+        json!([{"id": "civic", "name": "Civic", "year_from": 2016, "year_to": 2027}])
+    );
+    let found = ask(Query::Search {
+        text: vec!["2019".to_owned(), "civic".to_owned(), "si".to_owned()],
+        limit: 10,
+    });
+    assert_eq!(found[0]["id"], "2019_honda_civic_si");
+    assert_eq!(
+        ask(Query::Entry {
+            id: "2019_honda_nothing".to_owned()
+        }),
+        serde_json::Value::Null
+    );
+
+    // A 2019 Civic Si: FC1 is the 1.5L Turbo, and 5 in position 8 the Si.
+    let selection = ask(Query::Vin {
+        vin: "2HGFC1E50KH000001".to_owned(),
+    });
+    assert_eq!(selection["vehicle_id"], "2019_honda_civic");
+    assert_eq!(selection["submodel_id"], "si");
+    assert_eq!(selection["engine_id"], "1-5l-turbo");
+    assert_eq!(selection["entry"]["id"], "2019_honda_civic_si_1-5l-turbo");
+
+    // Text that is not a VIN is an error, not a panic.
+    let not_a_vin = Query::Vin {
+        vin: "nope".to_owned(),
+    };
+    assert!(inspect::run(&built.path, Scope::Light, &not_a_vin).is_err());
+}
+
+#[test]
+fn compares_the_catalog_with_recorded_answers() {
+    let (_built, catalog) = reader("parity");
+    let fixtures: catalog_parity::Fixtures = serde_json::from_value(json!({
+        "answers": [
+            {"make": "Honda", "year": 2019, "models": ["CIVIC", "Accord"]},
+            {"make": "ford", "year": 2019, "models": [" F-150 "]},
+            {"make": "Ford", "year": 2016, "models": []},
+            {"make": "B & B Trailers", "year": 2026, "models": ["Utility"]},
+            {"make": "Nobody", "year": 2019, "models": ["X"]}
+        ]
+    }))
+    .unwrap();
+    let report = catalog_parity::run(&catalog, &fixtures).unwrap();
+    assert_eq!(
+        report,
+        catalog_parity::Report {
+            pairs: 5,
+            agree: 3,
+            missing: vec!["2019 Honda: Accord".to_owned(), "2019 Nobody: X".to_owned()],
+            extra: vec!["2016 Ford: F-150".to_owned()],
+        }
     );
 }

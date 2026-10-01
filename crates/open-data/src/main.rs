@@ -7,7 +7,9 @@ use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 use open_data::build::{BuildInfo, build};
 use open_data::catalog::curated::Curated;
-use open_data::{fetch, parity};
+use open_data::{catalog_parity, fetch, inspect, parity};
+use wenmar_vehicles::sqlite::SqliteSource;
+use wenmar_vehicles::{Catalog, Scope};
 use wenmar_vin::sqlite::SqliteData;
 use wenmar_vin::{DecodeOptions, Decoder};
 
@@ -59,6 +61,31 @@ enum Command {
         /// Directory holding nhtsa.json and baseline.json.
         #[arg(long, default_value = "data/corpus")]
         corpus: PathBuf,
+        /// Write the result as the new baseline instead of checking it.
+        #[arg(long)]
+        update_baseline: bool,
+    },
+    /// Print the newest vPIC release on NHTSA's downloads page, such as 2026_09.
+    Latest,
+    /// Look something up in a data file's vehicle catalog and print JSON.
+    Catalog {
+        /// The data file.
+        #[arg(long)]
+        data: PathBuf,
+        /// light (cars, MPVs and trucks), all, or a vPIC vehicle type id.
+        #[arg(long, default_value = "light")]
+        scope: String,
+        #[command(subcommand)]
+        query: inspect::Query,
+    },
+    /// Compare the catalog's models with NHTSA's recorded answers and check the baseline.
+    CatalogParity {
+        /// The data file.
+        #[arg(long)]
+        data: PathBuf,
+        /// Directory holding nhtsa-models.json and baseline.json.
+        #[arg(long, default_value = "data/catalog")]
+        fixtures: PathBuf,
         /// Write the result as the new baseline instead of checking it.
         #[arg(long)]
         update_baseline: bool,
@@ -205,6 +232,58 @@ fn main() -> Result<()> {
                     bail!("agreement with NHTSA fell below the baseline");
                 }
                 println!("agreement with NHTSA is at or above the baseline");
+            }
+        }
+        Command::Latest => {
+            let release = fetch::latest_release(&fetch::downloads_page()?)
+                .context("no plain-text release found on NHTSA's downloads page")?;
+            println!("{release}");
+        }
+        Command::Catalog { data, scope, query } => {
+            let scope = Scope::parse(&scope).with_context(|| {
+                format!("{scope} is not a scope; use light, all or a vehicle type id")
+            })?;
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&inspect::run(&data, scope, &query)?)?
+            );
+        }
+        Command::CatalogParity {
+            data,
+            fixtures,
+            update_baseline,
+        } => {
+            let fixtures_path = fixtures.join("nhtsa-models.json");
+            let baseline_path = fixtures.join("baseline.json");
+            let recorded: catalog_parity::Fixtures = serde_json::from_reader(BufReader::new(
+                File::open(&fixtures_path)
+                    .with_context(|| format!("opening {}", fixtures_path.display()))?,
+            ))
+            .with_context(|| format!("reading {}", fixtures_path.display()))?;
+            let source = SqliteSource::open(&data).map_err(|error| anyhow::anyhow!("{error}"))?;
+            let catalog = Catalog::new(source)?;
+            let report = catalog_parity::run(&catalog, &recorded)?;
+            print!("{}", catalog_parity::table(&report));
+            if update_baseline {
+                let mut text = serde_json::to_string_pretty(&report)?;
+                text.push('\n');
+                std::fs::write(&baseline_path, text)
+                    .with_context(|| format!("writing {}", baseline_path.display()))?;
+                println!("baseline written to {}", baseline_path.display());
+            } else {
+                let baseline: catalog_parity::Report = serde_json::from_reader(BufReader::new(
+                    File::open(&baseline_path)
+                        .with_context(|| format!("opening {}", baseline_path.display()))?,
+                ))
+                .with_context(|| format!("reading {}", baseline_path.display()))?;
+                let problems = catalog_parity::regressions(&report, &baseline);
+                if !problems.is_empty() {
+                    for problem in &problems {
+                        eprintln!("regression: {problem}");
+                    }
+                    bail!("the catalog's agreement with NHTSA fell below the baseline");
+                }
+                println!("the catalog agrees with NHTSA at or above the baseline");
             }
         }
     }
