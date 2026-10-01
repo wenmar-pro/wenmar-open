@@ -321,6 +321,76 @@ pub fn pulled(value: &Value) -> String {
     format!("Data {version} is in place at {path}{size}.{replaced}\n")
 }
 
+/// What `setup` did, as text.
+pub fn setup(value: &Value) -> String {
+    let path = cell(value, "skill");
+    let mut text = if value["skill_written"] == true {
+        format!("Wrote the skill to {path}.\n")
+    } else {
+        format!("The skill at {path} is already current.\n")
+    };
+    if value["mcp_registered"] == true {
+        text.push_str("Registered the MCP server.\n");
+    } else {
+        text.push_str(&format!(
+            "To add the MCP server as well, run:\n  {}\n",
+            cell(value, "mcp_command")
+        ));
+    }
+    text
+}
+
+/// What `doctor` found, as text.
+pub fn doctor(value: &Value) -> String {
+    let data = &value["data"];
+    let data_line = if data["usable"] == true {
+        format!("{} at {}", cell(data, "data_version"), cell(data, "path"))
+    } else if let Some(problem) = field(data, "problem") {
+        format!("cannot be used: {problem}")
+    } else {
+        format!("none at {}", cell(data, "path"))
+    };
+    let api = &value["api"];
+    let api_line = if api["checked"] != true {
+        format!("{}, not checked", cell(api, "url"))
+    } else if api["reachable"] == true {
+        format!(
+            "{}, reachable, data {}",
+            cell(api, "url"),
+            cell(api, "data_version")
+        )
+    } else {
+        format!("not reachable. {}", cell(api, "problem"))
+    };
+    let skills: Vec<String> = value["skills"]
+        .as_object()
+        .into_iter()
+        .flatten()
+        .map(|(agent, skill)| {
+            let state = match (skill["installed"] == true, skill["current"] == true) {
+                (false, _) => "not installed",
+                (true, true) => "installed",
+                (true, false) => "installed, out of date",
+            };
+            format!("{}: {state}", clean(agent))
+        })
+        .collect();
+    let rows = vec![
+        vec!["Data file".to_owned(), data_line],
+        vec!["API".to_owned(), api_line],
+        vec![
+            "Answers from".to_owned(),
+            match cell(value, "answers_from").as_str() {
+                "data file" => "the data file".to_owned(),
+                "api" => "the API".to_owned(),
+                _ => "nothing: neither can answer".to_owned(),
+            },
+        ],
+        vec!["Skills".to_owned(), skills.join("; ")],
+    ];
+    format!("wenmar-open {}\n\n{}", cell(value, "version"), table(&rows))
+}
+
 /// The answer to a request, as text.
 pub fn text(request: &Request, value: &Value) -> String {
     let action = match request {
@@ -631,6 +701,44 @@ Size       122.0 MB
     }
 
     #[test]
+    fn doctor_and_setup_read_as_a_few_lines() {
+        let report = json!({
+            "version": "0.1.0",
+            "ok": true,
+            "answers_from": "data file",
+            "data": { "installed": true, "usable": true, "path": "/d/wenmar-open.sqlite3", "data_version": "2026.09" },
+            "api": { "url": "https://open.wenmarpro.com", "checked": true, "reachable": false, "problem": "The API at https://open.wenmarpro.com could not be reached: connection refused." },
+            "skills": { "claude": { "installed": true, "current": true }, "codex": { "installed": false } }
+        });
+        assert_eq!(
+            doctor(&report),
+            "\
+wenmar-open 0.1.0
+
+Data file     2026.09 at /d/wenmar-open.sqlite3
+API           not reachable. The API at https://open.wenmarpro.com could not be reached: connection refused.
+Answers from  the data file
+Skills        claude: installed; codex: not installed
+"
+        );
+        let done = json!({
+            "agent": "claude",
+            "skill": "/home/pat/.claude/skills/wenmar-open/SKILL.md",
+            "skill_written": true,
+            "mcp_command": "claude mcp add --scope user wenmar-open -- wenmar-open mcp",
+            "mcp_registered": false
+        });
+        assert_eq!(
+            setup(&done),
+            "\
+Wrote the skill to /home/pat/.claude/skills/wenmar-open/SKILL.md.
+To add the MCP server as well, run:
+  claude mcp add --scope user wenmar-open -- wenmar-open mcp
+"
+        );
+    }
+
+    #[test]
     fn a_pull_says_what_it_did() {
         assert_eq!(
             pulled(
@@ -649,6 +757,8 @@ Size       122.0 MB
         for value in [json!(null), json!(7), json!({}), json!([1])] {
             let _ = status(&value);
             let _ = pulled(&value);
+            let _ = setup(&value);
+            let _ = doctor(&value);
         }
         for value in [
             json!(null),

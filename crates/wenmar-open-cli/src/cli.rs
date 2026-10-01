@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use clap::{Args, Parser, Subcommand};
 
 use crate::request::{Action, Lookup, Request};
+use crate::setup::Agent;
 
 /// Free vehicle data for auto repair shops: decode a VIN, or look a vehicle
 /// up by year, make, model, submodel and engine.
@@ -69,6 +70,28 @@ pub enum Command {
     /// It offers two tools, wenmar_vin and wenmar_vehicles, the same as the
     /// hosted server at /mcp.
     Mcp,
+    /// Set up a coding agent to use this tool.
+    ///
+    /// Writes a skill file that describes the commands, and prints the
+    /// command that registers the MCP server. With --yes it runs that
+    /// command too.
+    Setup {
+        /// The agent to set up.
+        #[arg(value_enum)]
+        agent: Agent,
+        /// The directory the agent reads skills from. The default is
+        /// ~/.claude/skills for claude and ~/.agents/skills for codex.
+        #[arg(long, value_name = "DIR")]
+        dir: Option<PathBuf>,
+        /// Replace a skill file that has been edited by hand.
+        #[arg(long)]
+        force: bool,
+        /// Also run the agent's command that registers the MCP server.
+        #[arg(long)]
+        yes: bool,
+    },
+    /// Check the data file and the API, and say which of them answers.
+    Doctor,
 }
 
 #[derive(Debug, Subcommand)]

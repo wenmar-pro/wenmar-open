@@ -9,3 +9,4 @@ mod output;
 mod process;
 mod remote;
 mod server;
+mod setup;

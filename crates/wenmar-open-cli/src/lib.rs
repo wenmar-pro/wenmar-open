@@ -7,6 +7,7 @@
 pub mod backend;
 pub mod cli;
 pub mod data;
+pub mod doctor;
 pub mod env;
 pub mod error;
 pub mod jq;
@@ -17,6 +18,7 @@ pub mod pull;
 pub mod remote;
 pub mod render;
 pub mod request;
+pub mod setup;
 
 use std::ffi::OsString;
 use std::io::{BufRead, Write};
@@ -123,6 +125,24 @@ fn execute(
             let backend = Backend::open(env, &cli.global, &mut Vec::new())?;
             return mcp::serve(&backend, stdin, stdout);
         }
+        Some(Command::Setup {
+            agent,
+            dir,
+            force,
+            yes,
+        }) => {
+            let done = setup::run(agent, env, dir.as_deref(), force, yes)?;
+            return output::answer(stdout, mode, &to_json(&done)?, render::setup);
+        }
+        Some(Command::Doctor) => {
+            let report = doctor::report(env, &cli.global);
+            output::answer(stdout, mode, &report, render::doctor)?;
+            return if report["ok"] == true {
+                Ok(())
+            } else {
+                Err(doctor::unhealthy())
+            };
+        }
         Some(Command::Vin { command }) => command.request(),
         Some(Command::Vehicles { command }) => command.request(),
         Some(Command::Data { command }) => {
@@ -148,8 +168,16 @@ fn execute(
             };
         }
         None => {
-            return Err(CliError::new(USAGE, "a command is required")
-                .with_hint("Run `wenmar-open --help` for the commands."));
+            // With nobody at a terminal there is nothing to open: say what
+            // the tool is and stop. This never waits for input.
+            let overview = doctor::overview(env, &cli.global);
+            let json = match mode {
+                Mode::Text => &Mode::Json {
+                    pretty: env.stdout_terminal,
+                },
+                asked => asked,
+            };
+            return output::answer(stdout, json, &overview, |_| String::new());
         }
     };
     let backend = open(env, &cli.global, mode, stderr)?;

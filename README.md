@@ -73,6 +73,8 @@ Without mise: `OPEN_DATA=data/build/wenmar-open-2026.09.sqlite3 cargo run -p ope
 | `crates/wenmar-vin` | Decoder library: VIN parsing, check digit, model year, pattern matching |
 | `crates/wenmar-vehicles` | Catalog library: years, makes, models, submodels, engines, search, stable vehicle ids |
 | `crates/open-data` | Builds the SQLite data file from NHTSA's vPIC release |
+| `crates/wenmar-open-cli` | The `wenmar-open` command-line tool |
+| `crates/open-mcp` | The MCP tool definitions the server and the command-line tool share |
 | `crates/open-server` | The website, the JSON API and the MCP endpoint, served from one read-only data file |
 | `clients/js` | npm client for the hosted API |
 
@@ -105,6 +107,25 @@ cargo run --release -p open-data -- catalog --data data/build/wenmar-open-2026.0
 ```
 
 What it covers, what it cannot, and how it is checked against NHTSA's own model lists: [data/catalog/README.md](data/catalog/README.md).
+
+## Command-line tool
+
+`wenmar-open` does the same lookups from a terminal. It needs no key and no account.
+
+```bash
+cargo build -p wenmar-open-cli
+./target/debug/wenmar-open vin decode 1HGCM82633A004352
+./target/debug/wenmar-open vehicles search 2019 civic si
+./target/debug/wenmar-open vehicles models --make honda --year 2019
+```
+
+It answers from a local data file when there is one and from the hosted API otherwise. `wenmar-open data pull` downloads the data file, after which nothing needs a connection. `--offline` and `--online` force one or the other, and `--api URL` or `WENMAR_OPEN_API` names another server.
+
+Piped, the output is JSON; at a terminal it is text. `--json` prints JSON at a terminal too, and `--jq EXPR` filters it with a jq expression. An error is JSON on standard error, in the API's shape, with a non-zero exit code.
+
+For AI agents: `wenmar-open mcp` is an MCP server on standard input and output with two tools, `wenmar_vin` and `wenmar_vehicles`. `wenmar-open setup claude` or `wenmar-open setup codex` writes a skill file that describes the commands and prints the command that registers the MCP server. `wenmar-open doctor` says whether the data file and the API can answer.
+
+`open-data` is the maintainers' tool for building the data file. `wenmar-open` is the one for using it.
 
 ## Data releases
 
