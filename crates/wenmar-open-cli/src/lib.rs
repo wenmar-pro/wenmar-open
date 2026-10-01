@@ -12,6 +12,7 @@ pub mod error;
 pub mod jq;
 pub mod local;
 pub mod output;
+pub mod remote;
 pub mod render;
 pub mod request;
 
@@ -43,7 +44,7 @@ pub fn run(
                 cli.global.jq.as_deref(),
                 env.stdout_terminal,
             );
-            execute(cli, env, &mode, stdout)
+            execute(cli, env, &mode, stdout, stderr)
         }
         Err(problem) => match problem.kind() {
             ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => stdout
@@ -77,7 +78,32 @@ fn usage(problem: &clap::Error) -> CliError {
     CliError::new(USAGE, message).with_hint("Run `wenmar-open --help` for the commands.")
 }
 
-fn execute(cli: Cli, env: &Env, mode: &Mode, stdout: &mut dyn Write) -> Result<(), CliError> {
+/// Opens the source of answers. What it has to say about its choice goes
+/// to standard error, for a person only: JSON on standard error is always
+/// an error.
+fn open(
+    env: &Env,
+    global: &cli::Global,
+    mode: &Mode,
+    stderr: &mut dyn Write,
+) -> Result<Backend, CliError> {
+    let mut notes = Vec::new();
+    let backend = Backend::open(env, global, &mut notes)?;
+    if *mode == Mode::Text {
+        for note in notes {
+            let _ = writeln!(stderr, "note: {}", render::clean(&note));
+        }
+    }
+    Ok(backend)
+}
+
+fn execute(
+    cli: Cli,
+    env: &Env,
+    mode: &Mode,
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+) -> Result<(), CliError> {
     let request = match cli.command {
         Some(Command::Vin { command }) => command.request(),
         Some(Command::Vehicles { command }) => command.request(),
@@ -86,7 +112,7 @@ fn execute(cli: Cli, env: &Env, mode: &Mode, stdout: &mut dyn Write) -> Result<(
                 .with_hint("Run `wenmar-open --help` for the commands."));
         }
     };
-    let backend = Backend::open(env, &cli.global)?;
+    let backend = open(env, &cli.global, mode, stderr)?;
     let value = backend.run(request.clone())?;
     output::answer(stdout, mode, &value, |value| render::text(&request, value))
 }

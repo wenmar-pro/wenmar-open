@@ -5,3 +5,5 @@ mod commands;
 mod common;
 mod output;
 mod process;
+mod remote;
+mod server;

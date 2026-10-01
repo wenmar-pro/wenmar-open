@@ -347,7 +347,10 @@ fn help_and_version_go_to_standard_output() {
 #[test]
 fn with_no_data_file_the_error_says_how_to_get_one() {
     let fixture = common::empty_dir();
-    let run = common::run(&common::env(&fixture), &["vin", "decode", KONA]);
+    let run = common::run(
+        &common::env(&fixture),
+        &["vin", "decode", KONA, "--offline"],
+    );
     assert_eq!(run.code, 11);
     let error = run.error();
     assert_eq!(error["error"]["code"], "no_data");
@@ -363,7 +366,7 @@ fn with_no_data_file_the_error_says_how_to_get_one() {
 fn a_data_file_of_another_schema_version_is_refused_and_left_alone() {
     let fixture = common::old_data_dir();
     let before = std::fs::read(fixture.file()).unwrap();
-    let run = common::run(&common::env(&fixture), &["vehicles", "years"]);
+    let run = common::run(&common::env(&fixture), &["vehicles", "years", "--offline"]);
     assert_eq!(run.code, 11);
     let error = run.error();
     assert_eq!(error["error"]["code"], "data_invalid");
@@ -381,7 +384,7 @@ fn a_file_that_is_not_a_data_file_is_refused() {
     let fixture = common::empty_dir();
     // Not a database at all.
     std::fs::write(fixture.file(), "<html>Not found</html>".repeat(100)).unwrap();
-    let run = common::run(&common::env(&fixture), &["vehicles", "years"]);
+    let run = common::run(&common::env(&fixture), &["vehicles", "years", "--offline"]);
     assert_eq!(run.code, 11);
     assert_eq!(run.error()["error"]["code"], "data_invalid");
     // A database of something else.
@@ -391,12 +394,12 @@ fn a_file_that_is_not_a_data_file_is_refused() {
         .execute_batch("CREATE TABLE notes (body TEXT);")
         .unwrap();
     connection.close().unwrap();
-    let run = common::run(&common::env(&fixture), &["vehicles", "years"]);
+    let run = common::run(&common::env(&fixture), &["vehicles", "years", "--offline"]);
     assert_eq!(run.error()["error"]["code"], "data_invalid");
     // A directory where the file should be.
     std::fs::remove_file(fixture.file()).unwrap();
     std::fs::create_dir(fixture.file()).unwrap();
-    let run = common::run(&common::env(&fixture), &["vehicles", "years"]);
+    let run = common::run(&common::env(&fixture), &["vehicles", "years", "--offline"]);
     assert_eq!(run.error()["error"]["code"], "data_invalid");
 }
 

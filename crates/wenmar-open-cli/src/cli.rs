@@ -10,7 +10,8 @@ use crate::request::{Action, Lookup, Request};
 /// up by year, make, model, submodel and engine.
 ///
 /// Answers come from a local data file when there is one (see `wenmar-open
-/// data pull`).
+/// data pull`), and from the hosted API otherwise. Nothing needs a key or
+/// an account.
 #[derive(Debug, Parser)]
 #[command(name = "wenmar-open", version, propagate_version = true)]
 pub struct Cli {
@@ -31,6 +32,16 @@ pub struct Global {
     /// Text results are printed without quotes.
     #[arg(long, global = true, value_name = "EXPR")]
     pub jq: Option<String>,
+    /// The base URL of the hosted API, used when there is no local data
+    /// file. Also WENMAR_OPEN_API. The default is https://open.wenmarpro.com.
+    #[arg(long, global = true, value_name = "URL")]
+    pub api: Option<String>,
+    /// Answer only from the local data file, and fail if there is none.
+    #[arg(long, global = true, conflicts_with = "online")]
+    pub offline: bool,
+    /// Answer only from the hosted API, even if there is a local data file.
+    #[arg(long, global = true)]
+    pub online: bool,
     /// The directory holding the data file. Also WENMAR_OPEN_DATA_DIR.
     #[arg(long, global = true, value_name = "DIR")]
     pub data_dir: Option<PathBuf>,

@@ -104,7 +104,7 @@ fn a_jq_expression_that_is_wrong_is_an_error_and_prints_no_answer() {
 #[test]
 fn at_a_terminal_an_error_is_a_line_for_a_person() {
     let fixture = common::empty_dir();
-    let run = common::run(&terminal(&fixture), &["vin", "decode", KONA]);
+    let run = common::run(&terminal(&fixture), &["vin", "decode", KONA, "--offline"]);
     assert_eq!(run.code, 11);
     assert_eq!(run.stdout, "");
     assert_eq!(
@@ -115,7 +115,10 @@ fn at_a_terminal_an_error_is_a_line_for_a_person() {
         )
     );
     // With --json it is the error object, there too.
-    let run = common::run(&terminal(&fixture), &["vin", "decode", KONA, "--json"]);
+    let run = common::run(
+        &terminal(&fixture),
+        &["vin", "decode", KONA, "--offline", "--json"],
+    );
     assert_eq!(run.error()["error"]["code"], "no_data");
     // A command line that cannot be read, with --json given.
     let run = common::run(&terminal(&fixture), &["--json", "explode"]);

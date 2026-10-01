@@ -72,8 +72,15 @@ fn an_exit_code_says_what_went_wrong() {
     let fixture = common::empty_dir();
     let output = binary()
         .env("WENMAR_OPEN_DATA_DIR", fixture.directory())
-        .args(["vin", "decode", KONA])
+        .args(["vin", "decode", KONA, "--offline"])
         .output()
         .unwrap();
     assert_eq!(output.status.code(), Some(11));
+    // With nothing to answer from, the API is tried, and it is not there.
+    let output = binary()
+        .env("WENMAR_OPEN_DATA_DIR", fixture.directory())
+        .args(["vin", "decode", KONA])
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(10));
 }
