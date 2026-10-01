@@ -89,12 +89,6 @@ fn decodes_a_vin_into_the_documented_json() {
 }
 
 #[test]
-fn the_primary_schema_beats_a_more_specific_pattern_elsewhere() {
-    let decoded = Decoder::new(data()).decode(KONA, options()).unwrap();
-    assert_eq!(decoded.drivetrain.as_deref(), Some("FWD"));
-}
-
-#[test]
 fn other_schemas_fill_in_what_the_primary_schema_lacks() {
     let decoded = Decoder::new(data()).decode(KONA, options()).unwrap();
     assert_eq!(decoded.plant.city.as_deref(), Some("Ulsan"));
@@ -268,7 +262,7 @@ fn a_data_failure_is_reported_as_such() {
         fn manufacturer(&self, _wmi: &str) -> Result<Option<Manufacturer>, DataError> {
             Err("the data file is unreadable".into())
         }
-        fn schemas(&self, _wmi: &str, _year: u16) -> Result<Vec<i64>, DataError> {
+        fn schemas(&self, _wmi: &str, _year: u16) -> Result<Vec<wenmar_vin::SchemaRef>, DataError> {
             Ok(Vec::new())
         }
         fn patterns(
@@ -306,11 +300,6 @@ fn one_schema() -> MemoryData {
     MemoryData::new()
         .with_manufacturer(maker())
         .with_schema("KM8", 1, 2022, None)
-}
-
-/// One manufacturer with two schemas current from 2022.
-fn two_schemas() -> MemoryData {
-    one_schema().with_schema("KM8", 2, 2022, None)
 }
 
 /// One manufacturer with schema 1 current from 2022 and schema 2 for 1990 to 1995.
@@ -383,20 +372,9 @@ fn the_make_comes_from_the_same_pattern_as_the_model() {
             .with_pattern(1, "*2C**", Element::Make, "Lexus")
             .with_pattern(1, "K2***", Element::Make, "Toyota"),
     );
-    assert_eq!(decoded.model.as_deref(), Some("Camry"));
-    assert_eq!(decoded.make.as_deref(), Some("Toyota"));
-}
-
-#[test]
-fn the_more_specific_pattern_wins_within_a_schema() {
-    let decoded = decode(
-        one_schema()
-            .with_pattern(1, "K2***", Element::Model, "Kona")
-            .with_pattern(1, "K****", Element::Trim, "Loose")
-            .with_pattern(1, "K2CA*", Element::Trim, "Exact")
-            .with_pattern(1, "K2***", Element::Trim, "Middling"),
-    );
-    assert_eq!(decoded.trim.as_deref(), Some("Exact"));
+    // "*2C**" sorts before "K2***", so NHTSA's order picks the ES 350.
+    assert_eq!(decoded.model.as_deref(), Some("ES 350"));
+    assert_eq!(decoded.make.as_deref(), Some("Lexus"));
 }
 
 #[test]
@@ -408,56 +386,6 @@ fn the_lowest_pattern_id_wins_a_tie() {
             .with_pattern(1, "K2***", Element::Trim, "Second"),
     );
     assert_eq!(decoded.trim.as_deref(), Some("First"));
-}
-
-#[test]
-fn the_primary_schema_is_the_one_with_the_most_specific_model() {
-    let decoded = decode(
-        two_schemas()
-            .with_pattern(1, "K****", Element::Model, "Loose Model")
-            .with_pattern(1, "K2CAB", Element::Trim, "Trim From The Loose Schema")
-            .with_pattern(1, "K****", Element::Doors, "2")
-            .with_pattern(1, "K****", Element::BodyClass, "Coupe")
-            .with_pattern(2, "K2CAB", Element::Model, "Exact Model")
-            .with_pattern(2, "*****", Element::Trim, "Trim From The Exact Schema"),
-    );
-    assert_eq!(decoded.model.as_deref(), Some("Exact Model"));
-    assert_eq!(decoded.trim.as_deref(), Some("Trim From The Exact Schema"));
-}
-
-#[test]
-fn equally_specific_models_are_settled_by_how_much_else_matches() {
-    let decoded = decode(
-        two_schemas()
-            .with_pattern(1, "K2***", Element::Model, "Sparse")
-            .with_pattern(2, "K2***", Element::Model, "Rich")
-            .with_pattern(2, "K2***", Element::Trim, "SE")
-            .with_pattern(2, "K2***", Element::Doors, "4"),
-    );
-    assert_eq!(decoded.model.as_deref(), Some("Rich"));
-}
-
-#[test]
-fn equal_schemas_are_settled_by_the_lowest_schema_id() {
-    let decoded = decode(
-        two_schemas()
-            .with_pattern(2, "K2***", Element::Model, "Second Schema")
-            .with_pattern(1, "K2***", Element::Model, "First Schema"),
-    );
-    assert_eq!(decoded.model.as_deref(), Some("First Schema"));
-}
-
-#[test]
-fn without_a_model_the_schema_with_the_most_matches_is_primary() {
-    let decoded = decode(
-        two_schemas()
-            .with_pattern(1, "K2CAB", Element::Trim, "From The Quiet Schema")
-            .with_pattern(2, "K****", Element::Trim, "From The Busy Schema")
-            .with_pattern(2, "K****", Element::Doors, "4")
-            .with_pattern(2, "K****", Element::BodyClass, "SUV"),
-    );
-    assert_eq!(decoded.trim.as_deref(), Some("From The Busy Schema"));
-    assert_eq!(codes(&decoded), vec![WarningCode::ModelUnresolved]);
 }
 
 #[test]
@@ -501,7 +429,7 @@ impl VinData for Recording {
     fn manufacturer(&self, wmi: &str) -> Result<Option<Manufacturer>, DataError> {
         self.inner.manufacturer(wmi)
     }
-    fn schemas(&self, wmi: &str, year: u16) -> Result<Vec<i64>, DataError> {
+    fn schemas(&self, wmi: &str, year: u16) -> Result<Vec<wenmar_vin::SchemaRef>, DataError> {
         self.inner.schemas(wmi, year)
     }
     fn patterns(&self, schema_ids: &[i64], match_key: &str) -> Result<Vec<Pattern>, DataError> {
@@ -526,4 +454,80 @@ fn patterns_are_not_requested_when_no_schema_applies() {
     };
     Decoder::new(&recording).decode(KONA, overridden).unwrap();
     assert_eq!(*recording.keys.borrow(), Vec::<String>::new());
+}
+
+#[test]
+fn the_schema_with_the_later_start_year_wins() {
+    let data = MemoryData::new()
+        .with_manufacturer(maker())
+        .with_schema("KM8", 1, 2020, None)
+        .with_schema("KM8", 2, 2022, None)
+        .with_pattern(1, "K2***", Element::Trim, "From The 2020 Schema")
+        .with_pattern(2, "K2***", Element::Trim, "From The 2022 Schema");
+    assert_eq!(decode(data).trim.as_deref(), Some("From The 2022 Schema"));
+}
+
+#[test]
+fn the_more_recently_changed_pattern_wins() {
+    let data = one_schema()
+        .with_pattern_changed(1, "K2***", Element::Trim, "Newer", "2020-01-01 00:00:00")
+        .with_pattern_changed(
+            1,
+            "K2***",
+            Element::Trim,
+            "Older",
+            "2015-03-04 10:05:33.893",
+        );
+    assert_eq!(decode(data).trim.as_deref(), Some("Newer"));
+}
+
+#[test]
+fn the_schema_year_outranks_the_change_date() {
+    let data = MemoryData::new()
+        .with_manufacturer(maker())
+        .with_schema("KM8", 1, 2020, None)
+        .with_schema("KM8", 2, 2022, None)
+        .with_pattern_changed(
+            1,
+            "K2***",
+            Element::Trim,
+            "Old Schema, New Edit",
+            "2024-01-01 00:00:00",
+        )
+        .with_pattern_changed(
+            2,
+            "K2***",
+            Element::Trim,
+            "New Schema, Old Edit",
+            "2015-01-01 00:00:00",
+        );
+    assert_eq!(decode(data).trim.as_deref(), Some("New Schema, Old Edit"));
+}
+
+#[test]
+fn with_equal_dates_the_pattern_with_fewer_fixed_characters_wins() {
+    let data = one_schema()
+        .with_pattern(1, "K2CA*", Element::Trim, "Narrow")
+        .with_pattern(1, "K****", Element::Trim, "Broad");
+    assert_eq!(decode(data).trim.as_deref(), Some("Broad"));
+}
+
+#[test]
+fn with_equal_length_the_keys_that_sort_first_win() {
+    let data = one_schema()
+        .with_pattern(1, "K2***", Element::Trim, "K First")
+        .with_pattern(1, "*2C**", Element::Trim, "Star First");
+    assert_eq!(decode(data).trim.as_deref(), Some("Star First"));
+}
+
+#[test]
+fn a_schema_linked_twice_ranks_by_its_latest_start_year() {
+    let data = MemoryData::new()
+        .with_manufacturer(maker())
+        .with_schema("KM8", 1, 2015, None)
+        .with_schema("KM8", 1, 2023, None)
+        .with_schema("KM8", 2, 2022, None)
+        .with_pattern(1, "K2***", Element::Trim, "Linked Twice")
+        .with_pattern(2, "K2***", Element::Trim, "Linked Once");
+    assert_eq!(decode(data).trim.as_deref(), Some("Linked Twice"));
 }

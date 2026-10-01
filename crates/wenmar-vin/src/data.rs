@@ -53,6 +53,15 @@ pub enum Element {
     AirbagsKnee,
 }
 
+/// A schema that applies to a manufacturer code and model year.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SchemaRef {
+    pub id: i64,
+    /// First model year this schema applies to for this manufacturer code.
+    /// When two patterns disagree, the later schema wins.
+    pub year_from: u16,
+}
+
 /// One row of decoding data: when `keys` matches a VIN, `element` is `value`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Pattern {
@@ -62,6 +71,9 @@ pub struct Pattern {
     pub element: Element,
     /// The resolved, human-readable value.
     pub value: String,
+    /// When the pattern was last changed, as a timestamp that sorts correctly
+    /// as text (`2015-03-04 10:05:33.893`). Empty when unknown.
+    pub changed_on: String,
 }
 
 /// Where the decoder gets its data.
@@ -76,8 +88,9 @@ pub trait VinData {
     /// The manufacturer for a three- or six-character code.
     fn manufacturer(&self, wmi: &str) -> Result<Option<Manufacturer>, DataError>;
 
-    /// Ids of the schemas valid for this manufacturer code and model year.
-    fn schemas(&self, wmi: &str, year: u16) -> Result<Vec<i64>, DataError>;
+    /// The schemas valid for this manufacturer code and model year. A schema
+    /// linked more than once may appear more than once.
+    fn schemas(&self, wmi: &str, year: u16) -> Result<Vec<SchemaRef>, DataError>;
 
     /// Patterns belonging to the given schemas.
     ///
@@ -92,7 +105,7 @@ impl<T: VinData + ?Sized> VinData for &T {
         (**self).manufacturer(wmi)
     }
 
-    fn schemas(&self, wmi: &str, year: u16) -> Result<Vec<i64>, DataError> {
+    fn schemas(&self, wmi: &str, year: u16) -> Result<Vec<SchemaRef>, DataError> {
         (**self).schemas(wmi, year)
     }
 

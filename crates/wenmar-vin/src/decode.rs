@@ -47,6 +47,16 @@ pub struct Decoder<D> {
 
 type Values<'a> = HashMap<Element, &'a str>;
 
+/// The result of decoding against one candidate model year.
+struct Attempt {
+    /// 2 if a model was resolved, 1 if anything was, 0 if nothing matched.
+    score: u8,
+    year: u16,
+    matched: Vec<Pattern>,
+    /// Latest start year of each schema for this manufacturer code.
+    year_from: HashMap<i64, u16>,
+}
+
 impl<D: VinData> Decoder<D> {
     pub fn new(data: D) -> Self {
         Self { data }
@@ -84,15 +94,21 @@ impl<D: VinData> Decoder<D> {
         // candidate year is decoded and the best is kept: one that resolves a
         // model, else one that resolves anything, else the likeliest year.
         let key = vin.match_key();
-        let mut best: Option<(u8, u16, Vec<Pattern>)> = None;
+        let mut best: Option<Attempt> = None;
         for candidate in &years {
-            let schema_ids = self
+            let schemas = self
                 .data
                 .schemas(&manufacturer.wmi, *candidate)
                 .map_err(DecodeError::Data)?;
-            if schema_ids.is_empty() {
+            if schemas.is_empty() {
                 continue;
             }
+            let mut year_from: HashMap<i64, u16> = HashMap::new();
+            for schema in &schemas {
+                let latest = year_from.entry(schema.id).or_insert(schema.year_from);
+                *latest = (*latest).max(schema.year_from);
+            }
+            let schema_ids: Vec<i64> = year_from.keys().copied().collect();
             let matched: Vec<Pattern> = self
                 .data
                 .patterns(&schema_ids, &key)
@@ -105,16 +121,21 @@ impl<D: VinData> Decoder<D> {
             } else {
                 u8::from(!matched.is_empty())
             };
-            if best.as_ref().is_none_or(|(current, _, _)| score > *current) {
-                best = Some((score, *candidate, matched));
+            if best.as_ref().is_none_or(|current| score > current.score) {
+                best = Some(Attempt {
+                    score,
+                    year: *candidate,
+                    matched,
+                    year_from,
+                });
             }
             if score == 2 {
                 break;
             }
         }
-        let (year, matched) = match best {
-            Some((_, year, matched)) => (Some(year), matched),
-            None => (years.first().copied(), Vec::new()),
+        let (year, matched, year_from) = match best {
+            Some(attempt) => (Some(attempt.year), attempt.matched, attempt.year_from),
+            None => (years.first().copied(), Vec::new(), HashMap::new()),
         };
         if year.is_none() {
             warnings.push(warning(
@@ -123,7 +144,7 @@ impl<D: VinData> Decoder<D> {
             ));
         }
 
-        let values = select(&matched);
+        let values = select(&matched, &year_from);
 
         if matched.is_empty() {
             warnings.push(warning(
@@ -214,49 +235,34 @@ fn clean(value: Option<String>) -> Option<String> {
         .filter(|value| usable(value))
 }
 
-/// The schema this VIN most likely belongs to.
-fn primary_schema(matched: &[Pattern]) -> Option<i64> {
-    let matches_in = |schema_id: i64| {
-        matched
-            .iter()
-            .filter(|candidate| candidate.schema_id == schema_id)
-            .count()
-    };
-    let best_model = matched
-        .iter()
-        .filter(|candidate| candidate.element == Element::Model)
-        .max_by_key(|candidate| {
-            (
-                pattern::specificity(&candidate.keys),
-                matches_in(candidate.schema_id),
-                Reverse(candidate.schema_id),
-            )
-        });
-    match best_model {
-        Some(model) => Some(model.schema_id),
-        None => matched
-            .iter()
-            .map(|candidate| candidate.schema_id)
-            .max_by_key(|schema_id| (matches_in(*schema_id), Reverse(*schema_id))),
-    }
+/// What NHTSA's decoder sorts on when several patterns give a value for the
+/// same element. The greatest rank wins.
+fn rank<'p>(
+    row: &'p Pattern,
+    year_from: &HashMap<i64, u16>,
+) -> (u16, &'p str, Reverse<usize>, Reverse<String>, Reverse<i64>) {
+    (
+        year_from.get(&row.schema_id).copied().unwrap_or(0),
+        row.changed_on.as_str(),
+        Reverse(
+            row.keys
+                .chars()
+                .filter(|character| *character != '*')
+                .count(),
+        ),
+        Reverse(row.keys.replace(['[', ']'], "")),
+        Reverse(row.id),
+    )
 }
 
-/// One value per element: primary schema first, then the most specific
-/// pattern, then the lowest pattern id.
-fn select(matched: &[Pattern]) -> Values<'_> {
-    let primary = primary_schema(matched);
-    let rank = |candidate: &Pattern| {
-        (
-            Some(candidate.schema_id) == primary,
-            pattern::specificity(&candidate.keys),
-            Reverse(candidate.id),
-        )
-    };
+/// One value per element, chosen in NHTSA's order: latest schema, latest
+/// change, fewest fixed characters, keys in text order, lowest id.
+fn select<'a>(matched: &'a [Pattern], year_from: &HashMap<i64, u16>) -> Values<'a> {
     let mut best: HashMap<Element, &Pattern> = HashMap::new();
     for candidate in matched {
         let better = best
             .get(&candidate.element)
-            .is_none_or(|current| rank(candidate) > rank(current));
+            .is_none_or(|current| rank(candidate, year_from) > rank(current, year_from));
         if better {
             best.insert(candidate.element, candidate);
         }

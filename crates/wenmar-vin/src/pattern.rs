@@ -83,21 +83,6 @@ pub fn matches(keys: &str, input: &str) -> bool {
     true
 }
 
-/// How much a pattern pins down. Higher wins when patterns disagree.
-pub fn specificity(keys: &str) -> u32 {
-    let Some(parsed) = tokens(keys) else {
-        return 0;
-    };
-    parsed
-        .iter()
-        .map(|token| match token {
-            Token::Any | Token::Literal('|') => 0,
-            Token::Literal(_) => 3,
-            Token::Set { .. } => 2,
-        })
-        .sum()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -151,18 +136,8 @@ mod tests {
     fn malformed_patterns_never_match_and_never_panic() {
         for keys in ["", "K[2", "K[]C", "K[^]C", "["] {
             assert!(!matches(keys, KEY), "{keys:?} should not match");
-            assert_eq!(specificity(keys), 0, "{keys:?} should score zero");
         }
         assert!(!matches("K2***", ""));
         assert!(!matches("Ｋ2***", KEY));
-    }
-
-    #[test]
-    fn specificity_counts_what_a_pattern_pins_down() {
-        assert_eq!(specificity("*****"), 0);
-        assert_eq!(specificity("K2***"), 6);
-        assert_eq!(specificity("*****|*U"), 3);
-        assert_eq!(specificity("K[1-3]C"), 8);
-        assert_eq!(specificity("K2CAB"), 15);
     }
 }

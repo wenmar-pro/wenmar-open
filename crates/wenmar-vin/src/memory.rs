@@ -1,4 +1,4 @@
-use crate::data::{DataError, Element, Manufacturer, Pattern, VinData};
+use crate::data::{DataError, Element, Manufacturer, Pattern, SchemaRef, VinData};
 
 #[derive(Debug, Clone)]
 struct SchemaRange {
@@ -45,12 +45,18 @@ impl MemoryData {
     }
 
     /// Adds a pattern. Ids are assigned in insertion order, starting at 1.
-    pub fn with_pattern(
+    pub fn with_pattern(self, schema_id: i64, keys: &str, element: Element, value: &str) -> Self {
+        self.with_pattern_changed(schema_id, keys, element, value, "")
+    }
+
+    /// Adds a pattern with the time it was last changed.
+    pub fn with_pattern_changed(
         mut self,
         schema_id: i64,
         keys: &str,
         element: Element,
         value: &str,
+        changed_on: &str,
     ) -> Self {
         let id = i64::try_from(self.patterns.len()).unwrap_or(i64::MAX - 1) + 1;
         self.patterns.push(Pattern {
@@ -59,6 +65,7 @@ impl MemoryData {
             keys: keys.to_owned(),
             element,
             value: value.to_owned(),
+            changed_on: changed_on.to_owned(),
         });
         self
     }
@@ -73,8 +80,8 @@ impl VinData for MemoryData {
             .cloned())
     }
 
-    fn schemas(&self, wmi: &str, year: u16) -> Result<Vec<i64>, DataError> {
-        let mut ids: Vec<i64> = self
+    fn schemas(&self, wmi: &str, year: u16) -> Result<Vec<SchemaRef>, DataError> {
+        Ok(self
             .schemas
             .iter()
             .filter(|range| {
@@ -82,11 +89,11 @@ impl VinData for MemoryData {
                     && year >= range.year_from
                     && range.year_to.is_none_or(|year_to| year <= year_to)
             })
-            .map(|range| range.schema_id)
-            .collect();
-        ids.sort_unstable();
-        ids.dedup();
-        Ok(ids)
+            .map(|range| SchemaRef {
+                id: range.schema_id,
+                year_from: range.year_from,
+            })
+            .collect())
     }
 
     fn patterns(&self, schema_ids: &[i64], _match_key: &str) -> Result<Vec<Pattern>, DataError> {
@@ -119,6 +126,14 @@ mod tests {
             .with_pattern(2, "K2***", Element::Model, "Old Model")
     }
 
+    fn ids(data: &MemoryData, year: u16) -> Vec<i64> {
+        data.schemas("KM8", year)
+            .unwrap()
+            .iter()
+            .map(|schema| schema.id)
+            .collect()
+    }
+
     #[test]
     fn finds_a_manufacturer_by_code() {
         assert_eq!(
@@ -131,12 +146,12 @@ mod tests {
     #[test]
     fn schema_year_ranges_are_inclusive_and_may_be_open_ended() {
         let data = data();
-        assert_eq!(data.schemas("KM8", 2021).unwrap(), Vec::<i64>::new());
-        assert_eq!(data.schemas("KM8", 2022).unwrap(), vec![1]);
-        assert_eq!(data.schemas("KM8", 2050).unwrap(), vec![1]);
-        assert_eq!(data.schemas("KM8", 1990).unwrap(), vec![2]);
-        assert_eq!(data.schemas("KM8", 1995).unwrap(), vec![2]);
-        assert_eq!(data.schemas("KM8", 1996).unwrap(), Vec::<i64>::new());
+        assert_eq!(ids(&data, 2021), Vec::<i64>::new());
+        assert_eq!(ids(&data, 2022), vec![1]);
+        assert_eq!(ids(&data, 2050), vec![1]);
+        assert_eq!(ids(&data, 1990), vec![2]);
+        assert_eq!(ids(&data, 1995), vec![2]);
+        assert_eq!(ids(&data, 1996), Vec::<i64>::new());
     }
 
     #[test]
