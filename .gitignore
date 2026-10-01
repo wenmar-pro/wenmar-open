@@ -1,0 +1,37 @@
+# Rust
+/target/
+**/*.rs.bk
+
+# Node (clients/js)
+node_modules/
+dist/
+*.tgz
+
+# Vehicle data: built by the data pipeline and published as release assets,
+# never committed.
+*.db
+*.db-shm
+*.db-wal
+*.db.gz
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+/data/build/
+
+# Private planning: design specs, implementation plans, marketing notes.
+# Kept out of the public repository.
+/docs/internal/
+/docs/superpowers/
+
+# Local config and secrets
+.env
+.env.*
+!.env.example
+.port
+.kamal/secrets*
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,49 @@
+name: Wrong decode
+description: A VIN decoded to the wrong vehicle, or is missing details it should have.
+labels: ["data"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A VIN identifies a specific vehicle. Only post one you are comfortable making public, and do not include an owner's name, plate, or address. The first 11 characters are usually enough.
+  - type: input
+    id: vin
+    attributes:
+      label: VIN
+      description: Full VIN, or at least the first 11 characters.
+      placeholder: 1HGCM82633A
+    validations:
+      required: true
+  - type: textarea
+    id: returned
+    attributes:
+      label: What Wenmar Open returned
+      description: Paste the JSON response or describe what the website showed.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What the vehicle actually is
+      description: Year, make, model, trim, engine, or whichever fields are wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: How you know
+      description: Door jamb label, build sheet, manufacturer documentation, or similar. Links help.
+    validations:
+      required: true
+  - type: dropdown
+    id: market
+    attributes:
+      label: Where was the vehicle sold?
+      options:
+        - Canada
+        - United States
+        - Other
+        - Not sure
+    validations:
+      required: true

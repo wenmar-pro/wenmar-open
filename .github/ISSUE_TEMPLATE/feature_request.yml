@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest new data or a new capability.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the job at the shop or in your software that this would help with.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would help
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Data source, if this needs new data
+      description: Only public-domain or openly licensed sources can be used. Link it if you know one.
