@@ -31,6 +31,17 @@ pub struct Fixture {
 }
 
 impl Fixture {
+    /// A directory with no data file in it yet.
+    ///
+    /// Nothing of the server can run before a test has one of these, so
+    /// this is where the test binary's log subscriber is set: see `capture`.
+    fn empty() -> Fixture {
+        crate::capture::install();
+        Fixture {
+            directory: tempfile::tempdir().unwrap(),
+        }
+    }
+
     pub fn path(&self) -> PathBuf {
         self.directory.path().join("data.sqlite3")
     }
@@ -153,9 +164,7 @@ INSERT INTO catalog_submodel_engine VALUES (2, 1);
 ";
 
 fn build(schema_version: &str, with_catalog: bool) -> Fixture {
-    let fixture = Fixture {
-        directory: tempfile::tempdir().unwrap(),
-    };
+    let fixture = Fixture::empty();
     let connection = Connection::open(fixture.path()).unwrap();
     connection
         .execute_batch(wenmar_vin::sqlite::SCHEMA)
@@ -188,9 +197,7 @@ pub fn old_data_file() -> Fixture {
 
 /// A SQLite file that is not a data file at all.
 pub fn other_sqlite_file() -> Fixture {
-    let fixture = Fixture {
-        directory: tempfile::tempdir().unwrap(),
-    };
+    let fixture = Fixture::empty();
     let connection = Connection::open(fixture.path()).unwrap();
     connection
         .execute_batch("CREATE TABLE notes (body TEXT);")

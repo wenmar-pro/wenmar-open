@@ -1,42 +1,10 @@
 //! What the server writes to its log, through the whole application.
 
-use std::io::Write;
-use std::sync::{Arc, Mutex};
-
 use axum::body::Body;
 use axum::http::Request;
-use tracing_subscriber::fmt::MakeWriter;
 
+use crate::capture::Capture;
 use crate::common;
-
-/// Log output kept in memory.
-#[derive(Clone, Default)]
-struct Captured(Arc<Mutex<Vec<u8>>>);
-
-impl Captured {
-    fn text(&self) -> String {
-        String::from_utf8_lossy(&self.0.lock().unwrap()).into_owned()
-    }
-}
-
-impl Write for Captured {
-    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
-        self.0.lock().unwrap().extend_from_slice(bytes);
-        Ok(bytes.len())
-    }
-
-    fn flush(&mut self) -> std::io::Result<()> {
-        Ok(())
-    }
-}
-
-impl<'a> MakeWriter<'a> for Captured {
-    type Writer = Captured;
-
-    fn make_writer(&'a self) -> Captured {
-        self.clone()
-    }
-}
 
 /// A real VIN, as the final review sent it. Its serial number is `004352`.
 const VIN: &str = "1HGCM82633A004352";
@@ -44,12 +12,7 @@ const VIN: &str = "1HGCM82633A004352";
 #[tokio::test]
 async fn no_address_puts_a_whole_vin_in_the_log() {
     let app = common::app().await;
-    let captured = Captured::default();
-    let subscriber = tracing_subscriber::fmt()
-        .with_writer(captured.clone())
-        .with_ansi(false)
-        .finish();
-    let guard = tracing::subscriber::set_default(subscriber);
+    let captured = Capture::start();
 
     let paths = [
         format!("/v1/vin/{VIN}"),
@@ -81,7 +44,6 @@ async fn no_address_puts_a_whole_vin_in_the_log() {
     app.get(&format!("/v1/vin/batch?x={}", "A".repeat(60_000)))
         .await;
     app.get(&format!("/{}", "A/".repeat(30_000))).await;
-    drop(guard);
 
     let text = captured.text();
     let lines: Vec<&str> = text
@@ -98,4 +60,60 @@ async fn no_address_puts_a_whole_vin_in_the_log() {
     for line in lines {
         assert!(line.len() < 400, "a log line of {} bytes", line.len());
     }
+}
+
+/// The request lines this thread's capture holds.
+fn request_lines(captured: &Capture) -> Vec<String> {
+    captured
+        .text()
+        .lines()
+        .filter(|line| line.contains("open_server::log"))
+        .map(str::to_owned)
+        .collect()
+}
+
+/// A request made on a thread of its own, as another test's would be.
+fn request_on_another_thread(path: &'static str) {
+    std::thread::spawn(move || {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(async {
+                common::app().await.get(path).await;
+            });
+    })
+    .join()
+    .unwrap();
+}
+
+// Whether a log statement writes anything is decided once for the whole
+// process, by the first thread that reaches it. Tests run on many threads,
+// so a capture must not depend on which test reached the statement first.
+#[tokio::test]
+async fn a_capture_holds_this_threads_lines_whoever_logged_first() {
+    let app = common::app().await;
+    let captured = Capture::start();
+    request_on_another_thread("/v1/somewhere-else");
+    app.get("/v1/meta").await;
+    request_on_another_thread("/v1/somewhere-else");
+
+    let lines = request_lines(&captured);
+    assert_eq!(lines.len(), 1, "{lines:?}");
+    assert!(lines[0].contains("GET /v1/meta 200"), "{lines:?}");
+}
+
+#[tokio::test]
+async fn a_capture_ends_when_it_is_dropped() {
+    let app = common::app().await;
+    let first = Capture::start();
+    app.get("/v1/meta").await;
+    assert_eq!(request_lines(&first).len(), 1);
+    drop(first);
+
+    app.get("/v1/meta").await;
+    let second = Capture::start();
+    assert_eq!(request_lines(&second), Vec::<String>::new());
+    app.get("/v1/years-of-nothing").await;
+    assert_eq!(request_lines(&second).len(), 1);
 }

@@ -3,6 +3,7 @@
 
 mod api_vehicles;
 mod api_vin;
+mod capture;
 mod common;
 mod db;
 mod http;
