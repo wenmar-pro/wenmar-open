@@ -83,6 +83,19 @@ curl -s https://open.wenmarpro.com/v1/vin/1HGCM82633A004352
 kamal app logs | tail -20
 ```
 
+The pages:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' https://open.wenmarpro.com/
+curl -sI https://open.wenmarpro.com/vin/1HGCM82633A004352 | grep -i -E 'x-robots-tag|cache-control'
+curl -s https://open.wenmarpro.com/robots.txt
+curl -s https://open.wenmarpro.com/sitemap.xml | head -5
+```
+
+The home page answers `200`; the result page carries `x-robots-tag: noindex` and `cache-control: private, max-age=3600`; `robots.txt` names `https://open.wenmarpro.com/sitemap.xml`; and the sitemap's addresses start with `https://open.wenmarpro.com/`. If they start with anything else, `OPEN_BASE_URL` is wrong in `config/deploy.yml`.
+
+Once the site is live, give `https://open.wenmarpro.com/sitemap.xml` to the search engines you care about through their webmaster tools. Nothing in this repository does that.
+
 `/v1/meta` must show the data version you deployed, an `x-data-version` header, and no `set-cookie` header. The service's log lines show `GET /v1/vin/1HGCM82633A` and never the last six characters of a VIN. That holds at any address: every part of a path that the caller chose is cut to 11 characters, so `GET /v1/vehicles/1HGCM82633A004352` is logged as `GET /v1/vehicles/1HGCM82633A`.
 
 **That check covers the service's log, not the proxy's.** `kamal app logs` shows what the service writes. The Kamal proxy in front of it writes a request log of its own, with each request's whole path and query string, the client's address and the user agent. A decode is `GET /v1/vin/` followed by the whole VIN, so the proxy's log would hold every VIN decoded that way, next to who asked. Batch decodes and MCP calls send VINs in the body, which neither log records.
@@ -115,6 +128,18 @@ Expected: 600 answers of `200` and one of `429`, and a log line `over the abuse 
 
 - If every answer is `200`, the forged header is being believed. Set `OPEN_TRUSTED_PROXIES` to `0` in `config/deploy.yml`, deploy, and investigate before going further.
 - If the address in the log is a private one such as `172.18.0.3`, the proxy is not passing the client's address on, and every visitor is being counted as one. Add `forward_headers: true` under `proxy:` in `config/deploy.yml`, deploy, and run the check again.
+
+## Look at the pages
+
+Tests check what the pages contain. Only a person can check how they look and feel. Before the first deploy, and after any change to the stylesheet or the templates, run `mise run serve` and go through this list in a browser.
+
+- **Phone width.** At 320 pixels wide, nothing scrolls sideways on `/`, `/vin/1HGCM82633A004352`, `/makes` and `/makes/honda/civic/2019`.
+- **Without JavaScript.** With scripts turned off, type a VIN and press Enter; pick a year and a make and press the button. Both must work. The copy and print buttons are not shown.
+- **With JavaScript.** On a result page, Copy puts the heading on the clipboard and Print opens the print dialogue.
+- **Keyboard only.** Tab from the top of the home page: the first stop is "Skip to content", every link and field shows a clear outline when it has focus, and Enter submits each form.
+- **Dark scheme.** Switch the system to dark. Text is readable on every page and the Decode button is the only red thing.
+- **Print.** Print preview of a result page shows the heading, the VIN and the tables, and no navigation, buttons or footer links.
+- **A screen reader,** if one is at hand: the page title is read first, tables are announced with their captions, and the VIN field is announced as "VIN".
 
 ## A new data version
 

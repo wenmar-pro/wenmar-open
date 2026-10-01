@@ -4,7 +4,7 @@ Free vehicle data for auto repair shops, starting with VIN decoding. No API key,
 
 Wenmar Open is built and hosted by [Wenmar Pro](https://wenmarpro.com), shop management software for independent auto repair shops.
 
-> **Status: pre-release.** The decoder, the data build and the API server exist and run locally. Nothing is published or hosted yet. Watch the repo or check [CHANGELOG.md](CHANGELOG.md) for the first release.
+> **Status: pre-release.** The decoder, the data build, the API and the website exist and run locally. Nothing is published or hosted yet. Watch the repo or check [CHANGELOG.md](CHANGELOG.md) for the first release.
 
 ## What it will be
 
@@ -60,6 +60,8 @@ mise run serve    # http://localhost:3000
 curl http://localhost:3000/v1/vin/1HGCM82633A004352
 ```
 
+Open `http://localhost:3000` for the website: a VIN box, a year and make picker, and reference pages for every make, model year and manufacturer code. The pages are rendered on the server and work with JavaScript turned off. Every reference page has a Markdown version at the same address with `.md` added, such as `/makes/honda/civic/2019.md`.
+
 Without mise: `OPEN_DATA=data/build/wenmar-open-2026.09.sqlite3 cargo run -p open-server`. The server opens the data file read-only and stores nothing. Settings and the deploy procedure are in [docs/deploy.md](docs/deploy.md).
 
 ## Repository layout
@@ -71,7 +73,7 @@ Without mise: `OPEN_DATA=data/build/wenmar-open-2026.09.sqlite3 cargo run -p ope
 | `crates/wenmar-vin` | Decoder library: VIN parsing, check digit, model year, pattern matching |
 | `crates/wenmar-vehicles` | Catalog library: years, makes, models, submodels, engines, search, stable vehicle ids |
 | `crates/open-data` | Builds the SQLite data file from NHTSA's vPIC release |
-| `crates/open-server` | The JSON API and the MCP endpoint, served from one read-only data file |
+| `crates/open-server` | The website, the JSON API and the MCP endpoint, served from one read-only data file |
 | `clients/js` | npm client for the hosted API |
 
 ## Building the data file
