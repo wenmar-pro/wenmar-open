@@ -166,6 +166,19 @@ pub struct Pattern {
     pub changed_on: String,
 }
 
+/// One value an engine model implies for an element.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EngineRow {
+    pub id: i64,
+    pub element: Element,
+    /// The raw attribute: a lookup id, or the value itself when there is no lookup.
+    pub attribute: String,
+    /// The resolved, human-readable value.
+    pub value: String,
+    /// When the row was last changed, as text that sorts correctly. Empty when unknown.
+    pub changed_on: String,
+}
+
 /// Where the decoder gets its data.
 ///
 /// Implementations must:
@@ -188,6 +201,12 @@ pub trait VinData {
     /// implementation may use it to leave out patterns that cannot match, but
     /// must return every pattern that does. The decoder checks each one again.
     fn patterns(&self, schema_ids: &[i64], match_key: &str) -> Result<Vec<Pattern>, DataError>;
+
+    /// What an engine model implies, matched on the name trimmed and without
+    /// regard to case. The default knows no engine models.
+    fn engine_model(&self, _name: &str) -> Result<Vec<EngineRow>, DataError> {
+        Ok(Vec::new())
+    }
 }
 
 impl<T: VinData + ?Sized> VinData for &T {
@@ -201,5 +220,9 @@ impl<T: VinData + ?Sized> VinData for &T {
 
     fn patterns(&self, schema_ids: &[i64], match_key: &str) -> Result<Vec<Pattern>, DataError> {
         (**self).patterns(schema_ids, match_key)
+    }
+
+    fn engine_model(&self, name: &str) -> Result<Vec<EngineRow>, DataError> {
+        (**self).engine_model(name)
     }
 }

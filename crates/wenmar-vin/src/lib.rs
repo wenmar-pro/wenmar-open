@@ -48,7 +48,7 @@ pub mod suggest;
 pub mod vin;
 
 pub use check_digit::CheckDigit;
-pub use data::{DataError, Element, Manufacturer, Pattern, SchemaRef, VinData};
+pub use data::{DataError, Element, EngineRow, Manufacturer, Pattern, SchemaRef, VinData};
 pub use decode::{DecodeError, DecodeOptions, Decoder};
 pub use engine::Engine;
 pub use error::{InvalidChar, VinError};

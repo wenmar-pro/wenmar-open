@@ -882,3 +882,72 @@ fn a_displacement_that_is_not_a_positive_number_is_left_out() {
         assert_eq!(decoded.engine, None, "{value:?} should give no engine");
     }
 }
+
+fn kona_with_engine() -> MemoryData {
+    one_schema()
+        .with_pattern(1, "K2***", Element::Model, "Kona")
+        .with_pattern(1, "K2***", Element::EngineModel, "G4NH")
+}
+
+#[test]
+fn an_engine_model_fills_in_what_the_vin_does_not_say() {
+    let decoded = decode(
+        kona_with_engine()
+            .with_engine_row("G4NH", Element::EngineCylinders, "4", "2020-01-01")
+            .with_engine_row("G4NH", Element::FuelTypePrimary, "Gasoline", "2020-01-01"),
+    );
+    let engine = decoded.engine.unwrap();
+    assert_eq!(engine.cylinders, Some(4));
+    assert_eq!(engine.fuel.as_deref(), Some("Gasoline"));
+}
+
+#[test]
+fn an_engine_model_never_replaces_a_value_from_the_vin() {
+    let decoded = decode(
+        kona_with_engine()
+            .with_pattern(1, "K2***", Element::EngineCylinders, "6")
+            .with_engine_row("G4NH", Element::EngineCylinders, "4", "2030-01-01"),
+    );
+    assert_eq!(decoded.engine.unwrap().cylinders, Some(6));
+}
+
+#[test]
+fn the_engine_model_name_is_matched_without_regard_to_case_or_spaces() {
+    let decoded = decode(
+        one_schema()
+            .with_pattern(1, "K2***", Element::EngineModel, " g4nh ")
+            .with_engine_row("G4NH", Element::EngineCylinders, "4", "2020-01-01"),
+    );
+    assert_eq!(decoded.engine.unwrap().cylinders, Some(4));
+}
+
+#[test]
+fn among_engine_model_rows_the_latest_change_wins() {
+    let decoded = decode(
+        kona_with_engine()
+            .with_engine_row("G4NH", Element::EngineCylinders, "3", "2015-01-01")
+            .with_engine_row("G4NH", Element::EngineCylinders, "4", "2020-01-01"),
+    );
+    assert_eq!(decoded.engine.unwrap().cylinders, Some(4));
+}
+
+#[test]
+fn exact_cubic_centimetres_can_come_from_the_engine_model() {
+    // The VIN says 2.4 L; the engine model says 2354 cc.
+    let decoded = decode(
+        kona_with_engine()
+            .with_pattern(1, "K2***", Element::DisplacementL, "2.4")
+            .with_engine_row("G4NH", Element::DisplacementCc, "2354", "2020-01-01"),
+    );
+    let engine = decoded.engine.unwrap();
+    assert_eq!(
+        (engine.displacement_l, engine.displacement_cc),
+        (Some(2.4), Some(2354))
+    );
+}
+
+#[test]
+fn an_unknown_engine_model_changes_nothing() {
+    let decoded = decode(kona_with_engine());
+    assert_eq!(decoded.engine.unwrap().cylinders, None);
+}

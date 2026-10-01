@@ -1,4 +1,4 @@
-use crate::data::{DataError, Element, Manufacturer, Pattern, SchemaRef, VinData};
+use crate::data::{DataError, Element, EngineRow, Manufacturer, Pattern, SchemaRef, VinData};
 
 #[derive(Debug, Clone)]
 struct SchemaRange {
@@ -14,6 +14,7 @@ pub struct MemoryData {
     manufacturers: Vec<Manufacturer>,
     schemas: Vec<SchemaRange>,
     patterns: Vec<Pattern>,
+    engine_rows: Vec<(String, EngineRow)>,
 }
 
 impl MemoryData {
@@ -74,6 +75,29 @@ impl MemoryData {
         self.push_pattern(schema_id, keys, element, attribute, value, "")
     }
 
+    /// Adds a value an engine model implies. Ids are assigned in insertion
+    /// order, starting at 1.
+    pub fn with_engine_row(
+        mut self,
+        engine_model: &str,
+        element: Element,
+        value: &str,
+        changed_on: &str,
+    ) -> Self {
+        let id = i64::try_from(self.engine_rows.len()).unwrap_or(i64::MAX - 1) + 1;
+        self.engine_rows.push((
+            engine_model.trim().to_lowercase(),
+            EngineRow {
+                id,
+                element,
+                attribute: value.to_owned(),
+                value: value.to_owned(),
+                changed_on: changed_on.to_owned(),
+            },
+        ));
+        self
+    }
+
     fn push_pattern(
         mut self,
         schema_id: i64,
@@ -128,6 +152,16 @@ impl VinData for MemoryData {
             .iter()
             .filter(|pattern| schema_ids.contains(&pattern.schema_id))
             .cloned()
+            .collect())
+    }
+
+    fn engine_model(&self, name: &str) -> Result<Vec<EngineRow>, DataError> {
+        let name = name.trim().to_lowercase();
+        Ok(self
+            .engine_rows
+            .iter()
+            .filter(|(stored, _)| *stored == name)
+            .map(|(_, row)| row.clone())
             .collect())
     }
 }

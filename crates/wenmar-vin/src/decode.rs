@@ -81,6 +81,8 @@ fn elements(matched: &[Pattern]) -> HashSet<Element> {
 
 /// vPIC's weight for displacement, which NHTSA converts between units
 /// before scoring, so it counts once.
+/// Rank of a value that came from an engine model: below any schema year.
+const ENGINE_MODEL_PRIORITY: i32 = 50;
 const DISPLACEMENT_WEIGHT: u32 = 98;
 
 fn element_weight(elements: &HashSet<Element>) -> u32 {
@@ -189,7 +191,8 @@ impl<D: VinData> Decoder<D> {
             ));
         }
 
-        let values = select(&matched, &year_from);
+        let mut values = select(&matched, &year_from);
+        add_engine_model(&self.data, &mut values).map_err(DecodeError::Data)?;
 
         if matched.is_empty() {
             warnings.push(warning(
@@ -271,6 +274,33 @@ fn warning(code: WarningCode, message: &str) -> Warning {
 fn usable(value: &str) -> bool {
     let value = value.trim();
     !value.is_empty() && !value.eq_ignore_ascii_case("not applicable")
+}
+
+/// Adds what the engine model implies, for elements the VIN left empty.
+fn add_engine_model<D: VinData>(data: &D, values: &mut Values) -> Result<(), DataError> {
+    let Some(name) = values
+        .get(&Element::EngineModel)
+        .map(|item| item.value.clone())
+    else {
+        return Ok(());
+    };
+    let mut rows = data.engine_model(&name)?;
+    // Latest change first, then lowest id, so the first row seen per element wins.
+    rows.sort_by(|a, b| b.changed_on.cmp(&a.changed_on).then(a.id.cmp(&b.id)));
+    for row in rows {
+        if usable(&row.value) && !values.contains_key(&row.element) {
+            values.insert(
+                row.element,
+                Item {
+                    attribute: row.attribute,
+                    value: row.value,
+                    priority: ENGINE_MODEL_PRIORITY,
+                    changed_on: row.changed_on,
+                },
+            );
+        }
+    }
+    Ok(())
 }
 
 /// Trims a value from the data and drops it if it is a placeholder.
