@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ doc.title }}</h1>
+<p>{{ doc.intro }}</p>
+{% for section in doc.sections -%}
+<h2>{{ section.heading }}</h2>
+{% for paragraph in section.paragraphs -%}
+<p>{{ paragraph }}</p>
+{% endfor -%}
+{% if let Some(code) = section.code -%}
+<pre><code>{{ code }}</code></pre>
+{% endif -%}
+{% if !section.links.is_empty() -%}
+<ul>
+{% for link in section.links -%}
+<li><a href="{{ link.1 }}">{{ link.0 }}</a></li>
+{% endfor -%}
+</ul>
+{% endif -%}
+{% endfor -%}
+{% endblock %}

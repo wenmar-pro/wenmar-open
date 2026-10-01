@@ -33,6 +33,18 @@ Responses are plain JSON with no wrapper. Errors are `{{ \"error\": {{ \"code\",
 
 - Remote MCP server: `{base}/mcp` (Streamable HTTP, no key). Tools: `wenmar_vin` (actions `decode`, `batch`) and `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`).
 
+## Pages
+
+Every reference page has a Markdown version at the same address with `.md` added.
+
+- [API reference]({base}/docs.md)
+- [About the data]({base}/data.md)
+- [About]({base}/about.md)
+- [Makes]({base}/makes.md): each make links to its models, and each model year to its trims and engines
+- One make: `{base}/makes/{{make}}.md`, such as [Honda]({base}/makes/honda.md)
+- One model year: `{base}/makes/{{make}}/{{model}}/{{year}}.md`
+- One manufacturer code: `{base}/wmi/{{code}}.md`
+
 ## Notes
 
 - A wrong check digit is not an error. The decode has `valid: false` and a warning, because many genuine VINs from outside North America fail the check.
