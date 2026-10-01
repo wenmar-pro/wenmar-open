@@ -224,6 +224,8 @@ use tower::ServiceExt;
 /// long as the application is used.
 pub struct TestApp {
     pub router: Router,
+    /// What the handlers share, for tests that keep the data file busy.
+    pub state: AppState,
     _fixture: Fixture,
 }
 
@@ -244,7 +246,8 @@ pub async fn app_with(change: impl FnOnce(&mut Config)) -> TestApp {
     change(&mut config);
     let state = AppState::open(config).await.unwrap();
     TestApp {
-        router: open_server::app(state),
+        router: open_server::app(state.clone()),
+        state,
         _fixture: fixture,
     }
 }
@@ -298,4 +301,46 @@ pub fn header<'r>(response: &'r Response<Body>, name: &str) -> &'r str {
         .unwrap_or_else(|| panic!("no {name} header"))
         .to_str()
         .unwrap()
+}
+
+/// Database work that does not finish until it is told to, for tests of
+/// what the server does while the data file is busy.
+#[derive(Clone, Default)]
+pub struct Hold {
+    released: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    started: std::sync::Arc<std::sync::atomic::AtomicUsize>,
+}
+
+impl Hold {
+    /// Blocks the calling thread until `release`. Call it inside `Db::run`.
+    pub fn wait(&self) {
+        use std::sync::atomic::Ordering;
+        self.started.fetch_add(1, Ordering::SeqCst);
+        // A test that fails before `release` must still let its threads go.
+        let give_up = std::time::Instant::now() + std::time::Duration::from_secs(20);
+        while !self.released.load(Ordering::SeqCst) && std::time::Instant::now() < give_up {
+            std::thread::sleep(std::time::Duration::from_millis(2));
+        }
+    }
+
+    /// How many calls of `wait` have begun.
+    pub fn started(&self) -> usize {
+        self.started.load(std::sync::atomic::Ordering::SeqCst)
+    }
+
+    /// Waits until `count` calls of `wait` have begun.
+    pub async fn until_started(&self, count: usize) {
+        for _ in 0..2_000 {
+            if self.started() >= count {
+                return;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(2)).await;
+        }
+        panic!("only {} of {count} began", self.started());
+    }
+
+    pub fn release(&self) {
+        self.released
+            .store(true, std::sync::atomic::Ordering::SeqCst);
+    }
 }

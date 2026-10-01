@@ -5,7 +5,7 @@
 //! MCP endpoint calls too, so both give the same answers.
 
 use axum::Json;
-use axum::extract::rejection::QueryRejection;
+use axum::extract::rejection::{PathRejection, QueryRejection};
 use axum::extract::{Path, Query, State};
 use serde::Deserialize;
 use serde_json::json;
@@ -159,9 +159,10 @@ pub async fn years_op(state: &AppState, query: YearsQuery) -> Result<Vec<u16>, A
     {
         return Ok(years.to_vec());
     }
+    // That read scans every model year, so it takes its turn as slow work.
     let mut years = state
         .db()
-        .run(move |worker| worker.catalog.years(scope, &term))
+        .run_slow(move |worker| worker.catalog.years(scope, &term))
         .await??;
     years.sort_unstable_by(|left, right| right.cmp(left));
     Ok(years)
@@ -238,10 +239,13 @@ pub async fn search_op(state: &AppState, query: SearchQuery) -> Result<Vec<Entry
     let limit = limit(query.limit, SEARCH_DEFAULT, SEARCH_MOST);
 
     // First the catalog's own reading: a year, a make, a model, a submodel.
+    // It scans the catalog several times over, which takes the engine long
+    // enough that a search must never hold every connection: it runs as
+    // slow work, and VIN decodes keep theirs.
     let typed = text.clone();
     let entries = state
         .db()
-        .run(move |worker| worker.catalog.search(&typed, scope, limit))
+        .run_slow(move |worker| worker.catalog.search(&typed, scope, limit))
         .await??;
     if !entries.is_empty() {
         return Ok(entries.into_iter().map(Entry::from).collect());
@@ -269,7 +273,7 @@ pub async fn search_op(state: &AppState, query: SearchQuery) -> Result<Vec<Entry
     }
     let entries = state
         .db()
-        .run(move |worker| {
+        .run_slow(move |worker| {
             let (first, last) = worker.catalog.year_range();
             let typed_year = search_index::words(&text)
                 .iter()
@@ -452,7 +456,11 @@ pub async fn search(
 )]
 pub async fn entry(
     State(state): State<AppState>,
-    Path(id): Path<String>,
+    path: Result<Path<String>, PathRejection>,
 ) -> Result<Json<Entry>, ApiError> {
+    // An id that is not UTF-8 is an id no vehicle has.
+    let Ok(Path(id)) = path else {
+        return Err(ApiError::NotFound("No vehicle has that id.".to_owned()));
+    };
     Ok(Json(entry_op(&state, id).await?))
 }

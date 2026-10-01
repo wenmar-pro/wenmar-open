@@ -193,3 +193,93 @@ async fn outside_v1_an_unknown_address_is_a_json_404_too() {
         assert_eq!(body_json(response).await["error"]["code"], "not_found");
     }
 }
+
+#[tokio::test]
+async fn an_address_that_is_too_long_is_414_in_the_error_shape() {
+    let app = common::app().await;
+    let fits = "A".repeat(open_server::MOST_URI - "/v1/meta?x=".len());
+    assert_eq!(
+        app.get(&format!("/v1/meta?x={fits}")).await.status(),
+        StatusCode::OK
+    );
+    let long = "A".repeat(60_000);
+    for path in [
+        format!("/v1/meta?x={fits}A"),
+        format!("/v1/vin/batch?x={long}"),
+        format!("/v1/vin/{long}"),
+        format!("/v1/vehicles/search?q={long}"),
+        format!("/{long}"),
+        format!("/health?{long}"),
+    ] {
+        let response = app.get(&path).await;
+        assert_eq!(
+            response.status(),
+            StatusCode::URI_TOO_LONG,
+            "{} bytes",
+            path.len()
+        );
+        assert_eq!(header(&response, "cache-control"), "no-store");
+        let text = body_text(response).await;
+        assert!(text.len() < 500, "{} bytes", text.len());
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&text).unwrap(),
+            json!({ "error": {
+                "code": "uri_too_long",
+                "message": "The address is too long.",
+                "details": { "max": open_server::MOST_URI }
+            } })
+        );
+    }
+    // A refused address does not count against anything that follows.
+    assert_eq!(app.get("/v1/meta").await.status(), StatusCode::OK);
+}
+
+#[tokio::test]
+async fn more_requests_at_once_than_the_server_holds_are_refused_at_once() {
+    use std::time::Duration;
+
+    let app = common::app_with(|config| config.requests_per_minute = 100_000).await;
+    // Both connections are busy, so every request for data waits.
+    let hold = common::Hold::default();
+    let mut busy = Vec::new();
+    for _ in 0..2 {
+        let state = app.state.clone();
+        let hold = hold.clone();
+        busy.push(tokio::spawn(async move {
+            state.db().run(move |_| hold.wait()).await.unwrap();
+        }));
+    }
+    hold.until_started(2).await;
+    let mut waiting = Vec::new();
+    for _ in 0..open_server::MOST_IN_FLIGHT {
+        let router = app.router.clone();
+        waiting.push(tokio::spawn(async move {
+            use tower::ServiceExt;
+            let request = Request::get("/v1/vin/KM8K2CAB4PU001140")
+                .body(Body::empty())
+                .unwrap();
+            router.oneshot(request).await.unwrap().status()
+        }));
+    }
+    tokio::time::sleep(Duration::from_millis(100)).await;
+
+    // One more is told so straight away, in the error shape.
+    let refused = tokio::time::timeout(Duration::from_secs(2), app.get("/v1/meta"))
+        .await
+        .expect("a request over the limit was kept waiting");
+    assert_eq!(refused.status(), StatusCode::SERVICE_UNAVAILABLE);
+    assert_eq!(header(&refused, "retry-after"), "1");
+    assert_eq!(body_json(refused).await["error"]["code"], "unavailable");
+    // The deploy proxy's health check is always answered.
+    assert_eq!(app.get("/health").await.status(), StatusCode::OK);
+
+    hold.release();
+    for task in busy {
+        task.await.unwrap();
+    }
+    for task in waiting {
+        assert_eq!(task.await.unwrap(), StatusCode::OK);
+    }
+    // Every place is free again.
+    assert_eq!(app.get("/v1/meta").await.status(), StatusCode::OK);
+}

@@ -3,6 +3,7 @@
 use std::sync::Arc;
 
 use axum::http::HeaderValue;
+use tokio::sync::Semaphore;
 use wenmar_vehicles::Scope;
 
 use crate::config::Config;
@@ -20,6 +21,8 @@ struct Inner {
     db: Db,
     config: Config,
     limiter: Limiter,
+    /// One place for every request being answered.
+    places: Semaphore,
     etag_text: String,
     etag: HeaderValue,
     data_version: HeaderValue,
@@ -87,6 +90,7 @@ impl AppState {
         Ok(AppState {
             inner: Arc::new(Inner {
                 limiter: Limiter::new(config.requests_per_minute),
+                places: Semaphore::new(crate::MOST_IN_FLIGHT),
                 etag: header(&etag_text),
                 data_version: header(&db.meta().data_version),
                 etag_text,
@@ -124,6 +128,11 @@ impl AppState {
 
     pub fn limiter(&self) -> &Limiter {
         &self.inner.limiter
+    }
+
+    /// The places for requests being answered: [`crate::MOST_IN_FLIGHT`].
+    pub fn places(&self) -> &Semaphore {
+        &self.inner.places
     }
 
     pub fn etag_text(&self) -> &str {

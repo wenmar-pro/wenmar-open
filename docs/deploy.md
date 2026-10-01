@@ -83,7 +83,23 @@ curl -s https://open.wenmarpro.com/v1/vin/1HGCM82633A004352
 kamal app logs | tail -20
 ```
 
-`/v1/meta` must show the data version you deployed, an `x-data-version` header, and no `set-cookie` header. The log lines show `GET /v1/vin/1HGCM82633A` and never the last six characters of a VIN.
+`/v1/meta` must show the data version you deployed, an `x-data-version` header, and no `set-cookie` header. The service's log lines show `GET /v1/vin/1HGCM82633A` and never the last six characters of a VIN. That holds at any address: every part of a path that the caller chose is cut to 11 characters, so `GET /v1/vehicles/1HGCM82633A004352` is logged as `GET /v1/vehicles/1HGCM82633A`.
+
+**That check covers the service's log, not the proxy's.** `kamal app logs` shows what the service writes. The Kamal proxy in front of it writes a request log of its own, with each request's whole path and query string, the client's address and the user agent. A decode is `GET /v1/vin/` followed by the whole VIN, so the proxy's log would hold every VIN decoded that way, next to who asked. Batch decodes and MCP calls send VINs in the body, which neither log records.
+
+This has not been checked against the running proxy; it rests on how the proxy logs requests. Check it on the server after the first deploy:
+
+```bash
+kamal proxy logs | grep '/v1/vin/' | tail -5
+```
+
+If those lines show all 17 characters, the rule that logs keep only the first 11 characters of a VIN is not met on this server, whatever the service does. The service cannot fix that. Choose one before telling anyone the service is live:
+
+- **Accept it and say what is true.** Reword the rule wherever it is stated (the design's operations section, and the site's own description of what is logged): the service's log keeps 11 characters, and the hosting proxy's request log keeps whole addresses for as long as that log is kept.
+- **Keep the proxy's log short.** The proxy logs to its container's output, so Docker's log settings for the `kamal-proxy` container decide how much is kept: `docker inspect kamal-proxy --format '{{.HostConfig.LogConfig}}'` shows them. The proxy is shared with `app.wenmarpro.com`, so a change applies to that product's request log too.
+- **Keep whole VINs out of it.** Give this service a proxy whose request log is off or leaves out the path, which means its own server or its own proxy.
+
+Until one is chosen, do not say publicly that a VIN's serial number is never logged.
 
 **Check that the abuse ceiling sees real addresses.** This is the one setting that cannot be tested before the service is behind the real proxy. From your own machine, send 601 requests that each claim a different address:
 
@@ -129,3 +145,24 @@ Cached answers carry the old version in their `ETag`, so clients fetch fresh one
 | `OPEN_RATE_LIMIT` | `600` | Requests one address may make in a minute. |
 | `OPEN_CONNECTIONS` | `4` | Read-only connections to the data file. |
 | `RUST_LOG` | `info,turso_core=error,tantivy=warn` | Log level. |
+
+## Limits that are not settings
+
+These are fixed in the code. They keep one client, or a few, from using up the container's memory or keeping VIN decodes waiting.
+
+| Limit | Value | Over it |
+|---|---|---|
+| Address: path and query string | 8 KB | `414` with code `uri_too_long` |
+| Request head: request line and all headers | 32 KB | `431` from the HTTP layer, with no JSON body, and the connection is closed |
+| Request body | 16 KB | `413` with code `payload_too_large` |
+| Requests being answered at once | 512 | `503` with code `unavailable`, at once |
+| Time to answer a request | 10 seconds | `503` with code `unavailable` |
+| Connections open at once | 1,024 | Further connections wait until one closes |
+| Time for a connection to send a request head, including the wait between two requests on a connection kept open | 120 seconds | The connection is closed |
+| Slow reads of the data file at once: free-text search, and years narrowed by `term` or by a vehicle type | Half of `OPEN_CONNECTIONS` | They wait their turn; the other connections stay free for VIN decodes and the rest of the catalog |
+
+`/health` is exempt from the request limit and from the abuse ceiling, so the proxy's check is answered while the service is refusing other requests. It is not exempt from the connection limit.
+
+The 120 seconds must stay longer than the time the proxy keeps an idle connection to the service open, so that the proxy closes first. If the proxy's log ever shows `502` for requests the service never logged, compare the two.
+
+Free-text search is still slow for the engine: each search reads the whole catalog several times. The limits above keep that from affecting decodes, but they do not make search fast, and a burst of searches is answered `503` after 10 seconds. Measure search in the release image under `--cpus 0.5` before announcing it.

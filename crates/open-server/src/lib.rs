@@ -10,6 +10,7 @@ pub mod llms;
 pub mod log;
 pub mod mcp;
 pub mod search_index;
+pub mod serve;
 pub mod state;
 pub mod vin_rows;
 
@@ -17,7 +18,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use axum::Router;
-use axum::extract::{DefaultBodyLimit, Request};
+use axum::extract::{DefaultBodyLimit, Request, State};
 use axum::http::{HeaderName, HeaderValue, Method, header};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
@@ -30,6 +31,15 @@ use crate::state::AppState;
 
 /// Largest request body read: a batch of 50 VINs is under 2 KB.
 pub const BODY_LIMIT: usize = 16 * 1024;
+
+/// Longest address read: the path and the query string together. The longest
+/// address the API has a use for is well under 1 KB.
+pub const MOST_URI: usize = 8 * 1024;
+
+/// Most requests being answered at once. One more is answered 503 at once.
+/// With [`serve::HEAD_LIMIT`] this bounds the memory requests can hold while
+/// they wait: 512 heads of 32 KB are 16 MB.
+pub const MOST_IN_FLIGHT: usize = 512;
 
 /// Longest a request may take before it is answered with 503.
 pub const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
@@ -47,6 +57,32 @@ async fn timeout(request: Request, next: Next) -> Response {
         Ok(response) => response,
         Err(_) => ApiError::Unavailable.into_response(),
     }
+}
+
+/// Refuses an address longer than [`MOST_URI`] before anything else looks at
+/// it.
+async fn short_enough(request: Request, next: Next) -> Response {
+    let length = request
+        .uri()
+        .path_and_query()
+        .map_or(0, |address| address.as_str().len());
+    if length > MOST_URI {
+        return ApiError::UriTooLong { max: MOST_URI }.into_response();
+    }
+    next.run(request).await
+}
+
+/// Answers 503 at once when [`MOST_IN_FLIGHT`] requests are already being
+/// answered, so requests that wait cannot pile up without limit. `/health`
+/// always gets through: the deploy proxy calls it every few seconds.
+async fn in_flight(State(state): State<AppState>, request: Request, next: Next) -> Response {
+    if request.uri().path() == "/health" {
+        return next.run(request).await;
+    }
+    let Ok(_place) = state.places().try_acquire() else {
+        return ApiError::Unavailable.into_response();
+    };
+    next.run(request).await
 }
 
 /// Any origin may call the API from a browser. No credentials are involved:
@@ -83,8 +119,9 @@ pub fn app(state: AppState) -> Router {
     };
 
     // Layers run from the bottom of this list to the top: a request is
-    // logged, then guarded against panics, counted against the ceiling,
-    // given a time limit and CORS headers, and only then routed.
+    // logged, then guarded against panics, refused if its address is too
+    // long, counted against the ceiling, given a place among the requests
+    // in flight, a time limit and CORS headers, and only then handled.
     Router::new()
         .merge(v1)
         .route("/v1/openapi.json", get(openapi))
@@ -105,7 +142,9 @@ pub fn app(state: AppState) -> Router {
         ))
         .layer(cors())
         .layer(middleware::from_fn(timeout))
+        .layer(middleware::from_fn_with_state(state.clone(), in_flight))
         .layer(middleware::from_fn_with_state(state.clone(), limit::limit))
+        .layer(middleware::from_fn(short_enough))
         .layer(CatchPanicLayer::custom(
             |_: Box<dyn std::any::Any + Send>| ApiError::Internal.into_response(),
         ))

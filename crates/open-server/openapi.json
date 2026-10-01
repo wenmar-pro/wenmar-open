@@ -989,7 +989,7 @@
         "properties": {
           "code": {
             "type": "string",
-            "description": "A stable code to branch on. One of `invalid_vin`, `validation_failed`,\n`not_found`, `method_not_allowed`, `payload_too_large`,\n`rate_limited`, `unavailable`, `internal_error`.",
+            "description": "A stable code to branch on. One of `invalid_vin`, `validation_failed`,\n`not_found`, `method_not_allowed`, `payload_too_large`,\n`uri_too_long`, `rate_limited`, `unavailable`, `internal_error`.",
             "example": "invalid_vin"
           },
           "details": {

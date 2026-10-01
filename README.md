@@ -43,7 +43,7 @@ GET  /v1/openapi.json            OpenAPI description, generated from the code
 
 An error is `{ "error": { "code", "message", "details" } }` with a fitting HTTP status. A VIN with a wrong check digit is not an error: the decode has `valid: false` and a warning.
 
-One address may make 600 requests a minute. Over that the answer is `429` with a `Retry-After` header. The limit exists so that one client cannot slow the service for everyone.
+One address may make 600 requests a minute. Over that the answer is `429` with a `Retry-After` header. The limit exists so that one client cannot slow the service for everyone. For the same reason an address (path and query string) may be 8 KB and a request's headers 32 KB, and when the server is too busy to answer the answer is `503` with a `Retry-After` header.
 
 Fields and endpoints are only ever added.
 

@@ -4,13 +4,17 @@
 //! connections is shared by every request. All database work runs on tokio's
 //! blocking thread pool, through [`Db::run`], because the catalog library's
 //! [`Source`] is a blocking call.
+//!
+//! Work the engine answers slowly, such as a free-text search, goes through
+//! [`Db::run_slow`], which may use only some of the connections. The rest
+//! are always there for a VIN decode.
 
 use std::path::Path;
 use std::sync::{Arc, Mutex, PoisonError};
 
 use serde::Serialize;
 use tokio::runtime::Handle;
-use tokio::sync::Semaphore;
+use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 use utoipa::ToSchema;
 use wenmar_vehicles::schema::SCHEMA_VERSION;
 use wenmar_vehicles::{Catalog, Source, SourceError, Value};
@@ -131,7 +135,17 @@ pub struct Db {
     idle: Arc<Mutex<Vec<Worker>>>,
     permits: Arc<Semaphore>,
     size: usize,
+    /// Places for slow work: fewer than there are connections.
+    slow: Arc<Semaphore>,
+    slow_size: usize,
     meta: Meta,
+}
+
+/// How many of `size` connections slow work may use at once: half, so the
+/// other half is never waited for. A single connection is shared, and then
+/// quick work waits for at most one piece of slow work.
+fn slow_share(size: usize) -> usize {
+    (size / 2).max(1)
 }
 
 impl std::fmt::Debug for Db {
@@ -140,6 +154,7 @@ impl std::fmt::Debug for Db {
             .debug_struct("Db")
             .field("meta", &self.meta)
             .field("size", &self.size)
+            .field("slow_size", &self.slow_size)
             .finish()
     }
 }
@@ -224,6 +239,8 @@ impl Db {
             idle: Arc::new(Mutex::new(workers)),
             permits: Arc::new(Semaphore::new(size)),
             size,
+            slow: Arc::new(Semaphore::new(slow_share(size))),
+            slow_size: slow_share(size),
             meta,
         })
     }
@@ -232,12 +249,43 @@ impl Db {
         &self.meta
     }
 
+    /// How many connections slow work may use at once.
+    pub fn slow_connections(&self) -> usize {
+        self.slow_size
+    }
+
     /// Runs `work` on a blocking thread with one of the connections.
     ///
     /// Waits, without holding a thread, while every connection is busy. The
     /// connection goes back to the pool when `work` returns, even if the
     /// caller has stopped waiting.
     pub async fn run<T, F>(&self, work: F) -> Result<T, DbError>
+    where
+        F: FnOnce(&Worker) -> T + Send + 'static,
+        T: Send + 'static,
+    {
+        self.start(None, work).await
+    }
+
+    /// The same as [`Db::run`], for work that can take the engine a long
+    /// time. Only [`Db::slow_connections`] pieces of it run at once, so it
+    /// can never keep every connection busy.
+    ///
+    /// The place is given back when `work` returns, not when the caller
+    /// stops waiting: a request that timed out still has its query running.
+    pub async fn run_slow<T, F>(&self, work: F) -> Result<T, DbError>
+    where
+        F: FnOnce(&Worker) -> T + Send + 'static,
+        T: Send + 'static,
+    {
+        let place = Arc::clone(&self.slow)
+            .acquire_owned()
+            .await
+            .map_err(|_| DbError::Stopped)?;
+        self.start(Some(place), work).await
+    }
+
+    async fn start<T, F>(&self, place: Option<OwnedSemaphorePermit>, work: F) -> Result<T, DbError>
     where
         F: FnOnce(&Worker) -> T + Send + 'static,
         T: Send + 'static,
@@ -252,6 +300,7 @@ impl Db {
         let size = self.size;
         tokio::task::spawn_blocking(move || {
             let _permit = permit;
+            let _place = place;
             let taken = idle.lock().unwrap_or_else(PoisonError::into_inner).pop();
             // A worker is missing only if an earlier task panicked.
             let worker = match taken {

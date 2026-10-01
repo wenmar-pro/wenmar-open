@@ -160,7 +160,9 @@ async fn search_reads_what_people_type() {
 #[tokio::test]
 async fn search_text_that_names_nothing_finds_nothing() {
     let app = common::app().await;
-    let long = "x".repeat(50_000);
+    // An address may be 8 KB, so this is about the longest text that can
+    // reach the search.
+    let long = "x".repeat(8_000);
     let inputs = [
         "%25",
         "_",
@@ -208,9 +210,92 @@ async fn an_entry_is_found_by_its_id() {
         "..%2F..%2Fetc%2Fpasswd",
         "2019_honda_civic_si_x_y_z",
         "%00",
+        // Bytes that are not UTF-8 are an id no vehicle has.
+        "%FF",
+        "2019_honda_civic_%ff",
+        "%C3%28",
     ] {
         let (status, body) = app.json(&format!("/v1/vehicles/{id}")).await;
         assert_eq!(status, StatusCode::NOT_FOUND, "{id}");
         assert_eq!(body["error"]["code"], "not_found", "{id}");
     }
+}
+
+#[tokio::test]
+async fn an_id_that_is_not_utf8_is_answered_in_the_error_shape() {
+    let app = common::app().await;
+    for id in ["%FF", "2019_honda_civic_%ff"] {
+        let response = app.get(&format!("/v1/vehicles/{id}")).await;
+        assert_eq!(response.status(), StatusCode::NOT_FOUND, "{id}");
+        assert_eq!(
+            common::header(&response, "content-type"),
+            "application/json",
+            "{id}"
+        );
+        assert_eq!(
+            common::body_json(response).await,
+            json!({ "error": {
+                "code": "not_found",
+                "message": "No vehicle has that id.",
+                "details": {}
+            } }),
+            "{id}"
+        );
+    }
+}
+
+/// Every connection for slow work is busy; quick work is not held up.
+#[tokio::test]
+async fn slow_searches_do_not_hold_up_a_vin_decode() {
+    use std::time::Duration;
+
+    let app = common::app_with(|config| config.connections = 4).await;
+    let hold = common::Hold::default();
+    let slow = app.state.db().slow_connections();
+    assert!(slow < 4, "slow work may use {slow} of 4 connections");
+    let mut searches = Vec::new();
+    // Three times as many searches as there are connections, none finishing.
+    for _ in 0..12 {
+        let state = app.state.clone();
+        let hold = hold.clone();
+        searches.push(tokio::spawn(async move {
+            state.db().run_slow(move |_| hold.wait()).await.unwrap();
+        }));
+    }
+    hold.until_started(slow).await;
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    assert_eq!(hold.started(), slow, "slow work took more than its share");
+
+    // A decode, the catalog's quick steps and one entry are answered.
+    for path in [
+        "/v1/vin/KM8K2CAB4PU001140",
+        "/v1/vehicles/years",
+        "/v1/vehicles/makes?year=2019",
+        "/v1/vehicles/models?make=honda",
+        "/v1/vehicles/2019_honda_civic_si",
+    ] {
+        let response = tokio::time::timeout(Duration::from_secs(5), app.get(path))
+            .await
+            .unwrap_or_else(|_| panic!("{path} waited for the slow work"));
+        assert_eq!(response.status(), StatusCode::OK, "{path}");
+    }
+    // The requests the engine answers slowly wait their turn behind it.
+    for path in [
+        "/v1/vehicles/search?q=civic",
+        "/v1/vehicles/years?term=2",
+        "/v1/vehicles/years?scope=6",
+    ] {
+        let waited = tokio::time::timeout(Duration::from_millis(300), app.get(path)).await;
+        assert!(waited.is_err(), "{path} did not wait with the slow work");
+    }
+
+    hold.release();
+    for search in searches {
+        search.await.unwrap();
+    }
+    let (status, body) = app.json("/v1/vehicles/search?q=civic").await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body[0]["make"], "Honda");
+    let (_, body) = app.json("/v1/vehicles/years?term=2").await;
+    assert_eq!(body, json!([2023, 2022, 2020, 2019, 2018]));
 }

@@ -2,6 +2,7 @@ use std::net::{Ipv4Addr, SocketAddr};
 use std::process::ExitCode;
 
 use open_server::config::Config;
+use open_server::serve::Limits;
 use open_server::state::AppState;
 
 async fn shutdown() {
@@ -56,13 +57,8 @@ async fn run() -> Result<(), String> {
         meta.data_version
     );
     let app = open_server::app(state);
-    axum::serve(
-        listener,
-        app.into_make_service_with_connect_info::<SocketAddr>(),
-    )
-    .with_graceful_shutdown(shutdown())
-    .await
-    .map_err(|error| error.to_string())
+    open_server::serve::serve(listener, app, shutdown(), Limits::default()).await;
+    Ok(())
 }
 
 #[tokio::main]

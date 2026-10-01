@@ -145,3 +145,87 @@ async fn refuses_a_file_that_is_not_a_database() {
     std::fs::write(&path, "these are not the rows you are looking for").unwrap();
     assert!(Db::open(&path, 1).await.is_err());
 }
+
+#[tokio::test]
+async fn slow_work_leaves_connections_for_quick_work() {
+    use std::time::Duration;
+
+    let fixture = common::data_file();
+    let db = std::sync::Arc::new(Db::open(&fixture.path(), 2).await.unwrap());
+    assert_eq!(db.slow_connections(), 1);
+    let hold = common::Hold::default();
+    let mut tasks = Vec::new();
+    for _ in 0..6 {
+        let db = std::sync::Arc::clone(&db);
+        let hold = hold.clone();
+        tasks.push(tokio::spawn(async move {
+            db.run_slow(move |_| hold.wait()).await.unwrap();
+        }));
+    }
+    hold.until_started(1).await;
+    let years = tokio::time::timeout(
+        Duration::from_secs(5),
+        db.run(|worker| worker.catalog.years(Scope::Light, "").unwrap()),
+    )
+    .await
+    .expect("quick work waited for slow work")
+    .unwrap();
+    assert_eq!(years.len(), 5);
+    assert_eq!(hold.started(), 1, "slow work took more than its share");
+    hold.release();
+    for task in tasks {
+        task.await.unwrap();
+    }
+    assert_eq!(hold.started(), 6);
+}
+
+#[tokio::test]
+async fn slow_work_nobody_waits_for_any_more_still_counts() {
+    use std::time::Duration;
+
+    let fixture = common::data_file();
+    let db = std::sync::Arc::new(Db::open(&fixture.path(), 4).await.unwrap());
+    let slow = db.slow_connections();
+    assert_eq!(slow, 2);
+    let hold = common::Hold::default();
+    // Requests that time out: the caller goes away, the work goes on.
+    for _ in 0..slow {
+        let db = std::sync::Arc::clone(&db);
+        let held = hold.clone();
+        let task = tokio::spawn(async move {
+            let _ = db.run_slow(move |_| held.wait()).await;
+        });
+        hold.until_started(hold.started() + 1).await;
+        task.abort();
+        let _ = task.await;
+    }
+    // More slow work does not start on the connections that are left.
+    let later = common::Hold::default();
+    let waiting = {
+        let db = std::sync::Arc::clone(&db);
+        let later = later.clone();
+        tokio::spawn(async move { db.run_slow(move |_| later.started()).await.unwrap() })
+    };
+    tokio::time::sleep(Duration::from_millis(100)).await;
+    assert!(
+        !waiting.is_finished(),
+        "abandoned slow work gave up its place"
+    );
+    hold.release();
+    tokio::time::timeout(Duration::from_secs(5), waiting)
+        .await
+        .expect("slow work never got its turn")
+        .unwrap();
+}
+
+#[tokio::test]
+async fn one_connection_is_shared_by_slow_and_quick_work() {
+    let fixture = common::data_file();
+    let db = Db::open(&fixture.path(), 1).await.unwrap();
+    assert_eq!(db.slow_connections(), 1);
+    let years = db
+        .run_slow(|worker| worker.catalog.years(Scope::Light, "2").unwrap())
+        .await
+        .unwrap();
+    assert_eq!(years.len(), 5);
+}

@@ -21,7 +21,7 @@ pub struct ErrorBody {
 pub struct ErrorDetail {
     /// A stable code to branch on. One of `invalid_vin`, `validation_failed`,
     /// `not_found`, `method_not_allowed`, `payload_too_large`,
-    /// `rate_limited`, `unavailable`, `internal_error`.
+    /// `uri_too_long`, `rate_limited`, `unavailable`, `internal_error`.
     #[schema(example = "invalid_vin")]
     pub code: String,
     /// A sentence for a person to read.
@@ -46,6 +46,8 @@ pub enum ApiError {
     MethodNotAllowed,
     /// 413.
     PayloadTooLarge,
+    /// 414. The path and query string together are over `max` bytes.
+    UriTooLong { max: usize },
     /// 429. `retry_after` is in seconds.
     RateLimited { retry_after: u64 },
     /// 503. The server is too busy to answer in time.
@@ -74,6 +76,7 @@ impl ApiError {
             ApiError::NotFound(_) => StatusCode::NOT_FOUND,
             ApiError::MethodNotAllowed => StatusCode::METHOD_NOT_ALLOWED,
             ApiError::PayloadTooLarge => StatusCode::PAYLOAD_TOO_LARGE,
+            ApiError::UriTooLong { .. } => StatusCode::URI_TOO_LONG,
             ApiError::RateLimited { .. } => StatusCode::TOO_MANY_REQUESTS,
             ApiError::Unavailable => StatusCode::SERVICE_UNAVAILABLE,
             ApiError::Internal => StatusCode::INTERNAL_SERVER_ERROR,
@@ -99,6 +102,11 @@ impl ApiError {
                 "payload_too_large",
                 "The request body is too large.".to_owned(),
                 json!({}),
+            ),
+            ApiError::UriTooLong { max } => (
+                "uri_too_long",
+                "The address is too long.".to_owned(),
+                json!({ "max": max }),
             ),
             ApiError::RateLimited { retry_after } => (
                 "rate_limited",
@@ -204,6 +212,7 @@ mod tests {
             ApiError::NotFound("m".to_owned()),
             ApiError::MethodNotAllowed,
             ApiError::PayloadTooLarge,
+            ApiError::UriTooLong { max: 8192 },
             ApiError::RateLimited { retry_after: 7 },
             ApiError::Unavailable,
             ApiError::Internal,
@@ -225,6 +234,7 @@ mod tests {
                 "not_found",
                 "method_not_allowed",
                 "payload_too_large",
+                "uri_too_long",
                 "rate_limited",
                 "unavailable",
                 "internal_error"

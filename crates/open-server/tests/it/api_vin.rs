@@ -137,9 +137,9 @@ async fn the_year_can_be_overridden() {
 #[tokio::test]
 async fn hostile_and_oversized_vins_are_refused_without_harm() {
     let app = common::app().await;
-    // The HTTP layer itself refuses an address over 64 KB, so this is the
-    // longest that can reach the handler.
-    let long = "A".repeat(60_000);
+    // An address may be 8 KB, so this is about the longest that can reach
+    // the handler. A longer one is refused before it gets there.
+    let long = "A".repeat(8_000);
     let inputs = [
         long.as_str(),
         "%00%00%00",
