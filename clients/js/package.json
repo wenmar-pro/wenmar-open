@@ -1,0 +1,50 @@
+{
+  "name": "wenmar-open",
+  "version": "0.1.0",
+  "description": "Typed client for the Wenmar Open API: VIN decoding and a year, make, model, trim and engine catalog. No API key.",
+  "keywords": [
+    "vin",
+    "vin-decoder",
+    "vehicle",
+    "automotive",
+    "nhtsa",
+    "vpic"
+  ],
+  "license": "MIT",
+  "author": "Wenmar Pro (https://wenmarpro.com)",
+  "homepage": "https://open.wenmarpro.com",
+  "bugs": "https://github.com/wenmar-pro/wenmar-open/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wenmar-pro/wenmar-open.git",
+    "directory": "clients/js"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "build": "node scripts/clean.mjs dist && tsc -p tsconfig.json",
+    "test:unit": "node scripts/clean.mjs .test-build && tsc -p tsconfig.test.json && node --test .test-build/*.test.js",
+    "test": "npm run build && npm run test:unit",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.43",
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3"
+  }
+}

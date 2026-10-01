@@ -22,3 +22,24 @@ jobs:
       - uses: actions/checkout@v4
       - run: rustup toolchain install 1.92 --profile minimal
       - run: cargo +1.92 test --workspace --all-features
+
+  js:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        # The oldest Node the package supports, and the current LTS.
+        node: ["20", "lts/*"]
+    defaults:
+      run:
+        working-directory: clients/js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: clients/js/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm test

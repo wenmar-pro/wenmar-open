@@ -13,6 +13,11 @@ run = [
   "cargo test --workspace --all-features",
 ]
 
+[tasks.js]
+description = "Build and test the npm client in clients/js (needs Node 20 or later on the path)"
+dir = "{{config_root}}/clients/js"
+run = ["npm ci --no-audit --no-fund", "npm test"]
+
 [tasks.data]
 description = "Download NHTSA's newest vPIC release and build the data file"
 run = '''
