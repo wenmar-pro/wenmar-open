@@ -36,6 +36,571 @@
         }
       }
     },
+    "/v1/vehicles/engines": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Engines of a model year, in short form, optionally for one submodel.",
+        "operationId": "engines",
+        "parameters": [
+          {
+            "name": "make",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "honda"
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "civic"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "example": 2019
+          },
+          {
+            "name": "submodel",
+            "in": "query",
+            "description": "Only engines this submodel comes with.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "si"
+          },
+          {
+            "name": "term",
+            "in": "query",
+            "description": "Only engines whose label starts with this.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Engines.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EngineOption"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: `make`, `model` or `year` is missing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vehicles/makes": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Makes, popular ones first and the rest by name.",
+        "operationId": "makes",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "description": "Only makes with a model in this model year.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "example": 2019
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "`light` (the default), `all`, or a vPIC vehicle type id.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "term",
+            "in": "query",
+            "description": "Only makes whose name or alias starts with this. Case and punctuation\nare ignored.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "At most this many, up to 500.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Makes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Make"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vehicles/models": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Models of a make, by name. An unknown make has no models.",
+        "operationId": "models",
+        "parameters": [
+          {
+            "name": "make",
+            "in": "query",
+            "description": "A make's name, alias or id: `Chevrolet`, `chevy` or `chevrolet`.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "honda"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "Only models of this model year.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "example": 2019
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "`light` (the default), `all`, or a vPIC vehicle type id.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "term",
+            "in": "query",
+            "description": "Only models whose name starts with this.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "At most this many, up to 500.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Models.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Model"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: `make` is missing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vehicles/search": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Catalog entries for free text, best first. Text that names nothing gives\nan empty list.",
+        "operationId": "search",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "What someone would type: `2019 civic si`, `chevy 1500`, `f150`.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2019 civic si"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "`light` (the default), `all`, or a vPIC vehicle type id.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "At most this many, up to 50. The default is 10.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entries, best first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Entry"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: `q` is missing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vehicles/submodels": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Submodels of a model year: trims where NHTSA has them, else series, else\nthis project's own list.",
+        "operationId": "submodels",
+        "parameters": [
+          {
+            "name": "make",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "honda"
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "description": "A model's name or id: `F-150`, `f150` or `f-150`.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "civic"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "example": 2019
+          },
+          {
+            "name": "term",
+            "in": "query",
+            "description": "Only submodels whose name starts with this.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Submodels.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Submodel"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: `make`, `model` or `year` is missing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vehicles/trims": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "The same as `/v1/vehicles/submodels`, under the name most people use.",
+        "operationId": "trims",
+        "parameters": [
+          {
+            "name": "make",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "honda"
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "description": "A model's name or id: `F-150`, `f150` or `f-150`.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "civic"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "example": 2019
+          },
+          {
+            "name": "term",
+            "in": "query",
+            "description": "Only submodels whose name starts with this.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Submodels.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Submodel"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: `make`, `model` or `year` is missing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vehicles/years": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Model years, newest first.",
+        "operationId": "years",
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "`light` (cars, MPVs and trucks; the default), `all`, or a vPIC\nvehicle type id such as `6` for trailers.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "term",
+            "in": "query",
+            "description": "Only years that start with this, such as `201`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Model years, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0
+                  }
+                },
+                "example": [
+                  2027,
+                  2026,
+                  2025
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vehicles/{id}": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "One catalog entry by its stable id.",
+        "operationId": "entry",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A vehicle id: year, make and model, then optionally submodel and engine, joined by underscores.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2019_honda_civic_si"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The entry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Entry"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no vehicle has that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vin/batch": {
       "post": {
         "tags": [
@@ -300,6 +865,36 @@
           }
         }
       },
+      "EngineOption": {
+        "type": "object",
+        "description": "An engine in the engine step.",
+        "required": [
+          "id",
+          "label",
+          "preset"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "3-5l-turbo-v6"
+          },
+          "label": {
+            "type": "string",
+            "example": "3.5L Turbo V6"
+          },
+          "preset": {
+            "type": "boolean",
+            "description": "Whether the engine comes from this project's list instead of NHTSA."
+          },
+          "vin8": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The characters in position 8 of a VIN that mean this engine and no\nother for this model year, where the data settles it."
+          }
+        }
+      },
       "Entry": {
         "type": "object",
         "description": "One vehicle of the catalog, down to whatever level was asked for.",
@@ -408,6 +1003,30 @@
           }
         }
       },
+      "Make": {
+        "type": "object",
+        "description": "A make in the make step of a vehicle form.",
+        "required": [
+          "id",
+          "name",
+          "popular"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The make's id form.",
+            "example": "mercedes-benz"
+          },
+          "name": {
+            "type": "string",
+            "example": "Mercedes-Benz"
+          },
+          "popular": {
+            "type": "boolean",
+            "description": "Whether it is on the list of popular makes, which are given first."
+          }
+        }
+      },
       "Manufacturer": {
         "type": "object",
         "required": [
@@ -467,6 +1086,38 @@
             "type": "string",
             "description": "The NHTSA vPIC release the data was built from.",
             "example": "vPICList_lite_2026_09"
+          }
+        }
+      },
+      "Model": {
+        "type": "object",
+        "description": "A model in the model step.",
+        "required": [
+          "id",
+          "name",
+          "year_from",
+          "year_to"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The model's id form. Unique within its make.",
+            "example": "f-150"
+          },
+          "name": {
+            "type": "string",
+            "example": "F-150"
+          },
+          "year_from": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The first and last model year the model exists in.",
+            "minimum": 0
+          },
+          "year_to": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
           }
         }
       },
@@ -663,6 +1314,30 @@
             "type": "string",
             "description": "The id of the year, make and model.",
             "example": "2023_hyundai_kona"
+          }
+        }
+      },
+      "Submodel": {
+        "type": "object",
+        "description": "A submodel: a trim, or a series where the data has no trim.",
+        "required": [
+          "id",
+          "name",
+          "kind"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "ex-l"
+          },
+          "kind": {
+            "type": "string",
+            "description": "`trim` or `series` as NHTSA has it, or `preset` from this project's\nown list.",
+            "example": "trim"
+          },
+          "name": {
+            "type": "string",
+            "example": "EX-L"
           }
         }
       },

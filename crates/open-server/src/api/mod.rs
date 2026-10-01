@@ -2,6 +2,7 @@
 
 pub mod meta;
 pub mod types;
+pub mod vehicles;
 pub mod vin;
 
 use std::fmt::Display;
@@ -39,6 +40,14 @@ pub fn router() -> (axum::Router<AppState>, utoipa::openapi::OpenApi) {
     let v1 = OpenApiRouter::new()
         .routes(routes!(vin::decode))
         .routes(routes!(vin::batch))
+        .routes(routes!(vehicles::years))
+        .routes(routes!(vehicles::makes))
+        .routes(routes!(vehicles::models))
+        .routes(routes!(vehicles::submodels))
+        .routes(routes!(vehicles::trims))
+        .routes(routes!(vehicles::engines))
+        .routes(routes!(vehicles::search))
+        .routes(routes!(vehicles::entry))
         .routes(routes!(meta::meta));
     OpenApiRouter::with_openapi(ApiDoc::openapi())
         .nest("/v1", v1)
