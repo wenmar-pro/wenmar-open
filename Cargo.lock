@@ -1133,6 +1133,12 @@ dependencies = [
 [[package]]
 name = "wenmar-vehicles"
 version = "0.1.0"
+dependencies = [
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
 
 [[package]]
 name = "wenmar-vin"

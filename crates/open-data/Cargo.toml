@@ -16,6 +16,6 @@ serde = { workspace = true, features = ["derive"] }
 serde-saphyr = "1.3.0"
 serde_json.workspace = true
 ureq = "3.4.2"
-wenmar-vehicles = { version = "0.1.0", path = "../wenmar-vehicles" }
+wenmar-vehicles = { version = "0.1.0", path = "../wenmar-vehicles", features = ["sqlite"] }
 wenmar-vin = { path = "../wenmar-vin", features = ["sqlite"] }
 zip = "8.6.0"
