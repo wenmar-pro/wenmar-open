@@ -20,3 +20,6 @@ pub mod result;
 
 pub use engine::Engine;
 pub use result::{Decoded, ManufacturerInfo, Plant, Safety, Warning, WarningCode};
+pub mod decode;
+
+pub use decode::{DecodeError, DecodeOptions, Decoder};
