@@ -251,3 +251,14 @@ fn refuses_to_overwrite_an_existing_file() {
         .to_string();
     assert!(error.contains("already exists"), "{error}");
 }
+
+#[test]
+fn a_table_with_no_rows_is_staged_and_dropped_like_any_other() {
+    let built = Built::new("empty-table");
+    let with_empty = format!(
+        "{}COPY vpic.decodingoutput (id, name) FROM stdin;\n\\.\n",
+        dump()
+    );
+    let summary = build(with_empty.as_bytes(), &built.path, &info()).unwrap();
+    assert_eq!(summary.patterns, 4);
+}

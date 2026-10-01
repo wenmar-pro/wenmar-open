@@ -42,7 +42,7 @@ Responses are plain JSON with no wrapper object. Each response reports the versi
 
 ## Repository layout
 
-Only `crates/wenmar-vin` exists so far. The rest is planned.
+`crates/wenmar-vin` and `crates/open-data` exist so far. The rest is planned.
 
 | Path | What it is |
 |---|---|
@@ -50,6 +50,16 @@ Only `crates/wenmar-vin` exists so far. The rest is planned.
 | `crates/open-data` | Builds the SQLite data file from NHTSA's vPIC release |
 | `crates/open-server` | The website and JSON API |
 | `clients/js` | npm client for the hosted API |
+
+## Building the data file
+
+```bash
+cargo run --release -p open-data -- fetch
+cargo run --release -p open-data -- build --dump data/build/vPICList_lite_2026_09.sql --out data/build/wenmar-open-2026.09.sqlite3
+cargo run --release -p open-data -- decode --data data/build/wenmar-open-2026.09.sqlite3 1HGCM82633A004352
+```
+
+`fetch` downloads NHTSA's newest vPIC release (about 73 MB) and prints the path of the extracted file to pass to `build`. No database server is needed.
 
 ## Data sources
 

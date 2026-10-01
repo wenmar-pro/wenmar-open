@@ -8,3 +8,5 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 - Repository scaffolding: license, notices, contribution guide, security policy, and issue templates.
 - `wenmar-vin` crate: VIN validation, check digit, model year, typo suggestions, vPIC pattern matching, and a decoder over a pluggable data source.
+- `open-data`: builds the SQLite data file from NHTSA's vPIC plain-text dump.
+- `wenmar-vin`: SQLite data source behind the `sqlite` feature; pattern selection and model-year rules now follow NHTSA's decoder.

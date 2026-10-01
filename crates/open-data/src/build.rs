@@ -61,26 +61,31 @@ fn staging(table: &str) -> String {
     quoted(&format!("raw_{table}"))
 }
 
+fn create_staging(transaction: &Transaction<'_>, table: &Table) -> Result<()> {
+    let columns: Vec<String> = table.columns.iter().map(|column| quoted(column)).collect();
+    transaction
+        .execute(
+            &format!(
+                "CREATE TABLE IF NOT EXISTS {} ({})",
+                staging(&table.name),
+                columns.join(", ")
+            ),
+            [],
+        )
+        .with_context(|| format!("creating the staging table for {}", table.name))?;
+    Ok(())
+}
+
 /// Copies every table of the dump into `raw_<table>`, all columns as text.
 fn stage<R: BufRead>(transaction: &Transaction<'_>, dump: R) -> Result<Vec<Table>> {
     let mut inserts: HashMap<String, String> = HashMap::new();
-    read_tables(dump, |table, row| {
+    let tables = read_tables(dump, |table, row| {
         if SKIPPED_TABLES.contains(&table.name.as_str()) {
             return Ok(());
         }
         if !inserts.contains_key(&table.name) {
-            let columns: Vec<String> = table.columns.iter().map(|column| quoted(column)).collect();
-            transaction
-                .execute(
-                    &format!(
-                        "CREATE TABLE {} ({})",
-                        staging(&table.name),
-                        columns.join(", ")
-                    ),
-                    [],
-                )
-                .with_context(|| format!("creating the staging table for {}", table.name))?;
-            let placeholders = vec!["?"; columns.len()].join(", ");
+            create_staging(transaction, table)?;
+            let placeholders = vec!["?"; table.columns.len()].join(", ");
             inserts.insert(
                 table.name.clone(),
                 format!(
@@ -94,7 +99,15 @@ fn stage<R: BufRead>(transaction: &Transaction<'_>, dump: R) -> Result<Vec<Table
             .execute(params_from_iter(row.iter()))
             .with_context(|| format!("staging a row of {}", table.name))?;
         Ok(())
-    })
+    })?;
+    // A table with no rows never reaches the closure above, but the shaping
+    // queries and the clean-up still expect its staging table to exist.
+    for table in &tables {
+        if !SKIPPED_TABLES.contains(&table.name.as_str()) {
+            create_staging(transaction, table)?;
+        }
+    }
+    Ok(tables)
 }
 
 fn shape_manufacturers(transaction: &Transaction<'_>, built_at: &str) -> Result<()> {
