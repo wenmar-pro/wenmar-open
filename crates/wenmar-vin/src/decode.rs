@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::check_digit;
-use crate::data::{DataError, Element, Manufacturer, Pattern, VinData};
+use crate::data::{DataError, Element, Manufacturer, Pattern, SpecRow, VinData};
 use crate::engine::{self, Engine};
 use crate::error::VinError;
 use crate::model_year;
@@ -45,10 +45,9 @@ pub struct Decoder<D> {
     data: D,
 }
 
-/// The winning pattern for each element.
+/// The value chosen for an element, and where it ranks.
 #[derive(Debug, Clone)]
 struct Item {
-    #[allow(dead_code)]
     attribute: String,
     value: String,
     priority: i32,
@@ -60,29 +59,30 @@ type Values = HashMap<Element, Item>;
 /// The result of decoding against one candidate model year.
 struct Attempt {
     year: u16,
+    /// The patterns that matched the VIN.
     matched: Vec<Pattern>,
-    /// Latest start year of each schema for this manufacturer code.
-    year_from: HashMap<i64, u16>,
+    /// One value per element, from every source: the patterns, then the
+    /// engine model, then the specification sheets.
+    values: Values,
 }
 
 impl Attempt {
     /// What NHTSA compares when the cycle is not settled: how much weight the
-    /// resolved elements carry, then how many elements were resolved, then
-    /// the later year.
+    /// resolved elements carry, whatever they came from, then how many
+    /// elements the patterns resolved, then the later year.
     fn standing(&self) -> (u32, usize, u16) {
-        let elements = elements(&self.matched);
-        (element_weight(&elements), elements.len(), self.year)
+        let resolved: HashSet<Element> = self.values.keys().copied().collect();
+        let from_patterns: HashSet<Element> = self.matched.iter().map(|row| row.element).collect();
+        (element_weight(&resolved), from_patterns.len(), self.year)
     }
 }
 
-fn elements(matched: &[Pattern]) -> HashSet<Element> {
-    matched.iter().map(|row| row.element).collect()
-}
-
-/// vPIC's weight for displacement, which NHTSA converts between units
-/// before scoring, so it counts once.
 /// Rank of a value that came from an engine model: below any schema year.
 const ENGINE_MODEL_PRIORITY: i32 = 50;
+/// Rank of a value that came from a specification sheet: below everything else.
+const SPECIFICATION_PRIORITY: i32 = -100;
+/// vPIC's weight for displacement, which NHTSA converts between units
+/// before scoring, so it counts once.
 const DISPLACEMENT_WEIGHT: u32 = 98;
 
 fn element_weight(elements: &HashSet<Element>) -> u32 {
@@ -164,10 +164,14 @@ impl<D: VinData> Decoder<D> {
                 .into_iter()
                 .filter(|row| usable(&row.value) && pattern::matches(&row.keys, &key))
                 .collect();
+            let mut values = select(&matched, &year_from);
+            add_engine_model(&self.data, &mut values).map_err(DecodeError::Data)?;
+            add_specifications(&self.data, &manufacturer.wmi, *candidate, &mut values)
+                .map_err(DecodeError::Data)?;
             let attempt = Attempt {
                 year: *candidate,
                 matched,
-                year_from,
+                values,
             };
             if conclusive {
                 best = Some(attempt);
@@ -180,9 +184,9 @@ impl<D: VinData> Decoder<D> {
                 best = Some(attempt);
             }
         }
-        let (year, matched, year_from) = match best {
-            Some(attempt) => (Some(attempt.year), attempt.matched, attempt.year_from),
-            None => (years.first().copied(), Vec::new(), HashMap::new()),
+        let (year, matched, values) = match best {
+            Some(attempt) => (Some(attempt.year), attempt.matched, attempt.values),
+            None => (years.first().copied(), Vec::new(), Values::new()),
         };
         if year.is_none() {
             warnings.push(warning(
@@ -190,9 +194,6 @@ impl<D: VinData> Decoder<D> {
                 "Position 10 of this VIN does not encode a model year.",
             ));
         }
-
-        let mut values = select(&matched, &year_from);
-        add_engine_model(&self.data, &mut values).map_err(DecodeError::Data)?;
 
         if matched.is_empty() {
             warnings.push(warning(
@@ -299,6 +300,52 @@ fn add_engine_model<D: VinData>(data: &D, values: &mut Values) -> Result<(), Dat
                 },
             );
         }
+    }
+    Ok(())
+}
+
+/// Adds values from the specification sheets whose key rows all match what
+/// has been decoded, for elements still empty.
+fn add_specifications<D: VinData>(
+    data: &D,
+    wmi: &str,
+    year: u16,
+    values: &mut Values,
+) -> Result<(), DataError> {
+    let Some(model) = values
+        .get(&Element::Model)
+        .map(|item| item.attribute.clone())
+    else {
+        return Ok(());
+    };
+    let rows = data.specs(wmi, &model, year)?;
+
+    // A sheet applies only if it has keys and every key matches.
+    let mut keys: HashMap<i64, bool> = HashMap::new();
+    for row in rows.iter().filter(|row| row.is_key) {
+        let matches = values.get(&row.element).is_some_and(|item| {
+            item.attribute
+                .trim()
+                .eq_ignore_ascii_case(row.attribute.trim())
+        });
+        let all = keys.entry(row.spec_pattern_id).or_insert(true);
+        *all = *all && matches;
+    }
+
+    let mut additions: Vec<&SpecRow> = rows
+        .iter()
+        .filter(|row| !row.is_key && keys.get(&row.spec_pattern_id) == Some(&true))
+        .filter(|row| usable(&row.value) && !values.contains_key(&row.element))
+        .collect();
+    // Latest change first, then lowest id, so the first row seen per element wins.
+    additions.sort_by(|a, b| b.changed_on.cmp(&a.changed_on).then(a.id.cmp(&b.id)));
+    for row in additions {
+        values.entry(row.element).or_insert_with(|| Item {
+            attribute: row.attribute.clone(),
+            value: row.value.clone(),
+            priority: SPECIFICATION_PRIORITY,
+            changed_on: row.changed_on.clone(),
+        });
     }
     Ok(())
 }

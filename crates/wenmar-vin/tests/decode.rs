@@ -951,3 +951,226 @@ fn an_unknown_engine_model_changes_nothing() {
     let decoded = decode(kona_with_engine());
     assert_eq!(decoded.engine.unwrap().cylinders, None);
 }
+
+/// A 2023 Kona SE. The model's raw attribute is its vPIC id, 900.
+fn kona_se() -> MemoryData {
+    one_schema()
+        .with_pattern_attribute(1, "K2***", Element::Model, "900", "Kona")
+        .with_pattern(1, "K2***", Element::Trim, "SE")
+        .with_pattern_attribute(1, "K2***", Element::DriveType, "1", "FWD/Front-Wheel Drive")
+}
+
+#[test]
+fn a_spec_sheet_applies_when_all_its_keys_match() {
+    let decoded = decode(
+        kona_se()
+            .with_spec_key("900", Some(2023), 10, Element::Trim, "SE")
+            .with_spec_key("900", Some(2023), 10, Element::DriveType, "1")
+            .with_spec_value(
+                "900",
+                Some(2023),
+                10,
+                Element::Abs,
+                "Standard",
+                "2023-01-01",
+            )
+            .with_spec_value(
+                "900",
+                Some(2023),
+                10,
+                Element::TransmissionStyle,
+                "Automatic",
+                "2023-01-01",
+            ),
+    );
+    assert_eq!(decoded.safety.unwrap().abs.as_deref(), Some("Standard"));
+    assert_eq!(decoded.transmission.as_deref(), Some("Automatic"));
+}
+
+#[test]
+fn a_spec_sheet_with_one_unmatched_key_is_ignored() {
+    let decoded = decode(
+        kona_se()
+            .with_spec_key("900", Some(2023), 10, Element::Trim, "SE")
+            .with_spec_key("900", Some(2023), 10, Element::DriveType, "2")
+            .with_spec_value(
+                "900",
+                Some(2023),
+                10,
+                Element::Abs,
+                "Standard",
+                "2023-01-01",
+            ),
+    );
+    assert_eq!(decoded.safety, None);
+}
+
+#[test]
+fn spec_keys_match_without_regard_to_case() {
+    let decoded = decode(
+        kona_se()
+            .with_spec_key("900", Some(2023), 10, Element::Trim, "se")
+            .with_spec_value(
+                "900",
+                Some(2023),
+                10,
+                Element::Abs,
+                "Standard",
+                "2023-01-01",
+            ),
+    );
+    assert_eq!(decoded.safety.unwrap().abs.as_deref(), Some("Standard"));
+}
+
+#[test]
+fn a_spec_sheet_with_no_keys_is_never_applied() {
+    let decoded = decode(kona_se().with_spec_value(
+        "900",
+        Some(2023),
+        10,
+        Element::Abs,
+        "Standard",
+        "2023-01-01",
+    ));
+    assert_eq!(decoded.safety, None);
+}
+
+#[test]
+fn a_spec_sheet_never_replaces_a_value_from_the_vin() {
+    let decoded = decode(
+        kona_se()
+            .with_pattern(1, "K2***", Element::TransmissionStyle, "Manual/Standard")
+            .with_spec_key("900", Some(2023), 10, Element::Trim, "SE")
+            .with_spec_value(
+                "900",
+                Some(2023),
+                10,
+                Element::TransmissionStyle,
+                "Automatic",
+                "2030-01-01",
+            ),
+    );
+    assert_eq!(decoded.transmission.as_deref(), Some("Manual/Standard"));
+}
+
+#[test]
+fn among_matching_spec_sheets_the_latest_change_wins() {
+    let decoded = decode(
+        kona_se()
+            .with_spec_key("900", Some(2023), 10, Element::Trim, "SE")
+            .with_spec_value(
+                "900",
+                Some(2023),
+                10,
+                Element::TpmsType,
+                "Indirect",
+                "2022-01-01",
+            )
+            .with_spec_key("900", Some(2023), 11, Element::DriveType, "1")
+            .with_spec_value(
+                "900",
+                Some(2023),
+                11,
+                Element::TpmsType,
+                "Direct",
+                "2023-06-01",
+            ),
+    );
+    assert_eq!(decoded.safety.unwrap().tpms.as_deref(), Some("Direct"));
+}
+
+#[test]
+fn a_spec_sheet_for_another_year_or_model_is_not_used() {
+    let other_year = kona_se()
+        .with_spec_key("900", Some(2021), 10, Element::Trim, "SE")
+        .with_spec_value(
+            "900",
+            Some(2021),
+            10,
+            Element::Abs,
+            "Standard",
+            "2023-01-01",
+        );
+    assert_eq!(decode(other_year).safety, None);
+    let other_model = kona_se()
+        .with_spec_key("901", Some(2023), 10, Element::Trim, "SE")
+        .with_spec_value(
+            "901",
+            Some(2023),
+            10,
+            Element::Abs,
+            "Standard",
+            "2023-01-01",
+        );
+    assert_eq!(decode(other_model).safety, None);
+}
+
+#[test]
+fn a_spec_sheet_with_no_years_applies_to_every_year() {
+    let decoded = decode(
+        kona_se()
+            .with_spec_key("900", None, 10, Element::Trim, "SE")
+            .with_spec_value("900", None, 10, Element::Abs, "Standard", "2023-01-01"),
+    );
+    assert_eq!(decoded.safety.unwrap().abs.as_deref(), Some("Standard"));
+}
+
+#[test]
+fn a_key_can_match_a_value_that_came_from_the_engine_model() {
+    let decoded = decode(
+        kona_se()
+            .with_pattern(1, "K2***", Element::EngineModel, "G4NH")
+            .with_engine_row("G4NH", Element::FuelTypePrimary, "Gasoline", "2020-01-01")
+            .with_spec_key("900", Some(2023), 10, Element::FuelTypePrimary, "gasoline")
+            .with_spec_value(
+                "900",
+                Some(2023),
+                10,
+                Element::Abs,
+                "Standard",
+                "2023-01-01",
+            ),
+    );
+    assert_eq!(decoded.safety.unwrap().abs.as_deref(), Some("Standard"));
+}
+
+#[test]
+fn without_a_model_no_spec_sheet_is_consulted() {
+    let decoded = decode(
+        one_schema()
+            .with_pattern(1, "K2***", Element::Trim, "SE")
+            .with_spec_key("900", Some(2023), 10, Element::Trim, "SE")
+            .with_spec_value(
+                "900",
+                Some(2023),
+                10,
+                Element::Abs,
+                "Standard",
+                "2023-01-01",
+            ),
+    );
+    assert_eq!(decoded.safety, None);
+}
+
+#[test]
+fn what_the_spec_sheet_adds_counts_towards_a_heavy_vehicles_year() {
+    // Both years resolve a model (99). Only the earlier one gets front air
+    // bag locations (64) from its spec sheet.
+    let decoded = decode(
+        heavy_two_cycles()
+            .with_pattern_attribute(1, "K2***", Element::Model, "901", "Newer Coach")
+            .with_pattern_attribute(2, "K2***", Element::Model, "900", "Older Coach")
+            .with_pattern(2, "K2***", Element::Trim, "Base")
+            .with_pattern(1, "K2***", Element::Trim, "Base")
+            .with_spec_key("900", None, 10, Element::Trim, "Base")
+            .with_spec_value(
+                "900",
+                None,
+                10,
+                Element::AirbagsFront,
+                "1st Row",
+                "2000-01-01",
+            ),
+    );
+    assert_eq!(decoded.year, Some(1993));
+}

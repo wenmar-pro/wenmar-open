@@ -179,6 +179,28 @@ pub struct EngineRow {
     pub changed_on: String,
 }
 
+/// One row of a specification sheet: equipment NHTSA records against a
+/// make, model and year rather than against positions of the VIN.
+///
+/// A sheet is the set of rows sharing a `spec_pattern_id`. Its key rows say
+/// which vehicles it describes; its other rows are the values it adds.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SpecRow {
+    pub id: i64,
+    /// The sheet this row belongs to.
+    pub spec_pattern_id: i64,
+    /// A key row is a condition: the sheet applies only when the decoded
+    /// vehicle has this raw attribute for this element.
+    pub is_key: bool,
+    pub element: Element,
+    /// The raw attribute: a lookup id, or the value itself when there is no lookup.
+    pub attribute: String,
+    /// The resolved, human-readable value.
+    pub value: String,
+    /// When the row was last changed, as text that sorts correctly. Empty when unknown.
+    pub changed_on: String,
+}
+
 /// Where the decoder gets its data.
 ///
 /// Implementations must:
@@ -207,6 +229,20 @@ pub trait VinData {
     fn engine_model(&self, _name: &str) -> Result<Vec<EngineRow>, DataError> {
         Ok(Vec::new())
     }
+
+    /// Every row, key or not, of every specification sheet that could apply
+    /// to this manufacturer code, model and model year. `model_attribute` is
+    /// the raw attribute of the decoded model. A sheet with no years applies
+    /// to every year. The decoder checks the keys. The default knows no
+    /// specification sheets.
+    fn specs(
+        &self,
+        _wmi: &str,
+        _model_attribute: &str,
+        _year: u16,
+    ) -> Result<Vec<SpecRow>, DataError> {
+        Ok(Vec::new())
+    }
 }
 
 impl<T: VinData + ?Sized> VinData for &T {
@@ -224,5 +260,14 @@ impl<T: VinData + ?Sized> VinData for &T {
 
     fn engine_model(&self, name: &str) -> Result<Vec<EngineRow>, DataError> {
         (**self).engine_model(name)
+    }
+
+    fn specs(
+        &self,
+        wmi: &str,
+        model_attribute: &str,
+        year: u16,
+    ) -> Result<Vec<SpecRow>, DataError> {
+        (**self).specs(wmi, model_attribute, year)
     }
 }
