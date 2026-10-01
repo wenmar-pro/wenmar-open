@@ -46,7 +46,16 @@ pub struct Decoder<D> {
 }
 
 /// The winning pattern for each element.
-type Values<'a> = HashMap<Element, &'a Pattern>;
+#[derive(Debug, Clone)]
+struct Item {
+    #[allow(dead_code)]
+    attribute: String,
+    value: String,
+    priority: i32,
+    changed_on: String,
+}
+
+type Values = HashMap<Element, Item>;
 
 /// The result of decoding against one candidate model year.
 struct Attempt {
@@ -211,7 +220,7 @@ impl<D: VinData> Decoder<D> {
             drivetrain: text(Element::DriveType).map(|value| short_form(&value)),
             transmission: text(Element::TransmissionStyle),
             transmission_speeds: count(Element::TransmissionSpeeds),
-            engine: build_engine(&values, &year_from),
+            engine: build_engine(&values),
             safety: build_safety(&values),
             manufacturer: ManufacturerInfo {
                 wmi: manufacturer.wmi,
@@ -293,7 +302,7 @@ fn rank<'p>(
 
 /// One value per element, chosen in NHTSA's order: latest schema, latest
 /// change, fewest fixed characters, keys in text order, lowest id.
-fn select<'a>(matched: &'a [Pattern], year_from: &HashMap<i64, u16>) -> Values<'a> {
+fn select(matched: &[Pattern], year_from: &HashMap<i64, u16>) -> Values {
     let mut best: HashMap<Element, &Pattern> = HashMap::new();
     for candidate in matched {
         let better = best
@@ -314,17 +323,30 @@ fn select<'a>(matched: &'a [Pattern], year_from: &HashMap<i64, u16>) -> Values<'
     {
         best.insert(Element::Make, make);
     }
-    best
+    best.into_iter()
+        .map(|(element, row)| {
+            let priority = i32::from(year_from.get(&row.schema_id).copied().unwrap_or(0));
+            let item = Item {
+                attribute: row.attribute.clone(),
+                value: row.value.clone(),
+                priority,
+                changed_on: row.changed_on.clone(),
+            };
+            (element, item)
+        })
+        .collect()
 }
 
-fn text(values: &Values<'_>, element: Element) -> Option<String> {
-    values.get(&element).map(|row| row.value.trim().to_owned())
-}
-
-fn count(values: &Values<'_>, element: Element) -> Option<u8> {
+fn text(values: &Values, element: Element) -> Option<String> {
     values
         .get(&element)
-        .and_then(|row| row.value.trim().parse().ok())
+        .map(|item| item.value.trim().to_owned())
+}
+
+fn count(values: &Values, element: Element) -> Option<u8> {
+    values
+        .get(&element)
+        .and_then(|item| item.value.trim().parse().ok())
 }
 
 /// vPIC writes drive types as `FWD/Front-Wheel Drive`. Shops use the part
@@ -339,22 +361,19 @@ fn short_form(value: &str) -> String {
     }
 }
 
-fn build_engine(values: &Values<'_>, year_from: &HashMap<i64, u16>) -> Option<Engine> {
+fn build_engine(values: &Values) -> Option<Engine> {
     let number = |element: Element| {
         values
             .get(&element)
-            .and_then(|row| row.value.trim().parse::<f64>().ok())
+            .and_then(|item| item.value.trim().parse::<f64>().ok())
             .filter(|amount| amount.is_finite() && *amount > 0.0)
     };
     // NHTSA converts between units from whichever pattern ranks first: the
     // later schema, then the more recent change.
     let recency = |element: Element| {
-        values.get(&element).map(|row| {
-            (
-                year_from.get(&row.schema_id).copied().unwrap_or(0),
-                row.changed_on.as_str(),
-            )
-        })
+        values
+            .get(&element)
+            .map(|item| (item.priority, item.changed_on.as_str()))
     };
     const CC_PER_CUBIC_INCH: f64 = 16.387_064;
     // No road vehicle in vPIC comes close; anything larger is bad data.
@@ -401,7 +420,7 @@ fn build_engine(values: &Values<'_>, year_from: &HashMap<i64, u16>) -> Option<En
         fuel: text(values, Element::FuelTypePrimary),
         turbo: values
             .get(&Element::Turbo)
-            .map(|row| row.value.trim().eq_ignore_ascii_case("yes")),
+            .map(|item| item.value.trim().eq_ignore_ascii_case("yes")),
         electrification: text(values, Element::ElectrificationLevel),
     };
     if engine == Engine::default() {
@@ -411,7 +430,7 @@ fn build_engine(values: &Values<'_>, year_from: &HashMap<i64, u16>) -> Option<En
     Some(engine)
 }
 
-fn build_safety(values: &Values<'_>) -> Option<Safety> {
+fn build_safety(values: &Values) -> Option<Safety> {
     let safety = Safety {
         abs: text(values, Element::Abs),
         esc: text(values, Element::Esc),

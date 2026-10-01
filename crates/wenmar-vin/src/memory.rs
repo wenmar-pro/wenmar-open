@@ -51,10 +51,35 @@ impl MemoryData {
 
     /// Adds a pattern with the time it was last changed.
     pub fn with_pattern_changed(
+        self,
+        schema_id: i64,
+        keys: &str,
+        element: Element,
+        value: &str,
+        changed_on: &str,
+    ) -> Self {
+        self.push_pattern(schema_id, keys, element, value, value, changed_on)
+    }
+
+    /// Adds a pattern whose raw attribute differs from its resolved value, as
+    /// a lookup id does.
+    pub fn with_pattern_attribute(
+        self,
+        schema_id: i64,
+        keys: &str,
+        element: Element,
+        attribute: &str,
+        value: &str,
+    ) -> Self {
+        self.push_pattern(schema_id, keys, element, attribute, value, "")
+    }
+
+    fn push_pattern(
         mut self,
         schema_id: i64,
         keys: &str,
         element: Element,
+        attribute: &str,
         value: &str,
         changed_on: &str,
     ) -> Self {
@@ -64,6 +89,7 @@ impl MemoryData {
             schema_id,
             keys: keys.to_owned(),
             element,
+            attribute: attribute.to_owned(),
             value: value.to_owned(),
             changed_on: changed_on.to_owned(),
         });
@@ -172,5 +198,21 @@ mod tests {
         }
         let data = data();
         assert_eq!(count(&data), 2);
+    }
+
+    #[test]
+    fn a_pattern_keeps_its_raw_attribute() {
+        let data = MemoryData::new()
+            .with_pattern(1, "K2***", Element::Trim, "SE")
+            .with_pattern_attribute(1, "K2***", Element::DriveType, "1", "FWD/Front-Wheel Drive");
+        let patterns = data.patterns(&[1], "K2CAB|PU001140").unwrap();
+        assert_eq!(
+            (patterns[0].attribute.as_str(), patterns[0].value.as_str()),
+            ("SE", "SE")
+        );
+        assert_eq!(
+            (patterns[1].attribute.as_str(), patterns[1].value.as_str()),
+            ("1", "FWD/Front-Wheel Drive")
+        );
     }
 }

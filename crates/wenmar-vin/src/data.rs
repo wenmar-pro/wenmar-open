@@ -157,6 +157,8 @@ pub struct Pattern {
     pub schema_id: i64,
     pub keys: String,
     pub element: Element,
+    /// The raw attribute this pattern carries: a lookup id, or the value itself when there is no lookup. Specification keys are matched against it.
+    pub attribute: String,
     /// The resolved, human-readable value.
     pub value: String,
     /// When the pattern was last changed, as a timestamp that sorts correctly

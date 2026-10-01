@@ -138,7 +138,7 @@ impl VinData for SqliteData {
         // narrows the rows to those that can match. The decoder checks again.
         let placeholders = vec!["?"; schema_ids.len()].join(", ");
         let sql = format!(
-            "SELECT id, schema_id, keys, element_id, value, changed_on, make
+            "SELECT id, schema_id, keys, element_id, value, changed_on, make, value
              FROM pattern
              WHERE schema_id IN ({placeholders})
                AND ?{} GLOB (REPLACE(keys, '*', '?') || '*')",
@@ -160,6 +160,7 @@ impl VinData for SqliteData {
                 schema_id: row.get(1)?,
                 keys: row.get(2)?,
                 element,
+                attribute: row.get(7)?,
                 value: row.get(4)?,
                 changed_on: row.get(5)?,
             };
@@ -168,6 +169,7 @@ impl VinData for SqliteData {
             {
                 patterns.push(Pattern {
                     element: Element::Make,
+                    attribute: make.clone(),
                     value: make,
                     ..pattern.clone()
                 });
