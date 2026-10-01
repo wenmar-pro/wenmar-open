@@ -19,7 +19,7 @@ VIN decoding and a year/make/model/trim/engine catalog come first. More shop dat
 
 Most decoders are built for car listings. This one is built for the service counter:
 
-- It keeps the safety-equipment fields that NHTSA publishes (ABS, TPMS type, airbags, driver-assistance features). Those decide whether a job needs sensor service or a calibration.
+- It returns the equipment NHTSA records for each trim: ABS, ESC, TPMS type, air bags, driver assistance, wheel sizes and seat count. Those decide whether a job needs sensor service or a calibration.
 - It tells you when a VIN is mistyped, not just that it is invalid.
 - It is Canadian-first where the data allows, and treats US and Canadian vehicles as equals.
 

@@ -13,3 +13,5 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - `open-data parity`: compares decodes with NHTSA's recorded answers for a committed corpus and fails if agreement drops.
 - `wenmar-vin`: vehicles other than cars, MPVs and light trucks choose their model year the way NHTSA does; engine size is rounded to one decimal and also given in cubic centimetres.
 - `mise.toml` with pinned tools and `check`, `data` and `parity` tasks.
+- Decodes now include what NHTSA records per trim: transmission, ABS, ESC, TPMS, driver assistance, wheel sizes, seats, weight rating and base price.
+- Data file schema version 2. Files built before this must be rebuilt.

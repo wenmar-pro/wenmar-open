@@ -80,6 +80,8 @@ enum Kind {
     Litres,
     /// Compared as whole numbers, allowing one either way for rounding.
     Cc,
+    /// Compared as amounts of money, equal to the cent.
+    Money,
 }
 
 struct Field {
@@ -316,6 +318,78 @@ const FIELDS: &[Field] = &[
         kind: Kind::Text,
         ours: |d| d.safety.as_ref()?.airbags_knee.clone(),
     },
+    Field {
+        name: "traction_control",
+        nhtsa: "TractionControl",
+        kind: Kind::Text,
+        ours: |d| d.safety.as_ref()?.traction_control.clone(),
+    },
+    Field {
+        name: "dynamic_brake_support",
+        nhtsa: "DynamicBrakeSupport",
+        kind: Kind::Text,
+        ours: |d| d.safety.as_ref()?.dynamic_brake_support.clone(),
+    },
+    Field {
+        name: "rear_cross_traffic",
+        nhtsa: "RearCrossTrafficAlert",
+        kind: Kind::Text,
+        ours: |d| d.safety.as_ref()?.rear_cross_traffic.clone(),
+    },
+    Field {
+        name: "park_assist",
+        nhtsa: "ParkAssist",
+        kind: Kind::Text,
+        ours: |d| d.safety.as_ref()?.park_assist.clone(),
+    },
+    Field {
+        name: "pedestrian_braking",
+        nhtsa: "PedestrianAutomaticEmergencyBraking",
+        kind: Kind::Text,
+        ours: |d| d.safety.as_ref()?.pedestrian_braking.clone(),
+    },
+    Field {
+        name: "lane_centering",
+        nhtsa: "LaneCenteringAssistance",
+        kind: Kind::Text,
+        ours: |d| d.safety.as_ref()?.lane_centering.clone(),
+    },
+    Field {
+        name: "wheel_size_front",
+        nhtsa: "WheelSizeFront",
+        kind: Kind::Text,
+        ours: |d| text(d.wheel_size_front),
+    },
+    Field {
+        name: "wheel_size_rear",
+        nhtsa: "WheelSizeRear",
+        kind: Kind::Text,
+        ours: |d| text(d.wheel_size_rear),
+    },
+    Field {
+        name: "seats",
+        nhtsa: "Seats",
+        kind: Kind::Text,
+        ours: |d| text(d.seats),
+    },
+    Field {
+        name: "seat_rows",
+        nhtsa: "SeatRows",
+        kind: Kind::Text,
+        ours: |d| text(d.seat_rows),
+    },
+    Field {
+        name: "gvwr",
+        nhtsa: "GVWR",
+        kind: Kind::Text,
+        ours: |d| d.gvwr.clone(),
+    },
+    Field {
+        name: "base_price_usd",
+        nhtsa: "BasePrice",
+        kind: Kind::Money,
+        ours: |d| text(d.base_price_usd),
+    },
 ];
 
 /// Trimmed; empty for a missing value or NHTSA's placeholder.
@@ -352,6 +426,9 @@ fn same(kind: Kind, ours: &str, theirs: &str) -> bool {
         }),
         Kind::Cc => numbers(ours, theirs).map_or(ours == theirs, |(ours, theirs)| {
             (ours.round() - theirs.round()).abs() <= 1.0
+        }),
+        Kind::Money => numbers(ours, theirs).map_or(ours == theirs, |(ours, theirs)| {
+            ((ours * 100.0).round() - (theirs * 100.0).round()).abs() < 0.5
         }),
     }
 }
@@ -642,6 +719,43 @@ mod tests {
     }
 
     #[test]
+    fn a_base_price_is_compared_to_the_cent() {
+        let priced = data().with_pattern(1, "K2***", Element::BasePrice, "34195");
+        let price = |theirs: &str| {
+            let report = run(
+                priced.clone(),
+                &fixtures(&[(KONA, &[("BasePrice", theirs)])]),
+            );
+            outcome(&report, "base_price_usd")
+        };
+        assert_eq!(price("34195.00"), AGREE);
+        assert_eq!(price("34195"), AGREE);
+        assert_eq!(price("34195.01"), DIFFER);
+        assert_eq!(price("34196"), DIFFER);
+    }
+
+    #[test]
+    fn the_specification_fields_are_compared() {
+        let equipped = data()
+            .with_pattern(1, "K2***", Element::WheelSizeFront, "17")
+            .with_pattern(1, "K2***", Element::Seats, "5");
+        let report = run(
+            equipped,
+            &fixtures(&[(
+                KONA,
+                &[
+                    ("WheelSizeFront", "17"),
+                    ("Seats", "7"),
+                    ("TractionControl", "Standard"),
+                ],
+            )]),
+        );
+        assert_eq!(outcome(&report, "wheel_size_front"), AGREE);
+        assert_eq!(outcome(&report, "seats"), DIFFER);
+        assert_eq!(report.fields["traction_control"].missing, vec![KONA]);
+    }
+
+    #[test]
     fn a_litre_figure_we_leave_out_is_missing_not_agreed() {
         let scooter = MemoryData::new()
             .with_manufacturer(Manufacturer::new("KM8", "Maker"))
@@ -791,6 +905,7 @@ mod tests {
         let text = table(&one(&[("Make", "HYUNDAI"), ("Trim", "Limited")]));
         assert!(text.contains("make"), "{text}");
         assert!(text.contains("airbags_knee"), "{text}");
+        assert!(text.contains("wheel_size_front"), "{text}");
         assert!(text.contains(&format!("trim differs: {KONA}")), "{text}");
     }
 }
