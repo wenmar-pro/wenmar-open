@@ -9,8 +9,12 @@ pub struct Engine {
     pub label: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<String>,
+    /// Litres, rounded to one decimal place.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub displacement_l: Option<f64>,
+    /// Whole cubic centimetres, for engines too small for one decimal of a litre.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub displacement_cc: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cylinders: Option<u8>,
     #[serde(skip_serializing_if = "Option::is_none")]

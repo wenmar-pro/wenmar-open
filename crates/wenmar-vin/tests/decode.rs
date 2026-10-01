@@ -73,6 +73,7 @@ fn decodes_a_vin_into_the_documented_json() {
             "engine": {
                 "label": "2.0L",
                 "displacement_l": 2.0,
+                "displacement_cc": 2000,
                 "cylinders": 4,
                 "fuel": "Gasoline"
             },
@@ -579,31 +580,6 @@ fn a_schema_linked_twice_ranks_by_its_latest_start_year() {
 }
 
 #[test]
-fn litres_are_worked_out_from_cubic_centimetres() {
-    let decoded = decode(one_schema().with_pattern(1, "K2***", Element::DisplacementCc, "1998"));
-    let engine = decoded.engine.unwrap();
-    assert_eq!(engine.displacement_l, Some(1.998));
-    assert_eq!(engine.label.as_deref(), Some("2.0L"));
-}
-
-#[test]
-fn litres_are_worked_out_from_cubic_inches() {
-    let decoded = decode(one_schema().with_pattern(1, "K2***", Element::DisplacementCi, "350"));
-    let litres = decoded.engine.unwrap().displacement_l.unwrap();
-    assert!((litres - 5.7354724).abs() < 1e-6, "got {litres}");
-}
-
-#[test]
-fn stated_litres_beat_a_conversion() {
-    let decoded = decode(
-        one_schema()
-            .with_pattern(1, "K2***", Element::DisplacementL, "2.0")
-            .with_pattern(1, "K2***", Element::DisplacementCc, "1998"),
-    );
-    assert_eq!(decoded.engine.unwrap().displacement_l, Some(2.0));
-}
-
-#[test]
 fn heavy_vehicles_try_the_later_cycle_first() {
     let truck = Manufacturer {
         light_vehicle: false,
@@ -699,4 +675,59 @@ fn elements_carry_nhtsa_weights() {
     assert_eq!(Element::FuelTypePrimary.weight(), 91);
     assert_eq!(Element::Trim.weight(), 61);
     assert_eq!(Element::Doors.weight(), 0);
+}
+
+#[test]
+fn litres_are_worked_out_from_cubic_centimetres() {
+    let decoded = decode(one_schema().with_pattern(1, "K2***", Element::DisplacementCc, "1998"));
+    let engine = decoded.engine.unwrap();
+    assert_eq!(engine.displacement_l, Some(2.0));
+    assert_eq!(engine.displacement_cc, Some(1998));
+    assert_eq!(engine.label.as_deref(), Some("2.0L"));
+}
+
+#[test]
+fn litres_are_worked_out_from_cubic_inches() {
+    let decoded = decode(one_schema().with_pattern(1, "K2***", Element::DisplacementCi, "350"));
+    let engine = decoded.engine.unwrap();
+    assert_eq!(engine.displacement_l, Some(5.7));
+    assert_eq!(engine.displacement_cc, Some(5735));
+}
+
+#[test]
+fn stated_litres_beat_a_conversion() {
+    let decoded = decode(
+        one_schema()
+            .with_pattern(1, "K2***", Element::DisplacementL, "2.0")
+            .with_pattern(1, "K2***", Element::DisplacementCc, "1998"),
+    );
+    let engine = decoded.engine.unwrap();
+    assert_eq!(engine.displacement_l, Some(2.0));
+    assert_eq!(engine.displacement_cc, Some(1998));
+}
+
+#[test]
+fn litres_are_rounded_to_one_decimal_place() {
+    let decoded =
+        decode(one_schema().with_pattern(1, "K2***", Element::DisplacementL, "2.998832712"));
+    let engine = decoded.engine.unwrap();
+    assert_eq!(engine.displacement_l, Some(3.0));
+    assert_eq!(engine.displacement_cc, Some(2999));
+    assert_eq!(engine.label.as_deref(), Some("3.0L"));
+}
+
+#[test]
+fn a_small_engine_keeps_its_cubic_centimetres() {
+    let decoded = decode(one_schema().with_pattern(1, "K2***", Element::DisplacementCc, "649"));
+    let engine = decoded.engine.unwrap();
+    assert_eq!(engine.displacement_l, Some(0.6));
+    assert_eq!(engine.displacement_cc, Some(649));
+}
+
+#[test]
+fn a_displacement_that_is_not_a_positive_number_is_left_out() {
+    for value in ["0", "-2.0", "NaN", "inf", "two litres"] {
+        let decoded = decode(one_schema().with_pattern(1, "K2***", Element::DisplacementL, value));
+        assert_eq!(decoded.engine, None, "{value:?} should give no engine");
+    }
 }

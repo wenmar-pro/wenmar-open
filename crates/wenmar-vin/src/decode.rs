@@ -344,13 +344,21 @@ fn build_engine(values: &Values<'_>) -> Option<Engine> {
             .filter(|amount| amount.is_finite() && *amount > 0.0)
     };
     // NHTSA's conversions, for vehicles reported in only one unit.
-    let displacement_l = number(Element::DisplacementL)
-        .or_else(|| number(Element::DisplacementCc).map(|cc| cc / 1000.0))
-        .or_else(|| number(Element::DisplacementCi).map(|ci| ci * 0.016_387_064));
+    const CC_PER_CUBIC_INCH: f64 = 16.387_064;
+    let cubic_centimetres = number(Element::DisplacementCc)
+        .or_else(|| number(Element::DisplacementL).map(|litres| litres * 1000.0))
+        .or_else(|| number(Element::DisplacementCi).map(|ci| ci * CC_PER_CUBIC_INCH));
+    let litres = number(Element::DisplacementL).or_else(|| cubic_centimetres.map(|cc| cc / 1000.0));
+    let displacement_l = litres.map(|litres| (litres * 10.0).round() / 10.0);
+    let displacement_cc = cubic_centimetres
+        .map(f64::round)
+        .filter(|cc| *cc >= 1.0 && *cc <= f64::from(u32::MAX))
+        .map(|cc| cc as u32);
     let mut engine = Engine {
         label: None,
         model: text(values, Element::EngineModel),
         displacement_l,
+        displacement_cc,
         cylinders: count(values, Element::EngineCylinders),
         configuration: text(values, Element::EngineConfiguration),
         fuel: text(values, Element::FuelTypePrimary),
