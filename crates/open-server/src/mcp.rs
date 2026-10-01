@@ -5,16 +5,23 @@
 //! answer. There are no sessions, no streams and no stored state, so there
 //! is nothing to keep open and nothing to clean up.
 //!
+//! It speaks both kinds of protocol revision on the one address. A client
+//! that opens with `initialize` gets the handshake of the revisions up to
+//! 2025-11-25. A client that names its version in each request's `_meta`,
+//! as 2026-07-28 does, is answered without one, and must say the same in
+//! its headers.
+//!
 //! Two tools, one per noun, each taking an `action`. They call the same
 //! functions as the `/v1` routes and return the same JSON.
 
 use axum::Json;
 use axum::extract::State;
 use axum::extract::rejection::JsonRejection;
-use axum::http::{HeaderValue, StatusCode, header};
+use axum::http::{HeaderMap, HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use open_mcp::{
-    INVALID_PARAMS, INVALID_REQUEST, METHOD_NOT_FOUND, PARSE_ERROR, rpc_error, rpc_result,
+    Era, HEADER_MISMATCH, INVALID_PARAMS, INVALID_REQUEST, METHOD_NOT_FOUND, MODERN_VERSIONS,
+    PARSE_ERROR, UNSUPPORTED_PROTOCOL_VERSION, VERSION_KEY, rpc_error, rpc_failure, rpc_result,
     tool_result,
 };
 use serde::Deserialize;
@@ -162,9 +169,44 @@ fn initialize(params: &Value) -> Value {
     open_mcp::initialize(params, &PROTOCOL_VERSIONS, env!("CARGO_PKG_VERSION"))
 }
 
+fn header_text<'h>(headers: &'h HeaderMap, name: &str) -> Option<&'h str> {
+    headers
+        .get(name)
+        .and_then(|value| value.to_str().ok())
+        .map(str::trim)
+}
+
+/// Refuses a request whose headers do not say what its body says.
+fn mismatch(id: &Value, what: &str) -> Response {
+    answer(
+        StatusCode::BAD_REQUEST,
+        rpc_failure(id, json!({ "code": HEADER_MISMATCH, "message": what })),
+    )
+}
+
+/// Refuses a protocol version this server does not speak, naming the ones
+/// it does.
+fn unsupported(id: &Value, requested: &str) -> Response {
+    answer(
+        StatusCode::BAD_REQUEST,
+        rpc_failure(
+            id,
+            json!({
+                "code": UNSUPPORTED_PROTOCOL_VERSION,
+                "message": "Unsupported protocol version",
+                "data": {
+                    "supported": open_mcp::supported(&PROTOCOL_VERSIONS),
+                    "requested": requested
+                }
+            }),
+        ),
+    )
+}
+
 /// `POST /mcp`.
 pub async fn post(
     State(state): State<AppState>,
+    headers: HeaderMap,
     body: Result<Json<Value>, JsonRejection>,
 ) -> Response {
     let message = match body {
@@ -204,17 +246,99 @@ pub async fn post(
     };
     let null = Value::Null;
     let params = message.get("params").unwrap_or(&null);
-    let body = match method {
-        "initialize" => rpc_result(id, initialize(params)),
-        "ping" => rpc_result(id, json!({})),
-        "tools/list" => rpc_result(id, json!({ "tools": tools() })),
-        "tools/call" => match call(&state, params).await {
-            Ok(result) => rpc_result(id, result),
-            Err((code, message)) => rpc_error(id, code, &message),
-        },
-        _ => rpc_error(id, METHOD_NOT_FOUND, "Method not found."),
+    let version_header = header_text(&headers, "mcp-protocol-version");
+
+    // `initialize` is the handshake, whatever else the request carries.
+    let era = if method == "initialize" {
+        Era::Handshake
+    } else {
+        match open_mcp::era(params, &PROTOCOL_VERSIONS) {
+            Ok(era) => era,
+            Err(error) => return answer(StatusCode::BAD_REQUEST, rpc_failure(id, error)),
+        }
     };
-    answer(StatusCode::OK, body)
+    match era {
+        // Every request of this kind names its version, its method and,
+        // for a tool call, the tool, in headers as well as in the body.
+        Era::NoHandshake => {
+            let asked = params["_meta"][VERSION_KEY].as_str();
+            if version_header.is_none() || version_header != asked {
+                return mismatch(
+                    id,
+                    "The MCP-Protocol-Version header must name the version in _meta.",
+                );
+            }
+            if header_text(&headers, "mcp-method") != Some(method) {
+                return mismatch(id, "The Mcp-Method header must name the method.");
+            }
+            if method == "tools/call" {
+                let tool = params
+                    .get("name")
+                    .and_then(Value::as_str)
+                    .unwrap_or_default();
+                let named = header_text(&headers, "mcp-name").and_then(open_mcp::header_name);
+                if named.as_deref() != Some(tool) {
+                    return mismatch(id, "The Mcp-Name header must name the tool.");
+                }
+            }
+        }
+        // A client that has shaken hands sends the version it was given.
+        // No header at all is an older client, and is let through.
+        Era::Handshake if method != "initialize" => {
+            if let Some(version) = version_header {
+                if MODERN_VERSIONS.contains(&version) {
+                    return answer(
+                        StatusCode::BAD_REQUEST,
+                        rpc_error(
+                            id,
+                            INVALID_PARAMS,
+                            &format!("_meta must carry {VERSION_KEY}."),
+                        ),
+                    );
+                }
+                if !PROTOCOL_VERSIONS.contains(&version) {
+                    return unsupported(id, version);
+                }
+            }
+        }
+        Era::Handshake => {}
+    }
+
+    let modern = era == Era::NoHandshake;
+    let outcome: Result<Value, (StatusCode, i64, String)> = match method {
+        "initialize" => Ok(initialize(params)),
+        "server/discover" if modern => Ok(open_mcp::discover(&PROTOCOL_VERSIONS)),
+        // A client of both kinds takes this as its cue to send `initialize`.
+        "server/discover" => Err((
+            StatusCode::BAD_REQUEST,
+            INVALID_PARAMS,
+            format!("_meta must carry {VERSION_KEY}."),
+        )),
+        "ping" => Ok(json!({})),
+        "tools/list" => Ok(open_mcp::tools_list(era)),
+        "tools/call" => call(&state, params)
+            .await
+            .map_err(|(code, message)| (StatusCode::OK, code, message)),
+        // The revision with no handshake asks for 404 here.
+        _ if modern => Err((
+            StatusCode::NOT_FOUND,
+            METHOD_NOT_FOUND,
+            "Method not found.".to_owned(),
+        )),
+        _ => Err((
+            StatusCode::OK,
+            METHOD_NOT_FOUND,
+            "Method not found.".to_owned(),
+        )),
+    };
+    match outcome {
+        Ok(result) if modern => answer(
+            StatusCode::OK,
+            rpc_result(id, open_mcp::complete(result, env!("CARGO_PKG_VERSION"))),
+        ),
+        Ok(result) => answer(StatusCode::OK, rpc_result(id, result)),
+        Err((status, code, message)) => answer(status, rpc_error(id, code, &message)),
+    }
 }
 
 /// `GET` and `DELETE /mcp`: this server has no streams and no sessions.

@@ -318,3 +318,303 @@ async fn llms_txt_points_at_the_api_and_the_mcp_endpoint() {
     assert!(text.contains("Data version 2026.09"));
     assert!(text.contains("600 requests a minute"));
 }
+
+const MODERN: &str = "2026-07-28";
+const VERSION_KEY: &str = "io.modelcontextprotocol/protocolVersion";
+const SERVER_KEY: &str = "io.modelcontextprotocol/serverInfo";
+
+fn modern_meta() -> Value {
+    json!({
+        VERSION_KEY: MODERN,
+        "io.modelcontextprotocol/clientCapabilities": {},
+        "io.modelcontextprotocol/clientInfo": { "name": "test", "version": "0" }
+    })
+}
+
+/// `POST`s one message with the given headers.
+async fn raw(app: &TestApp, headers: &[(&str, &str)], message: &Value) -> (StatusCode, Value) {
+    let mut request = Request::post("/mcp")
+        .header("content-type", "application/json")
+        .header("accept", "application/json, text/event-stream");
+    for (name, value) in headers {
+        request = request.header(*name, *value);
+    }
+    let response = app
+        .send(request.body(Body::from(message.to_string())).unwrap())
+        .await;
+    assert!(response.headers().get("mcp-session-id").is_none());
+    assert!(response.headers().get("set-cookie").is_none());
+    assert_eq!(header(&response, "cache-control"), "no-store");
+    let status = response.status();
+    (status, body_json(response).await)
+}
+
+/// A request of the revision with no handshake, with the headers that
+/// revision requires over HTTP.
+async fn modern(app: &TestApp, method: &str, mut params: Value) -> (StatusCode, Value) {
+    params["_meta"] = modern_meta();
+    let message = json!({ "jsonrpc": "2.0", "id": 1, "method": method, "params": params });
+    let mut headers = vec![("mcp-protocol-version", MODERN), ("mcp-method", method)];
+    let name = message["params"]["name"].as_str().map(str::to_owned);
+    if let Some(name) = &name {
+        headers.push(("mcp-name", name.as_str()));
+    }
+    raw(app, &headers, &message).await
+}
+
+#[tokio::test]
+async fn a_client_with_no_handshake_discovers_lists_and_calls() {
+    let app = common::app().await;
+    let (status, answer) = modern(&app, "server/discover", json!({})).await;
+    assert_eq!(status, StatusCode::OK, "{answer}");
+    let found = &answer["result"];
+    assert_eq!(
+        found["supportedVersions"],
+        json!(["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"])
+    );
+    assert_eq!(found["resultType"], "complete");
+    assert_eq!(found["_meta"][SERVER_KEY]["name"], "wenmar-open");
+    assert_eq!(
+        found["capabilities"],
+        json!({ "tools": { "listChanged": false } })
+    );
+    assert_eq!(found["cacheScope"], "public");
+    assert!(
+        found["instructions"]
+            .as_str()
+            .unwrap()
+            .contains("wenmar_vin")
+    );
+
+    let (status, answer) = modern(&app, "tools/list", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    let names: Vec<&str> = answer["result"]["tools"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|tool| tool["name"].as_str().unwrap())
+        .collect();
+    assert_eq!(names, ["wenmar_vin", "wenmar_vehicles"]);
+    assert_eq!(answer["result"]["resultType"], "complete");
+    assert_eq!(answer["result"]["ttlMs"], 3_600_000);
+
+    let (status, answer) = modern(
+        &app,
+        "tools/call",
+        json!({ "name": "wenmar_vin", "arguments": { "action": "decode", "vin": common::KONA } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{answer}");
+    let result = &answer["result"];
+    assert_eq!(result["isError"], false);
+    assert_eq!(result["resultType"], "complete");
+    assert_eq!(result["_meta"][SERVER_KEY]["name"], "wenmar-open");
+    // The tool gives what the API gives.
+    let (_, served) = app.json("/v1/vin/KM8K2CAB4PU001140").await;
+    assert_eq!(text(result), served);
+    // A tool that fails still completes, with the error to read.
+    let (status, answer) = modern(
+        &app,
+        "tools/call",
+        json!({ "name": "wenmar_vin", "arguments": { "action": "decode", "vin": "nope" } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(answer["result"]["isError"], true);
+    assert_eq!(answer["result"]["resultType"], "complete");
+}
+
+#[tokio::test]
+async fn headers_that_do_not_say_what_the_body_says_are_refused() {
+    let app = common::app().await;
+    let list = json!({
+        "jsonrpc": "2.0", "id": 5, "method": "tools/list", "params": { "_meta": modern_meta() }
+    });
+    let call = json!({
+        "jsonrpc": "2.0", "id": 5, "method": "tools/call",
+        "params": {
+            "_meta": modern_meta(),
+            "name": "wenmar_vin",
+            "arguments": { "action": "decode", "vin": common::KONA }
+        }
+    });
+    let cases: [(&[(&str, &str)], &Value); 7] = [
+        // No version header, and one that names another version.
+        (&[("mcp-method", "tools/list")], &list),
+        (
+            &[
+                ("mcp-protocol-version", "2025-11-25"),
+                ("mcp-method", "tools/list"),
+            ],
+            &list,
+        ),
+        // No method header, and one that names another method.
+        (&[("mcp-protocol-version", MODERN)], &list),
+        (
+            &[
+                ("mcp-protocol-version", MODERN),
+                ("mcp-method", "tools/call"),
+            ],
+            &list,
+        ),
+        // A tool call with no name header, another tool's name, and a name
+        // that is not base64 where it says it is.
+        (
+            &[
+                ("mcp-protocol-version", MODERN),
+                ("mcp-method", "tools/call"),
+            ],
+            &call,
+        ),
+        (
+            &[
+                ("mcp-protocol-version", MODERN),
+                ("mcp-method", "tools/call"),
+                ("mcp-name", "wenmar_vehicles"),
+            ],
+            &call,
+        ),
+        (
+            &[
+                ("mcp-protocol-version", MODERN),
+                ("mcp-method", "tools/call"),
+                ("mcp-name", "=?base64?!!!?="),
+            ],
+            &call,
+        ),
+    ];
+    for (headers, message) in cases {
+        let (status, answer) = raw(&app, headers, message).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{headers:?}");
+        assert_eq!(answer["error"]["code"], -32020, "{headers:?}");
+        assert_eq!(answer["id"], 5);
+    }
+    // The same call with the name in base64 is answered.
+    let (status, answer) = raw(
+        &app,
+        &[
+            ("MCP-Protocol-Version", MODERN),
+            ("Mcp-Method", "tools/call"),
+            ("Mcp-Name", "=?base64?d2VubWFyX3Zpbg==?="),
+        ],
+        &call,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{answer}");
+    assert_eq!(answer["result"]["isError"], false);
+}
+
+#[tokio::test]
+async fn a_version_this_server_does_not_speak_is_refused_with_the_ones_it_does() {
+    let app = common::app().await;
+    // In the body.
+    let mut meta = modern_meta();
+    meta[VERSION_KEY] = json!("2027-01-01");
+    let message = json!({
+        "jsonrpc": "2.0", "id": 9, "method": "tools/list", "params": { "_meta": meta }
+    });
+    let (status, answer) = raw(
+        &app,
+        &[
+            ("mcp-protocol-version", "2027-01-01"),
+            ("mcp-method", "tools/list"),
+        ],
+        &message,
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(answer["error"]["code"], -32022);
+    assert_eq!(answer["error"]["data"]["requested"], "2027-01-01");
+    assert_eq!(
+        answer["error"]["data"]["supported"],
+        json!(["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"])
+    );
+    // The capabilities are required beside the version.
+    let message = json!({
+        "jsonrpc": "2.0", "id": 9, "method": "tools/list",
+        "params": { "_meta": { VERSION_KEY: MODERN } }
+    });
+    let (status, answer) = raw(
+        &app,
+        &[
+            ("mcp-protocol-version", MODERN),
+            ("mcp-method", "tools/list"),
+        ],
+        &message,
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(answer["error"]["code"], -32602);
+    // A method this server does not have is 404 in this revision.
+    let (status, answer) = modern(&app, "resources/list", json!({})).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    assert_eq!(answer["error"]["code"], -32601);
+
+    // In the header alone, from a client of the handshake kind.
+    let list = json!({ "jsonrpc": "2.0", "id": 9, "method": "tools/list" });
+    let (status, answer) = raw(&app, &[("mcp-protocol-version", "1999-01-01")], &list).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(answer["error"]["code"], -32022);
+    assert_eq!(answer["error"]["data"]["requested"], "1999-01-01");
+    // The header promises the new revision and the body does not keep it.
+    let (status, answer) = raw(&app, &[("mcp-protocol-version", MODERN)], &list).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(answer["error"]["code"], -32602);
+    // A probe for the new revision from a client of the old kind.
+    let probe = json!({ "jsonrpc": "2.0", "id": 9, "method": "server/discover" });
+    let (status, answer) = raw(&app, &[], &probe).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(answer["error"]["code"], -32602);
+}
+
+#[tokio::test]
+async fn a_client_that_shakes_hands_is_answered_as_before() {
+    let app = common::app().await;
+    let list = json!({ "jsonrpc": "2.0", "id": 2, "method": "tools/list" });
+    // With no version header, and with the header such a client sends after
+    // the handshake.
+    for headers in [&[][..], &[("mcp-protocol-version", "2025-06-18")][..]] {
+        let (status, answer) = raw(&app, headers, &list).await;
+        assert_eq!(status, StatusCode::OK, "{headers:?}");
+        assert_eq!(answer["result"]["tools"].as_array().unwrap().len(), 2);
+        assert!(answer["result"].get("resultType").is_none(), "{answer}");
+        assert!(answer["result"].get("_meta").is_none());
+    }
+    // `initialize` is the handshake whatever header comes with it.
+    let hello = json!({
+        "jsonrpc": "2.0", "id": 1, "method": "initialize",
+        "params": { "protocolVersion": "2025-11-25", "capabilities": {} }
+    });
+    for headers in [
+        &[][..],
+        &[("mcp-protocol-version", "2025-11-25")][..],
+        &[("mcp-protocol-version", MODERN)][..],
+        &[("mcp-protocol-version", "1999-01-01")][..],
+    ] {
+        let (status, answer) = raw(&app, headers, &hello).await;
+        assert_eq!(status, StatusCode::OK, "{headers:?}");
+        assert_eq!(answer["result"]["protocolVersion"], "2025-11-25");
+        assert!(answer["result"].get("resultType").is_none());
+    }
+    // A method the server does not have stays a 200 with an error in it.
+    let unknown = json!({ "jsonrpc": "2.0", "id": 3, "method": "resources/list" });
+    let (status, answer) = raw(&app, &[], &unknown).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(answer["error"]["code"], -32601);
+}
+
+#[tokio::test]
+async fn a_request_from_any_origin_is_answered() {
+    let app = common::app().await;
+    // The service is public, keyless and read-only, so no origin is refused.
+    let list = json!({ "jsonrpc": "2.0", "id": 2, "method": "tools/list" });
+    let (status, _) = raw(
+        &app,
+        &[("origin", "https://some-other-site.example")],
+        &list,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = modern(&app, "tools/list", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+}

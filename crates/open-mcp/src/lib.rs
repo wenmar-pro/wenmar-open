@@ -22,6 +22,29 @@ pub const METHOD_NOT_FOUND: i64 = -32601;
 pub const INVALID_PARAMS: i64 = -32602;
 /// A request named a protocol version this server does not speak.
 pub const UNSUPPORTED_PROTOCOL_VERSION: i64 = -32022;
+/// A required header is missing or does not say what the body says. Only
+/// a server on HTTP answers with it.
+pub const HEADER_MISMATCH: i64 = -32020;
+
+/// Where a request of the revision with no handshake names its protocol
+/// version and the client's capabilities, in `params._meta`.
+pub const VERSION_KEY: &str = "io.modelcontextprotocol/protocolVersion";
+pub const CAPABILITIES_KEY: &str = "io.modelcontextprotocol/clientCapabilities";
+/// Where a result of that revision names the server, in its own `_meta`.
+pub const SERVER_KEY: &str = "io.modelcontextprotocol/serverInfo";
+
+/// How long a client may keep the list of tools, in milliseconds. It never
+/// changes while a server runs.
+pub const TOOLS_TTL_MS: u64 = 3_600_000;
+
+/// Which kind of protocol revision a request is of.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Era {
+    /// Revisions up to 2025-11-25, which open with `initialize`.
+    Handshake,
+    /// Revision 2026-07-28: every request names its version.
+    NoHandshake,
+}
 
 /// The name both servers give themselves.
 pub const SERVER_NAME: &str = "wenmar-open";
@@ -136,6 +159,123 @@ pub fn initialize(params: &Value, versions: &[&str], server_version: &str) -> Va
     })
 }
 
+/// Every version a server speaks, newest first: the revision with no
+/// handshake, then `legacy`, the handshake revisions it speaks.
+pub fn supported(legacy: &[&'static str]) -> Vec<&'static str> {
+    MODERN_VERSIONS
+        .iter()
+        .chain(legacy.iter())
+        .copied()
+        .collect()
+}
+
+/// A JSON-RPC answer that carries `error`, a whole error object. Use it
+/// for an error that has `data`; [`rpc_error`] is for one that has none.
+pub fn rpc_failure(id: &Value, error: Value) -> Value {
+    json!({ "jsonrpc": "2.0", "id": id, "error": error })
+}
+
+/// Which kind of revision a request is of, read from its `params`.
+///
+/// A request that names a protocol version in `_meta` is of the kind with
+/// no handshake. It must name a version this crate knows, and carry the
+/// client's capabilities beside it. `Err` is the JSON-RPC error object to
+/// answer with.
+pub fn era(params: &Value, legacy: &[&'static str]) -> Result<Era, Value> {
+    let meta = params.get("_meta").unwrap_or(&Value::Null);
+    let Some(asked) = meta.get(VERSION_KEY) else {
+        return Ok(Era::Handshake);
+    };
+    if !asked
+        .as_str()
+        .is_some_and(|asked| MODERN_VERSIONS.contains(&asked))
+    {
+        return Err(json!({
+            "code": UNSUPPORTED_PROTOCOL_VERSION,
+            "message": "Unsupported protocol version",
+            "data": { "supported": supported(legacy), "requested": asked }
+        }));
+    }
+    if !meta.get(CAPABILITIES_KEY).is_some_and(Value::is_object) {
+        return Err(json!({
+            "code": INVALID_PARAMS,
+            "message": format!("_meta must carry {CAPABILITIES_KEY}.")
+        }));
+    }
+    Ok(Era::NoHandshake)
+}
+
+/// The answer to `server/discover`: what the server speaks and offers. The
+/// server's name is not here; it goes in the result's `_meta`, which
+/// [`complete`] adds.
+pub fn discover(legacy: &[&'static str]) -> Value {
+    json!({
+        "supportedVersions": supported(legacy),
+        "capabilities": { "tools": { "listChanged": false } },
+        "instructions": INSTRUCTIONS,
+        "ttlMs": TOOLS_TTL_MS,
+        "cacheScope": "public"
+    })
+}
+
+/// The answer to `tools/list`. The revision with no handshake also says
+/// how long the list may be kept.
+pub fn tools_list(era: Era) -> Value {
+    match era {
+        Era::Handshake => json!({ "tools": tools() }),
+        Era::NoHandshake => json!({
+            "tools": tools(),
+            "ttlMs": TOOLS_TTL_MS,
+            "cacheScope": "public"
+        }),
+    }
+}
+
+/// A result as the revision with no handshake requires it: marked
+/// complete, and naming the server in `_meta`.
+pub fn complete(mut result: Value, server_version: &str) -> Value {
+    if let Some(object) = result.as_object_mut() {
+        object.insert("resultType".to_owned(), json!("complete"));
+        object.insert(
+            "_meta".to_owned(),
+            json!({ SERVER_KEY: server_info(server_version) }),
+        );
+    }
+    result
+}
+
+/// The name an `Mcp-Name` header carries. A name with characters a header
+/// cannot hold is sent as `=?base64?...?=`; anything else is the name
+/// itself. `None` when what claims to be base64 is not, or is not text.
+pub fn header_name(value: &str) -> Option<String> {
+    let Some(encoded) = value
+        .strip_prefix("=?base64?")
+        .and_then(|rest| rest.strip_suffix("?="))
+    else {
+        return Some(value.to_owned());
+    };
+    let mut bytes = Vec::with_capacity(encoded.len());
+    let (mut held, mut bits) = (0u32, 0u32);
+    for character in encoded.trim_end_matches('=').bytes() {
+        let six = match character {
+            b'A'..=b'Z' => character - b'A',
+            b'a'..=b'z' => character - b'a' + 26,
+            b'0'..=b'9' => character - b'0' + 52,
+            b'+' | b'-' => 62,
+            b'/' | b'_' => 63,
+            _ => return None,
+        };
+        held = (held << 6) | u32::from(six);
+        bits += 6;
+        if bits >= 8 {
+            bits -= 8;
+            bytes.push(u8::try_from(held >> bits).ok()?);
+            held &= (1 << bits) - 1;
+        }
+    }
+    String::from_utf8(bytes).ok()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -202,5 +342,87 @@ mod tests {
         }
         // A server with no versions still answers, with an empty one.
         assert_eq!(initialize(&json!({}), &[], "0")["protocolVersion"], "");
+    }
+
+    fn modern_params() -> Value {
+        json!({ "_meta": { VERSION_KEY: "2026-07-28", CAPABILITIES_KEY: {} } })
+    }
+
+    #[test]
+    fn a_request_says_which_kind_of_revision_it_is_of() {
+        let legacy = ["2025-11-25", "2025-06-18"];
+        for params in [json!(null), json!({}), json!({ "_meta": {} }), json!([1])] {
+            assert_eq!(era(&params, &legacy), Ok(Era::Handshake), "{params}");
+        }
+        assert_eq!(era(&modern_params(), &legacy), Ok(Era::NoHandshake));
+        // A version this server does not speak, with the ones it does.
+        for asked in [
+            json!("2027-01-01"),
+            json!("2025-11-25"),
+            json!(7),
+            json!(null),
+        ] {
+            let error =
+                era(&json!({ "_meta": { VERSION_KEY: asked.clone() } }), &legacy).unwrap_err();
+            assert_eq!(error["code"], -32022, "{asked}");
+            assert_eq!(error["data"]["requested"], asked);
+            assert_eq!(
+                error["data"]["supported"],
+                json!(["2026-07-28", "2025-11-25", "2025-06-18"])
+            );
+        }
+        // The capabilities are required beside the version.
+        let error = era(&json!({ "_meta": { VERSION_KEY: "2026-07-28" } }), &legacy).unwrap_err();
+        assert_eq!(error["code"], -32602);
+    }
+
+    #[test]
+    fn discovery_and_results_have_the_shape_of_the_revision_with_no_handshake() {
+        let found = discover(&["2025-11-25"]);
+        assert_eq!(
+            found["supportedVersions"],
+            json!(["2026-07-28", "2025-11-25"])
+        );
+        assert_eq!(
+            found["capabilities"],
+            json!({ "tools": { "listChanged": false } })
+        );
+        assert_eq!(found["cacheScope"], "public");
+        assert_eq!(found["ttlMs"], 3_600_000);
+        assert!(found.get("serverInfo").is_none(), "it goes in _meta");
+
+        assert!(tools_list(Era::Handshake).get("ttlMs").is_none());
+        assert_eq!(tools_list(Era::NoHandshake)["cacheScope"], "public");
+        assert_eq!(tools_list(Era::NoHandshake)["tools"], tools());
+
+        let result = complete(json!({ "tools": [] }), "0.1.0");
+        assert_eq!(result["resultType"], "complete");
+        assert_eq!(result["_meta"][SERVER_KEY]["name"], "wenmar-open");
+        assert_eq!(result["_meta"][SERVER_KEY]["version"], "0.1.0");
+        assert_eq!(result["tools"], json!([]));
+        let failure = rpc_failure(&json!(3), json!({ "code": -32020, "message": "m" }));
+        assert_eq!(
+            failure,
+            json!({ "jsonrpc": "2.0", "id": 3, "error": { "code": -32020, "message": "m" } })
+        );
+    }
+
+    #[test]
+    fn a_name_in_a_header_is_read_plain_or_from_base64() {
+        assert_eq!(header_name("wenmar_vin").as_deref(), Some("wenmar_vin"));
+        assert_eq!(
+            header_name("=?base64?d2VubWFyX3Zpbg==?=").as_deref(),
+            Some("wenmar_vin")
+        );
+        assert_eq!(
+            header_name("=?base64?d2VubWFyX3ZlaGljbGVz?=").as_deref(),
+            Some("wenmar_vehicles")
+        );
+        assert_eq!(header_name("=?base64??=").as_deref(), Some(""));
+        // Not base64, and base64 of bytes that are not text.
+        assert_eq!(header_name("=?base64?!!!?="), None);
+        assert_eq!(header_name("=?base64?/w==?="), None);
+        // Something that only looks like the start of it is a plain name.
+        assert_eq!(header_name("=?base64?abc").as_deref(), Some("=?base64?abc"));
     }
 }
