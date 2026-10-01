@@ -2,7 +2,11 @@
 
 pub mod cells;
 pub mod curated;
+pub mod detail;
+pub mod engine;
 pub mod keys;
+pub mod names;
+pub mod tally;
 pub mod vehicles;
 
 use anyhow::{Context, Result, bail};
