@@ -148,4 +148,5 @@ jobs:
           gh release create "data-$version" "$file" "$file.sha256" \
             --target main \
             --title "Data $version" \
-            --notes-file notes.md
+            --notes-file notes.md \
+            --latest=false
