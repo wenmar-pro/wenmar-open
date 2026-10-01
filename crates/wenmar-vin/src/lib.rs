@@ -55,3 +55,6 @@ pub use error::{InvalidChar, VinError};
 pub use memory::MemoryData;
 pub use result::{Decoded, ManufacturerInfo, Plant, Safety, Warning, WarningCode};
 pub use vin::Vin;
+
+#[cfg(feature = "sqlite")]
+pub mod sqlite;

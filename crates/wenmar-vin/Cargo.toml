@@ -12,8 +12,16 @@ keywords = ["vin", "vehicle", "automotive", "nhtsa", "vpic"]
 categories = ["parser-implementations"]
 
 [dependencies]
+rusqlite = { version = "0.40.2", features = ["bundled"], optional = true }
 serde.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
 serde_json.workspace = true
+
+[features]
+sqlite = ["dep:rusqlite"]
+
+[[test]]
+name = "sqlite"
+required-features = ["sqlite"]
