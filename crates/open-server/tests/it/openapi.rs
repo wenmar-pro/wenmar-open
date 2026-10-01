@@ -32,11 +32,13 @@ fn the_description_lists_every_route_and_no_others() {
         .map(String::as_str)
         .collect();
     paths.sort_unstable();
-    assert_eq!(paths, ["/v1/meta"]);
+    assert_eq!(paths, ["/v1/meta", "/v1/vin/batch", "/v1/vin/{vin}"]);
     // `/health` is for the deploy proxy and is not part of the API.
     assert!(description["paths"].get("/health").is_none());
     let schemas = description["components"]["schemas"].as_object().unwrap();
-    assert!(schemas.contains_key("MetaResponse"));
+    for name in ["VinDecode", "ErrorBody", "Entry", "MetaResponse"] {
+        assert!(schemas.contains_key(name), "no schema for {name}");
+    }
     assert_eq!(description["info"]["title"], "Wenmar Open");
 }
 

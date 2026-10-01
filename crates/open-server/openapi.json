@@ -35,10 +35,409 @@
           }
         }
       }
+    },
+    "/v1/vin/batch": {
+      "post": {
+        "tags": [
+          "VIN"
+        ],
+        "summary": "Decode up to 50 VINs.",
+        "description": "The answer is an array in the order asked. Each item is a decode, or the\nerror object a single request for that VIN would have returned.",
+        "operationId": "batch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "One item per VIN, in order.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BatchItem"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: the body is not `{ \"vins\": [...] }` or lists more than 50.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "`payload_too_large`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "`rate_limited`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vin/{vin}": {
+      "get": {
+        "tags": [
+          "VIN"
+        ],
+        "summary": "Decode one VIN.",
+        "description": "Spaces and dashes in the VIN are ignored and letters may be in either\ncase. A wrong check digit is not an error: `valid` is `false` and a\nwarning says so.",
+        "operationId": "decode",
+        "parameters": [
+          {
+            "name": "vin",
+            "in": "path",
+            "description": "A 17-character VIN.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "KM8K2CAB4PU001140"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "Use this model year instead of working it out from the VIN.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "example": 2023
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The decode.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinDecode"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`invalid_vin`: wrong length or illegal characters. `details.suggestions` lists likely corrections.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no manufacturer is registered for the first three characters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "`rate_limited`: over 600 requests a minute. See `Retry-After`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "BatchItem": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/VinDecode"
+          },
+          {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        ],
+        "description": "One answer of a batch: a decode, or the error a single request for that\nVIN would have given."
+      },
+      "BatchRequest": {
+        "type": "object",
+        "required": [
+          "vins"
+        ],
+        "properties": {
+          "vins": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "At most 50 VINs.",
+            "example": [
+              "KM8K2CAB4PU001140",
+              "1HGCM82633A004352"
+            ],
+            "maxItems": 50
+          }
+        }
+      },
+      "CheckDigit": {
+        "type": "object",
+        "required": [
+          "valid",
+          "expected",
+          "actual"
+        ],
+        "properties": {
+          "actual": {
+            "type": "string",
+            "description": "What position 9 is.",
+            "example": "4"
+          },
+          "expected": {
+            "type": "string",
+            "description": "What position 9 should be.",
+            "example": "4"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Engine": {
+        "type": "object",
+        "properties": {
+          "configuration": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cylinders": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "displacement_cc": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "displacement_l": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "electrification": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fuel": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The short name shops use, such as `2.0L Turbo` or `3.5L V6`.",
+            "example": "2.0L"
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "turbo": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "Entry": {
+        "type": "object",
+        "description": "One vehicle of the catalog, down to whatever level was asked for.",
+        "required": [
+          "id",
+          "year",
+          "make",
+          "model",
+          "vehicle_types",
+          "summary"
+        ],
+        "properties": {
+          "body": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "drive": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "engine": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "The stable id. It stays the same from one data release to the next\nfor as long as the names do.",
+            "example": "2019_honda_civic_si"
+          },
+          "make": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "submodel": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "summary": {
+            "type": "string",
+            "description": "One line naming everything above that is known.",
+            "example": "2019 Honda Civic Si, Manual, FWD, Sedan"
+          },
+          "transmission": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "vehicle_types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "NHTSA's vehicle types for this model year, such as `Truck`."
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          }
+        }
+      },
+      "ErrorBody": {
+        "type": "object",
+        "description": "The body of every error: `{ \"error\": { \"code\", \"message\", \"details\" } }`.",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        }
+      },
+      "ErrorDetail": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "details"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "A stable code to branch on. One of `invalid_vin`, `validation_failed`,\n`not_found`, `method_not_allowed`, `payload_too_large`,\n`rate_limited`, `unavailable`, `internal_error`.",
+            "example": "invalid_vin"
+          },
+          "details": {
+            "type": "object",
+            "description": "More about the error. Always an object; empty when there is nothing\nto add."
+          },
+          "message": {
+            "type": "string",
+            "description": "A sentence for a person to read.",
+            "example": "a VIN has 17 characters, this has 16"
+          }
+        }
+      },
+      "Manufacturer": {
+        "type": "object",
+        "required": [
+          "wmi",
+          "name"
+        ],
+        "properties": {
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "example": "Hyundai Motor Co"
+          },
+          "vehicle_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "wmi": {
+            "type": "string",
+            "description": "The manufacturer code: three characters, or six for a low-volume\nmaker.",
+            "example": "KM8"
+          }
+        }
+      },
       "MetaResponse": {
         "type": "object",
         "description": "What is being served.",
@@ -68,6 +467,415 @@
             "type": "string",
             "description": "The NHTSA vPIC release the data was built from.",
             "example": "vPICList_lite_2026_09"
+          }
+        }
+      },
+      "Plant": {
+        "type": "object",
+        "description": "Where the vehicle was built. `code` is position 11 of the VIN.",
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "example": "U"
+          },
+          "company": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "Safety": {
+        "type": "object",
+        "description": "Safety equipment as the manufacturer reported it: `Standard`, `Optional`,\nor a system type such as `Direct`.",
+        "properties": {
+          "abs": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "adaptive_cruise": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "airbags_curtain": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "airbags_front": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "airbags_knee": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "airbags_side": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "auto_brake": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "backup_camera": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "blind_spot": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dynamic_brake_support": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "esc": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "forward_collision": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lane_centering": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lane_departure": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lane_keep": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "park_assist": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pedestrian_braking": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rear_cross_traffic": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tpms": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "traction_control": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "Selection": {
+        "type": "object",
+        "description": "The catalog's answer for one decoded VIN.",
+        "required": [
+          "entry",
+          "vehicle_id"
+        ],
+        "properties": {
+          "engine_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The engine's id form, when the decode settles on one."
+          },
+          "entry": {
+            "$ref": "#/components/schemas/Entry",
+            "description": "The most specific entry the decode reaches."
+          },
+          "submodel_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The submodel's id form, when the decode names exactly one."
+          },
+          "vehicle_id": {
+            "type": "string",
+            "description": "The id of the year, make and model.",
+            "example": "2023_hyundai_kona"
+          }
+        }
+      },
+      "VinDecode": {
+        "type": "object",
+        "description": "A decoded VIN. A field that could not be determined is left out.",
+        "required": [
+          "vin",
+          "valid",
+          "check_digit",
+          "manufacturer",
+          "plant",
+          "warnings"
+        ],
+        "properties": {
+          "base_price_usd": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Manufacturer base price in US dollars, when NHTSA has one."
+          },
+          "body": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "catalog": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Selection",
+                "description": "The catalog entry this VIN reaches, for prefilling a vehicle form.\nLeft out when the catalog cannot place the vehicle."
+              }
+            ]
+          },
+          "check_digit": {
+            "$ref": "#/components/schemas/CheckDigit"
+          },
+          "doors": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "drivetrain": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "FWD"
+          },
+          "engine": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Engine"
+              }
+            ]
+          },
+          "gvwr": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Gross vehicle weight rating class, as NHTSA words it."
+          },
+          "make": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Hyundai"
+          },
+          "manufacturer": {
+            "$ref": "#/components/schemas/Manufacturer"
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Kona"
+          },
+          "plant": {
+            "$ref": "#/components/schemas/Plant"
+          },
+          "safety": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Safety"
+              }
+            ]
+          },
+          "seat_rows": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "seats": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "series": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "transmission": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "transmission_speeds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "trim": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "SE"
+          },
+          "valid": {
+            "type": "boolean",
+            "description": "Whether the check digit, position 9, is right. Many genuine VINs from\noutside North America fail it."
+          },
+          "vin": {
+            "type": "string",
+            "example": "KM8K2CAB4PU001140"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            },
+            "description": "Things to know about a decode that still succeeded."
+          },
+          "wheel_size_front": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Front wheel diameter in inches.",
+            "minimum": 0
+          },
+          "wheel_size_rear": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Rear wheel diameter in inches.",
+            "minimum": 0
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "example": 2023,
+            "minimum": 0
+          }
+        }
+      },
+      "Warning": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "`invalid_check_digit`, `model_year_unknown`, `no_patterns` or\n`model_unresolved`. More may be added.",
+            "example": "invalid_check_digit"
+          },
+          "message": {
+            "type": "string"
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "VINs the caller may have meant."
           }
         }
       }

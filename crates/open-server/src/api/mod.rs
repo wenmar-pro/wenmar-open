@@ -1,6 +1,8 @@
 //! The JSON API under `/v1`.
 
 pub mod meta;
+pub mod types;
+pub mod vin;
 
 use std::fmt::Display;
 use std::str::FromStr;
@@ -34,7 +36,10 @@ struct ApiDoc;
 /// The `/v1` routes and their OpenAPI description, built from the same list
 /// so one cannot name a route the other lacks.
 pub fn router() -> (axum::Router<AppState>, utoipa::openapi::OpenApi) {
-    let v1 = OpenApiRouter::new().routes(routes!(meta::meta));
+    let v1 = OpenApiRouter::new()
+        .routes(routes!(vin::decode))
+        .routes(routes!(vin::batch))
+        .routes(routes!(meta::meta));
     OpenApiRouter::with_openapi(ApiDoc::openapi())
         .nest("/v1", v1)
         .split_for_parts()
