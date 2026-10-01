@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 id="summary">{{ headline }}</h1>
+<p class="mono">{{ vin }}</p>
+{% for warning in warnings -%}
+<p class="warning">{{ warning.message }}
+{% for suggestion in warning.suggestions -%}
+ <a href="/vin/{{ suggestion }}">Try {{ suggestion }}</a>
+{% endfor -%}
+</p>
+{% endfor -%}
+<div class="actions">
+<button type="button" data-copy="summary" hidden>Copy</button>
+<button type="button" data-print hidden>Print</button>
+</div>
+{% for group in groups -%}
+<table>
+<caption>{{ group.name }}</caption>
+<tbody>
+{% for row in group.rows -%}
+<tr><th scope="row">{{ row.0 }}</th><td>{{ row.1 }}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+{% endfor -%}
+{% if let Some(link) = model_year -%}
+<p><a href="{{ link.0 }}">All trims and engines for the {{ link.1 }}</a></p>
+{% endif -%}
+<p class="pro">Keep this vehicle's estimates, work orders and invoices in one place with <a href="{{ pro }}">Wenmar Pro</a>.</p>
+<p><a href="/">Decode another VIN</a></p>
+{% endblock %}

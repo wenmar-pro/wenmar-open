@@ -7,6 +7,7 @@
 pub mod assets;
 pub mod home;
 pub mod tokens;
+pub mod vin;
 
 use askama::Template;
 use axum::Router;
@@ -217,6 +218,7 @@ pub fn router() -> Router<AppState> {
         .route("/", get(home::home))
         .route("/vin", get(home::vin_form))
         .route("/pick", get(home::pick))
+        .route("/vin/{vin}", get(vin::result))
         .route("/assets/site.css", get(assets::stylesheet))
         .route("/assets/site.js", get(assets::script))
 }
