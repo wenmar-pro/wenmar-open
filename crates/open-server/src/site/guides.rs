@@ -12,7 +12,7 @@ use axum::response::Response;
 
 use crate::site::markdown::{self, Doc, Format, Table};
 use crate::site::pages::{render, section, with_code, with_links, with_table};
-use crate::site::{self, Page};
+use crate::site::{self, Page, jsonld, seo};
 use crate::state::AppState;
 
 /// The VIN the guides take apart: a 2023 Hyundai Kona. It is the example
@@ -500,12 +500,24 @@ fn show(
         let canonical = format!("{}{path}", state.config().base_url);
         return markdown::response(markdown::doc(&doc), &canonical);
     }
-    let page = Page::new(state, format!("{title} - Wenmar Open"), description)
+    let page = Page::new(state, seo::title(title), description)
         .indexed(state, path)
         .with_markdown(&format!("{path}.md"))
         .in_section("guides")
         .under(crumbs)
         .as_article();
+    let base = &state.config().base_url;
+    // The list of guides is a list. Each guide is an article.
+    let page = if page.crumbs.is_empty() {
+        page
+    } else {
+        let things = vec![
+            page.trail(&doc.title),
+            jsonld::article(base, path, &doc.title, description),
+            jsonld::organization(base),
+        ];
+        page.describing(things)
+    };
     render(page, doc)
 }
 

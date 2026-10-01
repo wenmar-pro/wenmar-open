@@ -15,11 +15,24 @@
 {% endif -%}
 <h2 id="years">Other years</h2>
 <nav aria-labelledby="years">
-<ul class="plain">
+<ul class="plain years">
 {% for year in view.years -%}
 <li><a href="/makes/{{ view.slug }}?year={{ year }}"{% if *year == view.year %} aria-current="page"{% endif %}>{{ year }}</a></li>
 {% endfor -%}
 </ul>
 </nav>
-<p><a href="/makes">Every make</a></p>
+<h2>Decode a {{ view.name }} VIN</h2>
+{% include "vin_form.html" %}
+{% if !view.codes.is_empty() -%}
+<h2>Manufacturer codes</h2>
+<p class="note">{{ view.name }} vehicles are built under these codes. <a href="/guides/wmi">What the first three characters of a VIN mean</a>.</p>
+<ul class="plain">
+{% for code in view.codes -%}
+<li><a class="mono" href="/wmi/{{ code }}">{{ code }}</a></li>
+{% endfor -%}
+</ul>
+{% if view.codes_cut -%}
+<p class="note">Only the first {{ view.codes.len() }} codes are listed.</p>
+{% endif -%}
+{% endif -%}
 {% endblock %}

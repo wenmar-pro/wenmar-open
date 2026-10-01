@@ -11,6 +11,7 @@ use wenmar_vehicles::{Source, SourceError, Value};
 use crate::db::Worker;
 use crate::error::ApiError;
 use crate::site::markdown::{self, Format, escape};
+use crate::site::seo;
 use crate::site::{self, Page};
 use crate::state::AppState;
 
@@ -186,22 +187,50 @@ pub async fn wmi(
         let canonical = format!("{}{path}", state.config().base_url);
         return markdown::response(wmi_markdown(&view), &canonical);
     }
-    let page = Page::new(
-        &state,
-        format!("{code}: {} - Wenmar Open", view.manufacturer),
-        format!(
-            "VINs that start with {code} were built by {}.",
-            view.manufacturer
-        ),
-    )
-    .indexed(&state, &path)
-    .with_markdown(&format!("{path}.md"));
     let years = years(&view);
     let first = code.get(..3).unwrap_or(&code).to_owned();
     let rest = code
         .get(3..)
         .filter(|rest| !rest.is_empty())
         .map(str::to_owned);
+    // A six-character code is not what a VIN starts with: its last three
+    // characters are positions 12 to 14.
+    let (title, begins) = match &rest {
+        None => (
+            format!("VINs starting with {code}: {}", view.manufacturer),
+            format!("A VIN that starts with {code}"),
+        ),
+        Some(rest) => (
+            format!("Manufacturer code {code}: {}", view.manufacturer),
+            format!("A VIN that starts with {first} and has {rest} in positions 12 to 14"),
+        ),
+    };
+    let mut description = format!("{begins} was built by {}", view.manufacturer);
+    if let Some(country) = &view.country {
+        description.push_str(&format!(" in {country}"));
+    }
+    description.push('.');
+    if !view.makes.is_empty() {
+        let names: Vec<&str> = view.makes.iter().map(|make| make.1.as_str()).collect();
+        description.push_str(&format!(" Makes: {}.", seo::first_of(&names)));
+    }
+    if let Some(years) = &years {
+        description.push_str(&format!(" Model years on file: {years}."));
+    }
+    let page = Page::new(&state, seo::title(&title), seo::clip(&description, 160))
+        .indexed(&state, &path)
+        .with_markdown(&format!("{path}.md"))
+        .in_section("guides")
+        .with_mono()
+        .under(vec![
+            ("VIN guide".to_owned(), "/guides".to_owned()),
+            (
+                "The first three characters".to_owned(),
+                "/guides/wmi".to_owned(),
+            ),
+        ]);
+    let trail = page.trail(&format!("Manufacturer code {code}"));
+    let page = page.describing(vec![trail]);
     site::html(
         StatusCode::OK,
         &WmiPage {

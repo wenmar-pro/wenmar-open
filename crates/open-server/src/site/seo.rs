@@ -175,3 +175,92 @@ pub async fn sitemap(
         Err(error) => site::failed(&state, &error),
     }
 }
+
+/// A page's title: what the page is, then the site's name where there is
+/// room. A search result shows about 60 characters, and the first words
+/// are the ones people typed.
+pub fn title(text: &str) -> String {
+    const SITE: &str = " - Wenmar Open";
+    if text.chars().count() + SITE.len() <= 60 {
+        format!("{text}{SITE}")
+    } else {
+        text.to_owned()
+    }
+}
+
+/// A description of at most `most` characters, cut at the end of a word
+/// and not left hanging on a comma or an open bracket.
+pub fn clip(text: &str, most: usize) -> String {
+    if text.chars().count() <= most {
+        return text.to_owned();
+    }
+    let mut characters = text.chars();
+    let cut: String = characters.by_ref().take(most).collect();
+    // If the cut fell between two words, every word kept is whole.
+    // Otherwise the last one is a piece of a word, and it goes.
+    let whole = characters.next().is_none_or(char::is_whitespace);
+    let kept = if whole {
+        cut.as_str()
+    } else {
+        cut.rsplit_once(' ').map_or(cut.as_str(), |(kept, _)| kept)
+    };
+    kept.trim_end_matches([',', ';', ':', '(', ' ']).to_owned()
+}
+
+/// A number of things, in words: `1 trim`, `3 trims`.
+pub fn count(number: usize, noun: &str) -> String {
+    if number == 1 {
+        format!("1 {noun}")
+    } else {
+        format!("{number} {noun}s")
+    }
+}
+
+/// The first three of a list of names, and whether there are more.
+pub fn first_of(names: &[&str]) -> String {
+    let shown: Vec<&str> = names.iter().copied().take(3).collect();
+    if names.len() > shown.len() {
+        format!("{} and more", shown.join(", "))
+    } else {
+        shown.join(", ")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_sites_name_is_added_where_there_is_room() {
+        assert_eq!(
+            title("Honda VIN decoder and models by year"),
+            "Honda VIN decoder and models by year - Wenmar Open"
+        );
+        let long = "Crane Carrier Company (CCC) VIN decoder and models by year";
+        assert_eq!(title(long), long);
+        assert_eq!(title(&"x".repeat(46)).chars().count(), 60);
+        assert_eq!(title(&"x".repeat(47)).chars().count(), 47);
+    }
+
+    #[test]
+    fn a_description_is_cut_at_a_word() {
+        assert_eq!(clip("short", 160), "short");
+        assert_eq!(clip("one two three", 9), "one two");
+        assert_eq!(clip("one two, three", 9), "one two");
+        assert_eq!(clip("has 9 trims (LX, Si, Touring)", 13), "has 9 trims");
+        assert_eq!(clip("abcdefghij", 4), "abcd");
+        // Counted in characters, and never cut inside one.
+        assert_eq!(clip("naïve café olé", 10), "naïve café");
+        assert!(clip(&"word ".repeat(100), 160).chars().count() <= 160);
+    }
+
+    #[test]
+    fn things_are_counted_and_listed_in_words() {
+        assert_eq!(count(1, "trim"), "1 trim");
+        assert_eq!(count(3, "engine"), "3 engines");
+        assert_eq!(first_of(&["LX", "Si"]), "LX, Si");
+        assert_eq!(first_of(&["LX", "Si", "Touring"]), "LX, Si, Touring");
+        assert_eq!(first_of(&["A", "B", "C", "D"]), "A, B, C and more");
+        assert_eq!(first_of(&[]), "");
+    }
+}

@@ -651,3 +651,19 @@ pub fn assert_targets(html: &str, path: &str) {
         "{path}: a list of links needs class \"plain\""
     );
 }
+
+/// The structured data in a page's head, parsed, or `None` when the page
+/// has none. Fails if the block could have ended its script element early
+/// or is not JSON.
+pub fn json_ld(html: &str) -> Option<Value> {
+    let block = html
+        .split(r#"<script type="application/ld+json">"#)
+        .nth(1)?
+        .split("</script>")
+        .next()?;
+    assert!(
+        !block.contains('<') && !block.contains('>') && !block.contains('&'),
+        "structured data holds markup characters: {block}"
+    );
+    Some(serde_json::from_str(block).unwrap_or_else(|error| panic!("{error}: {block}")))
+}

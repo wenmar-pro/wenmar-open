@@ -40,7 +40,19 @@
 {% endfor -%}
 </tbody>
 </table>
-<p class="note">Safety equipment depends on the trim. Decode a VIN to see what one vehicle has.</p>
-<p><a href="/makes/{{ view.make_slug }}?year={{ view.entry.year }}">More {{ view.entry.make }} models for {{ view.entry.year }}</a></p>
-<p><a href="/">Decode a VIN</a></p>
+<p class="note">Position 8 of a VIN names the engine on many vehicles: <a href="/guides/how-to-read-a-vin">how to read a VIN</a>. Safety equipment depends on the trim, so decode a VIN to see what one vehicle has.</p>
+{% if view.years.len() > 1 -%}
+<h2 id="years">Other years of the {{ view.entry.model }}</h2>
+<nav aria-labelledby="years">
+<ul class="plain years">
+{% for year in view.years -%}
+<li><a href="/makes/{{ view.make_slug }}/{{ view.model_slug }}/{{ year }}"{% if *year == view.entry.year %} aria-current="page"{% endif %}>{{ year }}</a></li>
+{% endfor -%}
+</ul>
+</nav>
+{% endif -%}
+<ul class="plain links">
+<li><a href="/makes/{{ view.make_slug }}?year={{ view.entry.year }}">More {{ view.entry.make }} models for {{ view.entry.year }}</a></li>
+<li><a href="/">Decode a VIN</a></li>
+</ul>
 {% endblock %}

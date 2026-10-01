@@ -7,6 +7,7 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::Response;
 
+use crate::site::jsonld;
 use crate::site::markdown::{self, Doc, Format, Section, Table};
 use crate::site::{self, Page};
 use crate::state::AppState;
@@ -222,6 +223,7 @@ pub fn about(_state: &AppState) -> Doc {
 fn show(
     state: &AppState,
     path: &'static str,
+    title: &str,
     description: &str,
     doc: Doc,
     format: Format,
@@ -230,39 +232,87 @@ fn show(
         let canonical = format!("{}{path}", state.config().base_url);
         return markdown::response(markdown::doc(&doc), &canonical);
     }
-    let page = Page::new(state, format!("{} - Wenmar Open", doc.title), description)
+    let page = Page::new(state, title, description)
         .indexed(state, path)
         .with_markdown(&format!("{path}.md"))
         .in_section(path.trim_start_matches('/'));
+    let page = if path == "/about" {
+        page.describing(vec![jsonld::organization(&state.config().base_url)])
+    } else {
+        page
+    };
     render(page, doc)
 }
 
-const DOCS: &str =
-    "How to call the Wenmar Open API: VIN decoding and the vehicle catalog, with examples to copy.";
-const DATA: &str =
-    "The data version this site serves, where the data comes from, and how to download it.";
+const DOCS_TITLE: &str = "Free VIN decoder API, no key - Wenmar Open";
+const DOCS: &str = "A free JSON API for VIN decoding and a year, make, model, trim and engine catalog. No key, no account, open to any website. Examples to copy.";
+const DATA_TITLE: &str = "Vehicle data download: NHTSA vPIC as SQLite - Wenmar Open";
+const DATA: &str = "Vehicle data built each month from NHTSA's vPIC: the version this site serves, where it comes from, and how to download it as one SQLite file.";
+const ABOUT_TITLE: &str = "About Wenmar Open";
 const ABOUT: &str = "What Wenmar Open is, who runs it, and what it keeps.";
 
 pub async fn docs_html(State(state): State<AppState>) -> Response {
-    show(&state, "/docs", DOCS, docs(&state), Format::Html)
+    show(
+        &state,
+        "/docs",
+        DOCS_TITLE,
+        DOCS,
+        docs(&state),
+        Format::Html,
+    )
 }
 
 pub async fn docs_md(State(state): State<AppState>) -> Response {
-    show(&state, "/docs", DOCS, docs(&state), Format::Markdown)
+    show(
+        &state,
+        "/docs",
+        DOCS_TITLE,
+        DOCS,
+        docs(&state),
+        Format::Markdown,
+    )
 }
 
 pub async fn data_html(State(state): State<AppState>) -> Response {
-    show(&state, "/data", DATA, data(&state), Format::Html)
+    show(
+        &state,
+        "/data",
+        DATA_TITLE,
+        DATA,
+        data(&state),
+        Format::Html,
+    )
 }
 
 pub async fn data_md(State(state): State<AppState>) -> Response {
-    show(&state, "/data", DATA, data(&state), Format::Markdown)
+    show(
+        &state,
+        "/data",
+        DATA_TITLE,
+        DATA,
+        data(&state),
+        Format::Markdown,
+    )
 }
 
 pub async fn about_html(State(state): State<AppState>) -> Response {
-    show(&state, "/about", ABOUT, about(&state), Format::Html)
+    show(
+        &state,
+        "/about",
+        ABOUT_TITLE,
+        ABOUT,
+        about(&state),
+        Format::Html,
+    )
 }
 
 pub async fn about_md(State(state): State<AppState>) -> Response {
-    show(&state, "/about", ABOUT, about(&state), Format::Markdown)
+    show(
+        &state,
+        "/about",
+        ABOUT_TITLE,
+        ABOUT,
+        about(&state),
+        Format::Markdown,
+    )
 }

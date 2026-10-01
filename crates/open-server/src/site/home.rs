@@ -11,7 +11,7 @@ use wenmar_vehicles::text::is_slug;
 
 use crate::api::types::Make;
 use crate::error::ApiError;
-use crate::site::{self, Page};
+use crate::site::{self, Page, jsonld, seo};
 use crate::state::AppState;
 
 #[derive(Template)]
@@ -39,11 +39,15 @@ pub async fn home(State(state): State<AppState>) -> Response {
         &Home {
             page: Page::new(
                 &state,
-                "Wenmar Open - free VIN decoder for auto repair shops",
-                "Decode a VIN or pick a year, make and model. Free vehicle data for auto repair shops, with no account and no key.",
+                seo::title("Free VIN decoder for auto repair shops"),
+                "Decode any 17-character VIN to its year, make, model, trim, engine and safety equipment. Free, with no account and no key. Data from NHTSA.",
             )
             .indexed(&state, "/")
-            .with_mono(),
+            .with_mono()
+            .describing(vec![
+                jsonld::website(&state.config().base_url),
+                jsonld::organization(&state.config().base_url),
+            ]),
             years,
             makes: makes.into_iter().map(Make::from).collect(),
             guides: &crate::site::guides::GUIDES,

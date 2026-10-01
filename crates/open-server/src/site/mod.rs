@@ -8,6 +8,7 @@ pub mod assets;
 pub mod catalog;
 pub mod guides;
 pub mod home;
+pub mod jsonld;
 pub mod markdown;
 pub mod pages;
 pub mod seo;
@@ -145,6 +146,19 @@ impl Page {
     pub fn as_article(mut self) -> Page {
         self.og_type = "article";
         self
+    }
+
+    /// Describes the page to search engines as structured data: `things`
+    /// are schema.org objects. Only an indexed page shows them.
+    pub fn describing(mut self, things: Vec<serde_json::Value>) -> Page {
+        self.json_ld = Some(jsonld::graph(things));
+        self
+    }
+
+    /// The way down to this page, as structured data: the pages above it,
+    /// then `name`, which is the page itself.
+    pub fn trail(&self, name: &str) -> serde_json::Value {
+        jsonld::breadcrumbs(&self.base, &self.crumbs, name)
     }
 }
 

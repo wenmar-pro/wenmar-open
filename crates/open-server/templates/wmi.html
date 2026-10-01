@@ -20,7 +20,9 @@
 {% endif -%}
 </tbody>
 </table>
-{% if !view.makes.is_empty() -%}
+{% if view.makes.is_empty() -%}
+<p class="note">No makes are on file under this code.</p>
+{% else -%}
 <h2>Makes</h2>
 <ul class="plain">
 {% for make in view.makes -%}
@@ -28,5 +30,5 @@
 {% endfor -%}
 </ul>
 {% endif -%}
-<p><a href="/">Decode a VIN</a></p>
+<p class="more"><a href="/">Decode a VIN</a></p>
 {% endblock %}

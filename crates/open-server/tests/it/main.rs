@@ -19,6 +19,7 @@ mod site_assets;
 mod site_catalog;
 mod site_design;
 mod site_guides;
+mod site_head;
 mod site_home;
 mod site_pages;
 mod site_seo;
