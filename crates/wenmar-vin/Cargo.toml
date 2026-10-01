@@ -1,6 +1,6 @@
 [package]
 name = "wenmar-vin"
-version = "0.1.0"
+version.workspace = true
 description = "VIN decoding for auto repair shops: validation, check digit, model year, and pattern matching over NHTSA vPIC data."
 edition.workspace = true
 rust-version.workspace = true

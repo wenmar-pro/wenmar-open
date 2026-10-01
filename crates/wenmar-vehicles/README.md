@@ -2,7 +2,12 @@
 
 Reads and searches the vehicle catalog in a [Wenmar Open](https://open.wenmarpro.com) data file: years, makes, models, submodels and engines.
 
-Not published yet. The catalog is built by `open-data build` from NHTSA's vPIC release; what it covers and what it cannot is described in the repository's `data/catalog/README.md`.
+```toml
+[dependencies]
+wenmar-vehicles = { version = "0.1", features = ["sqlite"] }
+```
+
+The catalog is in a [Wenmar Open data file](https://github.com/wenmar-pro/wenmar-open/releases), built from NHTSA's vPIC release. What it covers and what it cannot is described in the repository's `data/catalog/README.md`. The `sqlite` feature reads a data file with `rusqlite`; the `wenmar-open-turso` crate reads one with `turso`.
 
 ## Example
 

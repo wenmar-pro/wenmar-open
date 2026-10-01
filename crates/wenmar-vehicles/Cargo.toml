@@ -1,17 +1,21 @@
 [package]
 name = "wenmar-vehicles"
-version = "0.1.0"
+version.workspace = true
+description = "The vehicle catalog of a Wenmar Open data file: years, makes, models, trims and engines, free-text search, and stable vehicle ids."
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
+readme = "README.md"
+keywords = ["vehicle", "automotive", "catalog", "nhtsa", "vpic"]
+categories = ["database"]
 
 [dependencies]
 rusqlite = { version = "0.40.2", features = ["bundled"], optional = true }
 serde.workspace = true
 thiserror.workspace = true
-wenmar-vin = { version = "0.1.0", path = "../wenmar-vin" }
+wenmar-vin.workspace = true
 
 [dev-dependencies]
 serde_json.workspace = true

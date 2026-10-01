@@ -1,6 +1,6 @@
 [package]
 name = "open-server"
-version = "0.1.0"
+version.workspace = true
 description = "The Wenmar Open website and JSON API."
 edition.workspace = true
 rust-version.workspace = true
@@ -13,7 +13,7 @@ askama = "0.14"
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "matched-path", "query", "tokio"] }
 hyper = { version = "1", features = ["http1", "server"] }
 hyper-util = { version = "0.1", features = ["tokio"] }
-open-mcp = { version = "0.1.0", path = "../open-mcp" }
+open-mcp = { path = "../open-mcp" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
@@ -25,17 +25,17 @@ tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 turso = { version = "0.8.1", default-features = false, features = ["fts"] }
 utoipa = { version = "5", features = ["axum_extras"] }
 utoipa-axum = "0.2"
-wenmar-open-turso = { version = "0.1.0", path = "../wenmar-open-turso" }
-wenmar-vehicles = { version = "0.1.0", path = "../wenmar-vehicles" }
-wenmar-vin = { version = "0.1.0", path = "../wenmar-vin" }
+wenmar-open-turso.workspace = true
+wenmar-vehicles.workspace = true
+wenmar-vin.workspace = true
 
 [dev-dependencies]
 http-body-util = "0.1.5"
 rusqlite = { version = "0.40.2", features = ["bundled"] }
 tempfile = "3.27.0"
 tokio = { version = "1", features = ["test-util"] }
-wenmar-vehicles = { path = "../wenmar-vehicles", features = ["sqlite"] }
-wenmar-vin = { path = "../wenmar-vin", features = ["sqlite"] }
+wenmar-vehicles = { workspace = true, features = ["sqlite"] }
+wenmar-vin = { workspace = true, features = ["sqlite"] }
 
 [[test]]
 name = "it"

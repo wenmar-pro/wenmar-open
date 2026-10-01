@@ -3,6 +3,12 @@ resolver = "3"
 members = ["crates/wenmar-vin", "crates/wenmar-vehicles", "crates/open-data", "crates/open-server", "crates/wenmar-open-cli", "crates/open-mcp", "crates/wenmar-open-turso"]
 
 [workspace.package]
+# The one version of everything this repository publishes: the three library
+# crates, the server, the command-line tool and the npm package in clients/js.
+# Change it here, in the three lines for this workspace's own libraries
+# below, and in clients/js/package.json. `mise run release-check` fails if
+# they disagree. See docs/releasing.md.
+version = "0.1.0"
 edition = "2024"
 rust-version = "1.92"
 license = "MIT"
@@ -13,6 +19,11 @@ homepage = "https://open.wenmarpro.com"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
+# This workspace's own libraries. A published crate carries this version as
+# its requirement on the others, so it is always the version above.
+wenmar-vin = { version = "0.1.0", path = "crates/wenmar-vin" }
+wenmar-vehicles = { version = "0.1.0", path = "crates/wenmar-vehicles" }
+wenmar-open-turso = { version = "0.1.0", path = "crates/wenmar-open-turso" }
 
 # Dependencies carry no debug information: it is most of the size of
 # `target/`, and backtraces keep file and line for this workspace's own code.

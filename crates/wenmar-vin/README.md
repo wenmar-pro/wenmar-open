@@ -7,9 +7,14 @@ VIN decoding for auto repair shops. The decoder behind [Wenmar Open](https://ope
 - Works out the model year, including the 30-year ambiguity.
 - Matches NHTSA vPIC patterns to describe the vehicle, including safety equipment.
 
-## Status
+## Install
 
-Pre-release. This version ships the decoder and an in-memory data source. The SQLite data source and the data file built from NHTSA's vPIC release are not published yet.
+```toml
+[dependencies]
+wenmar-vin = "0.1"
+```
+
+The pure parts (validation, check digit, model year, typo suggestions) need no data, and the crate then has two dependencies, `serde` and `thiserror`. Decoding a whole vehicle needs a [Wenmar Open data file](https://github.com/wenmar-pro/wenmar-open/releases): the `sqlite` feature reads one with `rusqlite`, and the `wenmar-open-turso` crate reads one with `turso`.
 
 ## Example
 

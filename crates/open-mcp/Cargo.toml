@@ -1,6 +1,6 @@
 [package]
 name = "open-mcp"
-version = "0.1.0"
+version.workspace = true
 description = "The MCP tool definitions and message shapes shared by the Wenmar Open server and command-line tool."
 edition.workspace = true
 rust-version.workspace = true
