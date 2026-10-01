@@ -182,13 +182,19 @@ pub fn about(_state: &AppState) -> Doc {
             with_links(
                 section(
                     "Who runs it",
-                    &["Wenmar Open is built and hosted by Wenmar Pro, shop management software for independent auto repair shops. Wenmar Pro uses this same service for its own VIN decoding."],
+                    // Say that Wenmar Pro decodes VINs through this service
+                    // only once it does.
+                    &["Wenmar Open is built and hosted by Wenmar Pro, shop management software for independent auto repair shops."],
                 ),
                 &[("Wenmar Pro", site::pro_link("about"))],
             ),
             section(
                 "What it keeps",
-                &["Nothing about you. There are no cookies, no accounts and no analytics scripts. Server logs record the first 11 characters of a decoded VIN, which name the maker, model and plant, and never the serial number."],
+                // Two logs are kept, and this says what is in each. The
+                // second sentence about logs is to be reworded only after
+                // the proxy's log has been looked at: docs/deploy.md,
+                // "Check it".
+                &["There are no cookies, no accounts and no analytics scripts. The service's own log records the first 11 characters of a decoded VIN, which name the maker, model and plant, and not the serial number. The hosting proxy in front of the service keeps a request log of its own, with the address of each request and where it came from. The address of a decode, as a page or through the API, holds the whole VIN."],
             ),
             with_links(
                 section(

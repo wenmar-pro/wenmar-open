@@ -61,6 +61,29 @@ async fn the_about_page_says_who_runs_it_and_what_it_keeps() {
 }
 
 #[tokio::test]
+async fn the_about_page_claims_only_what_is_known_to_be_true() {
+    let app = common::app().await;
+    let (_, html) = page(&app, "/about").await;
+    let text = markdown(&app, "/about.md").await;
+    for page in [&html, &text] {
+        // The service cuts a VIN to 11 characters in its own log. The proxy
+        // in front of it keeps a request log this service does not control,
+        // so the page may not promise that a serial number is never logged
+        // anywhere, or that nothing about the visitor is kept.
+        assert!(!page.contains("never the serial number"), "{page}");
+        assert!(!page.contains("Nothing about you"), "{page}");
+        assert!(
+            page.contains("The service's own log records the first 11 characters")
+                || page.contains("The service&#39;s own log records the first 11 characters")
+        );
+        assert!(page.contains("keeps a request log of its own"), "{page}");
+        assert!(page.contains("holds the whole VIN"), "{page}");
+        // Wenmar Pro does not decode through this service yet.
+        assert!(!page.contains("uses this same service"), "{page}");
+    }
+}
+
+#[tokio::test]
 async fn the_prose_pages_have_markdown_versions() {
     let app = common::app().await;
     let cases = [

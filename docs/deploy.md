@@ -98,21 +98,25 @@ Once the site is live, give `https://open.wenmarpro.com/sitemap.xml` to the sear
 
 `/v1/meta` must show the data version you deployed, an `x-data-version` header, and no `set-cookie` header. The service's log lines show `GET /v1/vin/1HGCM82633A` and never the last six characters of a VIN. That holds at any address: every part of a path that the caller chose is cut to 11 characters, so `GET /v1/vehicles/1HGCM82633A004352` is logged as `GET /v1/vehicles/1HGCM82633A`.
 
-**That check covers the service's log, not the proxy's.** `kamal app logs` shows what the service writes. The Kamal proxy in front of it writes a request log of its own, with each request's whole path and query string, the client's address and the user agent. A decode is `GET /v1/vin/` followed by the whole VIN, so the proxy's log would hold every VIN decoded that way, next to who asked. Batch decodes and MCP calls send VINs in the body, which neither log records.
+**That check covers the service's log, not the proxy's.** `kamal app logs` shows what the service writes. The Kamal proxy in front of it writes a request log of its own, with each request's whole path and query string, the client's address and the user agent. A decode through the API is `GET /v1/vin/` followed by the whole VIN. A decode on the website is `GET /vin?vin=` followed by what was typed, which redirects to `GET /vin/` followed by the whole VIN. So the proxy's log would hold every VIN decoded in any of those three ways, next to who asked. Batch decodes and MCP calls send VINs in the body, which neither log records.
 
 This has not been checked against the running proxy; it rests on how the proxy logs requests. Check it on the server after the first deploy:
 
 ```bash
-kamal proxy logs | grep '/v1/vin/' | tail -5
+kamal proxy logs | grep -E '/vin[/?]' | tail -5
 ```
+
+That matches all three addresses: `/v1/vin/{VIN}`, `/vin/{VIN}` and `/vin?vin={VIN}`. Decode one VIN each way first, so there is a line of each kind to look at.
 
 If those lines show all 17 characters, the rule that logs keep only the first 11 characters of a VIN is not met on this server, whatever the service does. The service cannot fix that. Choose one before telling anyone the service is live:
 
-- **Accept it and say what is true.** Reword the rule wherever it is stated (the design's operations section, and the site's own description of what is logged): the service's log keeps 11 characters, and the hosting proxy's request log keeps whole addresses for as long as that log is kept.
+- **Accept it and say what is true.** The about page already does: under "What it keeps" it says the service's own log keeps 11 characters and that the hosting proxy keeps a request log with whole addresses. Reword the rule the same way in the design's operations section, and add how long the proxy's log is kept if you want the page to say so.
 - **Keep the proxy's log short.** The proxy logs to its container's output, so Docker's log settings for the `kamal-proxy` container decide how much is kept: `docker inspect kamal-proxy --format '{{.HostConfig.LogConfig}}'` shows them. The proxy is shared with `app.wenmarpro.com`, so a change applies to that product's request log too.
 - **Keep whole VINs out of it.** Give this service a proxy whose request log is off or leaves out the path, which means its own server or its own proxy.
 
-Until one is chosen, do not say publicly that a VIN's serial number is never logged.
+Until one is chosen, do not say publicly that a VIN's serial number is never logged. The about page does not say it: its words are in `crates/open-server/src/site/pages.rs`, in `about`. If the lines show no whole VIN, or once whole VINs are kept out of the proxy's log, the sentence there about the hosting proxy can be taken out; change it only after this check, and change the test beside it (`the_about_page_claims_only_what_is_known_to_be_true`) with it.
+
+The about page also does not say that Wenmar Pro decodes VINs through this service. Add that sentence when Wenmar Pro has been switched over to it, and not before.
 
 **Check that the abuse ceiling sees real addresses.** This is the one setting that cannot be tested before the service is behind the real proxy. From your own machine, send 601 requests that each claim a different address:
 
