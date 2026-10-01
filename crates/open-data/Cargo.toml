@@ -1,0 +1,15 @@
+[package]
+name = "open-data"
+version = "0.1.0"
+description = "Builds the Wenmar Open data file from NHTSA's vPIC release."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+anyhow = "1.0.104"
+clap = { version = "4.6.7", features = ["derive"] }
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+wenmar-vin = { path = "../wenmar-vin", features = ["sqlite"] }

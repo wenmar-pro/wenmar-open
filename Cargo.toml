@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/wenmar-vin"]
+members = ["crates/wenmar-vin", "crates/open-data"]
 
 [workspace.package]
 edition = "2024"
