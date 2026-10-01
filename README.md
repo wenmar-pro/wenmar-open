@@ -65,6 +65,9 @@ cargo run --release -p open-data -- decode --data data/build/wenmar-open-2026.09
 
 ```bash
 cargo run --release -p open-data -- parity --data data/build/wenmar-open-2026.09.sqlite3
+```
+
+Decodes a corpus of VINs and compares each field with NHTSA's own recorded answers. See [data/corpus/README.md](data/corpus/README.md).
 
 ## Data sources
 

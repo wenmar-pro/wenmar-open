@@ -10,9 +10,5 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - `wenmar-vin` crate: VIN validation, check digit, model year, typo suggestions, vPIC pattern matching, and a decoder over a pluggable data source.
 - `open-data`: builds the SQLite data file from NHTSA's vPIC plain-text dump.
 - `wenmar-vin`: SQLite data source behind the `sqlite` feature; pattern selection and model-year rules now follow NHTSA's decoder.
-
-In `CHANGELOG.md`, under `### Added`, add:
-
-```markdown
 - `open-data parity`: compares decodes with NHTSA's recorded answers for a committed corpus and fails if agreement drops.
 - `wenmar-vin`: vehicles other than cars, MPVs and light trucks choose their model year the way NHTSA does; engine size is rounded to one decimal and also given in cubic centimetres.
