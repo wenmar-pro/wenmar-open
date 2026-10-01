@@ -369,8 +369,6 @@ fn with_no_curated_lists_nothing_is_ranked() {
     assert!(summary.catalog.unmatched.is_empty());
 }
 
-// Used from Task 5 on.
-#[allow(dead_code)]
 fn preset(make: &str, model: &str, from: u16, submodels: &[&str], engines: &[&str]) -> Preset {
     Preset {
         make: make.to_owned(),
@@ -380,4 +378,159 @@ fn preset(make: &str, model: &str, from: u16, submodels: &[&str], engines: &[&st
         submodels: submodels.iter().map(|name| (*name).to_owned()).collect(),
         engines: engines.iter().map(|name| (*name).to_owned()).collect(),
     }
+}
+
+#[test]
+fn derives_submodels_and_engines() {
+    let (_built, summary, connection) = built("details", &Curated::default());
+
+    // Details are numbered in the order model years first need them.
+    assert_eq!(
+        rows(
+            &connection,
+            "SELECT id, body, drive, transmission FROM catalog_detail ORDER BY id"
+        ),
+        vec![
+            "1|Pickup|-|-",
+            "2|Sedan|-|-",
+            "3|Pickup|-|-",
+            "4|Trailer|-|-"
+        ]
+    );
+    // The F-150's engines are in a schema that starts in 2018.
+    assert_eq!(
+        rows(
+            &connection,
+            "SELECT year, detail_id FROM catalog_vehicle WHERE model_id = 1801 ORDER BY year"
+        ),
+        vec!["2015|1", "2016|1", "2017|1", "2018|3", "2019|3", "2020|3"]
+    );
+    // The two trailer models share a detail; the CR-V has none.
+    assert_eq!(
+        rows(
+            &connection,
+            "SELECT model_id, COUNT(*), MIN(COALESCE(detail_id, 0)), MAX(COALESCE(detail_id, 0))
+             FROM catalog_vehicle WHERE model_id IN (1863, 1865, 9001, 9002)
+             GROUP BY model_id ORDER BY model_id"
+        ),
+        vec!["1863|12|2|2", "1865|2|0|0", "9001|1|4|4", "9002|1|4|4"]
+    );
+    assert_eq!(
+        rows(
+            &connection,
+            "SELECT detail_id, name, norm, kind, listed, body, drive, transmission
+             FROM catalog_submodel ORDER BY id"
+        ),
+        vec![
+            "1|Raptor|raptor|trim|1|Pickup|4WD|-",
+            // `EX, EX-L` is two trims; `LX` and `lx` are one; `TOURING` is `Touring`.
+            "2|EX|ex|trim|1|Sedan|-|-",
+            "2|EX-L|exl|trim|1|Sedan|-|-",
+            "2|LX|lx|trim|1|Sedan|-|-",
+            "2|Si|si|trim|1|Sedan|-|Manual",
+            "2|Touring|touring|trim|1|Sedan|-|-",
+            "3|Raptor|raptor|trim|1|Pickup|4WD|-",
+        ]
+    );
+    assert_eq!(
+        rows(
+            &connection,
+            "SELECT detail_id, label, vin8, source FROM catalog_engine ORDER BY id"
+        ),
+        vec![
+            // The Civic's engine is in position 6, so position 8 claims nothing.
+            "2|1.5L Turbo|-|vpic",
+            "2|2.0L|-|vpic",
+            "3|3.5L Turbo V6|G|vpic",
+            "3|5.0L V8|5|vpic",
+        ]
+    );
+    // Each Civic trim comes with one of the two engines; the Raptor with both.
+    assert_eq!(
+        rows(
+            &connection,
+            "SELECT s.name, e.label FROM catalog_submodel_engine x
+             JOIN catalog_submodel s ON s.id = x.submodel_id
+             JOIN catalog_engine e ON e.id = x.engine_id
+             ORDER BY s.name, e.label"
+        ),
+        vec![
+            "EX|2.0L",
+            "EX-L|2.0L",
+            "LX|2.0L",
+            "Si|1.5L Turbo",
+            "Touring|1.5L Turbo",
+        ]
+    );
+    assert_eq!(
+        (
+            summary.catalog.details,
+            summary.catalog.submodels,
+            summary.catalog.engines,
+            summary.catalog.capped
+        ),
+        (4, 7, 4, 0)
+    );
+    // F-150: 3 cells in 2015-2017, 9 with engines, 3 for the 2019 incomplete
+    // vehicle. Civic: 12. CR-V: 1. Trailers: 1 each.
+    assert_eq!(summary.catalog.cells, 30);
+}
+
+#[test]
+fn presets_and_overrides_shape_the_details() {
+    let mut curated = curated();
+    curated
+        .submodel_names
+        .insert("touring".to_owned(), "Grand Touring".to_owned());
+    curated.presets = vec![
+        preset("Ford", "F-150", 2019, &["XLT", "RAPTOR"], &["9.9L"]),
+        preset("honda", "crv", 1981, &["LX"], &["2.0L"]),
+        preset("Ford", "Fiesta", 2012, &["S"], &[]),
+    ];
+    let (_built, summary, connection) = built("presets", &curated);
+
+    let submodels = |model: i64, year: u16| {
+        rows(
+            &connection,
+            &format!(
+                "SELECT s.name, s.kind, s.listed FROM catalog_vehicle v
+                 JOIN catalog_submodel s ON s.detail_id = v.detail_id
+                 WHERE v.model_id = {model} AND v.year = {year} ORDER BY s.id"
+            ),
+        )
+    };
+    let engines = |model: i64, year: u16| {
+        rows(
+            &connection,
+            &format!(
+                "SELECT e.label, e.vin8, e.source FROM catalog_vehicle v
+                 JOIN catalog_engine e ON e.detail_id = v.detail_id
+                 WHERE v.model_id = {model} AND v.year = {year} ORDER BY e.id"
+            ),
+        )
+    };
+    // Before the preset starts.
+    assert_eq!(submodels(1801, 2018), vec!["Raptor|trim|1"]);
+    // The trim takes the preset's spelling; the new name is added.
+    assert_eq!(submodels(1801, 2019), vec!["RAPTOR|trim|1", "XLT|preset|1"]);
+    // vPIC lists engines, so the preset's is not used.
+    assert_eq!(
+        engines(1801, 2019),
+        vec!["3.5L Turbo V6|G|vpic", "5.0L V8|5|vpic"]
+    );
+    // vPIC has nothing for the CR-V, so the preset supplies both.
+    assert_eq!(submodels(1865, 1981), vec!["LX|preset|1"]);
+    assert_eq!(engines(1865, 1981), vec!["2.0L|-|preset"]);
+    // The override renames both spellings of Touring.
+    assert_eq!(
+        rows(
+            &connection,
+            "SELECT name, norm FROM catalog_submodel WHERE norm LIKE '%touring'"
+        ),
+        vec!["Grand Touring|grandtouring"]
+    );
+    assert_eq!(
+        summary.catalog.unmatched,
+        vec!["make Chevrolet", "preset Ford Fiesta"]
+    );
 }

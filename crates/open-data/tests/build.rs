@@ -199,6 +199,16 @@ fn builds_a_file_the_decoder_can_use() {
         ),
         (1, 1, 6)
     );
+    // One detail: the Kona's trim `SE` on an SUV body. Its engine model gives
+    // only a cylinder count, which is not enough to name an engine.
+    assert_eq!(
+        (
+            summary.catalog.details,
+            summary.catalog.submodels,
+            summary.catalog.engines
+        ),
+        (1, 1, 0)
+    );
 
     let data = SqliteData::open(&built.path).unwrap();
     assert_eq!(

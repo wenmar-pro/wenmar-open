@@ -2,6 +2,7 @@
 
 pub mod cells;
 pub mod curated;
+pub mod derive;
 pub mod detail;
 pub mod engine;
 pub mod keys;
@@ -56,5 +57,6 @@ pub fn build(
     }
     let mut summary = CatalogSummary::default();
     vehicles::build(transaction, curated, last_year, &mut summary)?;
+    derive::build(transaction, curated, last_year, &mut summary)?;
     Ok(summary)
 }

@@ -143,12 +143,22 @@ fn main() -> Result<()> {
                 summary.engine_rows
             );
             println!(
-                "catalog: {} makes, {} models, {} model-years ({} cars, MPVs and trucks)",
+                "catalog: {} makes, {} models, {} model-years ({} cars, MPVs and trucks), {} details, {} submodels, {} engines, {} combinations",
                 summary.catalog.makes,
                 summary.catalog.models,
                 summary.catalog.vehicles,
-                summary.catalog.light_vehicles
+                summary.catalog.light_vehicles,
+                summary.catalog.details,
+                summary.catalog.submodels,
+                summary.catalog.engines,
+                summary.catalog.cells
             );
+            if summary.catalog.capped != 0 {
+                eprintln!(
+                    "warning: {} models had too many combinations and got no submodels or engines",
+                    summary.catalog.capped
+                );
+            }
             for entry in &summary.catalog.unmatched {
                 eprintln!("warning: nothing in vPIC matches {entry}");
             }
