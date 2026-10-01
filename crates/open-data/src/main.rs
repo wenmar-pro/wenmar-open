@@ -128,11 +128,13 @@ fn main() -> Result<()> {
             );
             let summary = build(reader, &out, &info)?;
             println!(
-                "{}: {} manufacturer codes, {} schema links, {} patterns",
+                "{}: {} manufacturer codes, {} schema links, {} patterns, {} specification rows, {} engine-model rows",
                 out.display(),
                 summary.manufacturers,
                 summary.schema_links,
-                summary.patterns
+                summary.patterns,
+                summary.spec_rows,
+                summary.engine_rows
             );
         }
         Command::Decode { data, vin } => {

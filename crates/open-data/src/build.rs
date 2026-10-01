@@ -28,12 +28,15 @@ pub struct Summary {
     pub manufacturers: u64,
     pub schema_links: u64,
     pub patterns: u64,
+    pub spec_rows: u64,
+    pub engine_rows: u64,
 }
 
 /// Used only for NHTSA's error correction, and by far the largest table.
 const SKIPPED_TABLES: [&str; 1] = ["wmiyearvalidchars"];
 
-/// Tables the shaping queries read.
+/// Tables a data file cannot be built without. The specification and
+/// engine-model tables are used when present.
 const REQUIRED_TABLES: [&str; 12] = [
     "pattern",
     "element",
@@ -112,7 +115,8 @@ fn stage<R: BufRead>(transaction: &Transaction<'_>, dump: R) -> Result<Vec<Table
 
 fn shape_manufacturers(transaction: &Transaction<'_>, built_at: &str) -> Result<()> {
     transaction.execute(
-        "INSERT OR IGNORE INTO wmi (code, manufacturer, make, country, vehicle_type, light_vehicle)
+        "INSERT OR IGNORE INTO wmi
+             (code, manufacturer, make, country, vehicle_type, light_vehicle, vehicle_type_id)
          SELECT
              UPPER(w.wmi),
              COALESCE(m.name, ''),
@@ -124,13 +128,29 @@ fn shape_manufacturers(transaction: &Transaction<'_>, built_at: &str) -> Result<
              vt.name,
              CASE WHEN w.vehicletypeid IN ('2', '7')
                     OR (w.vehicletypeid = '3' AND w.trucktypeid = '1')
-                  THEN 1 ELSE 0 END
+                  THEN 1 ELSE 0 END,
+             CAST(w.vehicletypeid AS INTEGER)
          FROM raw_wmi w
          LEFT JOIN raw_manufacturer m ON m.id = w.manufacturerid
          LEFT JOIN raw_country c ON c.id = w.countryid
          LEFT JOIN raw_vehicletype vt ON vt.id = w.vehicletypeid
          WHERE w.publicavailabilitydate <= ?1",
         [built_at],
+    )?;
+    Ok(())
+}
+
+/// Every make a manufacturer code builds. Specification sheets are filed
+/// under a make.
+fn shape_manufacturer_makes(transaction: &Transaction<'_>) -> Result<()> {
+    transaction.execute(
+        "INSERT INTO wmi_make (wmi, make_id)
+         SELECT DISTINCT UPPER(w.wmi), CAST(wm.makeid AS INTEGER)
+         FROM raw_wmi_make wm
+         JOIN raw_wmi w ON w.id = wm.wmiid
+         WHERE wm.makeid IS NOT NULL
+           AND UPPER(w.wmi) IN (SELECT code FROM wmi)",
+        [],
     )?;
     Ok(())
 }
@@ -150,9 +170,14 @@ fn shape_schema_links(transaction: &Transaction<'_>) -> Result<()> {
     Ok(())
 }
 
-/// Elements whose patterns are kept, with the staging table that resolves
-/// their values, if any.
-fn decodable_elements(transaction: &Transaction<'_>) -> Result<Vec<(String, Option<String>)>> {
+/// An element whose rows are kept, with the name of the vPIC table that
+/// resolves its values, if any.
+struct DecodableElement {
+    id: String,
+    lookup: Option<String>,
+}
+
+fn decodable_elements(transaction: &Transaction<'_>) -> Result<Vec<DecodableElement>> {
     let mut statement = transaction.prepare(&format!(
         "SELECT id, lookuptable FROM raw_element
          WHERE decode IS NOT NULL
@@ -162,58 +187,178 @@ fn decodable_elements(transaction: &Transaction<'_>) -> Result<Vec<(String, Opti
     ))?;
     let rows = statement.query_map([], |row| {
         let lookup: Option<String> = row.get(1)?;
-        Ok((
-            row.get::<_, String>(0)?,
-            lookup.map(|name| name.to_lowercase()),
-        ))
+        Ok(DecodableElement {
+            id: row.get(0)?,
+            lookup: lookup.map(|name| name.to_lowercase()),
+        })
     })?;
     Ok(rows.collect::<rusqlite::Result<_>>()?)
 }
 
+fn is_staged(staged: &[Table], table: &str) -> bool {
+    staged.iter().any(|staged| staged.name == table)
+}
+
+/// How a row's raw attribute becomes its value, as two pieces of SQL about a
+/// row aliased `p`.
+struct ValueSource {
+    /// The expression that gives the value.
+    value: &'static str,
+    /// The join that expression needs, or nothing.
+    join: String,
+}
+
+/// Patterns, specification rows and engine-model rows all resolve values
+/// through this. `None` means the element's rows are left out: its lookup
+/// table is not in the dump (a database view, for example), so nothing can
+/// be resolved.
+fn value_source(element: &DecodableElement, staged: &[Table]) -> Option<ValueSource> {
+    match &element.lookup {
+        // The value is the attribute itself.
+        None => Some(ValueSource {
+            value: "p.attributeid",
+            join: String::new(),
+        }),
+        Some(table) if !is_staged(staged, table) => None,
+        // A row whose attribute has no lookup row is dropped by the join.
+        Some(table) => Some(ValueSource {
+            value: "l.name",
+            join: format!("JOIN {} l ON l.id = p.attributeid", staging(table)),
+        }),
+    }
+}
+
 fn shape_patterns(transaction: &Transaction<'_>, staged: &[Table]) -> Result<()> {
-    const KEPT: &str = "p.vinschemaid IN (SELECT CAST(schema_id AS TEXT) FROM wmi_schema)
-           AND p.keys NOT LIKE '%#%'";
-    for (element_id, lookup) in decodable_elements(transaction)? {
-        let sql = match lookup {
-            // The value is the attribute itself.
-            None => format!(
-                "INSERT INTO pattern (id, schema_id, keys, element_id, value, changed_on, make)
-                 SELECT CAST(p.id AS INTEGER), CAST(p.vinschemaid AS INTEGER), UPPER(p.keys),
-                        CAST(p.elementid AS INTEGER), p.attributeid,
-                        COALESCE(p.updatedon, p.createdon, ''), NULL
-                 FROM raw_pattern p
-                 WHERE p.elementid = ?1 AND {KEPT}"
-            ),
-            // A lookup table that is not in the dump (a database view, for
-            // example) resolves nothing, so the element is left out.
-            Some(table) if !staged.iter().any(|staged| staged.name == table) => continue,
-            // The model also carries its make.
-            Some(table) if table == "model" => format!(
-                "INSERT INTO pattern (id, schema_id, keys, element_id, value, changed_on, make)
-                 SELECT CAST(p.id AS INTEGER), CAST(p.vinschemaid AS INTEGER), UPPER(p.keys),
-                        CAST(p.elementid AS INTEGER), l.name,
-                        COALESCE(p.updatedon, p.createdon, ''),
-                        (SELECT MIN(mk.name)
-                           FROM raw_make_model mm JOIN raw_make mk ON mk.id = mm.makeid
-                          WHERE mm.modelid = p.attributeid)
-                 FROM raw_pattern p
-                 JOIN raw_model l ON l.id = p.attributeid
-                 WHERE p.elementid = ?1 AND {KEPT}"
-            ),
-            Some(table) => format!(
-                "INSERT INTO pattern (id, schema_id, keys, element_id, value, changed_on, make)
-                 SELECT CAST(p.id AS INTEGER), CAST(p.vinschemaid AS INTEGER), UPPER(p.keys),
-                        CAST(p.elementid AS INTEGER), l.name,
-                        COALESCE(p.updatedon, p.createdon, ''), NULL
-                 FROM raw_pattern p
-                 JOIN {} l ON l.id = p.attributeid
-                 WHERE p.elementid = ?1 AND {KEPT}",
-                staging(&table)
-            ),
+    for element in decodable_elements(transaction)? {
+        let Some(ValueSource { value, join }) = value_source(&element, staged) else {
+            continue;
         };
+        // The model also carries its make.
+        let make = if element.lookup.as_deref() == Some("model") {
+            "(SELECT MIN(mk.name)
+                FROM raw_make_model mm JOIN raw_make mk ON mk.id = mm.makeid
+               WHERE mm.modelid = p.attributeid)"
+        } else {
+            "NULL"
+        };
+        let sql = format!(
+            "INSERT INTO pattern
+                 (id, schema_id, keys, element_id, value, changed_on, make, attribute)
+             SELECT CAST(p.id AS INTEGER), CAST(p.vinschemaid AS INTEGER), UPPER(p.keys),
+                    CAST(p.elementid AS INTEGER), {value},
+                    COALESCE(p.updatedon, p.createdon, ''), {make}, p.attributeid
+             FROM raw_pattern p
+             {join}
+             WHERE p.elementid = ?1
+               AND p.vinschemaid IN (SELECT CAST(schema_id AS TEXT) FROM wmi_schema)
+               AND p.keys NOT LIKE '%#%'"
+        );
         transaction
-            .execute(&sql, [&element_id])
-            .with_context(|| format!("shaping patterns for element {element_id}"))?;
+            .execute(&sql, [&element.id])
+            .with_context(|| format!("shaping patterns for element {}", element.id))?;
+    }
+    Ok(())
+}
+
+/// NHTSA's specification sheets. A sheet is a group of rows under one
+/// `vspecschemapattern`: key rows say which vehicles it describes, the rest
+/// say what those vehicles have.
+const SPECIFICATION_TABLES: [&str; 5] = [
+    "vehiclespecschema",
+    "vehiclespecschema_model",
+    "vehiclespecschema_year",
+    "vspecschemapattern",
+    "vehiclespecpattern",
+];
+
+fn shape_specifications(transaction: &Transaction<'_>, staged: &[Table]) -> Result<()> {
+    if !SPECIFICATION_TABLES
+        .iter()
+        .all(|table| is_staged(staged, table))
+    {
+        return Ok(());
+    }
+    transaction.execute_batch(
+        "INSERT INTO spec_schema (id, make_id, vehicle_type_id)
+         SELECT CAST(s.id AS INTEGER), CAST(s.makeid AS INTEGER), CAST(s.vehicletypeid AS INTEGER)
+         FROM raw_vehiclespecschema s
+         WHERE COALESCE(s.tobeqced, 'f') <> 't' AND s.makeid IS NOT NULL;
+
+         INSERT INTO spec_schema_model (schema_id, model_id)
+         SELECT DISTINCT CAST(m.vehiclespecschemaid AS INTEGER), CAST(m.modelid AS INTEGER)
+         FROM raw_vehiclespecschema_model m
+         WHERE m.modelid IS NOT NULL
+           AND CAST(m.vehiclespecschemaid AS INTEGER) IN (SELECT id FROM spec_schema);
+
+         INSERT INTO spec_schema_year (schema_id, year)
+         SELECT DISTINCT CAST(y.vehiclespecschemaid AS INTEGER), CAST(y.year AS INTEGER)
+         FROM raw_vehiclespecschema_year y
+         WHERE y.year IS NOT NULL
+           AND CAST(y.vehiclespecschemaid AS INTEGER) IN (SELECT id FROM spec_schema);",
+    )?;
+    for element in decodable_elements(transaction)? {
+        let Some(ValueSource { value, join }) = value_source(&element, staged) else {
+            continue;
+        };
+        let sql = format!(
+            "INSERT INTO spec_row
+                 (id, spec_pattern_id, schema_id, is_key, element_id, attribute, value, changed_on)
+             SELECT CAST(p.id AS INTEGER), CAST(p.vspecschemapatternid AS INTEGER),
+                    CAST(sp.schemaid AS INTEGER), CASE WHEN p.iskey = 't' THEN 1 ELSE 0 END,
+                    CAST(p.elementid AS INTEGER), p.attributeid, {value},
+                    COALESCE(p.updatedon, p.createdon, '')
+             FROM raw_vehiclespecpattern p
+             JOIN raw_vspecschemapattern sp ON sp.id = p.vspecschemapatternid
+             {join}
+             WHERE p.elementid = ?1
+               AND CAST(sp.schemaid AS INTEGER) IN (SELECT id FROM spec_schema)"
+        );
+        transaction
+            .execute(&sql, [&element.id])
+            .with_context(|| format!("shaping specification rows for element {}", element.id))?;
+    }
+    // NHTSA applies a sheet only when every one of its keys matches. A key
+    // that was not kept above can never match, and a sheet without it would
+    // apply to vehicles it does not describe, so the whole sheet goes.
+    transaction.execute(
+        "DELETE FROM spec_row
+         WHERE spec_pattern_id IN (
+             SELECT CAST(p.vspecschemapatternid AS INTEGER)
+             FROM raw_vehiclespecpattern p
+             WHERE p.iskey = 't'
+               AND CAST(p.id AS INTEGER) NOT IN (SELECT id FROM spec_row))",
+        [],
+    )?;
+    Ok(())
+}
+
+/// What NHTSA records about an engine model, such as its cylinder count.
+const ENGINE_MODEL_TABLES: [&str; 2] = ["enginemodel", "enginemodelpattern"];
+
+fn shape_engine_models(transaction: &Transaction<'_>, staged: &[Table]) -> Result<()> {
+    if !ENGINE_MODEL_TABLES
+        .iter()
+        .all(|table| is_staged(staged, table))
+    {
+        return Ok(());
+    }
+    for element in decodable_elements(transaction)? {
+        let Some(ValueSource { value, join }) = value_source(&element, staged) else {
+            continue;
+        };
+        let sql = format!(
+            "INSERT INTO engine_model_row
+                 (id, engine_model, element_id, attribute, value, changed_on)
+             SELECT CAST(p.id AS INTEGER), LOWER(TRIM(em.name)), CAST(p.elementid AS INTEGER),
+                    p.attributeid, {value}, COALESCE(p.updatedon, p.createdon, '')
+             FROM raw_enginemodelpattern p
+             JOIN raw_enginemodel em ON em.id = p.enginemodelid
+             {join}
+             WHERE p.elementid = ?1 AND em.name IS NOT NULL"
+        );
+        transaction
+            .execute(&sql, [&element.id])
+            .with_context(|| format!("shaping engine-model rows for element {}", element.id))?;
     }
     Ok(())
 }
@@ -255,8 +400,11 @@ fn build_into<R: BufRead>(dump: R, output: &Path, info: &BuildInfo) -> Result<Su
         }
     }
     shape_manufacturers(&transaction, &info.built_at)?;
+    shape_manufacturer_makes(&transaction)?;
     shape_schema_links(&transaction)?;
     shape_patterns(&transaction, &staged)?;
+    shape_specifications(&transaction, &staged)?;
+    shape_engine_models(&transaction, &staged)?;
     // A change in the dump's layout must fail here, not ship a file that
     // decodes nothing.
     for (table, what) in [
@@ -291,5 +439,7 @@ fn build_into<R: BufRead>(dump: R, output: &Path, info: &BuildInfo) -> Result<Su
         manufacturers: count(&connection, "wmi")?,
         schema_links: count(&connection, "wmi_schema")?,
         patterns: count(&connection, "pattern")?,
+        spec_rows: count(&connection, "spec_row")?,
+        engine_rows: count(&connection, "engine_model_row")?,
     })
 }
