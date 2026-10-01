@@ -1,0 +1,32 @@
+[package]
+name = "wenmar-open-turso"
+version = "0.1.0"
+description = "Reads a Wenmar Open data file through the turso crate: VIN decoding and the vehicle catalog in-process, read-only, from async code."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+publish = false
+
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true
+tokio = { version = "1", features = ["rt", "sync"] }
+# No features of its own: the data file is plain SQLite. The program that
+# uses this crate chooses turso's features, and cargo builds turso once.
+turso = { version = "0.8.1", default-features = false }
+wenmar-vehicles = { version = "0.1.0", path = "../wenmar-vehicles" }
+wenmar-vin = { version = "0.1.0", path = "../wenmar-vin" }
+
+[dev-dependencies]
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+serde_json.workspace = true
+tempfile = "3.27.0"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+wenmar-vehicles = { path = "../wenmar-vehicles", features = ["sqlite"] }
+wenmar-vin = { path = "../wenmar-vin", features = ["sqlite"] }
+
+[[test]]
+name = "it"
+path = "tests/it/main.rs"

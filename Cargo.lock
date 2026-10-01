@@ -2361,6 +2361,7 @@ dependencies = [
  "turso",
  "utoipa",
  "utoipa-axum",
+ "wenmar-open-turso",
  "wenmar-vehicles",
  "wenmar-vin",
 ]
@@ -4260,6 +4261,21 @@ dependencies = [
  "serde_json",
  "tempfile",
  "ureq",
+ "wenmar-vehicles",
+ "wenmar-vin",
+]
+
+[[package]]
+name = "wenmar-open-turso"
+version = "0.1.0"
+dependencies = [
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "turso",
  "wenmar-vehicles",
  "wenmar-vin",
 ]

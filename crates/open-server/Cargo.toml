@@ -25,6 +25,7 @@ tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 turso = { version = "0.8.1", default-features = false, features = ["fts"] }
 utoipa = { version = "5", features = ["axum_extras"] }
 utoipa-axum = "0.2"
+wenmar-open-turso = { version = "0.1.0", path = "../wenmar-open-turso" }
 wenmar-vehicles = { version = "0.1.0", path = "../wenmar-vehicles" }
 wenmar-vin = { version = "0.1.0", path = "../wenmar-vin" }
 
