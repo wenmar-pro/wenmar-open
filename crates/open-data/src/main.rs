@@ -6,7 +6,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 use open_data::build::{BuildInfo, build};
-use open_data::fetch;
+use open_data::{fetch, parity};
 use wenmar_vin::sqlite::SqliteData;
 use wenmar_vin::{DecodeOptions, Decoder};
 
@@ -46,6 +46,18 @@ enum Command {
         #[arg(long)]
         data: PathBuf,
         vin: String,
+    },
+    /// Compare decodes with NHTSA's recorded answers and check the baseline.
+    Parity {
+        /// The data file.
+        #[arg(long)]
+        data: PathBuf,
+        /// Directory holding nhtsa.json and baseline.json.
+        #[arg(long, default_value = "data/corpus")]
+        corpus: PathBuf,
+        /// Write the result as the new baseline instead of checking it.
+        #[arg(long)]
+        update_baseline: bool,
     },
 }
 
@@ -128,6 +140,43 @@ fn main() -> Result<()> {
             match Decoder::new(source).decode(&vin, DecodeOptions::default()) {
                 Ok(decoded) => println!("{}", serde_json::to_string_pretty(&decoded)?),
                 Err(error) => bail!("{error}"),
+            }
+        }
+        Command::Parity {
+            data,
+            corpus,
+            update_baseline,
+        } => {
+            let fixtures_path = corpus.join("nhtsa.json");
+            let baseline_path = corpus.join("baseline.json");
+            let fixtures: parity::Fixtures = serde_json::from_reader(BufReader::new(
+                File::open(&fixtures_path)
+                    .with_context(|| format!("opening {}", fixtures_path.display()))?,
+            ))
+            .with_context(|| format!("reading {}", fixtures_path.display()))?;
+            let source = SqliteData::open(&data).map_err(|error| anyhow::anyhow!("{error}"))?;
+            let report = parity::run(source, &fixtures);
+            print!("{}", parity::table(&report));
+            if update_baseline {
+                let mut text = serde_json::to_string_pretty(&report)?;
+                text.push('\n');
+                std::fs::write(&baseline_path, text)
+                    .with_context(|| format!("writing {}", baseline_path.display()))?;
+                println!("baseline written to {}", baseline_path.display());
+            } else {
+                let baseline: parity::Report = serde_json::from_reader(BufReader::new(
+                    File::open(&baseline_path)
+                        .with_context(|| format!("opening {}", baseline_path.display()))?,
+                ))
+                .with_context(|| format!("reading {}", baseline_path.display()))?;
+                let problems = parity::regressions(&report, &baseline);
+                if !problems.is_empty() {
+                    for problem in &problems {
+                        eprintln!("regression: {problem}");
+                    }
+                    bail!("agreement with NHTSA fell below the baseline");
+                }
+                println!("agreement with NHTSA is at or above the baseline");
             }
         }
     }
