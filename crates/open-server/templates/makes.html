@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+{% if let Some(year) = year -%}
+<h1>Makes with a {{ year }} model</h1>
+<p><a href="/makes">Every make</a></p>
+{% else -%}
+<h1>Makes</h1>
+{% endif -%}
+<p class="note">Cars, multipurpose vehicles and trucks. Pick a make to see its models.</p>
+{% if !popular.is_empty() -%}
+<h2>Popular</h2>
+<ul class="plain">
+{% for make in popular -%}
+<li><a href="/makes/{{ make.id }}{% if let Some(year) = year %}?year={{ year }}{% endif %}">{{ make.name }}</a></li>
+{% endfor -%}
+</ul>
+{% endif -%}
+{% if !others.is_empty() -%}
+<h2>All others</h2>
+<ul class="plain">
+{% for make in others -%}
+<li><a href="/makes/{{ make.id }}{% if let Some(year) = year %}?year={{ year }}{% endif %}">{{ make.name }}</a></li>
+{% endfor -%}
+</ul>
+{% endif -%}
+{% if popular.is_empty() && others.is_empty() -%}
+<p>No makes are on file for that year.</p>
+{% endif -%}
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ name }}</h1>
+<table>
+<caption>Vehicle</caption>
+<tbody>
+{% if let Some(body) = view.entry.body -%}
+<tr><th scope="row">Body</th><td>{{ body }}</td></tr>
+{% endif -%}
+{% if let Some(drive) = view.entry.drive -%}
+<tr><th scope="row">Drive</th><td>{{ drive }}</td></tr>
+{% endif -%}
+{% if let Some(transmission) = view.entry.transmission -%}
+<tr><th scope="row">Transmission</th><td>{{ transmission }}</td></tr>
+{% endif -%}
+<tr><th scope="row">Vehicle type</th><td>{{ view.entry.vehicle_types|join(", ") }}</td></tr>
+<tr><th scope="row">Vehicle id</th><td class="mono">{{ view.entry.id }}</td></tr>
+</tbody>
+</table>
+<table>
+<caption>Trims</caption>
+<tbody>
+{% for trim in view.trims -%}
+<tr><th scope="row">{{ trim.name }}</th><td>{{ trim.details }}{% if trim.kind == "preset" %} <span class="note">from our own list, not NHTSA's</span>{% endif %}</td></tr>
+{% else -%}
+<tr><td>None on file. NHTSA's data has no trims for this model year.</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<table>
+<caption>Engines</caption>
+<tbody>
+{% for engine in view.engines -%}
+<tr><th scope="row">{{ engine.label }}</th><td>{% if let Some(vin8) = engine.vin8 %}Eighth VIN character <span class="mono">{{ vin8 }}</span>{% endif %}</td></tr>
+{% else -%}
+<tr><td>None on file.</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">Safety equipment depends on the trim. Decode a VIN to see what one vehicle has.</p>
+<p><a href="/makes/{{ view.make_slug }}?year={{ view.entry.year }}">More {{ view.entry.make }} models for {{ view.entry.year }}</a></p>
+<p><a href="/">Decode a VIN</a></p>
+{% endblock %}

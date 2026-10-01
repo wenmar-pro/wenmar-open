@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ view.name }} models, {{ view.year }}</h1>
+{% if view.models.is_empty() -%}
+<p>No {{ view.name }} models are on file for {{ view.year }}.</p>
+{% else -%}
+<ul class="plain">
+{% for model in view.models -%}
+<li><a href="/makes/{{ view.slug }}/{{ model.id }}/{{ view.year }}">{{ model.name }}</a></li>
+{% endfor -%}
+</ul>
+{% endif -%}
+<h2 id="years">Other years</h2>
+<nav aria-labelledby="years">
+<ul class="plain">
+{% for year in view.years -%}
+<li><a href="/makes/{{ view.slug }}?year={{ year }}"{% if *year == view.year %} aria-current="page"{% endif %}>{{ year }}</a></li>
+{% endfor -%}
+</ul>
+</nav>
+<p><a href="/makes">Every make</a></p>
+{% endblock %}

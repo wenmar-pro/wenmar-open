@@ -5,7 +5,9 @@
 //! `.md` added, for AI agents.
 
 pub mod assets;
+pub mod catalog;
 pub mod home;
+pub mod markdown;
 pub mod tokens;
 pub mod vin;
 
@@ -219,6 +221,10 @@ pub fn router() -> Router<AppState> {
         .route("/vin", get(home::vin_form))
         .route("/pick", get(home::pick))
         .route("/vin/{vin}", get(vin::result))
+        .route("/makes", get(catalog::makes))
+        .route("/makes.md", get(catalog::makes_md))
+        .route("/makes/{make}", get(catalog::make))
+        .route("/makes/{make}/{model}/{year}", get(catalog::model_year))
         .route("/assets/site.css", get(assets::stylesheet))
         .route("/assets/site.js", get(assets::script))
 }
