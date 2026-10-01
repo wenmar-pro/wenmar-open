@@ -134,6 +134,12 @@ fn an_empty_catalog_answers_with_nothing() {
     let catalog = Catalog::new(SqliteSource::from_connection(connection).unwrap()).unwrap();
     assert!(catalog.years(Scope::All, "").unwrap().is_empty());
     assert!(catalog.makes(None, Scope::All, "", 50).unwrap().is_empty());
+    assert!(
+        catalog
+            .search("2019 civic", Scope::All, 10)
+            .unwrap()
+            .is_empty()
+    );
     assert_eq!(catalog.entry("2019_honda_civic").unwrap(), None);
 }
 
@@ -522,4 +528,303 @@ fn what_is_not_in_the_catalog_has_no_entry() {
     ] {
         assert_eq!(catalog.entry(id).unwrap(), None, "{id:?}");
     }
+}
+
+// ----- search -----
+
+fn found(catalog: &Catalog<SqliteSource>, text: &str) -> Vec<String> {
+    catalog
+        .search(text, Scope::Light, 10)
+        .unwrap()
+        .into_iter()
+        .map(|entry| entry.id)
+        .collect()
+}
+
+#[test]
+fn search_reads_year_make_model_and_submodel() {
+    let catalog = catalog();
+    assert_eq!(
+        found(&catalog, "2019 civic si"),
+        vec!["2019_honda_civic_si", "2019_honda_civic"]
+    );
+    assert_eq!(
+        found(&catalog, "Honda Civic 2019 Si"),
+        vec!["2019_honda_civic_si", "2019_honda_civic"]
+    );
+    assert_eq!(found(&catalog, "2019 honda cr-v"), vec!["2019_honda_cr-v"]);
+    assert_eq!(found(&catalog, "2019 ranger"), vec!["2019_ford_ranger"]);
+}
+
+#[test]
+fn search_matches_without_punctuation_and_by_alias() {
+    let catalog = catalog();
+    assert_eq!(found(&catalog, "f150"), vec!["2019_ford_f-150"]);
+    assert_eq!(found(&catalog, "F 150"), vec!["2019_ford_f-150"]);
+    assert_eq!(found(&catalog, "crv"), vec!["2019_honda_cr-v"]);
+    assert_eq!(
+        found(&catalog, "chevy silverado"),
+        vec!["2019_chevrolet_silverado"]
+    );
+    // No Chevrolet model is called 1500; a Silverado series is.
+    assert_eq!(
+        found(&catalog, "chevy 1500"),
+        vec!["2019_chevrolet_silverado_1500"]
+    );
+}
+
+#[test]
+fn search_without_a_year_gives_the_newest_year_that_fits() {
+    let catalog = catalog();
+    assert_eq!(found(&catalog, "civic"), vec!["2020_honda_civic"]);
+    // The 2020 Civic has no Si.
+    assert_eq!(
+        found(&catalog, "civic si"),
+        vec!["2019_honda_civic_si", "2020_honda_civic"]
+    );
+    assert_eq!(
+        found(&catalog, "ford"),
+        vec!["2019_ford_f-150", "2019_ford_ranger"]
+    );
+    assert_eq!(
+        found(&catalog, "2019 honda"),
+        vec!["2019_honda_civic", "2019_honda_cr-v"]
+    );
+}
+
+#[test]
+fn a_number_is_a_year_only_when_it_can_be() {
+    let catalog = catalog();
+    assert_eq!(found(&catalog, "ram 2500"), vec!["2019_ram_2500"]);
+    assert_eq!(found(&catalog, "2019 2500"), vec!["2019_ram_2500"]);
+    // 2000 is a year the catalog covers, but nothing is found that way.
+    assert_eq!(found(&catalog, "pontiac 2000"), vec!["1983_pontiac_2000"]);
+}
+
+#[test]
+fn search_ranks_a_full_match_above_a_prefix_and_popular_makes_first() {
+    let catalog = catalog();
+    // `c` starts Civic and CR-V (Honda); nothing matches it in full.
+    assert_eq!(
+        found(&catalog, "2019 c"),
+        vec!["2019_honda_civic", "2019_honda_cr-v"]
+    );
+    // `r` starts Ranger (Ford, rank 2); a model beats nothing.
+    assert_eq!(found(&catalog, "2019 r"), vec!["2019_ford_ranger"]);
+    assert_eq!(
+        catalog.search("2019 honda", Scope::Light, 1).unwrap().len(),
+        1
+    );
+    assert!(
+        catalog
+            .search("2019 honda", Scope::Light, 0)
+            .unwrap()
+            .is_empty()
+    );
+}
+
+#[test]
+fn search_respects_the_scope() {
+    let catalog = catalog();
+    assert!(found(&catalog, "tilt deck").is_empty());
+    let all: Vec<String> = catalog
+        .search("ranger trailers tilt", Scope::All, 10)
+        .unwrap()
+        .into_iter()
+        .map(|entry| entry.id)
+        .collect();
+    // The trailer maker's model explains all three words. The Ford Ranger
+    // explains one, so it follows.
+    assert_eq!(
+        all,
+        vec!["2019_ranger-trailers_tilt-deck", "2019_ford_ranger"]
+    );
+    assert!(
+        catalog
+            .search("civic", Scope::Type(6), 10)
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
+        catalog
+            .search("civic", Scope::Type(250), 10)
+            .unwrap()
+            .is_empty()
+    );
+}
+
+#[test]
+fn text_that_names_nothing_finds_nothing() {
+    let catalog = catalog();
+    let long = "civic ".repeat(5_000);
+    for text in [
+        "",
+        "   ",
+        "%",
+        "%%% ___",
+        "'; DROP TABLE catalog_make; --",
+        "zzzz",
+        "🚗",
+        "2019",
+    ] {
+        assert!(found(&catalog, text).is_empty(), "{text:?}");
+    }
+    // Only the first six words are read: the first names a model and the
+    // rest name nothing.
+    assert_eq!(found(&catalog, &long), vec!["2020_honda_civic"]);
+    assert_eq!(found(&catalog, &"a".repeat(100_000)), Vec::<String>::new());
+    // The tables are still there.
+    assert_eq!(found(&catalog, "f150"), vec!["2019_ford_f-150"]);
+}
+
+// ----- from a decoded VIN -----
+
+use wenmar_vin::{DecodeOptions, Decoded, Decoder, Element, Manufacturer, MemoryData};
+
+/// A decode of `vin` from patterns given as (keys, element, value).
+fn decode(wmi: &str, make: &str, vin: &str, patterns: &[(&str, Element, &str)]) -> Decoded {
+    let mut data = MemoryData::new()
+        .with_manufacturer(Manufacturer {
+            wmi: wmi.to_owned(),
+            name: format!("{make} Motor Co"),
+            make: Some(make.to_owned()),
+            country: None,
+            vehicle_type: None,
+            light_vehicle: true,
+        })
+        .with_schema(wmi, 1, 2016, None);
+    for (keys, element, value) in patterns {
+        data = data.with_pattern(1, keys, *element, value);
+    }
+    let options = DecodeOptions {
+        model_year: None,
+        current_year: Some(2026),
+    };
+    Decoder::new(data).decode(vin, options).unwrap()
+}
+
+const CIVIC: &str = "2HGFC1E50KH000001";
+const F150: &str = "1FTFW1E55KFA00001";
+
+#[test]
+fn a_decode_reaches_the_entry_the_cascade_would() {
+    let decoded = decode(
+        "2HG",
+        "Honda",
+        CIVIC,
+        &[
+            ("FC1**", Element::Model, "Civic"),
+            ("FC1*5", Element::Trim, "Si"),
+            ("FC1**", Element::DisplacementL, "1.5"),
+            ("FC1**", Element::Turbo, "Yes"),
+            ("FC1**", Element::BodyClass, "Coupe"),
+            ("FC1*5", Element::TransmissionStyle, "Manual/Standard"),
+        ],
+    );
+    assert_eq!(decoded.year, Some(2019));
+    let selection = catalog().selection(&decoded).unwrap().unwrap();
+    assert_eq!(selection.vehicle_id, "2019_honda_civic");
+    assert_eq!(selection.submodel_id.as_deref(), Some("si"));
+    assert_eq!(selection.engine_id.as_deref(), Some("1-5l-turbo"));
+    assert_eq!(selection.entry.id, "2019_honda_civic_si_1-5l-turbo");
+    // The decode's own body beats the catalog's, which only knows what all Si share.
+    assert_eq!(
+        selection.entry.summary,
+        "2019 Honda Civic Si, 1.5L Turbo, Manual, FWD, Coupe"
+    );
+}
+
+#[test]
+fn the_eighth_character_settles_the_engine_when_the_decode_has_none() {
+    let decoded = decode("1FT", "FORD", F150, &[("*W1E*", Element::Model, "F-150")]);
+    assert_eq!(decoded.engine, None);
+    let selection = catalog().selection(&decoded).unwrap().unwrap();
+    assert_eq!(selection.vehicle_id, "2019_ford_f-150");
+    assert_eq!(selection.submodel_id, None);
+    assert_eq!(selection.engine_id.as_deref(), Some("5-0l-v8"));
+    assert_eq!(selection.entry.id, "2019_ford_f-150__5-0l-v8");
+}
+
+#[test]
+fn a_decoded_label_without_a_cylinder_layout_still_finds_its_engine() {
+    // The catalog has `5.3L V8`; this decode says `5.3L`.
+    let decoded = decode(
+        "1GC",
+        "Chevrolet",
+        "1GCUYDED0KZ000001",
+        &[
+            ("*****", Element::Model, "Silverado"),
+            ("*****", Element::DisplacementL, "5.3"),
+            ("*****", Element::Series, "1500"),
+        ],
+    );
+    let selection = catalog().selection(&decoded).unwrap().unwrap();
+    assert_eq!(selection.engine_id.as_deref(), Some("5-3l-v8"));
+    // With no trim, the series is the submodel.
+    assert_eq!(selection.submodel_id.as_deref(), Some("1500"));
+    assert_eq!(selection.entry.id, "2019_chevrolet_silverado_1500_5-3l-v8");
+}
+
+#[test]
+fn a_list_of_trims_selects_no_submodel() {
+    let decoded = decode(
+        "2HG",
+        "Honda",
+        CIVIC,
+        &[
+            ("FC1**", Element::Model, "Civic"),
+            ("FC1**", Element::Trim, "LX, Si"),
+        ],
+    );
+    let selection = catalog().selection(&decoded).unwrap().unwrap();
+    assert_eq!(selection.submodel_id, None);
+    assert_eq!(selection.engine_id, None);
+    assert_eq!(selection.entry.id, "2019_honda_civic");
+
+    // A list with one trim the catalog knows selects it.
+    let decoded = decode(
+        "2HG",
+        "Honda",
+        CIVIC,
+        &[
+            ("FC1**", Element::Model, "Civic"),
+            ("FC1**", Element::Trim, "Si, Si HPT"),
+        ],
+    );
+    let selection = catalog().selection(&decoded).unwrap().unwrap();
+    assert_eq!(selection.submodel_id.as_deref(), Some("si"));
+}
+
+#[test]
+fn a_decode_the_catalog_cannot_place_selects_nothing() {
+    let catalog = catalog();
+    // A model the catalog does not have.
+    let decoded = decode(
+        "2HG",
+        "Honda",
+        CIVIC,
+        &[("FC1**", Element::Model, "Prelude")],
+    );
+    assert_eq!(catalog.selection(&decoded).unwrap(), None);
+    // No model at all.
+    let decoded = decode("2HG", "Honda", CIVIC, &[("FC1**", Element::Trim, "Si")]);
+    assert_eq!(catalog.selection(&decoded).unwrap(), None);
+    // A model year the catalog does not have (2016).
+    let decoded = decode(
+        "2HG",
+        "Honda",
+        "2HGFC1E50GH000001",
+        &[("FC1**", Element::Model, "Civic")],
+    );
+    assert_eq!(decoded.year, Some(2016));
+    assert_eq!(catalog.selection(&decoded).unwrap(), None);
+    // No year: position 10 holds a character that is not a year code.
+    let decoded = decode(
+        "2HG",
+        "Honda",
+        "2HGFC1E500H000001",
+        &[("FC1**", Element::Model, "Civic")],
+    );
+    assert_eq!(decoded.year, None);
+    assert_eq!(catalog.selection(&decoded).unwrap(), None);
 }
