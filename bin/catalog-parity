@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Compare the catalog's models with NHTSA's recorded answers.
+# Thin wrapper over `mise run catalog-parity`.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec mise run catalog-parity "$@"

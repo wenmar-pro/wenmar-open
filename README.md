@@ -78,6 +78,24 @@ Open `http://localhost:3000` for the website: a VIN box, a year and make picker,
 
 Without mise: `OPEN_DATA=data/build/wenmar-open-2026.09.sqlite3 cargo run -p open-server`. The server opens the data file read-only and stores nothing. Settings and the deploy procedure are in [docs/deploy.md](docs/deploy.md).
 
+## Development scripts
+
+`bin/` has a short script for each common task, so a contributor need not remember the mise task names. Run any of them from anywhere in the checkout.
+
+| Script | What it does |
+|---|---|
+| `bin/setup` | Prepare a fresh checkout: the pinned Rust toolchain, its components and the workspace's dependencies, then a build. The one script that does not need mise. |
+| `bin/dev` | Run the website and the API on http://localhost:3000 |
+| `bin/tui` | Open the one-screen terminal interface |
+| `bin/data` | Download vPIC and build the data file |
+| `bin/check` | Format check, lints and tests: what CI runs |
+| `bin/parity`, `bin/catalog-parity` | Compare the data and the catalog with NHTSA's answers |
+| `bin/js` | Build and test the npm client |
+| `bin/release-check` | Check that a release would work |
+| `bin/doctor` | Check whether the data file and the API answer |
+
+Each is a thin wrapper over the matching `mise run` task, and `mise run` remains the way to pass a task options.
+
 ## Repository layout
 
 `crates/wenmar-vin`, `crates/wenmar-vehicles`, `crates/wenmar-open-turso`, `crates/open-data`, `crates/wenmar-open-cli`, `crates/open-mcp`, `crates/open-server` and `clients/js` exist so far. The rest is planned.

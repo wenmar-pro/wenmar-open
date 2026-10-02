@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Prepare a fresh checkout so it can build.
+#
+# Unlike the other scripts in bin/, this one does not go through mise: it
+# has to work before mise and the toolchain are installed. It installs the
+# pinned Rust toolchain (rustup reads rust-toolchain.toml), its components
+# and the workspace's dependencies, then builds the workspace.
+#
+# The data file is not part of setup: it is a large download. `bin/data`
+# builds it when a command needs one.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+say() { printf '%s\n' "$*"; }
+
+if ! command -v rustup >/dev/null 2>&1; then
+  cat >&2 <<'EOF'
+bin/setup: rustup is not installed.
+Install Rust from https://rustup.rs and run bin/setup again.
+EOF
+  exit 1
+fi
+
+say "Installing the pinned Rust toolchain (rust-toolchain.toml)..."
+rustup show active-toolchain >/dev/null
+
+say "Installing rustfmt and clippy..."
+rustup component add rustfmt clippy
+
+say "Downloading the workspace's dependencies..."
+cargo fetch
+
+say "Building the workspace..."
+cargo build --workspace
+
+if command -v mise >/dev/null 2>&1; then
+  say "mise is installed, so the wrappers in bin/ will work."
+else
+  cat <<'EOF'
+
+mise is not installed. bin/dev, bin/check and the other wrappers need it:
+  https://mise.jdx.dev
+The three cargo commands under [tasks.check] in mise.toml work without it.
+EOF
+fi
+
+cat <<'EOF'
+
+Done. Next:
+  bin/data   download vPIC and build the data file (about 73 MB)
+  bin/dev    run the website and the API on http://localhost:3000
+  bin/tui    open the terminal interface
+EOF

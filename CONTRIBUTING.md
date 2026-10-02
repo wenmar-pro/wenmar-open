@@ -23,7 +23,7 @@ Use the bug report or feature request templates. For anything large, open an iss
 - Open pull requests against `dev`. `main` holds what has been released.
 - Keep each pull request to one change.
 - Add or update tests for behaviour you change. Decoder changes need at least one real VIN with a known answer.
-- Run formatting, lints, and tests before you push: `mise run check`, or the three `cargo` commands listed under `[tasks.check]` in `mise.toml`.
+- Run formatting, lints, and tests before you push: `bin/check` (or `mise run check`), or the three `cargo` commands listed under `[tasks.check]` in `mise.toml`. A new checkout needs `bin/setup` first. The scripts in `bin/` each wrap one `mise run` task; see the README.
 - If you change decoding, run `mise run parity` against a built data file (`mise run data`) and explain any VIN that newly differs from NHTSA.
 - If you change the catalog build or the lists under `data/`, run `mise run catalog-parity` against a built data file and explain any model that newly differs from NHTSA.
 - Trims added to `data/presets.yaml` and spellings added to `data/catalog/names.yaml` must be your own work or public knowledge. Do not copy lists from licensed catalogs or parts databases.

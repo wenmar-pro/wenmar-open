@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Check that a release would work. Publishes nothing.
+# Thin wrapper over `mise run release-check`.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec mise run release-check "$@"

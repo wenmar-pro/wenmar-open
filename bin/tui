@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Open the one-screen terminal interface.
+# Thin wrapper over `mise run tui`.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec mise run tui "$@"

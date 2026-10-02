@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Download NHTSA's newest vPIC release and build the data file.
+# Thin wrapper over `mise run data`.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec mise run data "$@"

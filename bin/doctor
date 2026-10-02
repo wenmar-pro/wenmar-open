@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Check the data file and the API, and say which of them answers.
+# Thin wrapper over `mise run doctor`.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec mise run doctor "$@"
