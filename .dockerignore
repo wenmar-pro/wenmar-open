@@ -1,6 +1,5 @@
 *
 !Cargo.toml
 !Cargo.lock
-!rust-toolchain.toml
 !crates/
 !data/build/wenmar-open-*.sqlite3

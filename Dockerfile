@@ -7,11 +7,11 @@
 # The data file must be at data/build/wenmar-open-<DATA_VERSION>.sqlite3
 # (mise run data). Deploy: see docs/deploy.md.
 
-FROM rust:bookworm AS builder
+# The image tag pins the Rust version and already contains that toolchain, so
+# rustup never has to reach static.rust-lang.org. Keep it in sync with the
+# channel in rust-toolchain.toml and the rust pin in mise.toml.
+FROM rust:1.99.0-bookworm AS builder
 WORKDIR /app
-# The pin first, so the toolchain layer is reused until the pin changes.
-COPY rust-toolchain.toml ./
-RUN rustup show
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
