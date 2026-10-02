@@ -1,0 +1,25 @@
+[package]
+name = "wenmar-open-wasm"
+version.workspace = true
+description = "wenmar-vin and wenmar-vehicles behind one JSON call: the WebAssembly the wenmar-open npm package runs offline."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+publish = false
+
+[lib]
+# cdylib is the .wasm; rlib lets the tests in tests/ run natively.
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+wenmar-vehicles.workspace = true
+wenmar-vin.workspace = true
+
+[dev-dependencies]
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+wenmar-vehicles = { workspace = true, features = ["sqlite"] }
+wenmar-vin = { workspace = true, features = ["sqlite"] }
