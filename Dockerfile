@@ -23,6 +23,10 @@ FROM debian:bookworm-slim AS runtime
 ARG DATA_VERSION
 RUN groupadd --system --gid 1000 open \
     && useradd open --uid 1000 --gid 1000 --no-create-home --shell /usr/sbin/nologin
+# Create the data directory first. COPY --chmod would otherwise apply 0444 to
+# the parent directories it creates implicitly, stripping their execute bit so
+# the unprivileged user could not reach the file.
+RUN install -d -m 0755 /app/data
 COPY --from=builder /usr/local/bin/open-server /usr/local/bin/open-server
 # Read-only for everyone: the server never writes to it.
 COPY --chmod=0444 data/build/wenmar-open-${DATA_VERSION}.sqlite3 /app/data/wenmar-open.sqlite3
