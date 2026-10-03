@@ -407,6 +407,8 @@ test("a stop after a successful opening is an error, and the next question start
     const stopped = await failure(client.years());
     assert.equal(stopped.code, "internal_error");
     assert.ok(stopped.cause instanceof WebAssembly.RuntimeError);
+    // The answer of the question before is not taken for what stopped it.
+    assert.deepEqual(stopped.details, {});
     // A new copy answers, and it opened the data again.
     assert.deepEqual({ ok: await client.decodeVin(KONA) }, caseNamed("decode").answer);
     assert.equal(started, 2);
@@ -414,4 +416,18 @@ test("a stop after a successful opening is an error, and the next question start
   } finally {
     WebAssembly.instantiate = instantiate;
   }
+});
+
+test("a question that cannot be written as JSON is validation_failed, and the decoder goes on", async () => {
+  const store = new RecordedStore();
+  const client = offline(store);
+  const openings = () => store.statements.filter((statement) => statement.sql === "SELECT key, value FROM meta").length;
+  await client.meta();
+  const error = await failure(client.makes({ year: 10n as never }));
+  assert.equal(error.code, "validation_failed");
+  assert.equal(error.details["panic"], undefined);
+  assert.ok(error.cause instanceof TypeError);
+  // The same copy of the decoder answers the next question.
+  assert.equal((await client.meta()).data_version, "2026.09");
+  assert.equal(openings(), 1);
 });

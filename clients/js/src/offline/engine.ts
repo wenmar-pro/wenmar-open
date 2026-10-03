@@ -112,18 +112,30 @@ export class Engine {
     return new TextDecoder().decode(new Uint8Array(memory.buffer, wo_result(), wo_result_len()));
   }
 
-  /** One request, one answer. A stop inside the decoder is thrown as an error. */
+  /**
+   * One request, one answer. A request that cannot be written as JSON is
+   * refused before the decoder sees it. A stop inside the decoder is thrown
+   * as an error, and this copy is not used again.
+   */
   call(request: EngineRequest): EngineAnswer {
     if (this.#stopped) {
       throw new WenmarOpenError({ code: "internal_error", message: "The decoder has stopped." });
     }
+    let input: Uint8Array;
+    try {
+      input = new TextEncoder().encode(JSON.stringify(request));
+    } catch (cause) {
+      throw new WenmarOpenError({
+        code: "validation_failed",
+        message: "The question could not be written as JSON.",
+        cause,
+      });
+    }
     const { memory, wo_alloc, wo_call } = this.#exports;
     try {
-      const input = new TextEncoder().encode(JSON.stringify(request));
       const pointer = wo_alloc(input.length);
       new Uint8Array(memory.buffer, pointer, input.length).set(input);
       wo_call(pointer, input.length);
-      return JSON.parse(this.#read()) as EngineAnswer;
     } catch (cause) {
       // WebAssembly cannot unwind, so a failure inside it ends the call
       // here. What it was is left where the answer would have been.
@@ -134,10 +146,22 @@ export class Engine {
       } catch {
         panic = undefined;
       }
+      // An answer is always a JSON object and a panic's message never is:
+      // text that starts as an object is an answer left from before.
+      if (panic === "" || panic?.startsWith("{")) panic = undefined;
       throw new WenmarOpenError({
         code: "internal_error",
         message: "The decoder stopped unexpectedly. Please report the VIN or the question that caused it.",
-        details: panic === undefined || panic === "" ? {} : { panic },
+        details: panic === undefined ? {} : { panic },
+        cause,
+      });
+    }
+    try {
+      return JSON.parse(this.#read()) as EngineAnswer;
+    } catch (cause) {
+      throw new WenmarOpenError({
+        code: "internal_error",
+        message: "The decoder gave an answer that could not be read.",
         cause,
       });
     }
