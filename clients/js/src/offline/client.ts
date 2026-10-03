@@ -23,8 +23,9 @@ import { cleanRows } from "./store.js";
 import type { Statement, Store } from "./store.js";
 
 /**
- * The most times one question may go back to the store. A decode needs 8 to
- * 10 and a search about 6; reaching this means something is wrong.
+ * The most times one question, or the opening of the data, may go back to
+ * the store. Opening takes 2; over the fixture of the tests a decode takes
+ * at most 7 and a search at most 4. Reaching this means something is wrong.
  */
 export const MAX_STEPS = 32;
 
@@ -55,6 +56,32 @@ const keyOf = (statement: Statement): string => `${statement.sql}\u0000${JSON.st
 
 function thrown(failure: Failure): WenmarOpenError {
   return new WenmarOpenError({ code: failure.code, message: failure.message, details: failure.details });
+}
+
+/**
+ * The rows of every statement, from the store. A store that throws, and one
+ * that does not return one list for each statement, are `store_error`: the
+ * same whether the data is being opened or a question answered.
+ */
+async function read(store: Store, statements: readonly Statement[]): Promise<unknown[][][]> {
+  let rows: unknown;
+  try {
+    rows = await store.query(statements);
+  } catch (cause) {
+    if (cause instanceof WenmarOpenError) throw cause;
+    throw new WenmarOpenError({
+      code: "store_error",
+      message: "The database failed while it was being read.",
+      cause,
+    });
+  }
+  if (!Array.isArray(rows) || rows.length !== statements.length) {
+    throw new WenmarOpenError({
+      code: "store_error",
+      message: "The store must return one list of rows for each statement.",
+    });
+  }
+  return rows as unknown[][][];
 }
 
 /**
@@ -198,17 +225,7 @@ export class WenmarOpenOffline {
       const answer = engine.call({ op: "open", answers });
       if ("ok" in answer) return engine;
       if ("error" in answer) throw thrown(answer.error);
-      let rows: unknown[][][];
-      try {
-        rows = await this.#store.query(answer.need);
-      } catch (cause) {
-        if (cause instanceof WenmarOpenError) throw cause;
-        throw new WenmarOpenError({
-          code: "store_error",
-          message: "The database failed while it was being read.",
-          cause,
-        });
-      }
+      const rows = await read(this.#store, answer.need);
       answer.need.forEach((statement, index) => {
         answers.push({ ...statement, rows: cleanRows(rows[index], statement.sql) });
       });
@@ -264,23 +281,7 @@ export class WenmarOpenOffline {
       }
 
       const statements = [...wanted.values()];
-      let rows: unknown[][][];
-      try {
-        rows = await this.#store.query(statements);
-      } catch (cause) {
-        if (cause instanceof WenmarOpenError) throw cause;
-        throw new WenmarOpenError({
-          code: "store_error",
-          message: "The database failed while it was being read.",
-          cause,
-        });
-      }
-      if (!Array.isArray(rows) || rows.length !== statements.length) {
-        throw new WenmarOpenError({
-          code: "store_error",
-          message: "The store must return one list of rows for each statement.",
-        });
-      }
+      const rows = await read(this.#store, statements);
       const found = new Map<string, Answered>();
       statements.forEach((statement, index) => {
         found.set(keyOf(statement), { ...statement, rows: cleanRows(rows[index], statement.sql) });
