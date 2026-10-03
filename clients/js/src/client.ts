@@ -1,10 +1,10 @@
+import { MAX_BATCH } from "./batch.js";
 import { WenmarOpenError, parseRetryAfter } from "./errors.js";
 import type {
   BatchItem,
   EngineOption,
   EnginesQuery,
   Entry,
-  ErrorBody,
   Make,
   MakesQuery,
   Meta,
@@ -21,8 +21,6 @@ import type {
 export const DEFAULT_BASE_URL = "https://open.wenmarpro.com";
 /** How long a request may take before it fails with `timeout`. */
 export const DEFAULT_TIMEOUT_MS = 10_000;
-/** The most VINs the API decodes in one batch. */
-export const MAX_BATCH = 50;
 
 /** What the client asks of a `fetch`: the part of the standard it uses. */
 export interface FetchInit {
@@ -101,11 +99,6 @@ function segment(field: string, value: string): string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-/** Whether an item of a batch is the error for its VIN and not a decode. */
-export function isBatchError(item: BatchItem): item is ErrorBody {
-  return isRecord((item as { error?: unknown }).error);
 }
 
 /** A client for the Wenmar Open API. It keeps no state between requests. */

@@ -1,10 +1,5 @@
-export {
-  DEFAULT_BASE_URL,
-  DEFAULT_TIMEOUT_MS,
-  MAX_BATCH,
-  WenmarOpen,
-  isBatchError,
-} from "./client.js";
+export { MAX_BATCH, isBatchError } from "./batch.js";
+export { DEFAULT_BASE_URL, DEFAULT_TIMEOUT_MS, WenmarOpen } from "./client.js";
 export type {
   ClientOptions,
   DecodeOptions,
@@ -14,7 +9,13 @@ export type {
   RequestOptions,
 } from "./client.js";
 export { WenmarOpenError } from "./errors.js";
-export type { ApiErrorCode, ClientErrorCode, ErrorCode, WenmarOpenErrorInit } from "./errors.js";
+export type {
+  ApiErrorCode,
+  ClientErrorCode,
+  ErrorCode,
+  OfflineErrorCode,
+  WenmarOpenErrorInit,
+} from "./errors.js";
 export type {
   BatchItem,
   CheckDigit,

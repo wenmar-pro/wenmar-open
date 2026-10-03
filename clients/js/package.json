@@ -1,14 +1,16 @@
 {
   "name": "wenmar-open",
   "version": "0.1.0",
-  "description": "Typed client for the Wenmar Open API: VIN decoding and a year, make, model, trim and engine catalog. No API key.",
+  "description": "VIN decoding and a year, make, model, trim and engine catalog: a typed client for the Wenmar Open API, and an offline mode that answers from a data file with no network. No API key.",
   "keywords": [
     "vin",
     "vin-decoder",
     "vehicle",
     "automotive",
     "nhtsa",
-    "vpic"
+    "vpic",
+    "offline",
+    "webassembly"
   ],
   "license": "MIT",
   "author": "Wenmar Pro (https://wenmarpro.com)",
@@ -26,6 +28,15 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./offline": {
+      "types": "./dist/offline/index.d.ts",
+      "default": "./dist/offline/index.js"
+    },
+    "./offline/node": {
+      "types": "./dist/offline/node.d.ts",
+      "default": "./dist/offline/node.js"
+    },
+    "./offline.wasm": "./dist/offline/wenmar_open.wasm",
     "./package.json": "./package.json"
   },
   "types": "./dist/index.d.ts",
@@ -35,9 +46,17 @@
   "engines": {
     "node": ">=20"
   },
+  "peerDependencies": {
+    "wenmar-open-data": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "wenmar-open-data": {
+      "optional": true
+    }
+  },
   "scripts": {
     "generate": "node scripts/generate.mjs",
-    "build": "node scripts/clean.mjs dist && tsc -p tsconfig.json",
+    "build": "node scripts/clean.mjs dist && tsc -p tsconfig.json && node scripts/build-wasm.mjs",
     "test:types": "node scripts/readme-examples.mjs && tsc -p test/types/tsconfig.dom.json && tsc -p test/types/tsconfig.node.json",
     "test:unit": "node scripts/clean.mjs .test-build && tsc -p tsconfig.test.json && node --test .test-build/*.test.js",
     "test": "npm run build && npm run test:types && npm run test:unit",

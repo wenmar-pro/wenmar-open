@@ -23,10 +23,22 @@ export type ApiErrorCode =
 export type ClientErrorCode = "network" | "timeout" | "aborted" | "bad_response";
 
 /**
+ * The codes of `wenmar-open/offline`, for failures of the data and not of
+ * the question. The command-line tool uses `no_data` and `data_invalid` for
+ * the same things.
+ *
+ * - `no_data`: there is no data file where one was looked for.
+ * - `data_invalid`: the database is not a data file this version reads: it
+ *   has another schema version, or a row is not what the layout says.
+ * - `store_error`: the database failed while it was being read.
+ */
+export type OfflineErrorCode = "no_data" | "data_invalid" | "store_error";
+
+/**
  * Every code known when this version was published. The API may add codes,
  * so `code` is typed to accept any string while still completing these.
  */
-export type ErrorCode = ApiErrorCode | ClientErrorCode | (string & {});
+export type ErrorCode = ApiErrorCode | ClientErrorCode | OfflineErrorCode | (string & {});
 
 export interface WenmarOpenErrorInit {
   code: ErrorCode;
