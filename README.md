@@ -4,7 +4,7 @@ Free vehicle data for auto repair shops, starting with VIN decoding. No API key,
 
 Wenmar Open is built and hosted by [Wenmar Pro](https://wenmarpro.com), shop management software for independent auto repair shops.
 
-> **Status: pre-release.** The decoder, the data build, the API and the website exist and run locally. Nothing is published or hosted yet. Watch the repo or check [CHANGELOG.md](CHANGELOG.md) for the first release.
+> **Status: early.** The website and the API are live at [open.wenmarpro.com](https://open.wenmarpro.com). The crates and the npm client are published at `0.1.0`. The npm package's offline mode and the `wenmar-open-data` package are not released yet; see [CHANGELOG.md](CHANGELOG.md).
 
 ## What it will be
 
