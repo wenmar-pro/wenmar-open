@@ -482,20 +482,60 @@ fn a_decode_with_no_current_year_is_an_error_and_never_reads_a_clock() {
     assert_eq!(answer["error"]["code"], "internal_error", "{answer}");
 }
 
+/// The answer with each of its values replaced by `odd`.
+fn spoil_answer(answer: &Value, odd: &Value) -> Value {
+    let rows: Vec<Value> = answer["rows"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|row| Value::Array(vec![odd.clone(); row.as_array().unwrap().len()]))
+        .collect();
+    json!({ "sql": answer["sql"], "params": answer["params"], "rows": rows })
+}
+
 /// Every answer with each of its values replaced by `odd`.
 fn spoiled(answers: &[Value], odd: &Value) -> Vec<Value> {
     answers
         .iter()
-        .map(|answer| {
-            let rows: Vec<Value> = answer["rows"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .map(|row| Value::Array(vec![odd.clone(); row.as_array().unwrap().len()]))
-                .collect();
-            json!({ "sql": answer["sql"], "params": answer["params"], "rows": rows })
-        })
+        .map(|answer| spoil_answer(answer, odd))
         .collect()
+}
+
+/// The answers from `from` on spoiled, the ones before kept as they are.
+fn spoiled_from(answers: &[Value], from: usize, odd: &Value) -> Vec<Value> {
+    let mut out = answers.to_vec();
+    for answer in &mut out[from..] {
+        *answer = spoil_answer(answer, odd);
+    }
+    out
+}
+
+/// The answers with the one cell at `row`, `column` of answer `index` replaced.
+fn spoiled_cell(
+    answers: &[Value],
+    index: usize,
+    row: usize,
+    column: usize,
+    odd: &Value,
+) -> Vec<Value> {
+    let mut out = answers.to_vec();
+    out[index]["rows"][row][column] = odd.clone();
+    out
+}
+
+/// Runs the request. The engine must not panic and must give exactly one of
+/// `need`, `ok` or `error`. Returns the answer.
+fn well_formed(engine: &mut Engine, what: &str, request: &Value) -> Value {
+    let text = request.to_string();
+    let outcome = catch_unwind(AssertUnwindSafe(|| engine.call(&text)));
+    let answer: Value =
+        serde_json::from_str(&outcome.unwrap_or_else(|_| panic!("{what} panicked"))).unwrap();
+    let kinds = ["need", "ok", "error"]
+        .iter()
+        .filter(|key| answer.get(**key).is_some())
+        .count();
+    assert_eq!(kinds, 1, "{what}: {answer}");
+    answer
 }
 
 // Review Focus 2, on this side of the boundary.
@@ -512,6 +552,10 @@ fn rows_of_the_wrong_kind_are_an_error_or_an_answer_and_never_a_panic() {
         json!(true),
         json!(""),
     ];
+    // One cell at a time, over this many rows of each answer a step adds. A
+    // row's cells are the same kind in every row of a table, so the first few
+    // rows reach every parser and keep the run to a few seconds.
+    const CELL_ROWS: usize = 3;
     for (name, op, args) in common::cases() {
         // The real rows, as far as each step got, then spoiled.
         let mut engine = opened(&connection);
@@ -523,6 +567,7 @@ fn rows_of_the_wrong_kind_are_an_error_or_an_answer_and_never_a_panic() {
             let Some(need) = answer.get("need").and_then(Value::as_array) else {
                 break;
             };
+            let added = answers.len();
             for statement in need {
                 answers.push(json!({
                     "sql": statement["sql"],
@@ -530,22 +575,32 @@ fn rows_of_the_wrong_kind_are_an_error_or_an_answer_and_never_a_panic() {
                     "rows": common::rows(&connection, statement),
                 }));
             }
+            let request = |answers: Vec<Value>| json!({ "op": op, "args": args, "current_year": YEAR, "answers": answers });
             for odd in &odd_values {
-                let request = json!({
-                    "op": op, "args": args, "current_year": YEAR, "answers": spoiled(&answers, odd),
-                });
-                let text = request.to_string();
-                let outcome = catch_unwind(AssertUnwindSafe(|| engine.call(&text)));
-                let answer: Value = serde_json::from_str(&outcome.unwrap_or_else(|_| {
-                    panic!("{name} panicked on rows of {odd}");
-                }))
-                .unwrap();
-                assert!(
-                    answer.get("ok").is_some()
-                        || answer.get("need").is_some()
-                        || answer.get("error").is_some(),
-                    "{name}: {answer}"
+                // Every answer so far, the first statement's rows too.
+                let what = format!("{name} with every answer of {odd}");
+                well_formed(&mut engine, &what, &request(spoiled(&answers, odd)));
+                // Only the answers this step added, the earlier ones real, so
+                // the parsers of this step's tables are reached.
+                let what = format!("{name} with the new answers of {odd}");
+                well_formed(
+                    &mut engine,
+                    &what,
+                    &request(spoiled_from(&answers, added, odd)),
                 );
+                // One cell of one new answer.
+                for index in added..answers.len() {
+                    let rows = answers[index]["rows"].as_array().unwrap();
+                    for (row, cells) in rows.iter().enumerate().take(CELL_ROWS) {
+                        for column in 0..cells.as_array().unwrap().len() {
+                            let what = format!(
+                                "{name} with {odd} at answer {index} row {row} column {column}"
+                            );
+                            let spoiled = spoiled_cell(&answers, index, row, column, odd);
+                            well_formed(&mut engine, &what, &request(spoiled));
+                        }
+                    }
+                }
             }
         }
     }
@@ -565,10 +620,41 @@ fn rows_of_the_wrong_kind_are_an_error_or_an_answer_and_never_a_panic() {
                 })
             })
             .collect();
-        let request = json!({ "op": "open", "answers": spoiled(&answers, odd) }).to_string();
-        let outcome = catch_unwind(AssertUnwindSafe(|| engine.call(&request)));
-        let answer: Value = serde_json::from_str(&outcome.expect("open panicked")).unwrap();
+        // With the meta rows spoiled too: no schema_version to be found.
+        let request = json!({ "op": "open", "answers": spoiled(&answers, odd) });
+        let answer = well_formed(
+            &mut engine,
+            &format!("open with every answer of {odd}"),
+            &request,
+        );
         assert_eq!(answer["error"]["code"], "data_invalid", "{odd}: {answer}");
+        // With meta real and the catalog's answers spoiled, whole and by cell.
+        let catalog: Vec<usize> = (0..answers.len())
+            .filter(|&index| !answers[index]["sql"].as_str().unwrap().contains("meta"))
+            .collect();
+        assert!(!catalog.is_empty(), "no catalog statements in {answers:?}");
+        let mut spoil = answers.clone();
+        for &index in &catalog {
+            spoil[index] = spoil_answer(&answers[index], odd);
+        }
+        let request = json!({ "op": "open", "answers": spoil });
+        well_formed(
+            &mut engine,
+            &format!("open with the catalog rows of {odd}"),
+            &request,
+        );
+        for &index in &catalog {
+            let rows = answers[index]["rows"].as_array().unwrap();
+            for (row, cells) in rows.iter().enumerate().take(CELL_ROWS) {
+                for column in 0..cells.as_array().unwrap().len() {
+                    let what =
+                        format!("open with {odd} at answer {index} row {row} column {column}");
+                    let spoil = spoiled_cell(&answers, index, row, column, odd);
+                    let request = json!({ "op": "open", "answers": spoil });
+                    well_formed(&mut engine, &what, &request);
+                }
+            }
+        }
     }
 }
 
