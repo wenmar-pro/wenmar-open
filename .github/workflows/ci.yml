@@ -25,7 +25,7 @@ jobs:
 
   js:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -36,10 +36,18 @@ jobs:
         working-directory: clients/js
     steps:
       - uses: actions/checkout@v4
+      # npm test builds crates/wenmar-open-wasm for wasm32-unknown-unknown,
+      # which rust-toolchain.toml lists as a target.
+      - name: Install pinned toolchain
+        run: rustup toolchain install
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: npm
           cache-dependency-path: clients/js/package-lock.json
       - run: npm ci --no-audit --no-fund
+      # Also the size budget of the WebAssembly: test/package.test.ts.
       - run: npm test
+      - name: Test the data package's scripts
+        working-directory: clients/data
+        run: node --test test/

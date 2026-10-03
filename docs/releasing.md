@@ -8,13 +8,15 @@ A release publishes one version of everything at once:
 
 It starts when a tag `v<version>` is pushed to a commit on `main`, and is run by `.github/workflows/release.yml`. No registry password or token is stored anywhere: crates.io and npm are each told, once, to trust that workflow in this repository.
 
-The data file is released separately, every month, by `.github/workflows/data-release.yml`, as `data-YYYY.MM`. A release of the code does not rebuild the data, and a data release does not publish code.
+The data file is released separately, every month, by `.github/workflows/data-release.yml`, as `data-YYYY.MM`. The same run publishes the file to npm as `wenmar-open-data`. A release of the code does not rebuild the data, and a data release does not publish code.
 
 ## Versions
 
 - Everything has the same version. It is written in `Cargo.toml` (under `[workspace.package]`, and in the three lines for `wenmar-vin`, `wenmar-vehicles` and `wenmar-open-turso` under `[workspace.dependencies]`) and in `clients/js/package.json`.
 - Until 1.0: a change an application has to react to is a new minor version (`0.1.3` to `0.2.0`). Anything else is a patch (`0.1.3` to `0.1.4`).
-- The data file has its own version, `YYYY.MM`. What ties code to data is the data file's schema version. A version of the code reads data files of one schema version; when that changes, it is a new minor version and the changelog says that older data files must be replaced.
+- The data file has its own version, `YYYY.MM`, or `YYYY.MM.N` for a rebuild. What ties code to data is the data file's schema version. A version of the code reads data files of one schema version; when that changes, it is a new minor version and the changelog says that older data files must be replaced.
+- The npm package `wenmar-open-data` is versioned `<schema>.<YYYYMM>.<rebuild>`: data `2026.09` at schema version 3 is `3.202609.0`. `wenmar-open` names the schema version it reads as an optional peer, `"wenmar-open-data": "^3.0.0"` in `clients/js/package.json`. When the schema version changes, change that range in the same commit; `npm test` in `clients/js` fails until it matches the decoder.
+- A schema change needs the code released first, or on the same day. A data release built from `main` after the change is published as the new major version, which no released `wenmar-open` can read until then. People on the old schema keep the last file of that schema; nothing breaks for them, and they get no newer data until they upgrade.
 - The API is additive only. Adding a field or an endpoint is a patch or a minor version, never a reason for a `/v2`.
 
 ## One-time setup
@@ -79,7 +81,32 @@ npm does not check these values when they are saved. Every field is case-sensiti
 
 To approve each npm release by hand instead: leave `npm publish` unticked, change `npm publish --provenance --access public` in `release.yml` to `npm stage publish --access public`, and approve the staged version on npmjs.com with two-factor authentication after each release.
 
-The package `wenmar-open-data` is not published by this workflow. It will need a trusted publisher of its own when it is.
+### npm, for the data package
+
+`wenmar-open-data` is published by the data release, not by the code release, so it trusts a different workflow in a different environment.
+
+1. **GitHub: Settings, Environments, New environment.** Name it `data-release`. Under "Deployment branches and tags" choose "Selected branches and tags" and add the branch `main`. Optional: add yourself as a required reviewer; each monthly run then waits for you before it publishes to npm.
+2. **npmjs.com**, as the owner of `wenmar-open-data` (the name is held by a placeholder version, which is what a trusted publisher needs to attach to): open the package, **Settings**, **Trusted Publisher**, **GitHub Actions**:
+
+   | Field | Value |
+   |---|---|
+   | Organization or user | `wenmar-pro` |
+   | Repository | `wenmar-open` |
+   | Workflow filename | `data-release.yml` |
+   | Environment name | `data-release` |
+   | Allowed actions | tick `npm publish` |
+
+3. On the same page, under **Publishing access**, choose **Require two-factor authentication and disallow tokens**.
+
+The first time, publish the data that is already released: run "Data release" from `main` with "Run workflow". The `release` job finds `data-2026.09` (or the current one) already released and does nothing; the `npm` job downloads that release's file and publishes it.
+
+The package is about 49 MB to upload and 167 MB unpacked. npm documents no size limit; the reports of refused packages begin at about 230 MB packed.
+
+To check a data package after a run:
+
+```bash
+npm view wenmar-open-data version dist.unpackedSize
+```
 
 ## Making a release
 
@@ -163,9 +190,10 @@ If a `binaries` job fails, the version is already published and the release exis
 
 - **`verify` failed.** Nothing was published. Fix the cause on `dev`, merge, delete the tag (`git push origin :refs/tags/v0.2.0`, then `git tag -d v0.2.0`) and tag the new commit. Deleting a tag is safe only while nothing has been published for it.
 - **A later job failed.** Something may be published. Do not delete the tag. Fix what is outside the repository (a registry setting, an outage) and use "Re-run failed jobs". Each step skips what is already published.
+- **The data release's `npm` job failed.** The GitHub release exists and is fine. Fix the cause and use "Re-run failed jobs", or run the workflow again from `main`: the `release` job finds the release and does nothing, and the `npm` job publishes the released file. A data package that is wrong cannot be replaced: publish a rebuild (`data_version` `2026.09.1` in "Run workflow", which becomes `3.202609.1`) and `npm deprecate wenmar-open-data@3.202609.0 "use 3.202609.1"`.
 - **A published version is wrong.** A version on crates.io or npm cannot be replaced. Release a new patch version, then mark the bad one: `cargo yank --version 0.2.0 wenmar-vin` (and the other two crates), and `npm deprecate wenmar-open@0.2.0 "use 0.2.1"`. Both need you to be signed in.
 
 ## What a release does not do
 
 - It does not deploy `open.wenmarpro.com`. That is `docs/deploy.md`.
-- It does not build or publish a data file.
+- It does not build or publish a data file or `wenmar-open-data`. The data release does.

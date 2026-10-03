@@ -5,6 +5,10 @@ name: Data release
 # data-YYYY.MM. It always builds the code on main.
 #
 # A schedule only fires for the copy of this file on the default branch.
+#
+# The same file is then published to npm as wenmar-open-data, with trusted
+# publishing: no token is stored. npm trusts this file, in this repository,
+# in the environment `data-release`. See docs/releasing.md.
 
 on:
   schedule:
@@ -32,6 +36,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    outputs:
+      version: ${{ steps.pick.outputs.version }}
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -150,3 +156,76 @@ jobs:
             --title "Data $version" \
             --notes-file notes.md \
             --latest=false
+
+  npm:
+    needs: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: data-release
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      DATA_VERSION: ${{ needs.release.outputs.version }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: main
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: npm is new enough for trusted publishing
+        run: |
+          set -euo pipefail
+          version=$(npm --version)
+          echo "npm $version"
+          node -e '
+            const [major, minor, patch] = process.argv[1].split(".").map(Number);
+            const enough = major > 11 || (major === 11 && (minor > 5 || (minor === 5 && patch >= 1)));
+            if (!enough) {
+              console.error("Trusted publishing needs npm 11.5.1 or later.");
+              process.exit(1);
+            }
+          ' "$version"
+
+      - name: Test the package's scripts
+        working-directory: clients/data
+        run: node --test test/
+
+      - name: Download the released file and check it
+        run: |
+          set -euo pipefail
+          file="wenmar-open-$DATA_VERSION.sqlite3"
+          gh release download "data-$DATA_VERSION" --repo "$GITHUB_REPOSITORY" \
+            --pattern "$file.gz" --pattern "$file.gz.sha256"
+          sha256sum --check "$file.gz.sha256"
+          gunzip "$file.gz"
+          ls -l "$file"
+
+      - name: Assemble the package
+        id: package
+        run: |
+          set -euo pipefail
+          node clients/data/scripts/prepare.mjs "wenmar-open-$DATA_VERSION.sqlite3" clients/data/build
+          version=$(node -p 'require("./clients/data/build/package.json").version')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          (cd clients/data/build && npm pack --dry-run)
+
+      - name: Publish, unless this version is already on npm
+        working-directory: clients/data/build
+        env:
+          VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          set -euo pipefail
+          published=$(npm view "wenmar-open-data@$VERSION" version 2>/dev/null || true)
+          if [ "$published" = "$VERSION" ]; then
+            echo "wenmar-open-data $VERSION is already on npm." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          npm publish --provenance --access public
+          echo "Published wenmar-open-data $VERSION (data $DATA_VERSION)." >> "$GITHUB_STEP_SUMMARY"
