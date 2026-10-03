@@ -248,7 +248,32 @@ test("a store that returns too few answers is store_error", async () => {
   const store: Store = { query: (statements) => statements.slice(1).map((statement) => rowsOf(statement)) };
   const client = offline(store);
   const error = await failure(client.decodeVin(KONA));
-  assert.ok(error.code === "store_error" || error.code === "data_invalid", error.code);
+  assert.equal(error.code, "store_error");
+  assert.equal(error.message, "The store must return one list of rows for each statement.");
+});
+
+test("a store that returns nothing, or something that is not a list, is store_error and never a TypeError", async () => {
+  for (const returned of [undefined, null, "rows", { length: 1 }]) {
+    const store: Store = { query: () => returned as unknown as unknown[][][] };
+    // `failure` fails the test for anything that is not a WenmarOpenError.
+    const error = await failure(offline(store).decodeVin(KONA));
+    assert.equal(error.code, "store_error", String(returned));
+    assert.equal(error.message, "The store must return one list of rows for each statement.");
+  }
+});
+
+test("a store that returns too few answers after the data is opened is store_error", async () => {
+  const recorded = new RecordedStore();
+  let short = false;
+  const store: Store = {
+    query: (statements) => (short ? recorded.query(statements).slice(1) : recorded.query(statements)),
+  };
+  const client = offline(store);
+  await client.meta();
+  short = true;
+  const error = await failure(client.decodeVin(KONA));
+  assert.equal(error.code, "store_error");
+  assert.equal(error.message, "The store must return one list of rows for each statement.");
 });
 
 // Review Focus 1, through the client.
