@@ -1,12 +1,12 @@
 # Using Wenmar Open from an application
 
-This is for an application that decodes VINs or offers a year, make and model picker, and today calls NHTSA's hosted vPIC API to do it. It covers three ways to use Wenmar Open instead, what to cache, and the one limit.
+This is for an application that decodes VINs or offers a year, make and model picker, and today calls NHTSA's hosted vPIC API to do it. It covers four ways to use Wenmar Open instead, what to cache, and the one limit.
 
 | Way | Use it when | Needs |
 |---|---|---|
 | The hosted API | A browser, or a server that makes a modest number of lookups | Nothing. No key, no account. |
 | The npm package, offline | A Node server, or a Cloudflare Worker with D1, that wants no network call and no limit | The data file: the `wenmar-open-data` package, 167 MB, or a D1 database |
-| The Rust crates, in your process | A Rust server that wants no network call and no limit | The data file, about 160 MB |
+| The Rust crates, in your process | A Rust server that wants no network call and no limit | The data file, 167 MB |
 | The data file with the command-line tool | Any other language, offline | The data file and the `wenmar-open` binary |
 
 All four give the same answers, because all four read the same data file.
