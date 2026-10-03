@@ -103,8 +103,8 @@ test("a batch answers in order, with an error in the place of a VIN that has one
   assert.equal(third.error.code, "not_found");
   assert.deepEqual(fourth, first);
   // The VINs are read together: as many steps as the slowest needs, and a
-  // statement two of them need is run once. One step more is the opening.
-  assert.equal(store.steps, 1 + caseNamed("decode").steps);
+  // statement two of them need is run once. Two steps more are the opening.
+  assert.equal(store.steps, 2 + caseNamed("decode").steps);
   const run = store.statements.map((statement) => `${statement.sql}${JSON.stringify(statement.params)}`);
   assert.equal(new Set(run).size, run.length);
 });
@@ -124,10 +124,10 @@ test("a question reads the store as often as the fixture says, after one opening
     const store = new RecordedStore();
     const client = offline(store);
     await client.meta();
-    assert.equal(store.steps, 1, "opening is one step");
+    assert.equal(store.steps, 2, "opening is two steps: meta, then the catalog");
     assert.equal(store.statements.length, 6);
     await outcome(ask(client, caseNamed(name)));
-    assert.equal(store.steps - 1, caseNamed(name).steps, name);
+    assert.equal(store.steps - 2, caseNamed(name).steps, name);
   }
 });
 
@@ -268,7 +268,9 @@ test("a data file of another schema version is refused on first use, with both v
   assert.deepEqual(error.details, { schema_version: "2", expected: "3" });
   // Every later call says the same; none reads past the opening.
   assert.equal((await failure(client.years())).code, "data_invalid");
-  assert.ok(store.statements.every((statement) => !statement.sql.includes("FROM pattern")));
+  // Nothing but meta: a file of another layout may lack every other table.
+  assert.ok(store.statements.length > 0);
+  assert.ok(store.statements.every((statement) => statement.sql === "SELECT key, value FROM meta"));
 });
 
 // ----- stopping -----

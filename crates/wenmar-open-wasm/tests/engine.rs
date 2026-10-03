@@ -38,16 +38,21 @@ fn direct(vin: &str, year: Option<u16>) -> Value {
 // ----- opening -----
 
 #[test]
-fn opening_asks_for_everything_at_once_and_reports_the_versions() {
+fn opening_asks_for_meta_alone_then_for_the_catalog_and_reports_the_versions() {
     let connection = data();
     let mut engine = Engine::new();
+    // The schema version is checked before a table that an older layout
+    // lacks is named.
     let first = call(&mut engine, json!({ "op": "open" }));
-    let need = first["need"].as_array().unwrap();
-    assert_eq!(need.len(), 6, "{first}");
-    assert_eq!(need[0]["sql"], "SELECT key, value FROM meta");
+    assert_eq!(
+        first,
+        json!({ "need": [{ "sql": "SELECT key, value FROM meta", "params": [] }] })
+    );
 
     let run = run(&mut engine, &connection, "open", json!({}));
-    assert_eq!(run.steps, 1);
+    assert_eq!(run.steps, 2);
+    assert_eq!(run.statements.len(), 6);
+    assert_eq!(run.statements[0], first["need"][0]);
     assert_eq!(
         run.answer,
         json!({ "ok": {
@@ -73,6 +78,12 @@ fn a_data_file_of_another_schema_version_is_refused_and_both_versions_are_named(
     assert_eq!(
         run.answer["error"]["details"],
         json!({ "schema_version": "2", "expected": "3" })
+    );
+    // Nothing but meta was asked for: the tables the catalog reads may not
+    // be there in a file of another layout.
+    assert_eq!(
+        run.statements,
+        vec![json!({ "sql": "SELECT key, value FROM meta", "params": [] })]
     );
     // And nothing can be read from it afterwards.
     let after = call(
@@ -607,10 +618,9 @@ fn rows_of_the_wrong_kind_are_an_error_or_an_answer_and_never_a_panic() {
     // The catalog's own rows, spoiled while the data is being opened.
     for odd in &odd_values {
         let mut engine = Engine::new();
-        let first = call(&mut engine, json!({ "op": "open" }));
-        let answers: Vec<Value> = first["need"]
-            .as_array()
-            .unwrap()
+        // Everything opening reads, meta and then the catalog's statements.
+        let answers: Vec<Value> = run(&mut engine, &connection, "open", json!({}))
+            .statements
             .iter()
             .map(|statement| {
                 json!({
