@@ -40,7 +40,8 @@ struct Opened {
 /// - `{ "error": { "code", "message", "details" } }`.
 ///
 /// `open` must succeed before any other operation but `version`. It reads
-/// the makes once and keeps them, as the server does at startup. Nothing
+/// `meta` first and checks the schema version, then reads the makes once
+/// and keeps them, as the server does at startup. Nothing
 /// else is kept from one request to the next.
 #[derive(Debug, Default)]
 pub struct Engine {
@@ -199,14 +200,16 @@ impl Engine {
     }
 
     /// Checks the data file's layout and reads what the catalog keeps in
-    /// memory. The statements of both are asked for together.
+    /// memory, in two reads of the database: `meta` alone, then the
+    /// catalog's statements. The catalog's tables came with the schema
+    /// version this build reads, so a file of another version is refused
+    /// by its version before a table it may lack is named.
     fn open(&mut self) -> Result<Value, OpError> {
         self.opened = None;
         let rows = self
             .replay
             .query(META_SQL, &[])
             .map_err(|error| OpError::new(DATA_INVALID, error.to_string()))?;
-        let catalog = Catalog::new(self.replay.clone());
         if self.replay.incomplete() {
             return Ok(Value::Null);
         }
@@ -237,6 +240,10 @@ impl Engine {
                 )
                 .with_details(json!({ "expected": SCHEMA_VERSION })));
             }
+        }
+        let catalog = Catalog::new(self.replay.clone());
+        if self.replay.incomplete() {
+            return Ok(Value::Null);
         }
         let field = |key: &str| meta.get(key).copied().unwrap_or_default().to_owned();
         let meta = Meta {

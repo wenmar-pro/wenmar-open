@@ -130,6 +130,26 @@ test("openOffline refuses a data file of another schema version before any quest
   });
 });
 
+// A file from before the catalog's tables existed has none of them.
+test("a data file with only a meta table of another schema version is refused by its version, not by a missing table", { skip }, async () => {
+  if (sqlite === undefined) throw new Error("skipped");
+  const path = join(directory, "meta-only.sqlite3");
+  const database = new sqlite.DatabaseSync(path);
+  database.exec("CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL); INSERT INTO meta VALUES ('schema_version', '2');");
+  database.close();
+  const refused = (error: unknown) => {
+    assert.ok(error instanceof WenmarOpenError);
+    assert.equal(error.code, "data_invalid");
+    assert.deepEqual(error.details, { schema_version: "2", expected: "3" });
+    return true;
+  };
+  await assert.rejects(openOffline({ path }), refused);
+  const opened = new sqlite.DatabaseSync(path, { readOnly: true });
+  const client = new WenmarOpenOffline({ store: syncStore(opened), currentYear: YEAR });
+  await assert.rejects(client.decodeVin(KONA), refused);
+  opened.close();
+});
+
 test("openOffline: a missing file is no_data, and a file that is not a data file is data_invalid", { skip }, async () => {
   await assert.rejects(openOffline({ path: join(directory, "missing.sqlite3") }), (error: unknown) => {
     assert.ok(error instanceof WenmarOpenError);
