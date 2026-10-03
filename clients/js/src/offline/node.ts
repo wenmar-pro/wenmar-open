@@ -76,6 +76,17 @@ export async function openOffline(options: NodeOptions = {}): Promise<WenmarOpen
     await client.meta();
   } catch (error) {
     database.close();
+    // SQLite opens a file that is not a database without complaint and
+    // fails on the first read; for a file on disk that means the file is
+    // not a data file, not that a connection dropped.
+    if (error instanceof WenmarOpenError && error.code === "store_error" && error.cause !== undefined) {
+      throw new WenmarOpenError({
+        code: "data_invalid",
+        message: `The file at ${path} could not be read as a Wenmar Open data file.`,
+        details: { path },
+        cause: error.cause,
+      });
+    }
     throw error;
   }
   return client;

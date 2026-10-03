@@ -54,10 +54,12 @@ test("every case, read from SQLite through node:sqlite", { skip }, async () => {
   database.close();
 });
 
-test("a database handle of better-sqlite3's shape gives the same answers", { skip }, async () => {
+test("a database handle of better-sqlite3's shape, and binder, gives the same answers", { skip }, async () => {
   const database = memory();
   // better-sqlite3: `statement.raw(true)` returns the statement, and rows
-  // then come back as arrays.
+  // then come back as arrays. It reads `?1` as a parameter named `1`, so a
+  // positional value for it is refused (checked against the real library:
+  // "Missing named parameters"); only an object keyed by number binds.
   const shaped: SyncDatabase = {
     prepare(sql: string) {
       const statement = database.prepare(sql);
@@ -66,13 +68,18 @@ test("a database handle of better-sqlite3's shape gives the same answers", { ski
           statement.setReturnArrays(enabled);
           return this;
         },
-        all: (...params: Param[]) => statement.all(...params),
+        all: (...params: unknown[]) => {
+          const positional = params.some((value) => typeof value !== "object" || value === null);
+          if (positional && /\?\d/.test(sql)) throw new TypeError("Missing named parameters");
+          return statement.all(...(params as Param[]));
+        },
       };
     },
   };
   const client = new WenmarOpenOffline({ store: syncStore(shaped), currentYear: YEAR });
-  assert.deepEqual({ ok: await client.decodeVin(KONA) }, caseNamed("decode").answer);
-  assert.deepEqual({ ok: await client.search({ q: "honda" }) }, caseNamed("search, a make alone").answer);
+  for (const one of fixture.cases) {
+    assert.deepEqual(await outcome(ask(client, one)), one.answer, one.name);
+  }
   database.close();
 });
 
