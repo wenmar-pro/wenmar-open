@@ -186,13 +186,14 @@ test("a D1 query that fails midway fails that call with store_error and leaves t
   assert.deepEqual({ ok: await client.decodeVin(KONA) }, caseNamed("decode").answer);
 });
 
-test("a store that fails while the data is opened is data_invalid, and opening is tried again", async () => {
+test("a store that fails while the data is opened is store_error with its cause, and opening is tried again", async () => {
   const database = new FakeD1();
   database.failAt = 2;
   const client = offline(d1Store(database));
   const error = await failure(client.meta());
-  assert.equal(error.code, "data_invalid");
-  assert.equal(error.message, "The database could not be read as a Wenmar Open data file.");
+  assert.equal(error.code, "store_error");
+  assert.equal(error.message, "The database failed while it was being read.");
+  assert.match(String((error.cause as Error).message), /Network connection lost/);
   database.failAt = undefined;
   assert.equal((await client.meta()).data_version, "2026.09");
 });
@@ -371,6 +372,45 @@ test("a stop inside the decoder is an error with its message, and the next call 
     const second = await failure(client.years());
     assert.equal(second.code, "internal_error");
     assert.equal(started, 2);
+  } finally {
+    WebAssembly.instantiate = instantiate;
+  }
+});
+
+test("a stop after a successful opening is an error, and the next question starts a new copy that opens the data again", async () => {
+  const store = new RecordedStore();
+  const client = offline(store);
+  const openings = () => store.statements.filter((statement) => statement.sql === "SELECT key, value FROM meta").length;
+
+  // The first copy of the real decoder stops on the call after `trap` is set.
+  const instantiate = WebAssembly.instantiate;
+  let started = 0;
+  let trap = false;
+  WebAssembly.instantiate = (async (...args: Parameters<typeof instantiate>) => {
+    started += 1;
+    const instance = await instantiate(...args);
+    if (started > 1) return instance;
+    const real = instance.exports as { wo_call(pointer: number, length: number): number };
+    const exports = {
+      ...instance.exports,
+      wo_call: (pointer: number, length: number) => {
+        if (trap) throw new WebAssembly.RuntimeError("unreachable");
+        return real.wo_call(pointer, length);
+      },
+    };
+    return { exports } as unknown as typeof instance;
+  }) as typeof instantiate;
+  try {
+    await client.meta();
+    assert.equal(openings(), 1);
+    trap = true;
+    const stopped = await failure(client.years());
+    assert.equal(stopped.code, "internal_error");
+    assert.ok(stopped.cause instanceof WebAssembly.RuntimeError);
+    // A new copy answers, and it opened the data again.
+    assert.deepEqual({ ok: await client.decodeVin(KONA) }, caseNamed("decode").answer);
+    assert.equal(started, 2);
+    assert.equal(openings(), 2);
   } finally {
     WebAssembly.instantiate = instantiate;
   }

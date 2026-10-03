@@ -250,7 +250,7 @@ console.log(vehicle.catalog?.vehicle_id);
 What differs offline:
 
 - `error.status` is always `undefined`: there is no HTTP answer. Branch on `error.code`.
-- Three more codes: `no_data` (no data file where one was looked for), `data_invalid` (the database is not a data file this version reads) and `store_error` (the database failed while it was read).
+- Three more codes: `no_data` (no data file where one was looked for), `data_invalid` (the database is not a data file this version reads) and `store_error` (the database failed while it was read, including while it was first opened, so a retry may succeed; `data_invalid` is for rows that were read and are not a data file, and for a schema version this client does not read).
 - `search` reads the text as a year, a make, a model and a submodel, in that order. The API also finds a model from its words in any order, with an index the data file does not have. `search({ q: "civic type r" })` finds the Civic Type R in both; `search({ q: "type r" })` finds it only through the API.
 - `meta().server_version` is the version of this package.
 - `timeoutMs` and `signal` are checked each time the client goes back to the database, not while the database is working. There is no time limit unless you set one.

@@ -204,8 +204,8 @@ export class WenmarOpenOffline {
       } catch (cause) {
         if (cause instanceof WenmarOpenError) throw cause;
         throw new WenmarOpenError({
-          code: "data_invalid",
-          message: "The database could not be read as a Wenmar Open data file.",
+          code: "store_error",
+          message: "The database failed while it was being read.",
           cause,
         });
       }

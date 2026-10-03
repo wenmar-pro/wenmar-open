@@ -24,7 +24,7 @@ export interface Store {
 
 /** A prepared statement of `node:sqlite` or of `better-sqlite3`. */
 export interface SyncStatement {
-  all(...params: Param[]): unknown[];
+  all(...params: (Param | Record<string, Param>)[]): unknown[];
   /** `node:sqlite`, Node 22.16 and later. */
   setReturnArrays?(enabled: boolean): void;
   /** `better-sqlite3`. */
@@ -44,32 +44,93 @@ export interface SyncDatabase {
 const MOST_PREPARED = 256;
 
 /**
+ * Gives every bare `?` the number SQLite gives it (one more than the
+ * largest number so far), so a statement that mixes `?` and `?3` has only
+ * numbered parameters. Text in quotes and comments is left alone.
+ */
+export function numberParameters(sql: string): string {
+  let out = "";
+  let largest = 0;
+  let index = 0;
+  while (index < sql.length) {
+    const char = sql.charAt(index);
+    const pair = sql.slice(index, index + 2);
+    let end = -1;
+    if (char === "'" || char === '"' || char === "`") {
+      end = sql.indexOf(char, index + 1);
+      while (end !== -1 && sql.charAt(end + 1) === char) end = sql.indexOf(char, end + 2);
+      end = end === -1 ? sql.length : end + 1;
+    } else if (pair === "--") {
+      end = sql.indexOf("\n", index);
+      end = end === -1 ? sql.length : end;
+    } else if (pair === "/*") {
+      end = sql.indexOf("*/", index + 2);
+      end = end === -1 ? sql.length : end + 2;
+    }
+    if (end !== -1) {
+      out += sql.slice(index, end);
+      index = end;
+      continue;
+    }
+    if (char === "?") {
+      const digits = /^\d*/.exec(sql.slice(index + 1))?.[0] ?? "";
+      if (digits === "") {
+        largest += 1;
+        out += `?${largest}`;
+      } else {
+        largest = Math.max(largest, Number(digits));
+        out += `?${digits}`;
+      }
+      index += 1 + digits.length;
+      continue;
+    }
+    out += char;
+    index += 1;
+  }
+  return out;
+}
+
+/**
  * A store over a database the caller opened with `node:sqlite` or
  * `better-sqlite3`. The caller closes it.
+ *
+ * The two bind differently. `node:sqlite` binds values to `?1`, `?2` by
+ * position. `better-sqlite3` reads `?1` as a parameter named `1`, which a
+ * positional value does not fill, so there the values are given as one
+ * object keyed by number.
  */
 export function syncStore(database: SyncDatabase): Store {
-  const prepared = new Map<string, SyncStatement>();
-  const prepare = (sql: string): SyncStatement => {
+  type Run = (params: readonly Param[]) => unknown[][];
+  const prepared = new Map<string, Run>();
+  const prepare = (sql: string): Run => {
     const kept = prepared.get(sql);
     if (kept !== undefined) return kept;
-    const statement = database.prepare(sql) as SyncStatement;
-    if (typeof statement.setReturnArrays === "function") {
-      statement.setReturnArrays(true);
-    } else if (typeof statement.raw === "function") {
-      statement.raw(true);
+    let run: Run;
+    const probe = database.prepare(sql) as SyncStatement;
+    if (typeof probe.setReturnArrays === "function") {
+      probe.setReturnArrays(true);
+      run = (params) => probe.all(...params) as unknown[][];
     } else {
-      throw new WenmarOpenError({
-        code: "store_error",
-        message:
-          "This database cannot return rows as arrays. Use node:sqlite from Node 22.16 or later, or better-sqlite3.",
-      });
+      const statement = typeof probe.raw === "function" ? (database.prepare(numberParameters(sql)) as SyncStatement) : probe;
+      if (typeof statement.raw !== "function") {
+        throw new WenmarOpenError({
+          code: "store_error",
+          message:
+            "This database cannot return rows as arrays. Use node:sqlite from Node 22.16 or later, or better-sqlite3.",
+        });
+      }
+      statement.raw(true);
+      run = (params) =>
+        (params.length === 0
+          ? statement.all()
+          : statement.all(Object.fromEntries(params.map((value, index) => [index + 1, value])))) as unknown[][];
     }
     if (prepared.size >= MOST_PREPARED) prepared.clear();
-    prepared.set(sql, statement);
-    return statement;
+    prepared.set(sql, run);
+    return run;
   };
   return {
-    query: (statements) => statements.map(({ sql, params }) => prepare(sql).all(...params) as unknown[][]),
+    query: (statements) => statements.map(({ sql, params }) => prepare(sql)(params)),
   };
 }
 
