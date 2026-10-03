@@ -5,13 +5,24 @@
 // their rows as INSERT statements of many rows each, then the indexes, so
 // an index is built once and not kept up row by row.
 
-/** D1's limit on one statement is 100,000 bytes. Rows are gathered up to this. */
+/** D1 refuses a statement over this many bytes. */
+export const D1_STATEMENT_BYTES = 100_000;
+/** Rows are gathered into a statement up to this, which leaves D1 room to spare. */
 export const STATEMENT_BYTES = 90_000;
 /** D1 refuses a LIKE or GLOB pattern over 50 bytes. */
 export const PATTERN_BYTES = 50;
 
 const encoder = new TextEncoder();
 const size = (text) => encoder.encode(text).length;
+
+/** The statement itself, or an error naming the table if D1 would refuse it. */
+function within(statement, table) {
+  const length = size(statement);
+  if (length > D1_STATEMENT_BYTES) {
+    throw new Error(`a statement for table "${table}" is ${length} bytes; D1 allows at most ${D1_STATEMENT_BYTES}`);
+  }
+  return statement;
+}
 
 /** One value as a SQL literal. The data file holds numbers, text and nulls. */
 export function literal(value) {
@@ -47,8 +58,8 @@ export function* statements(database) {
     }
   }
 
-  for (const table of [...tables].reverse()) yield `DROP TABLE IF EXISTS "${table.name}";\n`;
-  for (const table of tables) yield `${table.sql};\n`;
+  for (const table of [...tables].reverse()) yield within(`DROP TABLE IF EXISTS "${table.name}";\n`, table.name);
+  for (const table of tables) yield within(`${table.sql};\n`, table.name);
   for (const table of tables) {
     const select = database.prepare(`SELECT * FROM "${table.name}"`);
     select.setReturnArrays(true);
@@ -59,16 +70,16 @@ export function* statements(database) {
       const text = `(${row.map(literal).join(",")})`;
       const added = size(text) + 2;
       if (rows.length > 0 && bytes + added > STATEMENT_BYTES) {
-        yield `${head}${rows.join(",\n")};\n`;
+        yield within(`${head}${rows.join(",\n")};\n`, table.name);
         rows = [];
         bytes = size(head);
       }
       rows.push(text);
       bytes += added;
     }
-    if (rows.length > 0) yield `${head}${rows.join(",\n")};\n`;
+    if (rows.length > 0) yield within(`${head}${rows.join(",\n")};\n`, table.name);
   }
-  for (const index of indexes) yield `${index.sql};\n`;
+  for (const index of indexes) yield within(`${index.sql};\n`, index.tbl_name);
 }
 
 /**
