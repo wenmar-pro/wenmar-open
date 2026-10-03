@@ -11,7 +11,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 
-import { writeParts } from "../lib/d1.mjs";
+import { D1_STATEMENT_BYTES, writeParts } from "../lib/d1.mjs";
 
 const { values } = parseArgs({
   options: {
@@ -67,7 +67,7 @@ const megabytes = (summary.bytes / 1024 / 1024).toFixed(1);
 console.log(
   `${summary.statements} statements, ${megabytes} MB, in ${summary.parts} files${dry ? " (dry run: nothing written)" : ` in ${values.out}`}.`,
 );
-console.log(`The longest statement is ${summary.longestStatement} bytes; D1 allows 100,000.`);
+console.log(`The longest statement is ${summary.longestStatement} bytes; D1 allows ${D1_STATEMENT_BYTES.toLocaleString("en-US")}.`);
 if (!dry) {
   console.log("\nImport them in order into a new, empty database:\n");
   console.log("  npx wrangler d1 create wenmar-open-YYYY-MM");

@@ -3,13 +3,13 @@
 // Node every test here is skipped.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { STATEMENT_BYTES, literal, writeParts } from "../lib/d1.mjs";
+import { D1_STATEMENT_BYTES, STATEMENT_BYTES, literal, writeParts } from "../lib/d1.mjs";
 import { dataVersion, npmVersion } from "../lib/version.mjs";
 
 const sqlite = await import("node:sqlite").then(
@@ -125,6 +125,21 @@ test("prepare refuses a file that is not a data file", { skip }, () => {
   );
 });
 
+test("prepare will not empty a directory that holds the data file or the package", { skip }, () => {
+  const holding = join(directory, "holding");
+  mkdirSync(join(holding, "inner"), { recursive: true });
+  const source = dataFile("holding/data.sqlite3");
+  for (const out of [holding, join(holding, "inner", ".."), directory, home, join(home, "..")]) {
+    assert.throws(
+      () => execFileSync("node", ["scripts/prepare.mjs", source, out], { cwd: home, stdio: "pipe" }),
+      /would delete the data file or the package/,
+      out,
+    );
+    assert.ok(existsSync(source), `the data file is gone after ${out}`);
+  }
+  assert.ok(existsSync(join(home, "package.json")));
+});
+
 test("a value is written as SQL that reads back as itself", () => {
   assert.equal(literal(null), "NULL");
   assert.equal(literal(7), "7");
@@ -156,7 +171,7 @@ test("the SQL written for D1 rebuilds the same database, whatever the part size"
 
     const text = parts.map((part) => part.text).join("");
     assert.doesNotMatch(text, /BEGIN|COMMIT|PRAGMA|sqlite_sequence/);
-    assert.ok(summary.longestStatement <= STATEMENT_BYTES + 1000, `${summary.longestStatement}`);
+    assert.ok(summary.longestStatement <= STATEMENT_BYTES, `${summary.longestStatement}`);
   }
   source.close();
 });
@@ -173,6 +188,13 @@ test("a table of many rows is written as several statements, none over D1's limi
   const copy = new sqlite.DatabaseSync(":memory:");
   copy.exec(parts.join(""));
   assert.deepEqual(contents(copy), contents(big));
+});
+
+test("a row too long for one statement stops the export, naming the table", { skip }, () => {
+  const wide = new sqlite.DatabaseSync(":memory:");
+  wide.exec("CREATE TABLE notes (id INTEGER PRIMARY KEY, text TEXT NOT NULL)");
+  wide.prepare("INSERT INTO notes VALUES (1, ?)").run("x".repeat(D1_STATEMENT_BYTES));
+  assert.throws(() => writeParts(wide, 1024 * 1024, () => {}), /a statement for table "notes" is \d+ bytes; D1 allows at most 100000/);
 });
 
 test("a VIN pattern too long for D1 to match stops the export", { skip }, () => {
