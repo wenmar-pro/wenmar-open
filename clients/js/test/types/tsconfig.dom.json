@@ -11,5 +11,5 @@
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": false
   },
-  "include": ["consumer.ts", "readme/*.ts"]
+  "include": ["consumer*.ts", "readme/*.ts"]
 }

@@ -3,6 +3,7 @@
 A typed client for the [Wenmar Open](https://open.wenmarpro.com) API: VIN decoding and a year, make, model, trim and engine catalog for auto repair shops. The API needs no key and no account.
 
 - No dependencies. It uses the platform's `fetch`.
+- An [offline mode](#offline) that decodes from a data file with no network.
 - Runs in Node 20 and later, browsers, Cloudflare Workers, Deno and Bun.
 - Types are generated from the API's OpenAPI description.
 
@@ -174,6 +175,141 @@ console.log((await open.meta()).data_version);
 Answers change only when the data does, about once a month. `open.meta()` returns the `data_version`; anything you cache can be kept until it changes. In a browser the HTTP cache already does this.
 
 One address may make 600 requests a minute. A server that calls the API for many users shares one address, so cache catalog answers there. To decode a list of VINs, use `decodeVins`: a batch of 50 counts as one request.
+
+## Offline
+
+`wenmar-open/offline` answers the same questions with no network. It runs the same decoder the API runs, compiled to WebAssembly and shipped inside this package, over a Wenmar Open data file: a plain SQLite database of about 167 MB. The methods, their answers and the error codes are those of `WenmarOpen`, so code written for one works with the other.
+
+The hosted client does not load any of this. An application that imports only `wenmar-open` gets the small client and nothing else.
+
+### In Node
+
+```bash
+npm install wenmar-open wenmar-open-data
+```
+
+`wenmar-open-data` is the data file as an npm package. It is 49 MB to download and 167 MB on disk, and a new version is published each month.
+
+```ts
+import { WenmarOpenError } from "wenmar-open/offline";
+import { openOffline } from "wenmar-open/offline/node";
+
+const open = await openOffline();
+
+try {
+  const vehicle = await open.decodeVin("KM8K2CAB4PU001140");
+  console.log(vehicle.year, vehicle.make, vehicle.model);
+  console.log(await open.models({ make: "honda", year: 2019 }));
+} catch (error) {
+  if (error instanceof WenmarOpenError) console.error(error.code, error.message);
+  else throw error;
+} finally {
+  open.close();
+}
+```
+
+`openOffline()` uses Node's own SQLite, so it needs Node 22.16 or later. It opens the file read-only and checks it before it returns. To read a file from somewhere else, such as one downloaded with `wenmar-open data pull`, pass its path:
+
+```ts
+import { openOffline } from "wenmar-open/offline/node";
+
+const open = await openOffline({ path: "/var/lib/wenmar-open/wenmar-open-2026.09.sqlite3" });
+console.log((await open.meta()).data_version);
+```
+
+On Node 20, or to use a database you opened yourself, give the client a store. `syncStore` takes a `DatabaseSync` of `node:sqlite` or a database of `better-sqlite3`:
+
+```js
+import Database from "better-sqlite3";
+import { path } from "wenmar-open-data";
+import { WenmarOpenOffline, syncStore } from "wenmar-open/offline";
+
+const database = new Database(path, { readonly: true });
+const open = new WenmarOpenOffline({ store: syncStore(database) });
+```
+
+### Switching between the API and the data file
+
+Both clients have the same methods, so the choice can be one line:
+
+```ts
+import { WenmarOpen } from "wenmar-open";
+import type { VinDecode } from "wenmar-open";
+import type { WenmarOpenOffline } from "wenmar-open/offline";
+import { openOffline } from "wenmar-open/offline/node";
+
+async function client(offline: boolean): Promise<WenmarOpen | WenmarOpenOffline> {
+  return offline ? openOffline() : new WenmarOpen();
+}
+
+const open = await client(true);
+const vehicle: VinDecode = await open.decodeVin("KM8K2CAB4PU001140");
+console.log(vehicle.catalog?.vehicle_id);
+```
+
+What differs offline:
+
+- `error.status` is always `undefined`: there is no HTTP answer. Branch on `error.code`.
+- Three more codes: `no_data` (no data file where one was looked for), `data_invalid` (the database is not a data file this version reads) and `store_error` (the database failed while it was read).
+- `search` reads the text as a year, a make, a model and a submodel, in that order. The API also finds a model from its words in any order, with an index the data file does not have. `search({ q: "civic type r" })` finds the Civic Type R in both; `search({ q: "type r" })` finds it only through the API.
+- `meta().server_version` is the version of this package.
+- `timeoutMs` and `signal` are checked each time the client goes back to the database, not while the database is working. There is no time limit unless you set one.
+- The current year, which bounds the model years a VIN can have, comes from the device's clock. Pass `currentYear` to set it.
+
+### In Cloudflare Workers
+
+A Worker cannot carry a 167 MB file. Import the data into a D1 database once (see the [`wenmar-open-data` README](https://www.npmjs.com/package/wenmar-open-data)), or use the hosted API.
+
+```js
+import { WenmarOpenOffline, d1Store } from "wenmar-open/offline";
+import wasm from "wenmar-open/offline.wasm";
+
+let open;
+
+export default {
+  async fetch(request, env) {
+    open ??= new WenmarOpenOffline({ store: d1Store(env.DB), wasm });
+    const vin = new URL(request.url).pathname.slice(1);
+    return Response.json(await open.decodeVin(vin));
+  },
+};
+```
+
+Workers do not compile WebAssembly from bytes, so the module is imported as a file and passed as `wasm`. Everywhere else the option is left out.
+
+A decode reads D1 6 or 7 times and runs 10 to 15 statements, each of which counts as one D1 query. The first question an isolate answers also reads about 12,000 rows of makes, once. `years()` reads every model-year row of the catalog, about 490,000, on every call: keep its answer.
+
+### A store of your own
+
+Anything that can run a `SELECT` on the data file can be a store: an object with one method, which is given a list of statements and returns the rows of each, in order, as arrays of values. It may return them at once or as a promise.
+
+```ts
+import { WenmarOpenOffline } from "wenmar-open/offline";
+import type { Statement, Store } from "wenmar-open/offline";
+
+declare function run(sql: string, params: readonly (string | number | null)[]): Promise<unknown[][]>;
+
+const store: Store = {
+  query: (statements: readonly Statement[]) => Promise.all(statements.map(({ sql, params }) => run(sql, params))),
+};
+export const open = new WenmarOpenOffline({ store });
+```
+
+Rows must be arrays, not objects keyed by column name: two columns of one statement may share a name. Integers may be numbers or BigInts.
+
+### Data versions
+
+A version of `wenmar-open` reads data files of one schema version, and `wenmar-open-data`'s major version is that schema version: `wenmar-open-data@3.202609.0` is the data of September 2026 in schema version 3. A file of another schema version is refused with `data_invalid` and a message naming both versions.
+
+| `wenmar-open` | reads `wenmar-open-data` |
+|---|---|
+| 0.1 | 3.x |
+
+### Size
+
+The decoder is 450 kB of WebAssembly (163 kB compressed). The package holds it twice, as a file and as text inside a module, so the package is 1.1 MB unpacked. None of it is loaded by `import "wenmar-open"`.
+
+In a browser the page's content security policy must allow WebAssembly (`'wasm-unsafe-eval'`). The data file is too large to send to a browser; use the hosted API there.
 
 ## CommonJS
 
