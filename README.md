@@ -11,7 +11,7 @@ Wenmar Open is built and hosted by [Wenmar Pro](https://wenmarpro.com), shop man
 - **A website** at `open.wenmarpro.com` where a service advisor or tech can paste a VIN and get the vehicle back.
 - **A JSON API** at `open.wenmarpro.com/v1`, open to any origin, with no key and no account.
 - **A Rust crate**, `wenmar-vin`, for decoding VINs in-process and offline.
-- **An npm package**, [`wenmar-open`](clients/js/README.md), a small typed client for the hosted API. An offline mode that decodes locally is planned.
+- **An npm package**, [`wenmar-open`](clients/js/README.md): a small typed client for the hosted API, and an offline mode, `wenmar-open/offline`, that runs the same decoder as WebAssembly over the data file. The data file is its own package, [`wenmar-open-data`](clients/data/README.md).
 
 VIN decoding and a year/make/model/trim/engine catalog come first. More shop data follows; see the [roadmap](#roadmap).
 
@@ -60,7 +60,7 @@ What to do by hand so that search engines and assistants find a deployed copy: [
 
 ## Using it from an application
 
-- From JavaScript or TypeScript: the [`wenmar-open`](clients/js/README.md) npm package. It has no dependencies and runs in Node 20 and later, browsers, Cloudflare Workers, Deno and Bun.
+- From JavaScript or TypeScript: the [`wenmar-open`](clients/js/README.md) npm package. The hosted client has no dependencies and runs in Node 20 and later, browsers, Cloudflare Workers, Deno and Bun. Its offline mode needs the data file: from [`wenmar-open-data`](clients/data/README.md) in Node, or imported into Cloudflare D1 for a Worker.
 - From Rust, with no network: `wenmar-vin` and `wenmar-vehicles` read a data file through `rusqlite`, and [`wenmar-open-turso`](crates/wenmar-open-turso/README.md) reads one through `turso` from async code.
 - Replacing calls to NHTSA's hosted API, or a job that copies makes and models: [docs/integrating.md](docs/integrating.md).
 
@@ -98,7 +98,7 @@ Each is a thin wrapper over the matching `mise run` task, and `mise run` remains
 
 ## Repository layout
 
-`crates/wenmar-vin`, `crates/wenmar-vehicles`, `crates/wenmar-open-turso`, `crates/open-data`, `crates/wenmar-open-cli`, `crates/open-mcp`, `crates/open-server` and `clients/js` exist so far. The rest is planned.
+`crates/wenmar-vin`, `crates/wenmar-vehicles`, `crates/wenmar-open-turso`, `crates/open-data`, `crates/wenmar-open-cli`, `crates/open-mcp`, `crates/open-server`, `crates/wenmar-open-wasm`, `clients/js` and `clients/data` exist so far. The rest is planned.
 
 | Path | What it is |
 |---|---|
@@ -109,7 +109,9 @@ Each is a thin wrapper over the matching `mise run` task, and `mise run` remains
 | `crates/open-mcp` | The MCP tool definitions the server and the command-line tool share |
 | `crates/open-server` | The website, the JSON API and the MCP endpoint, served from one read-only data file |
 | `crates/wenmar-open-turso` | The data file read through `turso`: what the server uses, as a library for other async Rust programs |
-| `clients/js` | The `wenmar-open` npm package: a typed client for the hosted API |
+| `crates/wenmar-open-wasm` | The decoder and the catalog behind one JSON call, built as WebAssembly for the npm package's offline mode. Not published as a crate |
+| `clients/js` | The `wenmar-open` npm package: a typed client for the hosted API, and `wenmar-open/offline` |
+| `clients/data` | The `wenmar-open-data` npm package: the data file, and a script that writes it as SQL for Cloudflare D1 |
 
 ## Building the data file
 

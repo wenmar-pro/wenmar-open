@@ -5,10 +5,11 @@ This is for an application that decodes VINs or offers a year, make and model pi
 | Way | Use it when | Needs |
 |---|---|---|
 | The hosted API | A browser, or a server that makes a modest number of lookups | Nothing. No key, no account. |
+| The npm package, offline | A Node server, or a Cloudflare Worker with D1, that wants no network call and no limit | The data file: the `wenmar-open-data` package, 167 MB, or a D1 database |
 | The Rust crates, in your process | A Rust server that wants no network call and no limit | The data file, about 160 MB |
 | The data file with the command-line tool | Any other language, offline | The data file and the `wenmar-open` binary |
 
-All three give the same answers, because all three read the same data file.
+All four give the same answers, because all four read the same data file.
 
 ## The hosted API
 
@@ -145,6 +146,25 @@ One address may make 600 requests a minute. Over that the answer is `429` with t
 - When the server is too busy to answer, the answer is `503` with the code `unavailable` and a `Retry-After` header.
 - Retry only `429`, `503`, timeouts and connection failures, and wait for `Retry-After` when it is given. Never retry a `400` or a `404`: the answer will not change.
 - If your volume cannot fit, run the decoder in your own process, or run your own copy of the server. Both use the same data file and have no limit.
+
+## The npm package, offline
+
+`wenmar-open/offline` has the methods of the hosted client and answers them from the data file, with the decoder the server runs, compiled to WebAssembly. Nothing leaves the process.
+
+```bash
+npm install wenmar-open wenmar-open-data
+```
+
+```js
+import { openOffline } from "wenmar-open/offline/node";
+
+const open = await openOffline();
+const vehicle = await open.decodeVin("KM8K2CAB4PU001140");
+```
+
+That needs Node 22.16 or later. For Node 20 with `better-sqlite3`, for Cloudflare Workers with D1, and for what differs from the hosted client (free-text search finds less; there is no HTTP status), see the [package's README](../clients/js/README.md#offline).
+
+Update the data by updating the package: `npm update wenmar-open-data` each month. Its major version is the data file's schema version, so an update never brings a file your version of `wenmar-open` cannot read.
 
 ## The Rust crates, in your process
 
