@@ -56,6 +56,16 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Titles and descriptions for what people search, breadcrumbs, Open Graph tags and JSON-LD structured data on the reference pages. Result pages for single VINs carry none of it.
 - `robots.txt` states a policy for AI crawlers. `/llms.txt` follows the llms.txt convention, and `/llms-full.txt` is the documentation as one file. `/.well-known/api-catalog` points to the OpenAPI description. `server.json` describes the MCP endpoint to the MCP Registry.
 - `open-server`: the MCP endpoint answers protocol revision 2026-07-28, which has no handshake, as well as the earlier revisions.
+- `wenmar-open/offline`, a second entry point of the npm package: VIN decoding and the catalog with no network, by the same decoder as the server, compiled to WebAssembly (450 kB) and run over a data file. It has the hosted client's methods, answers and error codes. It reads through `node:sqlite` (Node 22.16 and later), `better-sqlite3`, Cloudflare D1, or a store of your own. The hosted client loads none of it.
+- `wenmar-open-data`, an npm package holding the data file, published by the monthly data release. Its version is `<schema version>.<YYYYMM>.<rebuild>`, and `wenmar-open` names the schema version it reads as an optional peer.
+- `wenmar-open-d1`, a script in `wenmar-open-data` that writes the data file as SQL files for Cloudflare D1.
+- `wenmar-open-wasm` crate (not published): `wenmar-vin` and `wenmar-vehicles` behind one JSON call, over a database made of rows the caller has already read.
+- `wenmar-vehicles`: `vin_rows`, the rows one VIN needs read through a `Source`, moved from `wenmar-open-turso`, which re-exports it.
+
+### Changed
+
+- No statement the libraries run binds more than 91 parameters (it was 201), and the two `LIKE` patterns of the catalog's search are cut to 40 characters, as the others already were. Both are limits of Cloudflare D1. The server runs one more small statement for the few manufacturer codes with over 90 schemas in a model year's range; answers do not change.
+- Building and testing `clients/js` needs the Rust toolchain: `npm run build` compiles the WebAssembly.
 
 ### Fixed
 

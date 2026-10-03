@@ -9,6 +9,8 @@ wenmar-vehicles = { version = "0.1", features = ["sqlite"] }
 
 The catalog is in a [Wenmar Open data file](https://github.com/wenmar-pro/wenmar-open/releases), built from NHTSA's vPIC release. What it covers and what it cannot is described in the repository's `data/catalog/README.md`. The `sqlite` feature reads a data file with `rusqlite`; the `wenmar-open-turso` crate reads one with `turso`.
 
+`vin_rows::fetch` reads everything `wenmar-vin`'s decoder may ask about one VIN through a `Source`, for a database that cannot be handed to the decoder directly. `wenmar-open-turso` and the WebAssembly build both decode this way.
+
 ## Example
 
 ```rust,ignore
