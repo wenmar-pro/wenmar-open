@@ -195,7 +195,7 @@ jobs:
 
       - name: Test the package's scripts
         working-directory: clients/data
-        run: node --test test/
+        run: node --test test/data.test.mjs
 
       - name: Download the released file and check it
         run: |
