@@ -3,13 +3,14 @@
 // Node every test here is skipped.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, symlinkSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { D1_STATEMENT_BYTES, STATEMENT_BYTES, literal, writeParts } from "../lib/d1.mjs";
+import { refuseOutput } from "../lib/output.mjs";
 import { dataVersion, npmVersion } from "../lib/version.mjs";
 
 const sqlite = await import("node:sqlite").then(
@@ -92,6 +93,7 @@ test("prepare builds the package from a data file, with its version from the fil
     "index.d.ts",
     "index.js",
     "lib/d1.mjs",
+    "lib/output.mjs",
     "lib/version.mjs",
     "package.json",
     "wenmar-open.sqlite3",
@@ -101,6 +103,19 @@ test("prepare builds the package from a data file, with its version from the fil
 test("the prepared package says where its file is and what it is", { skip }, async () => {
   const out = join(directory, "package-2");
   execFileSync("node", ["scripts/prepare.mjs", dataFile("prepare-2.sqlite3"), out], { cwd: home });
+  const indexText = readFileSync(join(out, "index.js"), "utf8");
+  assert.equal(
+    indexText,
+    `// Written by scripts/prepare.mjs for data 2026.09.
+import { fileURLToPath } from "node:url";
+
+export const path = fileURLToPath(new URL("./wenmar-open.sqlite3", import.meta.url));
+export const dataVersion = "2026.09";
+export const schemaVersion = "3";
+export const vpicRelease = "vPICList_lite_2026_09";
+export const builtAt = "2026-10-01 04:25:57";
+`,
+  );
   const data = await import(pathToFileURL(join(out, "index.js")).href);
   assert.equal(data.path, join(out, "wenmar-open.sqlite3"));
   assert.equal(data.dataVersion, "2026.09");
@@ -125,11 +140,12 @@ test("prepare refuses a file that is not a data file", { skip }, () => {
   );
 });
 
-test("prepare will not empty a directory that holds the data file or the package", { skip }, () => {
+test("prepare, given an output directory that holds the data file, stops and leaves the file", { skip }, () => {
+  // Only paths inside a fresh temporary directory are given to the script.
   const holding = join(directory, "holding");
   mkdirSync(join(holding, "inner"), { recursive: true });
   const source = dataFile("holding/data.sqlite3");
-  for (const out of [holding, join(holding, "inner", ".."), directory, home, join(home, "..")]) {
+  for (const out of [holding, join(holding, "inner", ".."), directory]) {
     assert.throws(
       () => execFileSync("node", ["scripts/prepare.mjs", source, out], { cwd: home, stdio: "pipe" }),
       /would delete the data file or the package/,
@@ -137,7 +153,42 @@ test("prepare will not empty a directory that holds the data file or the package
     );
     assert.ok(existsSync(source), `the data file is gone after ${out}`);
   }
-  assert.ok(existsSync(join(home, "package.json")));
+});
+
+test("the output directory is refused when it is, or holds, the data file or the package", () => {
+  const root = join(directory, "refuse");
+  const package_ = join(root, "repo", "clients", "data");
+  mkdirSync(join(root, "repo", "data", "build"), { recursive: true });
+  mkdirSync(join(root, "repo", "data", "build2"), { recursive: true });
+  mkdirSync(package_, { recursive: true });
+  const source = join(root, "repo", "data", "build", "x.sqlite3");
+  const refused = (out, from = source) => refuseOutput(from, out, package_);
+
+  // Refused: the file's own directory, its ancestors, the file itself.
+  assert.match(refused(join(root, "repo", "data", "build")), /would delete the data file or the package/);
+  assert.match(refused(`${join(root, "repo", "data", "build")}/`), /would delete/);
+  assert.match(refused(join(root, "repo", "data")), /would delete/);
+  assert.match(refused(join(root, "repo", "data", "build", "..", "build")), /would delete/);
+  assert.match(refused(root), /would delete/);
+  assert.match(refused(source), /would delete/);
+  // Refused: the package, its ancestors, and a directory inside it that is reached by its parent.
+  assert.match(refused(package_), /would delete/);
+  assert.match(refused(join(root, "repo", "clients")), /would delete/);
+  assert.match(refused(join(root, "repo")), /would delete/);
+  // Refused through a link: a symlinked path to the file's directory, and a file reached by a link.
+  symlinkSync(join(root, "repo", "data", "build"), join(root, "link"));
+  assert.match(refused(join(root, "link")), /would delete/);
+  assert.match(refused(join(root, "link", "x.sqlite3")), /would delete/);
+  assert.match(refuseOutput(join(root, "link", "x.sqlite3"), join(root, "repo", "data", "build"), package_), /would delete/);
+
+  // Allowed: a directory beside the file's, one that does not exist yet, one inside the file's directory,
+  // and a name that only starts like the file's directory.
+  assert.equal(refused(join(root, "repo", "data", "build2")), undefined);
+  assert.equal(refused(join(root, "elsewhere")), undefined);
+  assert.equal(refused(join(root, "elsewhere", "deeper", "still")), undefined);
+  assert.equal(refused(join(root, "repo", "data", "build", "package")), undefined);
+  assert.equal(refused(join(package_, "build")), undefined);
+  assert.equal(refused(join(root, "repo", "data", "buil")), undefined);
 });
 
 test("a value is written as SQL that reads back as itself", () => {
