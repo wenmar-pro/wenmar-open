@@ -178,7 +178,7 @@ One address may make 600 requests a minute. A server that calls the API for many
 
 ## Offline
 
-`wenmar-open/offline` answers the same questions with no network. It runs the same decoder the API runs, compiled to WebAssembly and shipped inside this package, over a Wenmar Open data file: a plain SQLite database of about 167 MB. The methods, their answers and the error codes are those of `WenmarOpen`, so code written for one works with the other.
+`wenmar-open/offline` answers the same questions with no network. It runs the same decoder the API runs, compiled to WebAssembly and shipped inside this package, over a Wenmar Open data file: a plain SQLite database of about 167 MB. The methods, their answers and the error codes are those of `WenmarOpen`, with three more codes for the data ([below](#switching-between-the-api-and-the-data-file)), so code written for one works with the other.
 
 The hosted client does not load any of this. An application that imports only `wenmar-open` gets the small client and nothing else.
 
@@ -303,7 +303,7 @@ A version of `wenmar-open` reads data files of one schema version, and `wenmar-o
 
 | `wenmar-open` | reads `wenmar-open-data` |
 |---|---|
-| 0.1 | 3.x |
+| 0.2 | 3.x |
 
 ### Size
 
