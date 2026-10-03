@@ -118,7 +118,7 @@ npm view wenmar-open-data version dist.unpackedSize
    UPDATE_OPENAPI=1 cargo test --workspace --all-features --test it openapi
    ```
 
-   The first updates `package.json` and `package-lock.json`; the second, `Cargo.lock`; the third, the version inside `crates/open-server/openapi.json`. `wenmar-open` `0.1.0` is already on npm, with the hosted client only, and npm takes a version once. So this step is not skipped while the repository still says `0.1.0`: the first release that carries the offline mode is `0.2.0`.
+   The first updates `package.json` and `package-lock.json`; the second, `Cargo.lock`; the third, the version inside `crates/open-server/openapi.json`. `wenmar-open` `0.1.0` is already on npm, with the hosted client only, and npm takes a version once: the release that carries the offline mode is `0.2.0`, so this step is not skipped for it.
 
 2. **Cut the changelog.** In `CHANGELOG.md`, rename `## [Unreleased]` to `## [0.2.0] - 2026-11-03` (the version and today's date) and add a new, empty `## [Unreleased]` above it.
 
@@ -154,12 +154,14 @@ npm view wenmar-open-data version dist.unpackedSize
 
 ## The first release
 
+`wenmar-open` `0.1.0` is published on npm, and it holds the hosted client only. The first release that carries the offline mode is `0.2.0`, and it is made by the steps of "Making a release" above.
+
 The first release differs in one way: the crates are published by hand, because crates.io has nothing to attach a trusted publisher to until they exist. In order:
 
 1. Do the GitHub and npm parts of the one-time setup.
-2. Do steps 1 to 4 of "Making a release" for `0.2.0`: set the version, cut the changelog, run `mise run release-check`, merge to `main`. It cannot be `0.1.0`, which npm already has.
+2. Do steps 2 to 4 of "Making a release": cut the changelog for `0.1.0`, run `mise run release-check`, merge to `main`.
 3. Do the crates.io part of the one-time setup, from that commit on `main`.
-4. Do steps 5 to 7: tag `v0.2.0` and push the tag. The `crates` job finds all three crates on crates.io and publishes nothing. The `npm` job publishes `0.2.0`, the first version of `wenmar-open` with the offline mode, and the release is created.
+4. Do steps 5 to 7: tag `v0.1.0` and push the tag. The `crates` job finds all three crates on crates.io and publishes nothing, and the release is created.
 
 ## The binaries
 
