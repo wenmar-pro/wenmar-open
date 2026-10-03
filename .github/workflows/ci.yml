@@ -50,4 +50,4 @@ jobs:
       - run: npm test
       - name: Test the data package's scripts
         working-directory: clients/data
-        run: node --test test/
+        run: node --test test/data.test.mjs
