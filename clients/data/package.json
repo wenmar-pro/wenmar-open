@@ -1,0 +1,50 @@
+{
+  "name": "wenmar-open-data",
+  "version": "0.0.0",
+  "description": "The Wenmar Open data file: NHTSA vPIC VIN patterns and a year, make, model, trim and engine catalog, as one SQLite file. Read by wenmar-open/offline.",
+  "keywords": [
+    "vin",
+    "vehicle",
+    "automotive",
+    "nhtsa",
+    "vpic",
+    "sqlite"
+  ],
+  "license": "MIT",
+  "author": "Wenmar Pro (https://wenmarpro.com)",
+  "homepage": "https://open.wenmarpro.com/data",
+  "bugs": "https://github.com/wenmar-pro/wenmar-open/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wenmar-pro/wenmar-open.git",
+    "directory": "clients/data"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./wenmar-open.sqlite3": "./wenmar-open.sqlite3",
+    "./package.json": "./package.json"
+  },
+  "types": "./index.d.ts",
+  "bin": {
+    "wenmar-open-d1": "bin/d1.mjs"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "wenmar-open.sqlite3",
+    "bin",
+    "lib",
+    "NOTICE.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/"
+  }
+}

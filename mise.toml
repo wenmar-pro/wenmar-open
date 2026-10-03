@@ -18,9 +18,9 @@ description = "Check the data file and the API, and say which of them answers"
 run = "cargo run -q -p wenmar-open-cli -- doctor"
 
 [tasks.js]
-description = "Build and test the npm client in clients/js (needs Node 20 or later on the path)"
+description = "Build and test the npm packages in clients/js and clients/data (needs Node 20 or later and the Rust toolchain)"
 dir = "{{config_root}}/clients/js"
-run = ["npm ci --no-audit --no-fund", "npm test"]
+run = ["npm ci --no-audit --no-fund", "npm test", "node --test ../data/test/"]
 
 [tasks.wasm]
 description = "Build the WebAssembly of crates/wenmar-open-wasm (clients/js does this itself in npm run build)"
