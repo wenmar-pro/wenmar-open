@@ -200,13 +200,17 @@ step "npm pack --dry-run"
 (
   cd clients/js
   [ -d node_modules ] || npm ci --no-audit --no-fund
-  npm pack --dry-run --json > "$scratch/pack.json"
+  # prepack is "npm run build", which now prints a line of its own to stdout
+  # and would end up inside the JSON. Build to stderr, then pack without it.
+  npm run build >&2
+  npm pack --dry-run --json --ignore-scripts > "$scratch/pack.json"
 )
 node - "$version" "$scratch/pack.json" <<'EOF' || fail "the npm package is not as a release needs it"
 const fs = require("node:fs");
 const [version, file] = process.argv.slice(2);
 const [packed] = JSON.parse(fs.readFileSync(file, "utf8"));
-const allowed = /^(package\.json|README\.md|LICENSE|dist\/[a-z]+\.(js|d\.ts))$/;
+const allowed =
+  /^(package\.json|README\.md|LICENSE|dist\/[a-z]+\.(js|d\.ts)|dist\/offline\/[a-z-]+\.(js|d\.ts)|dist\/offline\/wenmar_open\.wasm)$/;
 let ok = packed.name === "wenmar-open" && packed.version === version;
 console.log(`${packed.name}@${packed.version}: ${packed.files.length} files, ${packed.size} bytes packed`);
 for (const { path } of packed.files) {
@@ -216,7 +220,17 @@ for (const { path } of packed.files) {
     ok = false;
   }
 }
-for (const needed of ["package.json", "README.md", "LICENSE", "dist/index.js", "dist/index.d.ts"]) {
+for (const needed of [
+  "package.json",
+  "README.md",
+  "LICENSE",
+  "dist/index.js",
+  "dist/index.d.ts",
+  "dist/offline/index.js",
+  "dist/offline/node.js",
+  "dist/offline/wasm-inline.js",
+  "dist/offline/wenmar_open.wasm",
+]) {
   if (!packed.files.some(({ path }) => path === needed)) {
     console.error(`release-check: the npm package would lack ${needed}`);
     ok = false;

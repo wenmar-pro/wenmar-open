@@ -6,6 +6,8 @@ name: Release
 #             the checks CI runs; scripts/release-check.sh
 #   crates    wenmar-vin, wenmar-vehicles, wenmar-open-turso to crates.io
 #   npm       wenmar-open to npm, with provenance
+#             The package holds the decoder as WebAssembly, built in that
+#             job from the tagged commit.
 #   release   a GitHub release whose notes are the changelog's section
 #   binaries  the wenmar-open command-line tool for macOS and Linux, attached
 #             to the release, then SHA256SUMS
@@ -147,7 +149,7 @@ jobs:
   npm:
     needs: [verify, crates]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     environment: release
     permissions:
       contents: read
@@ -178,6 +180,10 @@ jobs:
               process.exit(1);
             }
           ' "$version"
+
+      # npm test and npm publish (through prepack) build the WebAssembly.
+      - name: Install pinned toolchain
+        run: rustup toolchain install
 
       - run: npm ci --no-audit --no-fund
       - run: npm test
