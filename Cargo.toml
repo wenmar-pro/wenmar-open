@@ -32,3 +32,14 @@ debug = "line-tables-only"
 
 [profile.dev.package."*"]
 debug = false
+
+# The WebAssembly build of crates/wenmar-open-wasm, which clients/js ships.
+# Size comes first: "s" was 450 kB, "z" 423 kB and 12 percent slower, and
+# 3 was 504 kB. A panic stops the module; there is no unwinding.
+[profile.wasm]
+inherits = "release"
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

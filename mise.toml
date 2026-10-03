@@ -22,6 +22,10 @@ description = "Build and test the npm client in clients/js (needs Node 20 or lat
 dir = "{{config_root}}/clients/js"
 run = ["npm ci --no-audit --no-fund", "npm test"]
 
+[tasks.wasm]
+description = "Build the WebAssembly of crates/wenmar-open-wasm (clients/js does this itself in npm run build)"
+run = "cargo build --locked -p wenmar-open-wasm --lib --target wasm32-unknown-unknown --profile wasm"
+
 [tasks.release-check]
 description = "Check that a release would work: versions, changelog, dry runs. Publishes nothing"
 depends = ["check", "js"]

@@ -11,6 +11,7 @@ mod http;
 mod limit;
 mod log;
 mod mcp;
+mod offline;
 mod openapi;
 mod search;
 mod search_speed;

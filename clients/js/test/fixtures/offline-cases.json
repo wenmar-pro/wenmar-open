@@ -1,0 +1,2306 @@
+{
+  "cases": [
+    {
+      "answer": {
+        "ok": {
+          "body": "Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)",
+          "catalog": {
+            "engine_id": "2-0l",
+            "entry": {
+              "body": "SUV",
+              "engine": "2.0L",
+              "id": "2023_hyundai_kona_se_2-0l",
+              "make": "Hyundai",
+              "model": "Kona",
+              "submodel": "SE",
+              "summary": "2023 Hyundai Kona SE, 2.0L, Automatic, SUV",
+              "transmission": "Automatic",
+              "vehicle_types": [
+                "Multipurpose Passenger Vehicle (MPV)"
+              ],
+              "year": 2023
+            },
+            "submodel_id": "se",
+            "vehicle_id": "2023_hyundai_kona"
+          },
+          "check_digit": {
+            "actual": "4",
+            "expected": "4",
+            "valid": true
+          },
+          "engine": {
+            "cylinders": 4,
+            "displacement_cc": 2000,
+            "displacement_l": 2.0,
+            "fuel": "Gasoline",
+            "label": "2.0L",
+            "model": "G4NH"
+          },
+          "make": "Hyundai",
+          "manufacturer": {
+            "country": "South Korea",
+            "name": "Hyundai Motor Co",
+            "vehicle_type": "Multipurpose Passenger Vehicle (MPV)",
+            "wmi": "KM8"
+          },
+          "model": "Kona",
+          "plant": {
+            "city": "Ulsan",
+            "code": "U"
+          },
+          "safety": {
+            "abs": "Standard",
+            "tpms": "Direct"
+          },
+          "transmission": "Automatic",
+          "trim": "SE",
+          "valid": true,
+          "vin": "KM8K2CAB4PU001140",
+          "warnings": [],
+          "year": 2023
+        }
+      },
+      "args": {
+        "vin": "KM8K2CAB4PU001140"
+      },
+      "name": "decode",
+      "op": "decode",
+      "steps": 7
+    },
+    {
+      "answer": {
+        "ok": {
+          "body": "Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)",
+          "catalog": {
+            "engine_id": "2-0l",
+            "entry": {
+              "body": "SUV",
+              "engine": "2.0L",
+              "id": "2023_hyundai_kona_se_2-0l",
+              "make": "Hyundai",
+              "model": "Kona",
+              "submodel": "SE",
+              "summary": "2023 Hyundai Kona SE, 2.0L, Automatic, SUV",
+              "transmission": "Automatic",
+              "vehicle_types": [
+                "Multipurpose Passenger Vehicle (MPV)"
+              ],
+              "year": 2023
+            },
+            "submodel_id": "se",
+            "vehicle_id": "2023_hyundai_kona"
+          },
+          "check_digit": {
+            "actual": "4",
+            "expected": "4",
+            "valid": true
+          },
+          "engine": {
+            "cylinders": 4,
+            "displacement_cc": 2000,
+            "displacement_l": 2.0,
+            "fuel": "Gasoline",
+            "label": "2.0L",
+            "model": "G4NH"
+          },
+          "make": "Hyundai",
+          "manufacturer": {
+            "country": "South Korea",
+            "name": "Hyundai Motor Co",
+            "vehicle_type": "Multipurpose Passenger Vehicle (MPV)",
+            "wmi": "KM8"
+          },
+          "model": "Kona",
+          "plant": {
+            "city": "Ulsan",
+            "code": "U"
+          },
+          "safety": {
+            "abs": "Standard",
+            "tpms": "Direct"
+          },
+          "transmission": "Automatic",
+          "trim": "SE",
+          "valid": true,
+          "vin": "KM8K2CAB4PU001140",
+          "warnings": [],
+          "year": 2023
+        }
+      },
+      "args": {
+        "vin": "km8k2-cab4 pu001140"
+      },
+      "name": "decode, typed loosely",
+      "op": "decode",
+      "steps": 7
+    },
+    {
+      "answer": {
+        "ok": {
+          "body": "Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)",
+          "catalog": {
+            "engine_id": "2-0l",
+            "entry": {
+              "body": "SUV",
+              "engine": "2.0L",
+              "id": "2023_hyundai_kona_se_2-0l",
+              "make": "Hyundai",
+              "model": "Kona",
+              "submodel": "SE",
+              "summary": "2023 Hyundai Kona SE, 2.0L, Automatic, SUV",
+              "transmission": "Automatic",
+              "vehicle_types": [
+                "Multipurpose Passenger Vehicle (MPV)"
+              ],
+              "year": 2023
+            },
+            "submodel_id": "se",
+            "vehicle_id": "2023_hyundai_kona"
+          },
+          "check_digit": {
+            "actual": "0",
+            "expected": "4",
+            "valid": false
+          },
+          "engine": {
+            "cylinders": 4,
+            "displacement_cc": 2000,
+            "displacement_l": 2.0,
+            "fuel": "Gasoline",
+            "label": "2.0L",
+            "model": "G4NH"
+          },
+          "make": "Hyundai",
+          "manufacturer": {
+            "country": "South Korea",
+            "name": "Hyundai Motor Co",
+            "vehicle_type": "Multipurpose Passenger Vehicle (MPV)",
+            "wmi": "KM8"
+          },
+          "model": "Kona",
+          "plant": {
+            "city": "Ulsan",
+            "code": "U"
+          },
+          "safety": {
+            "abs": "Standard",
+            "tpms": "Direct"
+          },
+          "transmission": "Automatic",
+          "trim": "SE",
+          "valid": false,
+          "vin": "KM8K2CAB0PU001140",
+          "warnings": [
+            {
+              "code": "invalid_check_digit",
+              "message": "Position 9 should be 4 for this VIN, but it is 0."
+            }
+          ],
+          "year": 2023
+        }
+      },
+      "args": {
+        "vin": "KM8K2CAB0PU001140"
+      },
+      "name": "decode, wrong check digit",
+      "op": "decode",
+      "steps": 7
+    },
+    {
+      "answer": {
+        "ok": {
+          "check_digit": {
+            "actual": "4",
+            "expected": "4",
+            "valid": true
+          },
+          "make": "Hyundai",
+          "manufacturer": {
+            "country": "South Korea",
+            "name": "Hyundai Motor Co",
+            "vehicle_type": "Multipurpose Passenger Vehicle (MPV)",
+            "wmi": "KM8"
+          },
+          "model": "Old Model",
+          "plant": {
+            "code": "U"
+          },
+          "valid": true,
+          "vin": "KM8K2CAB4PU001140",
+          "warnings": [],
+          "year": 1993
+        }
+      },
+      "args": {
+        "vin": "KM8K2CAB4PU001140",
+        "year": 1993
+      },
+      "name": "decode, year given",
+      "op": "decode",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "validation_failed",
+          "details": {
+            "field": "year",
+            "max": 2028,
+            "min": 1980
+          },
+          "message": "year must be between 1980 and 2028"
+        }
+      },
+      "args": {
+        "vin": "KM8K2CAB4PU001140",
+        "year": 1900
+      },
+      "name": "decode, year out of range",
+      "op": "decode",
+      "steps": 0
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "not_found",
+          "details": {},
+          "message": "No manufacturer is registered for ZZZ."
+        }
+      },
+      "args": {
+        "vin": "ZZZK2CAB4PU001140"
+      },
+      "name": "decode, unknown manufacturer",
+      "op": "decode",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "invalid_vin",
+          "details": {
+            "invalid_characters": [
+              {
+                "character": "O",
+                "position": 12
+              }
+            ],
+            "suggestions": [
+              "KM8K2CAB4PU001140"
+            ]
+          },
+          "message": "a VIN uses only digits and letters other than I, O and Q"
+        }
+      },
+      "args": {
+        "vin": "KM8K2CAB4PUO01140"
+      },
+      "name": "decode, illegal character",
+      "op": "decode",
+      "steps": 0
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "invalid_vin",
+          "details": {
+            "suggestions": []
+          },
+          "message": "a VIN has 17 characters, this has 3"
+        }
+      },
+      "args": {
+        "vin": "KM8"
+      },
+      "name": "decode, too short",
+      "op": "decode",
+      "steps": 0
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "invalid_vin",
+          "details": {
+            "suggestions": []
+          },
+          "message": "a VIN has 17 characters, this is far longer"
+        }
+      },
+      "args": {
+        "vin": "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"
+      },
+      "name": "decode, far too long",
+      "op": "decode",
+      "steps": 0
+    },
+    {
+      "answer": {
+        "ok": {
+          "body": "Bus",
+          "check_digit": {
+            "actual": "1",
+            "expected": "1",
+            "valid": true
+          },
+          "drivetrain": "6x4",
+          "make": "MCI",
+          "manufacturer": {
+            "country": "United States (USA)",
+            "name": "Motor Coach Industries",
+            "vehicle_type": "Bus",
+            "wmi": "1M8"
+          },
+          "model": "D-Series",
+          "plant": {
+            "code": "P"
+          },
+          "valid": true,
+          "vin": "1M8PDMPA1MP000001",
+          "warnings": [],
+          "year": 2021
+        }
+      },
+      "args": {
+        "vin": "1M8PDMPA1MP000001"
+      },
+      "name": "decode, bus of 2021",
+      "op": "decode",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": {
+          "body": "Bus",
+          "check_digit": {
+            "actual": "5",
+            "expected": "5",
+            "valid": true
+          },
+          "engine": {
+            "cylinders": 6
+          },
+          "make": "MCI",
+          "manufacturer": {
+            "country": "United States (USA)",
+            "name": "Motor Coach Industries",
+            "vehicle_type": "Bus",
+            "wmi": "1M8"
+          },
+          "model": "E-Series",
+          "plant": {
+            "code": "P"
+          },
+          "valid": true,
+          "vin": "1M8PEMPA5MP000001",
+          "warnings": [],
+          "year": 1991
+        }
+      },
+      "args": {
+        "vin": "1M8PEMPA5MP000001"
+      },
+      "name": "decode, bus of 1991",
+      "op": "decode",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": {
+          "catalog": {
+            "entry": {
+              "id": "2020_ranger-trailers_tilt-deck",
+              "make": "Ranger Trailers",
+              "model": "Tilt Deck",
+              "summary": "2020 Ranger Trailers Tilt Deck",
+              "vehicle_types": [
+                "Trailer"
+              ],
+              "year": 2020
+            },
+            "vehicle_id": "2020_ranger-trailers_tilt-deck"
+          },
+          "check_digit": {
+            "actual": "0",
+            "expected": "0",
+            "valid": true
+          },
+          "make": "Ranger Trailers",
+          "manufacturer": {
+            "country": "United States (USA)",
+            "name": "Ranger Trailer Works",
+            "vehicle_type": "Trailer",
+            "wmi": "1A9881"
+          },
+          "model": "Tilt Deck",
+          "plant": {
+            "code": "1"
+          },
+          "valid": true,
+          "vin": "1A9100AB0L1881001",
+          "warnings": [],
+          "year": 2020
+        }
+      },
+      "args": {
+        "vin": "1A9100AB0L1881001"
+      },
+      "name": "decode, low-volume maker",
+      "op": "decode",
+      "steps": 5
+    },
+    {
+      "answer": {
+        "ok": [
+          2023,
+          2022,
+          2020,
+          2019,
+          2018
+        ]
+      },
+      "args": {},
+      "name": "years",
+      "op": "years",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "ok": [
+          2019,
+          2018
+        ]
+      },
+      "args": {
+        "scope": "all",
+        "term": "201"
+      },
+      "name": "years, narrowed",
+      "op": "years",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "ok": [
+          {
+            "id": "ford",
+            "name": "Ford",
+            "popular": true
+          },
+          {
+            "id": "chevrolet",
+            "name": "Chevrolet",
+            "popular": true
+          },
+          {
+            "id": "honda",
+            "name": "Honda",
+            "popular": true
+          },
+          {
+            "id": "hyundai",
+            "name": "Hyundai",
+            "popular": true
+          }
+        ]
+      },
+      "args": {},
+      "name": "makes",
+      "op": "makes",
+      "steps": 0
+    },
+    {
+      "answer": {
+        "ok": [
+          {
+            "id": "chevrolet",
+            "name": "Chevrolet",
+            "popular": true
+          }
+        ]
+      },
+      "args": {
+        "limit": 5,
+        "term": "ch",
+        "year": 2019
+      },
+      "name": "makes, of a year",
+      "op": "makes",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "validation_failed",
+          "details": {
+            "field": "scope"
+          },
+          "message": "scope must be light, all, or a vehicle type id"
+        }
+      },
+      "args": {
+        "scope": "nope"
+      },
+      "name": "makes, bad scope",
+      "op": "makes",
+      "steps": 0
+    },
+    {
+      "answer": {
+        "ok": [
+          {
+            "id": "civic",
+            "name": "Civic",
+            "year_from": 2018,
+            "year_to": 2020
+          },
+          {
+            "id": "cr-v",
+            "name": "CR-V",
+            "year_from": 2019,
+            "year_to": 2019
+          }
+        ]
+      },
+      "args": {
+        "make": "honda"
+      },
+      "name": "models",
+      "op": "models",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "ok": [
+          {
+            "id": "silverado",
+            "name": "Silverado",
+            "year_from": 2019,
+            "year_to": 2019
+          }
+        ]
+      },
+      "args": {
+        "make": "chevy",
+        "year": 2019
+      },
+      "name": "models, by alias and year",
+      "op": "models",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "validation_failed",
+          "details": {
+            "field": "make"
+          },
+          "message": "make is required"
+        }
+      },
+      "args": {},
+      "name": "models, no make",
+      "op": "models",
+      "steps": 0
+    },
+    {
+      "answer": {
+        "ok": [
+          {
+            "id": "lx",
+            "kind": "trim",
+            "name": "LX"
+          },
+          {
+            "id": "si",
+            "kind": "trim",
+            "name": "Si"
+          },
+          {
+            "id": "touring",
+            "kind": "trim",
+            "name": "Touring"
+          }
+        ]
+      },
+      "args": {
+        "make": "honda",
+        "model": "civic",
+        "year": 2019
+      },
+      "name": "submodels",
+      "op": "submodels",
+      "steps": 3
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "validation_failed",
+          "details": {
+            "field": "year"
+          },
+          "message": "year is required"
+        }
+      },
+      "args": {
+        "make": "honda",
+        "model": "civic"
+      },
+      "name": "submodels, no year",
+      "op": "submodels",
+      "steps": 0
+    },
+    {
+      "answer": {
+        "ok": [
+          {
+            "id": "1-5l-turbo",
+            "label": "1.5L Turbo",
+            "preset": false
+          }
+        ]
+      },
+      "args": {
+        "make": "honda",
+        "model": "civic",
+        "submodel": "si",
+        "year": 2019
+      },
+      "name": "engines, of a submodel",
+      "op": "engines",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": [
+          {
+            "id": "3-5l-turbo-v6",
+            "label": "3.5L Turbo V6",
+            "preset": false,
+            "vin8": "4G"
+          },
+          {
+            "id": "5-0l-v8",
+            "label": "5.0L V8",
+            "preset": false,
+            "vin8": "5"
+          }
+        ]
+      },
+      "args": {
+        "make": "ford",
+        "model": "f150",
+        "year": 2019
+      },
+      "name": "engines",
+      "op": "engines",
+      "steps": 3
+    },
+    {
+      "answer": {
+        "ok": [
+          {
+            "body": "Sedan",
+            "drive": "FWD",
+            "id": "2019_honda_civic_si",
+            "make": "Honda",
+            "model": "Civic",
+            "submodel": "Si",
+            "summary": "2019 Honda Civic Si, Manual, FWD, Sedan",
+            "transmission": "Manual",
+            "vehicle_types": [
+              "Passenger Car"
+            ],
+            "year": 2019
+          },
+          {
+            "drive": "FWD",
+            "id": "2019_honda_civic",
+            "make": "Honda",
+            "model": "Civic",
+            "summary": "2019 Honda Civic, FWD",
+            "vehicle_types": [
+              "Passenger Car"
+            ],
+            "year": 2019
+          }
+        ]
+      },
+      "args": {
+        "q": "2019 civic si"
+      },
+      "name": "search",
+      "op": "search",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": [
+          {
+            "id": "2019_chevrolet_silverado_1500",
+            "make": "Chevrolet",
+            "model": "Silverado",
+            "submodel": "1500",
+            "summary": "2019 Chevrolet Silverado 1500",
+            "vehicle_types": [
+              "Truck"
+            ],
+            "year": 2019
+          }
+        ]
+      },
+      "args": {
+        "limit": 50,
+        "q": "chevy 1500"
+      },
+      "name": "search, a series of a make",
+      "op": "search",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": [
+          {
+            "body": "Sedan",
+            "drive": "FWD",
+            "id": "2020_honda_civic",
+            "make": "Honda",
+            "model": "Civic",
+            "summary": "2020 Honda Civic, CVT, FWD, Sedan",
+            "transmission": "CVT",
+            "vehicle_types": [
+              "Passenger Car"
+            ],
+            "year": 2020
+          },
+          {
+            "id": "2019_honda_cr-v",
+            "make": "Honda",
+            "model": "CR-V",
+            "summary": "2019 Honda CR-V",
+            "vehicle_types": [
+              "Multipurpose Passenger Vehicle (MPV)"
+            ],
+            "year": 2019
+          }
+        ]
+      },
+      "args": {
+        "q": "honda"
+      },
+      "name": "search, a make alone",
+      "op": "search",
+      "steps": 3
+    },
+    {
+      "answer": {
+        "ok": []
+      },
+      "args": {
+        "q": "zzzz"
+      },
+      "name": "search, nothing",
+      "op": "search",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "validation_failed",
+          "details": {
+            "field": "q"
+          },
+          "message": "q is required"
+        }
+      },
+      "args": {},
+      "name": "search, no text",
+      "op": "search",
+      "steps": 0
+    },
+    {
+      "answer": {
+        "ok": {
+          "body": "Sedan",
+          "drive": "FWD",
+          "id": "2019_honda_civic_si",
+          "make": "Honda",
+          "model": "Civic",
+          "submodel": "Si",
+          "summary": "2019 Honda Civic Si, Manual, FWD, Sedan",
+          "transmission": "Manual",
+          "vehicle_types": [
+            "Passenger Car"
+          ],
+          "year": 2019
+        }
+      },
+      "args": {
+        "id": "2019_honda_civic_si"
+      },
+      "name": "vehicle",
+      "op": "vehicle",
+      "steps": 3
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "not_found",
+          "details": {},
+          "message": "No vehicle has that id."
+        }
+      },
+      "args": {
+        "id": "2019_honda_nothing"
+      },
+      "name": "vehicle, unknown",
+      "op": "vehicle",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "ok": {
+          "built_at": "2026-10-01 04:25:57",
+          "data_version": "2026.09",
+          "server_version": "0.1.0",
+          "vpic_release": "vPICList_lite_2026_09"
+        }
+      },
+      "args": {},
+      "name": "meta",
+      "op": "meta",
+      "steps": 0
+    }
+  ],
+  "current_year": 2026,
+  "recorded": [
+    {
+      "params": [],
+      "rows": [
+        [
+          "schema_version",
+          "3"
+        ],
+        [
+          "data_version",
+          "2026.09"
+        ],
+        [
+          "vpic_release",
+          "vPICList_lite_2026_09"
+        ],
+        [
+          "built_at",
+          "2026-10-01 04:25:57"
+        ]
+      ],
+      "sql": "SELECT key, value FROM meta"
+    },
+    {
+      "params": [],
+      "rows": [
+        [
+          460,
+          "ford",
+          "Ford",
+          "ford",
+          2,
+          8,
+          1
+        ],
+        [
+          467,
+          "chevrolet",
+          "Chevrolet",
+          "chevrolet",
+          3,
+          8,
+          1
+        ],
+        [
+          474,
+          "honda",
+          "Honda",
+          "honda",
+          4,
+          132,
+          1
+        ],
+        [
+          498,
+          "hyundai",
+          "Hyundai",
+          "hyundai",
+          12,
+          132,
+          1
+        ],
+        [
+          5000,
+          "ranger-trailers",
+          "Ranger Trailers",
+          "rangertrailers",
+          null,
+          64,
+          0
+        ]
+      ],
+      "sql": "SELECT id, slug, name, norm, rank, types, light FROM catalog_make"
+    },
+    {
+      "params": [],
+      "rows": [
+        [
+          "chevy",
+          467
+        ]
+      ],
+      "sql": "SELECT norm, make_id FROM catalog_alias"
+    },
+    {
+      "params": [],
+      "rows": [
+        [
+          "se plus",
+          "SE"
+        ]
+      ],
+      "sql": "SELECT raw, name FROM catalog_rename"
+    },
+    {
+      "params": [],
+      "rows": [
+        [
+          2,
+          "Passenger Car"
+        ],
+        [
+          3,
+          "Truck"
+        ],
+        [
+          5,
+          "Bus"
+        ],
+        [
+          6,
+          "Trailer"
+        ],
+        [
+          7,
+          "Multipurpose Passenger Vehicle (MPV)"
+        ]
+      ],
+      "sql": "SELECT id, name FROM catalog_type ORDER BY id"
+    },
+    {
+      "params": [],
+      "rows": [
+        [
+          2018,
+          2023
+        ]
+      ],
+      "sql": "SELECT MIN(year), MAX(year) FROM catalog_vehicle"
+    },
+    {
+      "params": [
+        "KM8",
+        "KM8"
+      ],
+      "rows": [
+        [
+          "KM8",
+          "Hyundai Motor Co",
+          "Hyundai",
+          "South Korea",
+          "Multipurpose Passenger Vehicle (MPV)",
+          1,
+          7
+        ]
+      ],
+      "sql": "\nSELECT code, manufacturer, make, country, vehicle_type, light_vehicle, vehicle_type_id\nFROM wmi WHERE code IN (?1, ?2)"
+    },
+    {
+      "params": [
+        "KM8"
+      ],
+      "rows": [
+        [
+          1,
+          2022,
+          null
+        ],
+        [
+          2,
+          1990,
+          1995
+        ]
+      ],
+      "sql": "\nSELECT schema_id, year_from, year_to FROM wmi_schema WHERE wmi = ?1"
+    },
+    {
+      "params": [
+        1,
+        2,
+        "K2CAB|PU001140"
+      ],
+      "rows": [
+        [
+          10,
+          1,
+          "K2***",
+          28,
+          "Kona",
+          "2022-05-01 00:00:00",
+          "Hyundai",
+          "900"
+        ],
+        [
+          11,
+          1,
+          "K[2-3]CA",
+          38,
+          "SE",
+          "2022-05-01 00:00:00",
+          null,
+          "SE"
+        ],
+        [
+          13,
+          1,
+          "*****|*U",
+          31,
+          "Ulsan",
+          "2022-05-01 00:00:00",
+          null,
+          "Ulsan"
+        ],
+        [
+          14,
+          1,
+          "K2***",
+          96,
+          "Internal Element",
+          "2022-05-01 00:00:00",
+          null,
+          "x"
+        ],
+        [
+          16,
+          1,
+          "K2***",
+          18,
+          "G4NH",
+          "2022-05-01 00:00:00",
+          null,
+          "G4NH"
+        ],
+        [
+          17,
+          1,
+          "K2***",
+          13,
+          "2.0",
+          "2022-05-01 00:00:00",
+          null,
+          "2.0"
+        ],
+        [
+          18,
+          1,
+          "K2***",
+          5,
+          "Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)",
+          "2022-05-01 00:00:00",
+          null,
+          "7"
+        ],
+        [
+          15,
+          2,
+          "K2***",
+          28,
+          "Old Model",
+          "1995-01-01 00:00:00",
+          "Hyundai",
+          "901"
+        ]
+      ],
+      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n             FROM pattern\n             WHERE schema_id IN (?, ?)\n               AND ?3 GLOB (REPLACE(keys, '*', '?') || '*')"
+    },
+    {
+      "params": [
+        "g4nh"
+      ],
+      "rows": [
+        [
+          "g4nh",
+          1,
+          9,
+          "4",
+          "4",
+          "2020-01-01 00:00:00"
+        ],
+        [
+          "g4nh",
+          2,
+          24,
+          "4",
+          "Gasoline",
+          "2020-01-01 00:00:00"
+        ]
+      ],
+      "sql": "SELECT engine_model, id, element_id, attribute, value, changed_on\n             FROM engine_model_row WHERE engine_model IN (?) ORDER BY id"
+    },
+    {
+      "params": [
+        "KM8"
+      ],
+      "rows": [
+        [
+          498
+        ]
+      ],
+      "sql": "SELECT make_id FROM wmi_make WHERE wmi = ?1"
+    },
+    {
+      "params": [
+        900
+      ],
+      "rows": [
+        [
+          50,
+          498,
+          7
+        ],
+        [
+          51,
+          498,
+          7
+        ],
+        [
+          52,
+          999,
+          7
+        ],
+        [
+          53,
+          498,
+          5
+        ]
+      ],
+      "sql": "\nSELECT s.id, s.make_id, s.vehicle_type_id\nFROM spec_schema_model m\nJOIN spec_schema s ON s.id = m.schema_id\nWHERE m.model_id = ?1"
+    },
+    {
+      "params": [
+        901
+      ],
+      "rows": [],
+      "sql": "\nSELECT s.id, s.make_id, s.vehicle_type_id\nFROM spec_schema_model m\nJOIN spec_schema s ON s.id = m.schema_id\nWHERE m.model_id = ?1"
+    },
+    {
+      "params": [
+        498,
+        "Kona",
+        "kona",
+        "kona"
+      ],
+      "rows": [
+        [
+          900,
+          "kona",
+          "Kona",
+          2022,
+          2023
+        ]
+      ],
+      "sql": "\nSELECT id, slug, name, year_from, year_to FROM catalog_model\nWHERE make_id = ?1\n  AND (slug = ?2 OR name = ?2 COLLATE NOCASE OR slug = ?3 OR norm = ?4)\nORDER BY (slug = ?2) DESC, (name = ?2) DESC, (name = ?2 COLLATE NOCASE) DESC,\n         (slug = ?3) DESC, light DESC, year_to DESC, id\nLIMIT 1"
+    },
+    {
+      "params": [
+        50,
+        51
+      ],
+      "rows": [
+        [
+          50,
+          2023
+        ],
+        [
+          51,
+          2021
+        ]
+      ],
+      "sql": "SELECT schema_id, year FROM spec_schema_year WHERE schema_id IN (?, ?)"
+    },
+    {
+      "params": [
+        50,
+        51
+      ],
+      "rows": [
+        [
+          1,
+          10,
+          1,
+          38,
+          "SE",
+          "SE",
+          "2023-01-01 00:00:00",
+          50
+        ],
+        [
+          2,
+          10,
+          0,
+          86,
+          "1",
+          "Standard",
+          "2023-01-01 00:00:00",
+          50
+        ],
+        [
+          6,
+          10,
+          0,
+          168,
+          "1",
+          "Direct",
+          "2023-01-01 00:00:00",
+          50
+        ],
+        [
+          7,
+          10,
+          0,
+          37,
+          "2",
+          "Automatic",
+          "2023-01-01 00:00:00",
+          50
+        ],
+        [
+          3,
+          11,
+          0,
+          86,
+          "2",
+          "Other Year",
+          "2023-01-01 00:00:00",
+          51
+        ]
+      ],
+      "sql": "SELECT id, spec_pattern_id, is_key, element_id, attribute, value, changed_on, schema_id\n             FROM spec_row WHERE schema_id IN (?, ?)"
+    },
+    {
+      "params": [
+        2023,
+        498,
+        900
+      ],
+      "rows": [
+        [
+          128,
+          5,
+          "SUV",
+          null,
+          null
+        ]
+      ],
+      "sql": "\nSELECT v.types, v.detail_id, t.body, t.drive, t.transmission\nFROM catalog_vehicle v LEFT JOIN catalog_detail t ON t.id = v.detail_id\nWHERE v.year = ?1 AND v.make_id = ?2 AND v.model_id = ?3"
+    },
+    {
+      "params": [
+        50
+      ],
+      "rows": [
+        [
+          1,
+          10,
+          1,
+          38,
+          "SE",
+          "SE",
+          "2023-01-01 00:00:00",
+          50
+        ],
+        [
+          2,
+          10,
+          0,
+          86,
+          "1",
+          "Standard",
+          "2023-01-01 00:00:00",
+          50
+        ],
+        [
+          6,
+          10,
+          0,
+          168,
+          "1",
+          "Direct",
+          "2023-01-01 00:00:00",
+          50
+        ],
+        [
+          7,
+          10,
+          0,
+          37,
+          "2",
+          "Automatic",
+          "2023-01-01 00:00:00",
+          50
+        ]
+      ],
+      "sql": "SELECT id, spec_pattern_id, is_key, element_id, attribute, value, changed_on, schema_id\n             FROM spec_row WHERE schema_id IN (?)"
+    },
+    {
+      "params": [
+        5
+      ],
+      "rows": [
+        [
+          11,
+          "SE",
+          "trim",
+          1,
+          null,
+          null,
+          null
+        ],
+        [
+          12,
+          "Limited",
+          "trim",
+          1,
+          null,
+          null,
+          null
+        ]
+      ],
+      "sql": "\nSELECT id, name, kind, listed, body, drive, transmission\nFROM catalog_submodel WHERE detail_id = ?1 ORDER BY id"
+    },
+    {
+      "params": [
+        5,
+        null
+      ],
+      "rows": [
+        [
+          9,
+          "1.6L Turbo",
+          null,
+          "vpic"
+        ],
+        [
+          8,
+          "2.0L",
+          "A",
+          "vpic"
+        ]
+      ],
+      "sql": "\nSELECT e.id, e.label, e.vin8, e.source FROM catalog_engine e\nWHERE e.detail_id = ?1\n  AND (?2 IS NULL\n       OR NOT EXISTS (SELECT 1 FROM catalog_submodel_engine x WHERE x.submodel_id = ?2)\n       OR e.id IN (SELECT engine_id FROM catalog_submodel_engine WHERE submodel_id = ?2))\nORDER BY e.label, e.id"
+    },
+    {
+      "params": [
+        5,
+        11
+      ],
+      "rows": [
+        [
+          9,
+          "1.6L Turbo",
+          null,
+          "vpic"
+        ],
+        [
+          8,
+          "2.0L",
+          "A",
+          "vpic"
+        ]
+      ],
+      "sql": "\nSELECT e.id, e.label, e.vin8, e.source FROM catalog_engine e\nWHERE e.detail_id = ?1\n  AND (?2 IS NULL\n       OR NOT EXISTS (SELECT 1 FROM catalog_submodel_engine x WHERE x.submodel_id = ?2)\n       OR e.id IN (SELECT engine_id FROM catalog_submodel_engine WHERE submodel_id = ?2))\nORDER BY e.label, e.id"
+    },
+    {
+      "params": [
+        2,
+        "K2CAB|PU001140"
+      ],
+      "rows": [
+        [
+          15,
+          2,
+          "K2***",
+          28,
+          "Old Model",
+          "1995-01-01 00:00:00",
+          "Hyundai",
+          "901"
+        ]
+      ],
+      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n             FROM pattern\n             WHERE schema_id IN (?)\n               AND ?2 GLOB (REPLACE(keys, '*', '?') || '*')"
+    },
+    {
+      "params": [
+        498,
+        "Old Model",
+        "old-model",
+        "oldmodel"
+      ],
+      "rows": [],
+      "sql": "\nSELECT id, slug, name, year_from, year_to FROM catalog_model\nWHERE make_id = ?1\n  AND (slug = ?2 OR name = ?2 COLLATE NOCASE OR slug = ?3 OR norm = ?4)\nORDER BY (slug = ?2) DESC, (name = ?2) DESC, (name = ?2 COLLATE NOCASE) DESC,\n         (slug = ?3) DESC, light DESC, year_to DESC, id\nLIMIT 1"
+    },
+    {
+      "params": [
+        "ZZZ",
+        "ZZZ"
+      ],
+      "rows": [],
+      "sql": "\nSELECT code, manufacturer, make, country, vehicle_type, light_vehicle, vehicle_type_id\nFROM wmi WHERE code IN (?1, ?2)"
+    },
+    {
+      "params": [
+        "1M8",
+        "1M8"
+      ],
+      "rows": [
+        [
+          "1M8",
+          "Motor Coach Industries",
+          null,
+          "United States (USA)",
+          "Bus",
+          0,
+          5
+        ]
+      ],
+      "sql": "\nSELECT code, manufacturer, make, country, vehicle_type, light_vehicle, vehicle_type_id\nFROM wmi WHERE code IN (?1, ?2)"
+    },
+    {
+      "params": [
+        "1M8"
+      ],
+      "rows": [
+        [
+          3,
+          1990,
+          1999
+        ],
+        [
+          4,
+          2020,
+          null
+        ]
+      ],
+      "sql": "\nSELECT schema_id, year_from, year_to FROM wmi_schema WHERE wmi = ?1"
+    },
+    {
+      "params": [
+        3,
+        4,
+        "PDMPA|MP000001"
+      ],
+      "rows": [
+        [
+          20,
+          3,
+          "PD***",
+          28,
+          "D-Series",
+          "1996-01-01 00:00:00",
+          "MCI",
+          "950"
+        ],
+        [
+          21,
+          4,
+          "PD***",
+          28,
+          "D-Series",
+          "2021-01-01 00:00:00",
+          "MCI",
+          "950"
+        ],
+        [
+          22,
+          4,
+          "PDM**",
+          5,
+          "Bus",
+          "2021-01-01 00:00:00",
+          null,
+          "16"
+        ],
+        [
+          23,
+          4,
+          "PDMP*",
+          15,
+          "6x4",
+          "2021-01-01 00:00:00",
+          null,
+          "6"
+        ]
+      ],
+      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n             FROM pattern\n             WHERE schema_id IN (?, ?)\n               AND ?3 GLOB (REPLACE(keys, '*', '?') || '*')"
+    },
+    {
+      "params": [
+        "1M8"
+      ],
+      "rows": [],
+      "sql": "SELECT make_id FROM wmi_make WHERE wmi = ?1"
+    },
+    {
+      "params": [
+        950
+      ],
+      "rows": [],
+      "sql": "\nSELECT s.id, s.make_id, s.vehicle_type_id\nFROM spec_schema_model m\nJOIN spec_schema s ON s.id = m.schema_id\nWHERE m.model_id = ?1"
+    },
+    {
+      "params": [
+        3,
+        4,
+        "PEMPA|MP000001"
+      ],
+      "rows": [
+        [
+          25,
+          3,
+          "PE***",
+          28,
+          "E-Series",
+          "1996-01-01 00:00:00",
+          "MCI",
+          "951"
+        ],
+        [
+          26,
+          3,
+          "PE***",
+          5,
+          "Bus",
+          "1996-01-01 00:00:00",
+          null,
+          "16"
+        ],
+        [
+          27,
+          3,
+          "PE***",
+          9,
+          "6",
+          "1996-01-01 00:00:00",
+          null,
+          "6"
+        ],
+        [
+          28,
+          4,
+          "PE***",
+          28,
+          "E-Series",
+          "2021-01-01 00:00:00",
+          "MCI",
+          "951"
+        ]
+      ],
+      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n             FROM pattern\n             WHERE schema_id IN (?, ?)\n               AND ?3 GLOB (REPLACE(keys, '*', '?') || '*')"
+    },
+    {
+      "params": [
+        951
+      ],
+      "rows": [],
+      "sql": "\nSELECT s.id, s.make_id, s.vehicle_type_id\nFROM spec_schema_model m\nJOIN spec_schema s ON s.id = m.schema_id\nWHERE m.model_id = ?1"
+    },
+    {
+      "params": [
+        "1A9881",
+        "1A9"
+      ],
+      "rows": [
+        [
+          "1A9",
+          "Many Small Makers",
+          null,
+          "United States (USA)",
+          "Trailer",
+          0,
+          6
+        ],
+        [
+          "1A9881",
+          "Ranger Trailer Works",
+          "Ranger Trailers",
+          "United States (USA)",
+          "Trailer",
+          0,
+          6
+        ]
+      ],
+      "sql": "\nSELECT code, manufacturer, make, country, vehicle_type, light_vehicle, vehicle_type_id\nFROM wmi WHERE code IN (?1, ?2)"
+    },
+    {
+      "params": [
+        "1A9881"
+      ],
+      "rows": [
+        [
+          5,
+          2000,
+          null
+        ]
+      ],
+      "sql": "\nSELECT schema_id, year_from, year_to FROM wmi_schema WHERE wmi = ?1"
+    },
+    {
+      "params": [
+        5,
+        "100AB|L1881001"
+      ],
+      "rows": [
+        [
+          30,
+          5,
+          "100**",
+          28,
+          "Tilt Deck",
+          "2001-01-01 00:00:00",
+          "Ranger Trailers",
+          "9100"
+        ]
+      ],
+      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n             FROM pattern\n             WHERE schema_id IN (?)\n               AND ?2 GLOB (REPLACE(keys, '*', '?') || '*')"
+    },
+    {
+      "params": [
+        "1A9881"
+      ],
+      "rows": [
+        [
+          5000
+        ]
+      ],
+      "sql": "SELECT make_id FROM wmi_make WHERE wmi = ?1"
+    },
+    {
+      "params": [
+        9100
+      ],
+      "rows": [],
+      "sql": "\nSELECT s.id, s.make_id, s.vehicle_type_id\nFROM spec_schema_model m\nJOIN spec_schema s ON s.id = m.schema_id\nWHERE m.model_id = ?1"
+    },
+    {
+      "params": [
+        5000,
+        "Tilt Deck",
+        "tilt-deck",
+        "tiltdeck"
+      ],
+      "rows": [
+        [
+          9100,
+          "tilt-deck",
+          "Tilt Deck",
+          2019,
+          2020
+        ]
+      ],
+      "sql": "\nSELECT id, slug, name, year_from, year_to FROM catalog_model\nWHERE make_id = ?1\n  AND (slug = ?2 OR name = ?2 COLLATE NOCASE OR slug = ?3 OR norm = ?4)\nORDER BY (slug = ?2) DESC, (name = ?2) DESC, (name = ?2 COLLATE NOCASE) DESC,\n         (slug = ?3) DESC, light DESC, year_to DESC, id\nLIMIT 1"
+    },
+    {
+      "params": [
+        2020,
+        5000,
+        9100
+      ],
+      "rows": [
+        [
+          64,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "sql": "\nSELECT v.types, v.detail_id, t.body, t.drive, t.transmission\nFROM catalog_vehicle v LEFT JOIN catalog_detail t ON t.id = v.detail_id\nWHERE v.year = ?1 AND v.make_id = ?2 AND v.model_id = ?3"
+    },
+    {
+      "params": [
+        1,
+        0,
+        ""
+      ],
+      "rows": [
+        [
+          2023
+        ],
+        [
+          2022
+        ],
+        [
+          2020
+        ],
+        [
+          2019
+        ],
+        [
+          2018
+        ]
+      ],
+      "sql": "\nSELECT DISTINCT year FROM catalog_vehicle\nWHERE (?1 = 0 OR light = 1) AND (?2 = 0 OR (types & ?2) <> 0)\n  AND CAST(year AS TEXT) LIKE ?3 || '%'\nORDER BY year DESC"
+    },
+    {
+      "params": [
+        0,
+        0,
+        "201"
+      ],
+      "rows": [
+        [
+          2019
+        ],
+        [
+          2018
+        ]
+      ],
+      "sql": "\nSELECT DISTINCT year FROM catalog_vehicle\nWHERE (?1 = 0 OR light = 1) AND (?2 = 0 OR (types & ?2) <> 0)\n  AND CAST(year AS TEXT) LIKE ?3 || '%'\nORDER BY year DESC"
+    },
+    {
+      "params": [
+        2019,
+        1,
+        0
+      ],
+      "rows": [
+        [
+          460
+        ],
+        [
+          467
+        ],
+        [
+          474
+        ]
+      ],
+      "sql": "\nSELECT DISTINCT make_id FROM catalog_vehicle\nWHERE year = ?1 AND (?2 = 0 OR light = 1) AND (?3 = 0 OR (types & ?3) <> 0)"
+    },
+    {
+      "params": [
+        474,
+        1,
+        0,
+        "",
+        500
+      ],
+      "rows": [
+        [
+          1863,
+          "civic",
+          "Civic",
+          2018,
+          2020
+        ],
+        [
+          1865,
+          "cr-v",
+          "CR-V",
+          2019,
+          2019
+        ]
+      ],
+      "sql": "\nSELECT d.id, d.slug, d.name, d.year_from, d.year_to\nFROM catalog_model d\nWHERE d.make_id = ?1\n  AND (?2 = 0 OR d.light = 1) AND (?3 = 0 OR (d.types & ?3) <> 0)\n  AND d.norm LIKE ?4 || '%'\nORDER BY d.name COLLATE NOCASE, d.id\nLIMIT ?5"
+    },
+    {
+      "params": [
+        467,
+        2019,
+        1,
+        0,
+        "",
+        500
+      ],
+      "rows": [
+        [
+          1850,
+          "silverado",
+          "Silverado",
+          2019,
+          2019
+        ]
+      ],
+      "sql": "\nSELECT d.id, d.slug, d.name, d.year_from, d.year_to\nFROM catalog_vehicle v JOIN catalog_model d ON d.id = v.model_id\nWHERE v.year = ?2 AND v.make_id = ?1\n  AND (?3 = 0 OR v.light = 1) AND (?4 = 0 OR (v.types & ?4) <> 0)\n  AND d.norm LIKE ?5 || '%'\nORDER BY d.name COLLATE NOCASE, d.id\nLIMIT ?6"
+    },
+    {
+      "params": [
+        474,
+        "civic",
+        "civic",
+        "civic"
+      ],
+      "rows": [
+        [
+          1863,
+          "civic",
+          "Civic",
+          2018,
+          2020
+        ]
+      ],
+      "sql": "\nSELECT id, slug, name, year_from, year_to FROM catalog_model\nWHERE make_id = ?1\n  AND (slug = ?2 OR name = ?2 COLLATE NOCASE OR slug = ?3 OR norm = ?4)\nORDER BY (slug = ?2) DESC, (name = ?2) DESC, (name = ?2 COLLATE NOCASE) DESC,\n         (slug = ?3) DESC, light DESC, year_to DESC, id\nLIMIT 1"
+    },
+    {
+      "params": [
+        2019,
+        474,
+        1863
+      ],
+      "rows": [
+        [
+          4,
+          1,
+          null,
+          "FWD",
+          null
+        ]
+      ],
+      "sql": "\nSELECT v.types, v.detail_id, t.body, t.drive, t.transmission\nFROM catalog_vehicle v LEFT JOIN catalog_detail t ON t.id = v.detail_id\nWHERE v.year = ?1 AND v.make_id = ?2 AND v.model_id = ?3"
+    },
+    {
+      "params": [
+        1
+      ],
+      "rows": [
+        [
+          1,
+          "LX",
+          "trim",
+          1,
+          null,
+          null,
+          null
+        ],
+        [
+          2,
+          "Si",
+          "trim",
+          1,
+          "Sedan",
+          null,
+          "Manual"
+        ],
+        [
+          3,
+          "Touring",
+          "trim",
+          1,
+          null,
+          null,
+          "CVT"
+        ]
+      ],
+      "sql": "\nSELECT id, name, kind, listed, body, drive, transmission\nFROM catalog_submodel WHERE detail_id = ?1 ORDER BY id"
+    },
+    {
+      "params": [
+        1,
+        2
+      ],
+      "rows": [
+        [
+          1,
+          "1.5L Turbo",
+          null,
+          "vpic"
+        ]
+      ],
+      "sql": "\nSELECT e.id, e.label, e.vin8, e.source FROM catalog_engine e\nWHERE e.detail_id = ?1\n  AND (?2 IS NULL\n       OR NOT EXISTS (SELECT 1 FROM catalog_submodel_engine x WHERE x.submodel_id = ?2)\n       OR e.id IN (SELECT engine_id FROM catalog_submodel_engine WHERE submodel_id = ?2))\nORDER BY e.label, e.id"
+    },
+    {
+      "params": [
+        460,
+        "f150",
+        "f150",
+        "f150"
+      ],
+      "rows": [
+        [
+          1801,
+          "f-150",
+          "F-150",
+          2019,
+          2019
+        ]
+      ],
+      "sql": "\nSELECT id, slug, name, year_from, year_to FROM catalog_model\nWHERE make_id = ?1\n  AND (slug = ?2 OR name = ?2 COLLATE NOCASE OR slug = ?3 OR norm = ?4)\nORDER BY (slug = ?2) DESC, (name = ?2) DESC, (name = ?2 COLLATE NOCASE) DESC,\n         (slug = ?3) DESC, light DESC, year_to DESC, id\nLIMIT 1"
+    },
+    {
+      "params": [
+        2019,
+        460,
+        1801
+      ],
+      "rows": [
+        [
+          8,
+          2,
+          "Pickup",
+          null,
+          null
+        ]
+      ],
+      "sql": "\nSELECT v.types, v.detail_id, t.body, t.drive, t.transmission\nFROM catalog_vehicle v LEFT JOIN catalog_detail t ON t.id = v.detail_id\nWHERE v.year = ?1 AND v.make_id = ?2 AND v.model_id = ?3"
+    },
+    {
+      "params": [
+        2,
+        null
+      ],
+      "rows": [
+        [
+          3,
+          "3.5L Turbo V6",
+          "4G",
+          "vpic"
+        ],
+        [
+          4,
+          "5.0L V8",
+          "5",
+          "vpic"
+        ]
+      ],
+      "sql": "\nSELECT e.id, e.label, e.vin8, e.source FROM catalog_engine e\nWHERE e.detail_id = ?1\n  AND (?2 IS NULL\n       OR NOT EXISTS (SELECT 1 FROM catalog_submodel_engine x WHERE x.submodel_id = ?2)\n       OR e.id IN (SELECT engine_id FROM catalog_submodel_engine WHERE submodel_id = ?2))\nORDER BY e.label, e.id"
+    },
+    {
+      "params": [
+        "civicsi",
+        null,
+        2019,
+        1,
+        0,
+        20
+      ],
+      "rows": [],
+      "sql": "\nSELECT d.make_id, d.slug, MAX(v.year), d.norm = ?1, d.id\nFROM catalog_model d\nCROSS JOIN catalog_vehicle v ON v.model_id = d.id\nCROSS JOIN catalog_make m ON m.id = d.make_id\nWHERE d.norm >= ?1 AND d.norm < ?1 || '{'\n  AND (?2 IS NULL OR d.make_id = ?2)\n  AND (?4 = 0 OR d.light = 1) AND (?5 = 0 OR (d.types & ?5) <> 0)\n  AND (?3 IS NULL OR v.year = ?3)\n  AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)\nGROUP BY d.id\nORDER BY (d.norm = ?1) DESC, m.rank IS NULL, m.rank, d.name COLLATE NOCASE, d.id\nLIMIT ?6"
+    },
+    {
+      "params": [
+        "civic",
+        null,
+        2019,
+        1,
+        0,
+        20
+      ],
+      "rows": [
+        [
+          474,
+          "civic",
+          2019,
+          1,
+          1863
+        ]
+      ],
+      "sql": "\nSELECT d.make_id, d.slug, MAX(v.year), d.norm = ?1, d.id\nFROM catalog_model d\nCROSS JOIN catalog_vehicle v ON v.model_id = d.id\nCROSS JOIN catalog_make m ON m.id = d.make_id\nWHERE d.norm = ?1\n  AND (?2 IS NULL OR d.make_id = ?2)\n  AND (?4 = 0 OR d.light = 1) AND (?5 = 0 OR (d.types & ?5) <> 0)\n  AND (?3 IS NULL OR v.year = ?3)\n  AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)\nGROUP BY d.id\nORDER BY (d.norm = ?1) DESC, m.rank IS NULL, m.rank, d.name COLLATE NOCASE, d.id\nLIMIT ?6"
+    },
+    {
+      "params": [
+        "2019civicsi",
+        null,
+        null,
+        1,
+        0,
+        20
+      ],
+      "rows": [],
+      "sql": "\nSELECT d.make_id, d.slug, MAX(v.year), d.norm = ?1, d.id\nFROM catalog_model d\nCROSS JOIN catalog_vehicle v ON v.model_id = d.id\nCROSS JOIN catalog_make m ON m.id = d.make_id\nWHERE d.norm >= ?1 AND d.norm < ?1 || '{'\n  AND (?2 IS NULL OR d.make_id = ?2)\n  AND (?4 = 0 OR d.light = 1) AND (?5 = 0 OR (d.types & ?5) <> 0)\n  AND (?3 IS NULL OR v.year = ?3)\n  AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)\nGROUP BY d.id\nORDER BY (d.norm = ?1) DESC, m.rank IS NULL, m.rank, d.name COLLATE NOCASE, d.id\nLIMIT ?6"
+    },
+    {
+      "params": [
+        "2019civic",
+        null,
+        null,
+        1,
+        0,
+        20
+      ],
+      "rows": [],
+      "sql": "\nSELECT d.make_id, d.slug, MAX(v.year), d.norm = ?1, d.id\nFROM catalog_model d\nCROSS JOIN catalog_vehicle v ON v.model_id = d.id\nCROSS JOIN catalog_make m ON m.id = d.make_id\nWHERE d.norm = ?1\n  AND (?2 IS NULL OR d.make_id = ?2)\n  AND (?4 = 0 OR d.light = 1) AND (?5 = 0 OR (d.types & ?5) <> 0)\n  AND (?3 IS NULL OR v.year = ?3)\n  AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)\nGROUP BY d.id\nORDER BY (d.norm = ?1) DESC, m.rank IS NULL, m.rank, d.name COLLATE NOCASE, d.id\nLIMIT ?6"
+    },
+    {
+      "params": [
+        "2019",
+        null,
+        null,
+        1,
+        0,
+        20
+      ],
+      "rows": [],
+      "sql": "\nSELECT d.make_id, d.slug, MAX(v.year), d.norm = ?1, d.id\nFROM catalog_model d\nCROSS JOIN catalog_vehicle v ON v.model_id = d.id\nCROSS JOIN catalog_make m ON m.id = d.make_id\nWHERE d.norm = ?1\n  AND (?2 IS NULL OR d.make_id = ?2)\n  AND (?4 = 0 OR d.light = 1) AND (?5 = 0 OR (d.types & ?5) <> 0)\n  AND (?3 IS NULL OR v.year = ?3)\n  AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)\nGROUP BY d.id\nORDER BY (d.norm = ?1) DESC, m.rank IS NULL, m.rank, d.name COLLATE NOCASE, d.id\nLIMIT ?6"
+    },
+    {
+      "params": [
+        1863,
+        "si",
+        2019,
+        1,
+        0,
+        5
+      ],
+      "rows": [
+        [
+          "Si",
+          2019,
+          1
+        ]
+      ],
+      "sql": "\nSELECT s.name, MAX(v.year), s.norm = ?2\nFROM catalog_vehicle v JOIN catalog_submodel s ON s.detail_id = v.detail_id\nWHERE v.model_id = ?1\n  AND (s.norm = ?2 OR s.norm LIKE ?2 || '%')\n  AND (?3 IS NULL OR v.year = ?3)\n  AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)\nGROUP BY s.name\nORDER BY (s.norm = ?2) DESC, s.name COLLATE NOCASE\nLIMIT ?6"
+    },
+    {
+      "params": [
+        474,
+        "civic"
+      ],
+      "rows": [
+        [
+          1863,
+          "civic",
+          "Civic",
+          2018,
+          2020
+        ]
+      ],
+      "sql": "\nSELECT id, slug, name, year_from, year_to FROM catalog_model\nWHERE make_id = ?1 AND slug = ?2"
+    },
+    {
+      "params": [
+        "1500",
+        467,
+        null,
+        1,
+        0,
+        20
+      ],
+      "rows": [],
+      "sql": "\nSELECT d.make_id, d.slug, MAX(v.year), d.norm = ?1, d.id\nFROM catalog_model d\nCROSS JOIN catalog_vehicle v ON v.model_id = d.id\nCROSS JOIN catalog_make m ON m.id = d.make_id\nWHERE d.norm >= ?1 AND d.norm < ?1 || '{'\n  AND (?2 IS NULL OR d.make_id = ?2)\n  AND (?4 = 0 OR d.light = 1) AND (?5 = 0 OR (d.types & ?5) <> 0)\n  AND (?3 IS NULL OR v.year = ?3)\n  AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)\nGROUP BY d.id\nORDER BY (d.norm = ?1) DESC, m.rank IS NULL, m.rank, d.name COLLATE NOCASE, d.id\nLIMIT ?6"
+    },
+    {
+      "params": [
+        467,
+        "1500",
+        null,
+        1,
+        0,
+        20
+      ],
+      "rows": [
+        [
+          "silverado",
+          "1500",
+          2019,
+          1
+        ]
+      ],
+      "sql": "\nSELECT d.slug, s.name, MAX(v.year), s.norm = ?2\nFROM catalog_model d\nCROSS JOIN catalog_vehicle v ON v.model_id = d.id\nCROSS JOIN catalog_submodel s ON s.detail_id = v.detail_id\nWHERE d.make_id = ?1\n  AND (s.norm = ?2 OR s.norm LIKE ?2 || '%')\n  AND (?3 IS NULL OR v.year = ?3)\n  AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)\nGROUP BY d.id, s.name\nORDER BY (s.norm = ?2) DESC, MAX(v.year) DESC, d.name COLLATE NOCASE, s.name COLLATE NOCASE,\n         d.id, s.name\nLIMIT ?6"
+    },
+    {
+      "params": [
+        "chevy1500",
+        null,
+        null,
+        1,
+        0,
+        20
+      ],
+      "rows": [],
+      "sql": "\nSELECT d.make_id, d.slug, MAX(v.year), d.norm = ?1, d.id\nFROM catalog_model d\nCROSS JOIN catalog_vehicle v ON v.model_id = d.id\nCROSS JOIN catalog_make m ON m.id = d.make_id\nWHERE d.norm >= ?1 AND d.norm < ?1 || '{'\n  AND (?2 IS NULL OR d.make_id = ?2)\n  AND (?4 = 0 OR d.light = 1) AND (?5 = 0 OR (d.types & ?5) <> 0)\n  AND (?3 IS NULL OR v.year = ?3)\n  AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)\nGROUP BY d.id\nORDER BY (d.norm = ?1) DESC, m.rank IS NULL, m.rank, d.name COLLATE NOCASE, d.id\nLIMIT ?6"
+    },
+    {
+      "params": [
+        "chevy",
+        null,
+        null,
+        1,
+        0,
+        20
+      ],
+      "rows": [],
+      "sql": "\nSELECT d.make_id, d.slug, MAX(v.year), d.norm = ?1, d.id\nFROM catalog_model d\nCROSS JOIN catalog_vehicle v ON v.model_id = d.id\nCROSS JOIN catalog_make m ON m.id = d.make_id\nWHERE d.norm = ?1\n  AND (?2 IS NULL OR d.make_id = ?2)\n  AND (?4 = 0 OR d.light = 1) AND (?5 = 0 OR (d.types & ?5) <> 0)\n  AND (?3 IS NULL OR v.year = ?3)\n  AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)\nGROUP BY d.id\nORDER BY (d.norm = ?1) DESC, m.rank IS NULL, m.rank, d.name COLLATE NOCASE, d.id\nLIMIT ?6"
+    },
+    {
+      "params": [
+        467,
+        "silverado"
+      ],
+      "rows": [
+        [
+          1850,
+          "silverado",
+          "Silverado",
+          2019,
+          2019
+        ]
+      ],
+      "sql": "\nSELECT id, slug, name, year_from, year_to FROM catalog_model\nWHERE make_id = ?1 AND slug = ?2"
+    },
+    {
+      "params": [
+        2019,
+        467,
+        1850
+      ],
+      "rows": [
+        [
+          8,
+          3,
+          null,
+          null,
+          null
+        ]
+      ],
+      "sql": "\nSELECT v.types, v.detail_id, t.body, t.drive, t.transmission\nFROM catalog_vehicle v LEFT JOIN catalog_detail t ON t.id = v.detail_id\nWHERE v.year = ?1 AND v.make_id = ?2 AND v.model_id = ?3"
+    },
+    {
+      "params": [
+        3
+      ],
+      "rows": [
+        [
+          7,
+          "LT",
+          "trim",
+          1,
+          null,
+          null,
+          null
+        ],
+        [
+          8,
+          "1500",
+          "series",
+          0,
+          null,
+          null,
+          null
+        ]
+      ],
+      "sql": "\nSELECT id, name, kind, listed, body, drive, transmission\nFROM catalog_submodel WHERE detail_id = ?1 ORDER BY id"
+    },
+    {
+      "params": [
+        474,
+        null,
+        1,
+        0,
+        20
+      ],
+      "rows": [
+        [
+          474,
+          "civic",
+          2020,
+          0,
+          1863
+        ],
+        [
+          474,
+          "cr-v",
+          2019,
+          0,
+          1865
+        ]
+      ],
+      "sql": "\nSELECT d.make_id, d.slug, MAX(v.year), 0, d.id\nFROM catalog_model d JOIN catalog_vehicle v ON v.model_id = d.id\nWHERE d.make_id = ?1\n  AND (?2 IS NULL OR v.year = ?2)\n  AND (?3 = 0 OR v.light = 1) AND (?4 = 0 OR (v.types & ?4) <> 0)\nGROUP BY d.id\nORDER BY d.name COLLATE NOCASE, d.id\nLIMIT ?5"
+    },
+    {
+      "params": [
+        "honda",
+        null,
+        null,
+        1,
+        0,
+        20
+      ],
+      "rows": [],
+      "sql": "\nSELECT d.make_id, d.slug, MAX(v.year), d.norm = ?1, d.id\nFROM catalog_model d\nCROSS JOIN catalog_vehicle v ON v.model_id = d.id\nCROSS JOIN catalog_make m ON m.id = d.make_id\nWHERE d.norm >= ?1 AND d.norm < ?1 || '{'\n  AND (?2 IS NULL OR d.make_id = ?2)\n  AND (?4 = 0 OR d.light = 1) AND (?5 = 0 OR (d.types & ?5) <> 0)\n  AND (?3 IS NULL OR v.year = ?3)\n  AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)\nGROUP BY d.id\nORDER BY (d.norm = ?1) DESC, m.rank IS NULL, m.rank, d.name COLLATE NOCASE, d.id\nLIMIT ?6"
+    },
+    {
+      "params": [
+        474,
+        "cr-v"
+      ],
+      "rows": [
+        [
+          1865,
+          "cr-v",
+          "CR-V",
+          2019,
+          2019
+        ]
+      ],
+      "sql": "\nSELECT id, slug, name, year_from, year_to FROM catalog_model\nWHERE make_id = ?1 AND slug = ?2"
+    },
+    {
+      "params": [
+        2020,
+        474,
+        1863
+      ],
+      "rows": [
+        [
+          4,
+          4,
+          "Sedan",
+          "FWD",
+          "CVT"
+        ]
+      ],
+      "sql": "\nSELECT v.types, v.detail_id, t.body, t.drive, t.transmission\nFROM catalog_vehicle v LEFT JOIN catalog_detail t ON t.id = v.detail_id\nWHERE v.year = ?1 AND v.make_id = ?2 AND v.model_id = ?3"
+    },
+    {
+      "params": [
+        2019,
+        474,
+        1865
+      ],
+      "rows": [
+        [
+          128,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "sql": "\nSELECT v.types, v.detail_id, t.body, t.drive, t.transmission\nFROM catalog_vehicle v LEFT JOIN catalog_detail t ON t.id = v.detail_id\nWHERE v.year = ?1 AND v.make_id = ?2 AND v.model_id = ?3"
+    },
+    {
+      "params": [
+        "zzzz",
+        null,
+        null,
+        1,
+        0,
+        20
+      ],
+      "rows": [],
+      "sql": "\nSELECT d.make_id, d.slug, MAX(v.year), d.norm = ?1, d.id\nFROM catalog_model d\nCROSS JOIN catalog_vehicle v ON v.model_id = d.id\nCROSS JOIN catalog_make m ON m.id = d.make_id\nWHERE d.norm >= ?1 AND d.norm < ?1 || '{'\n  AND (?2 IS NULL OR d.make_id = ?2)\n  AND (?4 = 0 OR d.light = 1) AND (?5 = 0 OR (d.types & ?5) <> 0)\n  AND (?3 IS NULL OR v.year = ?3)\n  AND (?4 = 0 OR v.light = 1) AND (?5 = 0 OR (v.types & ?5) <> 0)\nGROUP BY d.id\nORDER BY (d.norm = ?1) DESC, m.rank IS NULL, m.rank, d.name COLLATE NOCASE, d.id\nLIMIT ?6"
+    },
+    {
+      "params": [
+        474,
+        "nothing"
+      ],
+      "rows": [],
+      "sql": "\nSELECT id, slug, name, year_from, year_to FROM catalog_model\nWHERE make_id = ?1 AND slug = ?2"
+    }
+  ]
+}

@@ -2362,6 +2362,7 @@ dependencies = [
  "utoipa",
  "utoipa-axum",
  "wenmar-open-turso",
+ "wenmar-open-wasm",
  "wenmar-vehicles",
  "wenmar-vin",
 ]
