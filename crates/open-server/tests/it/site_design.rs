@@ -7,7 +7,7 @@ use axum::http::StatusCode;
 use crate::common::{self, assert_basics, assert_head, assert_targets, page};
 
 /// One page of every kind that exists at this point of the plan.
-const PAGES: [&str; 14] = [
+const PAGES: [&str; 15] = [
     "/",
     "/makes",
     "/makes/honda",
@@ -20,6 +20,7 @@ const PAGES: [&str; 14] = [
     "/vin/KM8K2",
     "/tools",
     "/tools/parts-matrix",
+    "/tools/gross-profit",
     "/tools/labor-rate",
     "/nothing",
 ];
@@ -414,6 +415,54 @@ async fn the_labor_rate_page_fits_a_small_phone_and_prints_its_form_and_results(
     let form = html.split("<form").nth(1).unwrap();
     let form = form.split("</form>").next().unwrap();
     assert!(form.contains(r#"<h2 id="needed">"#) && form.contains(r#"<h2 id="getting">"#));
+    // Not printed: the button, the print button, the link to Wenmar Pro.
+    assert!(html.contains(r#"<div class="screen"><button class="primary" type="submit">"#));
+    assert!(html.contains(
+        "<div class=\"actions\">\n<button type=\"button\" data-print hidden>Print</button>"
+    ));
+    assert!(html.contains(r#"<p class="pro">"#));
+}
+
+#[tokio::test]
+async fn the_gross_profit_page_fits_a_small_phone_and_prints_its_form_and_result() {
+    let css = stylesheet().await;
+    let app = common::app().await;
+    let (_, html) = page(&app, "/tools/gross-profit").await;
+    assert_targets(&html, "/tools/gross-profit");
+    // Six boxes, one to a row, each inside the shared piece that puts its
+    // message under it. No box asks for a width of its own, and the page
+    // has no rule of its own in the stylesheet.
+    assert_eq!(html.matches(r#"<div class="field">"#).count(), 6);
+    assert_eq!(html.matches("<input ").count(), 6);
+    assert!(!html.contains(r#"class="tier"#));
+    assert!(!html.contains(" size=") && !html.contains("style="));
+    assert!(!css.contains("gross") && !css.contains("sublet"));
+    // Every label is one line at 320 pixels.
+    for label in html.split("<label for=").skip(1) {
+        let text = label.split('>').nth(1).unwrap();
+        let text = text.split("</label").next().unwrap();
+        assert!(text.len() <= 23, "{text}");
+    }
+    // Five columns of figures are wider than a phone: the table keeps each
+    // on one line and scrolls inside its own box, and the page does not.
+    assert!(css.contains(".scroll{overflow-x:auto}"));
+    assert!(
+        css.contains(
+            "table.prose th,table.prose td:not(:last-child){width:auto;white-space:nowrap}"
+        )
+    );
+    assert_eq!(
+        html.matches(
+            "<div class=\"scroll\">\n<table class=\"prose\">\n<caption>Gross profit for the period</caption>"
+        )
+        .count(),
+        1
+    );
+    assert_eq!(html.matches("<table").count(), 1);
+    // Printed: the form and the result.
+    let print = css.split("@media print{").nth(1).expect("print rules");
+    assert!(print.contains("form:not(.calc)"));
+    assert_eq!(html.matches(r#"<form class="calc" id="calc""#).count(), 1);
     // Not printed: the button, the print button, the link to Wenmar Pro.
     assert!(html.contains(r#"<div class="screen"><button class="primary" type="submit">"#));
     assert!(html.contains(
