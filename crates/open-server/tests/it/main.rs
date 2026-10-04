@@ -25,6 +25,7 @@ mod site_head;
 mod site_home;
 mod site_pages;
 mod site_seo;
+mod site_tools;
 mod site_vin;
 mod site_wmi;
 mod vin_rows;

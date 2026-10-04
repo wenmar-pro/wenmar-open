@@ -49,6 +49,7 @@
 <a class="by" href="{{ page.pro_header }}">by Wenmar Pro</a>
 <nav aria-label="Site">
 <a href="/makes"{% if page.section == "makes" %} aria-current="page"{% endif %}>Makes</a>
+<a href="/tools"{% if page.section == "tools" %} aria-current="page"{% endif %}>Tools</a>
 <a href="/guides"{% if page.section == "guides" %} aria-current="page"{% endif %}>VIN guide</a>
 <a href="/docs"{% if page.section == "docs" %} aria-current="page"{% endif %}>API</a>
 <a href="/data"{% if page.section == "data" %} aria-current="page"{% endif %}>Data</a>
@@ -68,7 +69,9 @@
 {% block content %}{% endblock %}
 </main>
 <footer>
+{% if page.vehicle_data -%}
 <p>Data version {{ page.data_version }}, from NHTSA vPIC.</p>
+{% endif -%}
 <p class="screen"><a href="/data">About the data</a>. For AI agents: <a href="/llms.txt">llms.txt</a> and <a href="/docs#for-ai-agents">how to use the API</a>.</p>
 </footer>
 <script src="/assets/site.js?v={{ page.asset_version }}" defer></script>

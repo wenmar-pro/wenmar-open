@@ -224,11 +224,13 @@ async fn print_is_black_on_white_whatever_the_scheme() {
 
 #[tokio::test]
 async fn a_small_phone_gets_two_header_rows_and_whole_words() {
-    // Seen in a browser at 320 pixels: the five navigation links need 221
-    // pixels and have 272, so the space between them must be under 12.
+    // Measured in a browser at 320 pixels: the six navigation links need
+    // 261 pixels at the text size and have 272, which leaves no room
+    // between them. At the small size they need 228, so the space between
+    // them must be under 8.
     let css = stylesheet().await;
     assert!(css.contains(
-        "@media (max-width:599px){.top nav{flex-basis:100%;margin-left:0;justify-content:space-between;gap:0 8px}}"
+        "@media (max-width:599px){.top nav{flex-basis:100%;margin-left:0;justify-content:space-between;gap:0 6px;font-size:var(--small)}}"
     ));
     // "Displacement," is 106 pixels wide and the label column of a spec
     // sheet is 270 pixels times this, less 8 of padding.

@@ -76,7 +76,7 @@ pub struct Page {
     /// The site's public address, for the full addresses the head needs.
     pub base: String,
     /// The entry of the header's navigation the page belongs under:
-    /// `makes`, `guides`, `docs`, `data`, `about`, or nothing.
+    /// `makes`, `tools`, `guides`, `docs`, `data`, `about`, or nothing.
     pub section: &'static str,
     /// The pages above this one, as name and address, outermost first.
     /// They are shown above the heading.
@@ -89,6 +89,9 @@ pub struct Page {
     /// Structured data, already made safe for a script element. Only an
     /// indexed page shows it.
     pub json_ld: Option<String>,
+    /// Whether the page shows vehicle data, and so says in its footer
+    /// which data version it was read from. A calculator does not.
+    pub vehicle_data: bool,
 }
 
 impl Page {
@@ -109,6 +112,7 @@ impl Page {
             mono_first: false,
             og_type: "website",
             json_ld: None,
+            vehicle_data: true,
         }
     }
 
@@ -116,6 +120,20 @@ impl Page {
     pub fn indexed(mut self, state: &AppState, path: &str) -> Page {
         self.canonical = Some(format!("{}{path}", state.config().base_url));
         self.index = true;
+        self
+    }
+
+    /// Says the address asked for had a query string. Such a page is not
+    /// indexed, and it still names the bare address as the one that is.
+    pub fn with_query(mut self) -> Page {
+        self.index = false;
+        self
+    }
+
+    /// Says the page shows no vehicle data, so its footer names no data
+    /// version.
+    pub fn without_vehicle_data(mut self) -> Page {
+        self.vehicle_data = false;
         self
     }
 
@@ -396,6 +414,9 @@ pub fn router() -> Router<AppState> {
         .route("/guides", get(guides::index_html))
         .route("/guides.md", get(guides::index_md))
         .route("/guides/{page}", get(guides::guide))
+        .route("/tools", get(tools::index_html))
+        .route("/tools.md", get(tools::index_md))
+        .route("/tools/{page}", get(tools::tool))
         .route("/docs", get(pages::docs_html))
         .route("/docs.md", get(pages::docs_md))
         .route("/data", get(pages::data_html))

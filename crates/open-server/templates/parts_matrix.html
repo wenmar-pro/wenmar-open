@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% import "tool.html" as piece %}
+{% block content %}
+{% call piece::opening(tool) %}
+<ul class="plain links screen">
+{% for preset in presets -%}
+<li><a href="{{ preset.1 }}">{{ preset.0 }}</a></li>
+{% endfor -%}
+</ul>
+<p class="note screen">{{ illustrations }}</p>
+<form class="calc" id="calc" action="{{ tool.path() }}#result" method="get">
+{% if example -%}
+<p class="note">The form is filled in with an example. Change the figures and press the button.</p>
+{% endif -%}
+{% if let Some(error) = form.error -%}
+<p class="warning" id="calc-error">{{ error }}</p>
+{% endif -%}
+<div class="field">
+<label for="kind">The percent in each row is a</label>
+<select id="kind" name="kind">
+<option value="markup"{% if !form.margin %} selected{% endif %}>Markup: profit as a percent of cost</option>
+<option value="margin"{% if form.margin %} selected{% endif %}>Margin: profit as a percent of the price</option>
+</select>
+</div>
+<p class="help">Up to eight rows, lowest cost first. Empty rows are ignored. Share is the row's share of what the shop spends on parts: leave the column empty, or make it add to 100. The last row used has no upper limit, whatever its "cost up to" says.</p>
+{% for row in form.rows -%}
+<div class="tier{% if !loop.first %} rest{% endif %}{% if row.is_empty() %} screen{% endif %}" role="group" aria-label="Row {{ row.number }}">
+<span class="n" aria-hidden="true">{{ row.number }}</span>
+<div>{% call piece::input(row.cost) %}</div>
+<div>{% call piece::input(row.rate) %}</div>
+<div>{% call piece::input(row.share) %}</div>
+{% for field in row.fields() -%}
+{% if let Some(error) = field.error -%}
+<p class="warning" id="{{ field.error_id() }}">{{ error }}</p>
+{% endif -%}
+{% endfor -%}
+</div>
+{% endfor -%}
+{% call piece::field(form.part) %}
+<div class="screen"><button class="primary" type="submit">Work it out</button></div>
+</form>
+<h2 id="result">Result</h2>
+{% if let Some(shown) = shown -%}
+{% if example -%}
+<p class="note">This is the result of the example in the form.</p>
+{% endif -%}
+{% call piece::actions() %}
+{% call piece::table(shown.table) %}
+<p>{{ shown.last }}</p>
+{% if let Some(part) = shown.part -%}
+<p><strong>{{ part }}</strong></p>
+{% endif -%}
+{% if let Some(blended) = shown.blended -%}
+{% call piece::target(blended) %}
+{% else -%}
+<p class="note">Fill in the share column to see the blended margin: total profit over total sales across the rows, on your own mix of parts.</p>
+{% endif -%}
+<p>{{ usual_markup }}</p>
+{% else -%}
+{% call piece::no_result(troubles) %}
+{% endif -%}
+{% call piece::how(how) %}
+{% call piece::closing(tool) %}
+{% endblock %}
