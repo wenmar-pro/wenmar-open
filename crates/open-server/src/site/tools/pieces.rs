@@ -190,6 +190,21 @@ mod tests {
             ("target.rs", include_str!("target.rs")),
             ("field.rs", include_str!("field.rs")),
             ("mod.rs", include_str!("mod.rs")),
+            (
+                "parts_matrix.html",
+                include_str!("../../../templates/parts_matrix.html"),
+            ),
+            ("parts_matrix/mod.rs", include_str!("parts_matrix/mod.rs")),
+            ("parts_matrix/form.rs", include_str!("parts_matrix/form.rs")),
+            (
+                "parts_matrix/presets.rs",
+                include_str!("parts_matrix/presets.rs"),
+            ),
+            (
+                "parts_matrix/result.rs",
+                include_str!("parts_matrix/result.rs"),
+            ),
+            ("parts_matrix/doc.rs", include_str!("parts_matrix/doc.rs")),
         ];
         for (name, text) in files {
             let code = text.split("#[cfg(test)]").next().unwrap();

@@ -53,6 +53,12 @@ form.calc{gap:12px;margin-bottom:24px}
 form.calc input{font-family:inherit;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
 input[aria-invalid]{border-color:var(--warn-text);box-shadow:0 0 0 1px var(--warn-text)}
 .field .warning{margin:4px 0 0}
+.tier{display:grid;grid-template-columns:1em repeat(3,minmax(0,1fr));gap:0 8px;align-items:end}
+.tier input{padding:8px 6px}
+.tier label,.tier .n{font-size:var(--small)}
+.tier .n{display:flex;align-items:center;min-height:var(--touch);color:var(--secondary)}
+.tier.rest label{position:absolute;left:-999px}
+.tier .warning{grid-column:1/-1;margin:4px 0 0}
 table{width:100%;table-layout:fixed;border-collapse:collapse;margin:0 0 24px;font-variant-numeric:tabular-nums}
 caption{text-align:left;color:var(--heading);font-size:var(--section);font-weight:var(--semibold);letter-spacing:-.01em;padding:0 0 4px}
 th,td{text-align:left;vertical-align:top;padding:8px 8px 8px 0;border-bottom:1px solid var(--border)}
@@ -72,6 +78,6 @@ ul.plain a[aria-current]{color:var(--heading);font-weight:var(--semibold)}
 .more{margin:0}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:no-preference){a,button,input,select{transition:color 75ms,background-color 75ms,border-color 75ms}}
-@media (max-width:599px){.top nav{flex-basis:100%;margin-left:0;justify-content:space-between;gap:0 8px}}
+@media (max-width:599px){.top nav{flex-basis:100%;margin-left:0;justify-content:space-between;gap:0 6px;font-size:var(--small)}}
 @media (min-width:600px){main{padding:32px}form.vin{grid-template-columns:1fr auto;align-items:end}form.vin label,form.vin .help{grid-column:1/-1}form.pick{grid-template-columns:1fr 2fr auto;align-items:end}form.pick label{grid-row:1}form.pick select,form.pick button{grid-row:2}}
 @media print{:root{color-scheme:light;--page:#fff;--surface:#fff;--inset:#fff;--border:#bbb;--border-strong:#888;--control:#666;--heading:#000;--body:#000;--secondary:#333;--warn-text:#000;--warn-bg:#fff;--brand:#000}body{padding:0}.skip,.by,.top nav,.crumbs,.actions,form:not(.calc),.screen,.pro,.more{display:none!important}.top,footer{padding-left:0;padding-right:0}main{border:0;box-shadow:none;padding:0}th,td{padding:4px 8px 4px 0}table{break-inside:avoid}a{text-decoration:none}}
