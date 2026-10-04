@@ -222,6 +222,8 @@ pub async fn sitemap(
         "pages" => {
             let mut paths: Vec<String> = ["/", "/makes", "/guides"].map(str::to_owned).to_vec();
             paths.extend(site::guides::GUIDES.iter().map(|guide| guide.path()));
+            paths.push("/tools".to_owned());
+            paths.extend(site::tools::TOOLS.iter().map(|tool| tool.path()));
             paths.extend(["/docs", "/data", "/about"].map(str::to_owned));
             Ok(Some(paths))
         }

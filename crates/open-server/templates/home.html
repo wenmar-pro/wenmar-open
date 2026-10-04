@@ -20,6 +20,12 @@
 <button type="submit">Show models</button>
 </form>
 <p class="note">Free, with no account and no key. The data is what manufacturers reported to NHTSA.</p>
+<h2>Shop calculators</h2>
+<ul class="plain links">
+{% for tool in tools -%}
+<li><a href="{{ tool.path() }}">{{ tool.title }}</a></li>
+{% endfor -%}
+</ul>
 <h2>About VINs</h2>
 <ul class="plain links">
 {% for guide in guides -%}

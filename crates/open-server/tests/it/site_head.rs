@@ -238,7 +238,11 @@ async fn titles_and_descriptions_are_for_what_people_search_and_are_unique() {
         assert_head(&html, path);
     }
     for (path, expected) in [
-        ("/", "Free VIN decoder for auto repair shops - Wenmar Open"),
+        ("/", "Free VIN decoder and shop calculators - Wenmar Open"),
+        (
+            "/tools/parts-matrix",
+            "Parts markup matrix calculator - Wenmar Open",
+        ),
         (
             "/makes",
             "Car and truck makes, with models by year - Wenmar Open",
