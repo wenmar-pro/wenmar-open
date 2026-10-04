@@ -1,6 +1,7 @@
 //! `/tools/labor-rate`: the hourly rate a shop needs, and the rate it is
 //! getting.
 
+pub mod doc;
 pub mod form;
 pub mod result;
 
