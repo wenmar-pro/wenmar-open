@@ -23,6 +23,7 @@ mod site_design;
 mod site_guides;
 mod site_head;
 mod site_home;
+mod site_labor_rate;
 mod site_pages;
 mod site_seo;
 mod site_tools;

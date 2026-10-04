@@ -41,7 +41,7 @@ async fn the_tools_index_lists_each_calculator_and_has_a_markdown_version() {
         r#"<li><a href="https://open.example/tools/parts-matrix">Parts markup matrix calculator</a></li>"#
     ));
     // Only calculators that exist are listed.
-    for missing in ["labor-rate", "gross-profit", "canada-invoice-tax"] {
+    for missing in ["gross-profit", "canada-invoice-tax"] {
         assert!(!html.contains(missing), "{missing}");
     }
     // No account, no email, no pop-up: the page has no field at all.
@@ -559,7 +559,6 @@ async fn a_calculator_that_does_not_exist_is_404() {
         "/tools/nothing.md",
         "/tools/PARTS-MATRIX",
         "/tools/parts-matrix/extra",
-        "/tools/labor-rate",
         "/tools/%ff",
         "/tools/..%2Fdocs",
         "/tools/",
@@ -617,6 +616,24 @@ async fn the_calculators_are_reached_from_the_home_page_the_sitemap_and_llms_txt
     );
     for path in ["/tools.md", "/tools/parts-matrix.md"] {
         assert_eq!(app.get(path).await.status(), StatusCode::OK, "{path}");
+    }
+    // The labor rate calculator is in each of the same places.
+    assert!(home.contains(
+        r#"<li><a href="/tools/labor-rate">Labor rate calculator for auto repair shops</a></li>"#
+    ));
+    assert!(sitemap.contains("<loc>https://open.example/tools/labor-rate</loc>"));
+    assert!(!sitemap.contains("labor-rate?"));
+    assert!(text.contains(
+        "- [Labor rate calculator for auto repair shops](https://open.example/tools/labor-rate.md): Works out the hourly labor rate"
+    ));
+    let (_, labor_rate) = page(&app, "/tools/labor-rate.md").await;
+    let (_, all) = page(&app, "/llms-full.txt").await;
+    assert!(all.contains("\n## Labor rate calculator for auto repair shops\n"));
+    for line in labor_rate
+        .lines()
+        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+    {
+        assert!(all.contains(line), "missing: {line}");
     }
     // llms-full.txt holds the calculator's Markdown, line for line.
     let (_, full) = page(&app, "/llms-full.txt").await;
