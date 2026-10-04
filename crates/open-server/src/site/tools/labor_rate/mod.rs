@@ -2,6 +2,7 @@
 //! getting.
 
 pub mod form;
+pub mod result;
 
 /// The page's address, its heading and its one sentence.
 pub const PATH: &str = "/tools/labor-rate";
