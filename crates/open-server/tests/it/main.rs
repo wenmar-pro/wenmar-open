@@ -18,6 +18,7 @@ mod search_speed;
 mod serve;
 mod site;
 mod site_assets;
+mod site_canada_invoice_tax;
 mod site_catalog;
 mod site_design;
 mod site_gross_profit;

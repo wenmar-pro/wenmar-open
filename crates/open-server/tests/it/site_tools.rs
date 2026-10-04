@@ -40,8 +40,6 @@ async fn the_tools_index_lists_each_calculator_and_has_a_markdown_version() {
     assert!(html.contains(
         r#"<li><a href="https://open.example/tools/parts-matrix">Parts markup matrix calculator</a></li>"#
     ));
-    // Only calculators that exist are listed.
-    assert!(!html.contains("canada-invoice-tax"));
     // No account, no email, no pop-up: the page has no field at all.
     assert!(!html.contains("<input") && !html.contains("<form"));
     let text = markdown(&app, "/tools.md").await;
@@ -614,6 +612,24 @@ async fn the_calculators_are_reached_from_the_home_page_the_sitemap_and_llms_txt
     );
     for path in ["/tools.md", "/tools/parts-matrix.md"] {
         assert_eq!(app.get(path).await.status(), StatusCode::OK, "{path}");
+    }
+    // The Canadian invoice calculator is in each of the same places.
+    assert!(home.contains(
+        r#"<li><a href="/tools/canada-invoice-tax">Canadian invoice tax and tire fee calculator</a></li>"#
+    ));
+    assert!(sitemap.contains("<loc>https://open.example/tools/canada-invoice-tax</loc>"));
+    assert!(!sitemap.contains("canada-invoice-tax?"));
+    assert!(text.contains(
+        "- [Canadian invoice tax and tire fee calculator](https://open.example/tools/canada-invoice-tax.md): Works out the GST, HST, PST or QST"
+    ));
+    let (_, canada) = page(&app, "/tools/canada-invoice-tax.md").await;
+    let (_, all) = page(&app, "/llms-full.txt").await;
+    assert!(all.contains("\n## Canadian invoice tax and tire fee calculator\n"));
+    for line in canada
+        .lines()
+        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+    {
+        assert!(all.contains(line), "missing: {line}");
     }
     // The gross profit calculator is in each of the same places.
     assert!(home.contains(

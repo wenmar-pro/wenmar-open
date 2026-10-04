@@ -72,6 +72,9 @@
 {% if page.vehicle_data -%}
 <p>Data version {{ page.data_version }}, from NHTSA vPIC.</p>
 {% endif -%}
+{% if let Some(rates) = page.rates -%}
+<p>{{ rates }} <a href="#sources">Sources for these rates</a>.</p>
+{% endif -%}
 <p class="screen"><a href="/data">About the data</a>. For AI agents: <a href="/llms.txt">llms.txt</a> and <a href="/docs#for-ai-agents">how to use the API</a>.</p>
 </footer>
 <script src="/assets/site.js?v={{ page.asset_version }}" defer></script>
