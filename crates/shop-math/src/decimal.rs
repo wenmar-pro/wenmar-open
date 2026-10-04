@@ -111,3 +111,31 @@ pub(crate) fn write(units: u64, places: u32, keep: u32, grouped: bool) -> String
     }
     text
 }
+
+/// The factors multiplied together, or `None` if the product does not fit.
+pub(crate) fn product(factors: &[i128]) -> Option<i128> {
+    factors
+        .iter()
+        .try_fold(1_i128, |product, factor| product.checked_mul(*factor))
+}
+
+/// `numerator ÷ denominator` to the nearest whole number, halves away from
+/// zero. This is the one place the crate rounds. `None` when either number
+/// is missing, the denominator is zero, or the result does not fit.
+pub(crate) fn div_round(numerator: Option<i128>, denominator: Option<i128>) -> Option<i64> {
+    let (numerator, denominator) = (numerator?, denominator?);
+    if denominator == 0 {
+        return None;
+    }
+    let below_zero = (numerator < 0) != (denominator < 0);
+    let (numerator, denominator) = (numerator.unsigned_abs(), denominator.unsigned_abs());
+    let quotient = numerator / denominator;
+    let remainder = numerator % denominator;
+    let rounded = if remainder >= denominator - remainder {
+        quotient.checked_add(1)?
+    } else {
+        quotient
+    };
+    let rounded = i128::try_from(rounded).ok()?;
+    i64::try_from(if below_zero { -rounded } else { rounded }).ok()
+}
