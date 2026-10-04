@@ -244,6 +244,10 @@ async fn titles_and_descriptions_are_for_what_people_search_and_are_unique() {
             "Parts markup matrix calculator - Wenmar Open",
         ),
         (
+            "/tools/gross-profit",
+            "Gross profit calculator for auto repair shops - Wenmar Open",
+        ),
+        (
             "/tools/labor-rate",
             "Labor rate calculator for auto repair shops - Wenmar Open",
         ),
