@@ -30,7 +30,13 @@ wenmar-open-turso.workspace = true
 wenmar-vehicles.workspace = true
 wenmar-vin.workspace = true
 
+[build-dependencies]
+basic-toml = "0.1.10"
+serde.workspace = true
+shop-math = { path = "../shop-math" }
+
 [dev-dependencies]
+basic-toml = "0.1.10"
 http-body-util = "0.1.5"
 rusqlite = { version = "0.40.2", features = ["bundled"] }
 tempfile = "3.27.0"

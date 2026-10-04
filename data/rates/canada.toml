@@ -1,0 +1,685 @@
+# The sales taxes and the new-tire fees on a retail repair invoice, for each
+# Canadian province and territory.
+#
+# This is the one place a rate, a rule or a fee is written. The server's
+# build reads it (crates/open-server/rates_build.rs) and stops if it is not
+# as described here, so a mistake never reaches a visitor.
+#
+# Change it only from a source: the tax authority's or the stewardship
+# body's own page, read in full. Then set `as_of` to the day it was read.
+# Check every entry when a rate changes and at least once a year.
+#
+# The schema
+#
+#   schema, currency      1 and "CAD".
+#   [source.<id>]         A page a figure was read from. `title` says whose
+#                         page it is and what it is; `url` is its address.
+#                         `archived` is there when the page could not be
+#                         read directly and the Internet Archive's copy of
+#                         that date (a year, a month or a day) was read.
+#   [[province]]          `code`, `name`, `as_of` (the day the entry was
+#                         checked) and `confirmed`.
+#     confirmed           true only when every rule the calculator uses for
+#                         the province has a source. The calculator works
+#                         nothing out for a province that is not confirmed.
+#     missing             What is not yet known. Empty when confirmed.
+#     notes               Sentences the page shows with the result.
+#     to_check            Weak points in the evidence, for whoever checks
+#                         the file next. Not shown.
+#   [[province.tax]]      `name`, `rate` (a percent, as text), and whether
+#                         the tax is charged on labour, on parts, on a shop
+#                         supplies charge and on the tire fee.
+#     on_other_taxes      Whether the tax is calculated on a price that
+#                         already holds another tax. It is false
+#                         everywhere, and the build refuses true: the
+#                         calculator has no arithmetic for it.
+#     sources             The ids of the pages that state the rate and each
+#                         rule. At least one.
+#   [[province.tire_fee]] One class of new tire: `class` (the name of its
+#                         field in the page's address: small letters,
+#                         digits and _), `label` (what a shop would call
+#                         it, to follow the words "New tires:"), `amount`
+#                         (dollars, as text), `effective` (the day the
+#                         amount took effect, when a source gives it) and
+#                         `sources`.
+#   [province.no_tire_fee] In place of tire fees, for a province that is
+#                         known to set none: `statement` (shown on the
+#                         page) and `sources`.
+
+schema = 1
+currency = "CAD"
+
+# Federal
+
+[source.cra_rates]
+title = "Canada Revenue Agency: GST/HST calculator and rates by province"
+url = "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/charge-collect-which-rate/calculator.html"
+
+[source.cra_which_rate]
+title = "Canada Revenue Agency: which GST/HST rate to charge"
+url = "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/charge-collect-which-rate.html"
+
+[source.cra_memo_3_5]
+title = "Canada Revenue Agency: GST/HST Memorandum 3-5, application of the GST/HST to other taxes, duties and fees"
+url = "https://www.canada.ca/en/revenue-agency/services/forms-publications/publications/3-5/application-gst-hst-other-taxes-duties-fees.html"
+
+[source.rq_taxable_supplies]
+title = "Revenu Québec: taxable supplies (in French)"
+url = "https://www.revenuquebec.ca/fr/entreprises/taxes/tpstvh-et-tvq/regles-de-base-relatives-a-lapplication-de-la-tpstvh-et-de-la-tvq/types-de-fournitures/fournitures-taxables/"
+archived = "2025-08-09"
+
+# British Columbia
+
+[source.bc_pst_118]
+title = "British Columbia: Bulletin PST 118, vehicle services and parts"
+url = "https://www2.gov.bc.ca/assets/gov/taxes/sales-taxes/publications/pst-118-vehicle-services-parts.pdf"
+
+[source.bc_small_business_guide]
+title = "British Columbia: small business guide to PST"
+url = "https://www2.gov.bc.ca/gov/content/taxes/sales-taxes/pst/publications/small-business-guide"
+
+[source.bc_pst_faq]
+title = "British Columbia: PST frequently asked questions"
+url = "https://www2.gov.bc.ca/gov/content/taxes/sales-taxes/pst/faqs"
+
+[source.tsbc_annual_2024]
+title = "Tire Stewardship BC: 2024 annual report"
+url = "https://tsbc.ca/wp-content/uploads/2025/06/Final-2024-annual-report_published.pdf"
+
+[source.tsbc_fees]
+title = "Tire Stewardship BC: tire recycling in BC"
+url = "https://tsbc.ca/tire-recycling-in-bc/"
+
+# Alberta
+
+[source.arma_fees]
+title = "Alberta Recycling Management Authority: tire products, definitions and fees"
+url = "https://files.albertarecycling.ca/Tires_Products-Definitions-and-Fees.pdf"
+
+[source.arma_tires]
+title = "Alberta Recycling Management Authority: tires"
+url = "https://www.albertarecycling.ca/stewardship-recycling/tires/"
+
+# Saskatchewan
+
+[source.sk_pst_15]
+title = "Saskatchewan: Bulletin PST-15, service stations and auto repair"
+url = "https://sets.saskatchewan.ca/rptp/wcm/connect/39fc5023-107a-41dd-8da4-51963826a57b/PST.015+Service+Station+and+Auto+Repair.pdf"
+
+[source.sk_in_2023_05]
+title = "Saskatchewan: Information Notice IN 2023-05, disposal and environmental fees"
+url = "https://sets.saskatchewan.ca/rptp/wcm/connect/7e375362-7bfd-4242-b0f1-c631cae6e2f4/IN+2023-05+Disposal+and+Environmental+Fees.pdf"
+
+[source.sk_pst_5]
+title = "Saskatchewan: Bulletin PST-5, registration and reporting requirements"
+url = "https://sets.saskatchewan.ca/rptp/wcm/connect/559aa7c9-984d-405a-8ddf-c91848dd8dd7/PST.005+Registration+and+Reporting+Requirements.pdf"
+
+[source.tss_table]
+title = "Tire Stewardship of Saskatchewan: tire classification and fee table"
+url = "https://tssk.ca/wp-content/uploads/2026/03/Classification_Table_NEW.pdf"
+
+[source.tss_notice_2025]
+title = "Tire Stewardship of Saskatchewan: notice to retailers of the fee increase of December 2025"
+url = "https://tssk.ca/wp-content/uploads/2026/03/TSS_Retailer_Notification_Fee_Increase_October_2025v1.docx"
+
+# Manitoba
+
+[source.mb_bulletin_004]
+title = "Manitoba: retail sales tax Bulletin 004"
+url = "https://gov.mb.ca/finance/taxation/pubs/bulletins/004.pdf"
+
+[source.mb_bulletin_012]
+title = "Manitoba: retail sales tax Bulletin 012, motor vehicle dealers"
+url = "https://www.gov.mb.ca/finance/taxation/pubs/bulletins/012.pdf"
+
+[source.tsm_fees]
+title = "Tire Stewardship Manitoba: steward fees"
+url = "https://www.tirestewardshipmb.ca/retailers/steward-fees"
+
+[source.tsm_news_2026]
+title = "Tire Stewardship Manitoba: steward fee increase effective July 1, 2026"
+url = "https://www.tirestewardshipmb.ca/tsm-news/steward-fee-increase-effective-july-1-2026-1"
+
+[source.tsm_news_2021]
+title = "Tire Stewardship Manitoba: steward fee increase effective July 1, 2021"
+url = "https://www.tirestewardshipmb.ca/tsm-news/steward-fee-increase-effective-july-1-2021"
+
+# Ontario
+
+[source.rpra_fees]
+title = "Resource Productivity and Recovery Authority: environmental fees on products sold in Ontario"
+url = "https://rpra.ca/environmental-fees-on-products-sold-in-ontario/"
+
+# Quebec
+
+[source.rq_calculating]
+title = "Revenu Québec: calculating the taxes"
+url = "https://www.revenuquebec.ca/en/businesses/consumption-taxes/gsthst-and-qst/collecting-gst-and-qst/calculating-the-taxes/"
+archived = "2026-08-26"
+
+[source.rq_tire_duty]
+title = "Revenu Québec: the specific duty on new tires (in French)"
+url = "https://www.revenuquebec.ca/fr/citoyens/taxes/biens-et-services-taxables-detaxes-ou-exoneres/droit-specifique-sur-les-pneus-neufs/"
+archived = "2025-08-26"
+
+[source.rq_tire_duty_taxes]
+title = "Revenu Québec: buying a road vehicle fitted with new tires (in French)"
+url = "https://www.revenuquebec.ca/fr/citoyens/taxes/biens-et-services-taxables-detaxes-ou-exoneres/tps-et-tvq/transport-et-vehicules-routiers/vehicules-routiers-citoyens/achat-dun-vehicule-routier-muni-de-pneus-neufs/"
+archived = "2025-08-24"
+
+[source.recyc_quebec_tires]
+title = "RECYC-QUÉBEC: tires (in French)"
+url = "https://www.recyc-quebec.gouv.qc.ca/entreprises-organismes/ic-i/pneus/"
+
+# New Brunswick
+
+[source.recyclenb_tires]
+title = "Recycle NB: tire program for industry"
+url = "https://www.recyclenb.com/industry-tire-program"
+
+# Nova Scotia
+
+[source.divertns_fees]
+title = "Divert NS: what environmental fees are and what they are used for"
+url = "https://divertns.ca/faq/what-are-environmental-fees-and-what-are-they-used"
+
+# Prince Edward Island
+
+[source.pe_environment_tax_act]
+title = "Prince Edward Island: Environment Tax Act"
+url = "https://www.princeedwardisland.ca/sites/default/files/legislation/e-08-3-environment_tax_act.pdf"
+
+# Newfoundland and Labrador
+
+[source.mmsb_suppliers]
+title = "Multi-Materials Stewardship Board: tire suppliers and collectors"
+url = "https://mmsb.nl.ca/programs/used-tires/tire-suppliers-and-collectors/"
+
+[source.nl_release_2002]
+title = "Newfoundland and Labrador: news release of 2002 on the tire levy"
+url = "https://www.releases.gov.nl.ca/releases/2002/env/0206n07.htm"
+
+# Yukon
+
+[source.yt_leaflet]
+title = "Yukon: tire recycling surcharges"
+url = "https://yukon.ca/sites/default/files/2025-07/env-tire-recycling.pdf"
+archived = "2026"
+
+[source.yt_release_18_144]
+title = "Yukon: news release 18-144"
+url = "https://open.yukon.ca/information/e47f800b-7763-4d5e-b08a-c1334e932057/resource/161e24be-6744-48ac-914e-e18db14a91bd/download/18-144.html"
+
+[[province]]
+code = "BC"
+name = "British Columbia"
+as_of = "2026-10-03"
+confirmed = true
+missing = []
+notes = [
+  "This page charges PST on all labour. Bulletin PST 118 exempts some services, such as diagnostic work when no repair is done.",
+]
+to_check = [
+  "The medium truck fee has no effective date: the 2024 annual report shows the amount and no date for it.",
+  "GST on repair labour rests on the general rule that GST applies to the price of a taxable supply; no Canada Revenue Agency sentence naming repair labour was read.",
+]
+
+[[province.tax]]
+name = "GST"
+rate = "5"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["cra_rates", "rq_taxable_supplies", "cra_memo_3_5"]
+
+[[province.tax]]
+name = "PST"
+rate = "7"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["bc_pst_118", "bc_pst_faq", "bc_small_business_guide"]
+
+[[province.tire_fee]]
+class = "passenger_light_truck"
+label = "passenger and light truck"
+amount = "6.50"
+effective = "2024-01-01"
+sources = ["tsbc_annual_2024", "tsbc_fees"]
+
+[[province.tire_fee]]
+class = "medium_truck"
+label = "medium truck"
+amount = "14.00"
+sources = ["tsbc_fees", "tsbc_annual_2024"]
+
+[[province]]
+code = "AB"
+name = "Alberta"
+as_of = "2026-10-03"
+confirmed = true
+missing = []
+to_check = [
+  "The fee schedule is a PDF published 2024-07-12 that says it leaves out later changes; the authority's tires page showed the same amounts on the day of the check.",
+  "GST on repair labour rests on the general rule; no Canada Revenue Agency sentence naming repair labour was read.",
+]
+
+[[province.tax]]
+name = "GST"
+rate = "5"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["cra_rates", "rq_taxable_supplies", "cra_memo_3_5"]
+
+[[province.tire_fee]]
+class = "passenger_light_truck"
+label = "passenger and light truck"
+amount = "5.00"
+effective = "2024-10-01"
+sources = ["arma_fees", "arma_tires"]
+
+[[province.tire_fee]]
+class = "medium_truck"
+label = "medium truck"
+amount = "14.00"
+effective = "2022-04-01"
+sources = ["arma_fees", "arma_tires"]
+
+[[province]]
+code = "SK"
+name = "Saskatchewan"
+as_of = "2026-10-03"
+confirmed = true
+missing = []
+notes = [
+  "PST is not charged on the tire fee when the fee is a separate line on the invoice, which is how this page shows it.",
+]
+to_check = [
+  "The medium truck fee has no effective date.",
+  "That the tire fee is one of the fees Bulletin PST-15 exempts is a reading: the bulletin and IN 2023-05 both name tires in the exempt list, and the program is run by Tire Stewardship of Saskatchewan under provincial regulations.",
+  "Tire Stewardship of Saskatchewan posted a tire collection process update on 2026-07-06 that was not read.",
+  "GST on repair labour rests on the general rule; no Canada Revenue Agency sentence naming repair labour was read.",
+]
+
+[[province.tax]]
+name = "GST"
+rate = "5"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["cra_rates", "rq_taxable_supplies", "cra_memo_3_5", "tss_table"]
+
+[[province.tax]]
+name = "PST"
+rate = "6"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = false
+on_other_taxes = false
+sources = ["cra_rates", "sk_pst_15", "sk_in_2023_05", "sk_pst_5"]
+
+[[province.tire_fee]]
+class = "passenger_light_truck"
+label = "passenger and light truck"
+amount = "6.50"
+effective = "2025-12-01"
+sources = ["tss_table", "tss_notice_2025"]
+
+[[province.tire_fee]]
+class = "medium_truck"
+label = "medium truck"
+amount = "14.00"
+sources = ["tss_table"]
+
+[[province]]
+code = "MB"
+name = "Manitoba"
+as_of = "2026-10-03"
+confirmed = true
+missing = []
+to_check = [
+  "That RST applies to the tire fee on a repair invoice is stated by Tire Stewardship Manitoba; the tax authority's own statement (Bulletin 012) is about vehicle sales.",
+  "The sentence on labour, parts and shop supplies is in Bulletin 012, the motor vehicle dealers bulletin.",
+  "GST on repair labour rests on the general rule; no Canada Revenue Agency sentence naming repair labour was read.",
+]
+
+[[province.tax]]
+name = "GST"
+rate = "5"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["cra_rates", "rq_taxable_supplies", "cra_memo_3_5", "tsm_fees"]
+
+[[province.tax]]
+name = "RST"
+rate = "7"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["mb_bulletin_004", "mb_bulletin_012", "tsm_fees"]
+
+[[province.tire_fee]]
+class = "passenger_light_truck"
+label = "passenger, small RV and light truck"
+amount = "5.00"
+effective = "2026-07-01"
+sources = ["tsm_news_2026", "tsm_fees"]
+
+[[province.tire_fee]]
+class = "medium_truck"
+label = "medium truck"
+amount = "14.00"
+effective = "2021-07-01"
+sources = ["tsm_fees", "tsm_news_2021"]
+
+[[province]]
+code = "ON"
+name = "Ontario"
+as_of = "2026-10-03"
+confirmed = true
+missing = []
+to_check = [
+  "HST on repair labour, parts and shop supplies rests on the general rule; no Canada Revenue Agency sentence naming repair labour was read.",
+]
+
+[[province.tax]]
+name = "HST"
+rate = "13"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["cra_rates", "rq_taxable_supplies", "cra_memo_3_5"]
+
+[province.no_tire_fee]
+statement = "Ontario sets no fee on a new tire. A shop may charge an environmental fee of its own choosing. If it does, the fee is part of the price and HST applies to it: add it to parts."
+sources = ["rpra_fees", "cra_memo_3_5"]
+
+[[province]]
+code = "QC"
+name = "Quebec"
+as_of = "2026-10-03"
+confirmed = true
+missing = []
+notes = [
+  "The tire classes are by the tire's overall diameter, not by the kind of vehicle. The fee is on tires with a rim of 62.23 cm (24.5 in) or less.",
+  "This page assumes the seller is registered for the GST and the QST.",
+]
+to_check = [
+  "Every Revenu Québec page was read from an Internet Archive copy (2025-08 to 2026-08): the live site refused the fetch. Open each live page.",
+  "QST on labour and shop supplies rests on the general rule that the tax applies to the price of a supply; no sentence names shop supplies.",
+  "RECYC-QUÉBEC's tire program is dated 2021-2026, so the fee may be reviewed soon.",
+]
+
+[[province.tax]]
+name = "GST"
+rate = "5"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["cra_rates", "rq_taxable_supplies", "rq_tire_duty_taxes"]
+
+[[province.tax]]
+name = "QST"
+rate = "9.975"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["cra_rates", "rq_taxable_supplies", "rq_calculating", "rq_tire_duty_taxes"]
+
+[[province.tire_fee]]
+class = "diameter_83_82_cm_or_less"
+label = "overall diameter of 83.82 cm (33 in) or less"
+amount = "4.50"
+effective = "2023-07-01"
+sources = ["rq_tire_duty", "recyc_quebec_tires"]
+
+[[province.tire_fee]]
+class = "diameter_over_83_82_cm_to_123_19_cm"
+label = "overall diameter over 83.82 cm (33 in), up to 123.19 cm (48.5 in)"
+amount = "6.00"
+effective = "2023-07-01"
+sources = ["rq_tire_duty", "recyc_quebec_tires"]
+
+[[province]]
+code = "NB"
+name = "New Brunswick"
+as_of = "2026-10-03"
+confirmed = true
+missing = []
+notes = [
+  "A tire with a regular retail value under $30 before HST, or with a rim under 8 inches or over 24.5 inches, carries no fee. This page does not know a tire's price or size: leave such tires out of the count.",
+]
+to_check = [
+  "The fees have no effective date: the schedule of Regulation 2024-37 was not read.",
+  "HST on repair labour, parts and shop supplies rests on the general rule; no Canada Revenue Agency sentence naming repair labour was read.",
+]
+
+[[province.tax]]
+name = "HST"
+rate = "15"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["cra_rates", "rq_taxable_supplies", "cra_memo_3_5", "recyclenb_tires"]
+
+[[province.tire_fee]]
+class = "passenger_light_truck"
+label = "passenger and light truck"
+amount = "4.50"
+sources = ["recyclenb_tires"]
+
+[[province.tire_fee]]
+class = "medium_truck"
+label = "medium truck"
+amount = "13.50"
+sources = ["recyclenb_tires"]
+
+[[province]]
+code = "NS"
+name = "Nova Scotia"
+as_of = "2026-10-03"
+confirmed = true
+missing = []
+to_check = [
+  "The fees have no effective date: Divert NS does not state one. A news article, which is not an authority, gives 2014-09-01.",
+  "HST on the fee rests on the Canada Revenue Agency's rule (Memorandum 3-5); Divert NS does not state it.",
+  "That the 2026-27 provincial budget keeps the HST at 14% was read in a summary only.",
+  "HST on repair labour, parts and shop supplies rests on the general rule; no Canada Revenue Agency sentence naming repair labour was read.",
+]
+
+[[province.tax]]
+name = "HST"
+rate = "14"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["cra_rates", "cra_which_rate", "rq_taxable_supplies", "cra_memo_3_5"]
+
+[[province.tire_fee]]
+class = "passenger_light_truck"
+label = "passenger and light truck"
+amount = "4.50"
+sources = ["divertns_fees"]
+
+[[province.tire_fee]]
+class = "medium_truck"
+label = "highway truck, tractor and trailer, up to 24.5 inches"
+amount = "13.50"
+sources = ["divertns_fees"]
+
+[[province]]
+code = "PE"
+name = "Prince Edward Island"
+as_of = "2026-10-03"
+confirmed = true
+missing = []
+notes = [
+  "The charge on a new tire is the province's Environment Tax, set by rim size.",
+]
+to_check = [
+  "The rates have no effective date: the Act was read as a consolidation current to 2026-05-29.",
+  "HST on the Environment Tax rests on the Canada Revenue Agency's rule (Memorandum 3-5, paragraphs 16 and 17); the province's page for vendors does not state it.",
+  "The province's page for vendors was read from an Internet Archive copy of 2022-01-28; the live page refused the fetch.",
+  "HST on repair labour, parts and shop supplies rests on the general rule; no Canada Revenue Agency sentence naming repair labour was read.",
+]
+
+[[province.tax]]
+name = "HST"
+rate = "15"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["cra_rates", "rq_taxable_supplies", "cra_memo_3_5"]
+
+[[province.tire_fee]]
+class = "rim_17_in_or_less"
+label = "rim of 17 inches or less"
+amount = "4.00"
+sources = ["pe_environment_tax_act"]
+
+[[province.tire_fee]]
+class = "rim_over_17_in"
+label = "rim over 17 inches"
+amount = "11.25"
+sources = ["pe_environment_tax_act"]
+
+[[province]]
+code = "NL"
+name = "Newfoundland and Labrador"
+as_of = "2026-10-03"
+confirmed = true
+missing = []
+notes = [
+  "The levy is paid once, when a new tire is first bought. Tires a customer bought elsewhere and brought in carry none: leave them out of the count.",
+]
+to_check = [
+  "The effective date is the launch of the levy in 2002; no later change was found, and the board's pages still show the same amounts.",
+  "HST on repair labour, parts and shop supplies rests on the general rule; no Canada Revenue Agency sentence naming repair labour was read.",
+]
+
+[[province.tax]]
+name = "HST"
+rate = "15"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["cra_rates", "rq_taxable_supplies", "cra_memo_3_5", "mmsb_suppliers"]
+
+[[province.tire_fee]]
+class = "rim_17_in_or_less"
+label = "rim of 17 inches or less"
+amount = "3.00"
+effective = "2002-04-01"
+sources = ["mmsb_suppliers", "nl_release_2002"]
+
+[[province.tire_fee]]
+class = "rim_over_17_in_to_24_5_in"
+label = "rim over 17 inches, up to 24.5 inches"
+amount = "9.00"
+effective = "2002-04-01"
+sources = ["mmsb_suppliers", "nl_release_2002"]
+
+[[province]]
+code = "YT"
+name = "Yukon"
+as_of = "2026-10-03"
+confirmed = true
+missing = []
+to_check = [
+  "The leaflet (Rev 04, July 2025) was read from an Internet Archive copy of 2026 whose day was not recorded; yukon.ca refused the fetch.",
+  "GST on the surcharge rests on the Canada Revenue Agency's rule (Memorandum 3-5, paragraph 11); Yukon does not state it.",
+  "Yukon has an Extended Producer Responsibility Regulation of 2024; whether tires are moving into it was not checked.",
+  "The leaflet also gives a surcharge for recreational vehicle tires, which this file leaves out.",
+  "GST on repair labour rests on the general rule; no Canada Revenue Agency sentence naming repair labour was read.",
+]
+
+[[province.tax]]
+name = "GST"
+rate = "5"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["cra_rates", "rq_taxable_supplies", "cra_memo_3_5"]
+
+[[province.tire_fee]]
+class = "passenger_light_truck"
+label = "passenger car and light truck"
+amount = "7.00"
+effective = "2018-10-01"
+sources = ["yt_leaflet", "yt_release_18_144"]
+
+[[province.tire_fee]]
+class = "medium_truck"
+label = "medium truck"
+amount = "9.00"
+effective = "2018-10-01"
+sources = ["yt_leaflet", "yt_release_18_144"]
+
+[[province]]
+code = "NT"
+name = "Northwest Territories"
+as_of = "2026-10-03"
+confirmed = false
+missing = [
+  "No source says whether a fee on a new tire exists. A tire recycling program was announced as planned in 2021, and no fee schedule was found.",
+]
+
+[[province.tax]]
+name = "GST"
+rate = "5"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["cra_rates", "rq_taxable_supplies", "cra_memo_3_5"]
+
+[[province]]
+code = "NU"
+name = "Nunavut"
+as_of = "2026-10-03"
+confirmed = false
+missing = [
+  "No source says whether a fee on a new tire exists. None was found.",
+]
+
+[[province.tax]]
+name = "GST"
+rate = "5"
+on_labour = true
+on_parts = true
+on_supplies = true
+on_tire_fee = true
+on_other_taxes = false
+sources = ["cra_rates", "rq_taxable_supplies", "cra_memo_3_5"]

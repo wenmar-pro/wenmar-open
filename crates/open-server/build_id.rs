@@ -17,15 +17,18 @@ use std::path::Path;
 
 /// What the id is made from, as paths from this crate's directory: the
 /// pages, the stylesheet and the script, the server's code, the two
-/// libraries it answers with, and the versions of everything else.
-pub const PARTS: [&str; 7] = [
+/// libraries it answers with, the rates of the Canadian invoice page with
+/// the code that reads them, and the versions of everything else.
+pub const PARTS: [&str; 9] = [
     "Cargo.toml",
     "assets",
+    "rates_build.rs",
     "src",
     "templates",
     "../wenmar-vehicles/src",
     "../wenmar-vin/src",
     "../../Cargo.lock",
+    "../../data/rates",
 ];
 
 /// Every file at or under `path`, as its name from `root` and its contents.
