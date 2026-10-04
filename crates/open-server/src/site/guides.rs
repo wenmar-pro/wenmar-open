@@ -10,8 +10,12 @@ use axum::extract::rejection::PathRejection;
 use axum::extract::{Path, State};
 use axum::response::Response;
 
+use shop_math::parts_matrix::margin_to_markup;
+use shop_math::targets::PARTS;
+
 use crate::site::markdown::{self, Doc, Format, Table};
 use crate::site::pages::{render, section, with_code, with_links, with_table};
+use crate::site::tools::target::source_links;
 use crate::site::{self, Page, jsonld, seo};
 use crate::state::AppState;
 
@@ -406,6 +410,91 @@ fn check_digit(base: &str) -> Doc {
     }
 }
 
+fn parts_matrix(base: &str) -> Doc {
+    let calculator = format!("{base}/tools/parts-matrix");
+    let sources = source_links(&PARTS);
+    let sources: Vec<(&str, String)> = sources
+        .iter()
+        .map(|(text, address)| (text.as_str(), address.clone()))
+        .collect();
+    let usual_markup = margin_to_markup(PARTS.usual)
+        .map(|markup| format!(" A margin of {} takes a markup of {markup}.", PARTS.usual))
+        .unwrap_or_default();
+    Doc {
+        title: "How to build a parts matrix".to_owned(),
+        intro: "A parts matrix is a table that says how much to add to a part's cost to get its selling price, with a different percent for each range of cost. This page explains how to build one and how to check that it makes the margin the shop needs. It names no matrix as the right one.".to_owned(),
+        sections: vec![
+            section(
+                "Markup and margin are not the same number",
+                &[
+                    "Markup is the profit on a part as a percent of what the shop paid for it. Margin, or gross profit, is the same profit as a percent of what the customer paid. A part that costs 40.00 and sells for 50.00 has a profit of 10.00: a markup of 25% and a margin of 20%.",
+                    "The two are confused because both are called the percent on parts. A matrix is usually written in markup, because that is what is applied to a cost. A target is usually given in margin, because that is what shows on a profit and loss statement. The margin is always the smaller number, and the gap grows as the percent does.",
+                    "To turn one into the other: margin is markup divided by one plus markup, and markup is margin divided by one minus margin, with both written as fractions.",
+                ],
+            ),
+            section(
+                "Why cheap parts carry a higher markup",
+                &[
+                    "Handling a part costs about the same whatever its price. Someone looks it up, orders it, receives it, checks it, and returns it if it is wrong. On a part that costs a few dollars, a flat percent does not pay for that work. On a part that costs hundreds, the same percent can price the shop out of the job.",
+                    "So a matrix slides: a high markup on the cheapest parts, falling in steps as the cost rises. The steps are the rows of the matrix. How steep the slide should be depends on what the shop sells: a shop that sells many cheap parts makes most of its parts profit in the first rows.",
+                ],
+            ),
+            section(
+                "Check the price against the list price",
+                &[
+                    "A matrix works from the shop's cost and knows nothing about the price a customer can find elsewhere. Before a matrix is used, compare what it gives with the part's list price for a sample of common parts. Where the matrix price is well above list, the row's markup is too high for that range of cost or that kind of part. Many shops cap the price at list, or keep a second, flatter matrix for dealer parts and tires.",
+                ],
+            ),
+            section(
+                "Test the matrix on last month's invoices",
+                &[
+                    "The margin a matrix makes is not the margin of any one row. It depends on how the shop's parts spend is spread over the rows. Take last month's parts invoices, add up what was spent in each range of cost, and work out each range's share of the total.",
+                    "With those shares, the blended margin is total profit divided by total sales across the rows. That is the number to compare with the target, and it is what the share column of the calculator shows. If it is low, raise the rows where most of the spend is, not the rows that look low.",
+                ],
+            ),
+            with_links(
+                section(
+                    "What to aim for",
+                    &[
+                        format!(
+                            "For a general repair shop, the typical range for gross profit on parts is {} to {}, and the usual target is {}.{usual_markup} A tire shop or a heavy-duty shop runs different numbers.",
+                            PARTS.range.low, PARTS.range.high, PARTS.usual
+                        )
+                        .as_str(),
+                        "The range is what the first page below calls typical, and the target is what the others say shops aim for. They are not a survey of what shops earn, and this site does not say what any shop should charge.",
+                    ],
+                ),
+                &sources,
+            ),
+            section(
+                "Check your own rules",
+                &[
+                    "Some places regulate how charges are presented to a customer: what an estimate must show, and whether a part's price must be stated apart from labor. A matrix sets a price, not how it is shown. Check the rules where the shop is.",
+                ],
+            ),
+            with_links(
+                section(
+                    "Try one",
+                    &[
+                        "The calculator prices a part under a matrix of up to eight rows and shows the blended margin on a mix of parts spend. Its examples are illustrations, not recommendations.",
+                    ],
+                ),
+                &[("Parts markup matrix calculator", calculator)],
+            ),
+        ],
+    }
+}
+
+/// What a guide is about, which decides where it is listed and which
+/// entry of the header it is under.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Topic {
+    /// Vehicle identification numbers: under "VIN guide".
+    Vin,
+    /// Running a shop: under "Tools", beside the calculators.
+    Shop,
+}
+
 /// One answer page.
 pub struct Guide {
     /// The last part of the page's address.
@@ -413,6 +502,7 @@ pub struct Guide {
     /// What the page is called in a list and in a search result.
     pub title: &'static str,
     pub description: &'static str,
+    pub topic: Topic,
     doc: fn(&str) -> Doc,
 }
 
@@ -425,38 +515,55 @@ impl Guide {
     pub fn path(&self) -> String {
         format!("/guides/{}", self.slug)
     }
+
+    /// Whether the guide is one of the answers about VINs.
+    pub fn about_vins(&self) -> bool {
+        self.topic == Topic::Vin
+    }
 }
 
-pub static GUIDES: [Guide; 5] = [
+pub static GUIDES: [Guide; 6] = [
     Guide {
         slug: "how-to-read-a-vin",
         title: "How to read a VIN, position by position",
         description: "What each of the 17 characters of a VIN means: the manufacturer, the vehicle, the check digit, the model year, the plant and the serial number.",
+        topic: Topic::Vin,
         doc: how_to_read,
     },
     Guide {
         slug: "where-to-find-the-vin",
         title: "Where to find the VIN on a vehicle",
         description: "The places a VIN is printed or stamped on a car, truck, motorcycle or trailer, where it is on the papers, and how to read it without mistakes.",
+        topic: Topic::Vin,
         doc: where_to_find,
     },
     Guide {
         slug: "wmi",
         title: "What the first three characters of a VIN mean",
         description: "The first three characters of a VIN are the World Manufacturer Identifier. What each one says, and how small manufacturers use six characters.",
+        topic: Topic::Vin,
         doc: wmi,
     },
     Guide {
         slug: "model-year",
         title: "VIN model year chart: the 10th character",
         description: "The tenth character of a VIN is the model year. A chart of every code from 1980 to 2039, and how the seventh character tells 1993 from 2023.",
+        topic: Topic::Vin,
         doc: model_year,
     },
     Guide {
         slug: "check-digit",
         title: "VIN check digit: how position 9 is worked out",
         description: "The ninth character of a VIN is a check digit worked out from the other sixteen. The weights, the letter values and a worked example.",
+        topic: Topic::Vin,
         doc: check_digit,
+    },
+    Guide {
+        slug: "parts-matrix",
+        title: "How to build a parts matrix",
+        description: "How to build a parts matrix for an auto repair shop: markup against margin, why cheap parts carry more markup, and how to test it on your own invoices.",
+        topic: Topic::Shop,
+        doc: parts_matrix,
     },
 ];
 
@@ -465,10 +572,14 @@ const INDEX_DESCRIPTION: &str = "Short answers about vehicle identification numb
 
 /// The list of the guides.
 pub fn index(base: &str) -> Doc {
-    let links: Vec<(&str, String)> = GUIDES
-        .iter()
-        .map(|guide| (guide.title, format!("{base}{}", guide.path())))
-        .collect();
+    let links_of = |vins: bool| -> Vec<(&'static str, String)> {
+        GUIDES
+            .iter()
+            .filter(|guide| guide.about_vins() == vins)
+            .map(|guide| (guide.title, format!("{base}{}", guide.path())))
+            .collect()
+    };
+    let (links, shop) = (links_of(true), links_of(false));
     Doc {
         title: "VIN guide".to_owned(),
         intro: "Short answers to what people ask about vehicle identification numbers. Each page says what this site's decoder does.".to_owned(),
@@ -479,6 +590,13 @@ pub fn index(base: &str) -> Doc {
                     &["Every page has a Markdown version at the same address with .md added."],
                 ),
                 &links,
+            ),
+            with_links(
+                section(
+                    "For shop owners",
+                    &["A guide that goes with the shop calculators."],
+                ),
+                &shop,
             ),
             with_links(
                 section(
@@ -504,12 +622,20 @@ fn show(
         let canonical = format!("{}{path}", state.config().base_url);
         return markdown::response(markdown::doc(&doc), &canonical);
     }
+    // A guide about running a shop is under Tools, and shows no vehicle
+    // data.
+    let shop = crumbs.iter().any(|(_, address)| address == "/tools");
     let page = Page::new(state, seo::title(title), description)
         .indexed(state, path)
         .with_markdown(&format!("{path}.md"))
-        .in_section("guides")
+        .in_section(if shop { "tools" } else { "guides" })
         .under(crumbs)
         .as_article();
+    let page = if shop {
+        page.without_vehicle_data()
+    } else {
+        page
+    };
     let base = &state.config().base_url;
     // The list of guides is a list. Each guide is an article.
     let page = if page.crumbs.is_empty() {
@@ -556,13 +682,18 @@ pub async fn guide(
     let Some(guide) = GUIDES.iter().find(|guide| guide.slug == slug) else {
         return site::not_found(&state);
     };
+    let crumb = if guide.about_vins() {
+        ("VIN guide".to_owned(), "/guides".to_owned())
+    } else {
+        ("Tools".to_owned(), "/tools".to_owned())
+    };
     show(
         &state,
         &guide.path(),
         guide.title,
         guide.description,
         guide.doc(&state.config().base_url),
-        vec![("VIN guide".to_owned(), "/guides".to_owned())],
+        vec![crumb],
         format,
     )
 }

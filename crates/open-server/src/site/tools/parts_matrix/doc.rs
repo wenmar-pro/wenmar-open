@@ -75,7 +75,13 @@ pub fn doc(base: &str) -> Doc {
     ));
     sections.push(with_links(
         section("Use it", &[ADVICE]),
-        &[(TITLE, address)],
+        &[
+            (TITLE, address),
+            (
+                "How to build a parts matrix",
+                format!("{base}/guides/parts-matrix"),
+            ),
+        ],
     ));
     Doc {
         title: TITLE.to_owned(),

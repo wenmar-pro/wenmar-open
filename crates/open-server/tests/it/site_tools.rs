@@ -629,3 +629,70 @@ async fn the_calculators_are_reached_from_the_home_page_the_sitemap_and_llms_txt
         assert!(full.contains(line), "missing: {line}");
     }
 }
+
+#[tokio::test]
+async fn the_parts_matrix_guide_is_a_guide_under_tools_and_links_both_ways() {
+    let app = common::app().await;
+    let path = "/guides/parts-matrix";
+    let (status, html) = page(&app, path).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_basics(&html, path);
+    assert_head(&html, path);
+    assert_targets(&html, path);
+    assert!(html.contains("<h1>How to build a parts matrix</h1>"));
+    assert!(
+        html.contains(r#"<link rel="canonical" href="https://open.example/guides/parts-matrix">"#)
+    );
+    assert!(!html.contains(r#"name="robots""#));
+    // It belongs with the calculators, not with the VIN guides.
+    assert!(html.contains(r#"<li><a href="/tools">Tools</a></li>"#));
+    assert!(html.contains(r#"<a href="/tools" aria-current="page">Tools</a>"#));
+    assert!(!html.contains("Data version"));
+    for heading in [
+        "Markup and margin are not the same number",
+        "Why cheap parts carry a higher markup",
+        "Check the price against the list price",
+        "Test the matrix on last month's invoices",
+        "What to aim for",
+        "Check your own rules",
+    ] {
+        assert!(
+            html.contains(&format!(">{}</h2>", heading.replace('\'', "&#39;"))),
+            "{heading}"
+        );
+    }
+    // The target is the one shop-math holds, with a link to each source.
+    let main = main_of(&html);
+    assert!(main.contains(&format!("{} to {}", PARTS.range.low, PARTS.range.high)));
+    for source in PARTS.range_sources.iter().chain(PARTS.usual_sources) {
+        assert!(
+            main.contains(&format!(r#"<a href="{}">"#, source.url)),
+            "{}",
+            source.url
+        );
+    }
+    assert!(main.contains("not a survey"));
+    // The guide leads to the calculator, and the calculator to the guide.
+    assert!(main.contains(r#"<a href="https://open.example/tools/parts-matrix">"#));
+    let (_, calculator) = page(&app, PAGE).await;
+    assert!(calculator.contains(
+        r#"<p class="more"><a href="/guides/parts-matrix">How to build a parts matrix</a></p>"#
+    ));
+    let text = markdown(&app, "/guides/parts-matrix.md").await;
+    assert!(text.starts_with("# How to build a parts matrix\n"));
+    let calculator_text = markdown(&app, "/tools/parts-matrix.md").await;
+    assert!(calculator_text.contains("](https://open.example/guides/parts-matrix)"));
+    // It is listed where guides and tools are listed, and not among the
+    // VIN guides of the home page.
+    let (_, guides) = page(&app, "/guides").await;
+    assert!(guides.contains("https://open.example/guides/parts-matrix\""));
+    let (_, tools) = page(&app, "/tools").await;
+    assert!(tools.contains("https://open.example/guides/parts-matrix\""));
+    let (_, sitemap) = page(&app, "/sitemaps/pages.xml").await;
+    assert!(sitemap.contains("<loc>https://open.example/guides/parts-matrix</loc>"));
+    let (_, llms) = page(&app, "/llms.txt").await;
+    assert!(llms.contains("](https://open.example/guides/parts-matrix.md)"));
+    let (_, home) = page(&app, "/").await;
+    assert!(!home.contains("/guides/parts-matrix"));
+    assert!(home.contains(r#"<a href="/guides/check-digit">"#));
+}
