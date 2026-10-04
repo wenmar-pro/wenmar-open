@@ -1,7 +1,7 @@
 [package]
 name = "shop-math"
 version.workspace = true
-description = "The arithmetic behind the shop calculators of Wenmar Open: money, percentages, gross profit targets, the parts matrix, the labor rate and the gross profit check."
+description = "The arithmetic behind the shop calculators of Wenmar Open: money, percentages, gross profit targets, the parts matrix, the labor rate, the gross profit check, and the taxes and tire fees on an invoice."
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
