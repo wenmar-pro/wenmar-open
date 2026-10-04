@@ -98,7 +98,7 @@ Each is a thin wrapper over the matching `mise run` task, and `mise run` remains
 
 ## Repository layout
 
-`crates/wenmar-vin`, `crates/wenmar-vehicles`, `crates/wenmar-open-turso`, `crates/open-data`, `crates/wenmar-open-cli`, `crates/open-mcp`, `crates/open-server`, `crates/wenmar-open-wasm`, `clients/js` and `clients/data` exist so far. The rest is planned.
+`crates/wenmar-vin`, `crates/wenmar-vehicles`, `crates/wenmar-open-turso`, `crates/open-data`, `crates/wenmar-open-cli`, `crates/open-mcp`, `crates/open-server`, `crates/wenmar-open-wasm`, `crates/shop-math`, `clients/js` and `clients/data` exist so far. The rest is planned.
 
 | Path | What it is |
 |---|---|
@@ -110,6 +110,7 @@ Each is a thin wrapper over the matching `mise run` task, and `mise run` remains
 | `crates/open-server` | The website, the JSON API and the MCP endpoint, served from one read-only data file |
 | `crates/wenmar-open-turso` | The data file read through `turso`: what the server uses, as a library for other async Rust programs |
 | `crates/wenmar-open-wasm` | The decoder and the catalog behind one JSON call, built as WebAssembly for the npm package's offline mode. Not published as a crate |
+| `crates/shop-math` | The arithmetic of the shop calculators: money, percentages, gross profit targets, the parts matrix, the labor rate and the gross profit check. Not published as a crate |
 | `clients/js` | The `wenmar-open` npm package: a typed client for the hosted API, and `wenmar-open/offline` |
 | `clients/data` | The `wenmar-open-data` npm package: the data file, and a script that writes it as SQL for Cloudflare D1 |
 

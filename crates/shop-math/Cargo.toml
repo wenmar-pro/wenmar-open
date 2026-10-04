@@ -1,0 +1,12 @@
+[package]
+name = "shop-math"
+version.workspace = true
+description = "The arithmetic behind the shop calculators of Wenmar Open: money, percentages, gross profit targets, the parts matrix, the labor rate and the gross profit check."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+thiserror.workspace = true
