@@ -13,6 +13,7 @@ pub mod markdown;
 pub mod pages;
 pub mod seo;
 pub mod tokens;
+pub mod tools;
 pub mod vin;
 pub mod wmi;
 

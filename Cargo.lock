@@ -2351,6 +2351,7 @@ dependencies = [
  "rusqlite",
  "serde",
  "serde_json",
+ "shop-math",
  "tempfile",
  "thiserror",
  "tokio",
