@@ -207,7 +207,7 @@ pub fn data(state: &AppState) -> Doc {
 pub fn about(_state: &AppState) -> Doc {
     Doc {
         title: "About".to_owned(),
-        intro: "Wenmar Open is a free VIN decoder and vehicle catalog for auto repair shops. There is no account, no key and nothing to install.".to_owned(),
+        intro: "Wenmar Open is a free VIN decoder and vehicle catalog for auto repair shops, with free shop calculators. There is no account, no key and nothing to install.".to_owned(),
         sections: vec![
             with_links(
                 section(

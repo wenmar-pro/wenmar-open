@@ -12,13 +12,14 @@ use axum::http::{HeaderValue, header};
 use axum::response::{IntoResponse, Response};
 
 use crate::site::guides::GUIDES;
+use crate::site::tools::TOOLS;
 use crate::site::{markdown, pages};
 use crate::state::AppState;
 
 /// What the service is, in one paragraph. Both files open with it.
 fn summary(data_version: &str) -> String {
     format!(
-        "Free vehicle data for auto repair shops: VIN decoding and a year, make, model, submodel and engine catalog, built from NHTSA's vPIC. No API key and no account. Read-only. Data version {data_version}."
+        "Free vehicle data and shop calculators for auto repair shops: VIN decoding, a year, make, model, submodel and engine catalog built from NHTSA's vPIC, and calculators for a shop's prices. No API key and no account. Read-only. Data version {data_version}."
     )
 }
 
@@ -36,6 +37,17 @@ pub fn text(base: &str, data_version: &str, limit: u32) -> String {
             )
         })
         .collect();
+    let tools: String = TOOLS
+        .iter()
+        .map(|tool| {
+            format!(
+                "- [{}]({base}{}.md): {}\n",
+                tool.title,
+                tool.path(),
+                tool.summary
+            )
+        })
+        .collect();
     format!(
         "# Wenmar Open
 
@@ -46,6 +58,8 @@ To decode a VIN, fetch `{base}/v1/vin/` followed by the VIN, and read the JSON. 
 Responses are plain JSON with no wrapper. Errors are `{{ \"error\": {{ \"code\", \"message\", \"details\" }} }}`. One address may make {limit} requests a minute; over that the answer is 429 with `Retry-After`. Fields and endpoints are only ever added.
 
 An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenmar_vin` (actions `decode`, `batch`) and `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`).
+
+The calculators under `{base}/tools` are web pages with forms, for people. An agent does the arithmetic itself: the Markdown version of each calculator states its formula and one worked example.
 
 Vehicle ids such as `2019_honda_civic_si` are built from the year and the names, and stay the same between data releases for as long as the names do. Every reference page has a Markdown version at the same address with `.md` added. The data is what manufacturers reported to NHTSA. It can be incomplete, especially for vehicles never sold in the United States.
 
@@ -67,6 +81,10 @@ Vehicle ids such as `2019_honda_civic_si` are built from the year and the names,
 - [API reference]({base}/docs.md): examples to copy, errors, limits and caching
 - [Everything in one file]({base}/llms-full.txt): the API reference, the VIN guides and the notes on the data, as one Markdown document
 {guides}
+## Shop calculators
+
+- [Shop calculators]({base}/tools.md): the list of calculators
+{tools}
 ## Reference pages
 
 - [Makes]({base}/makes.md): each make links to its models, and each model year to its trims and engines
@@ -90,11 +108,12 @@ Vehicle ids such as `2019_honda_civic_si` are built from the year and the names,
 pub fn full(state: &AppState) -> String {
     let base = &state.config().base_url;
     let mut text = format!(
-        "# Wenmar Open\n\n> {}\n\nThis is the documentation of {base} as one file. The same text is on the pages {base}/docs, {base}/guides, {base}/data and {base}/about.\n",
+        "# Wenmar Open\n\n> {}\n\nThis is the documentation of {base} as one file. The same text is on the pages {base}/docs, {base}/guides, {base}/tools, {base}/data and {base}/about.\n",
         summary(&state.db().meta().data_version)
     );
     let mut docs = vec![pages::docs(state)];
     docs.extend(GUIDES.iter().map(|guide| guide.doc(base)));
+    docs.extend(TOOLS.iter().map(|tool| tool.doc(base)));
     docs.push(pages::data(state));
     docs.push(pages::about(state));
     for doc in &docs {

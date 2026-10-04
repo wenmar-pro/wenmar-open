@@ -33,7 +33,16 @@ async fn llms_txt_follows_the_convention() {
         .lines()
         .filter_map(|line| line.strip_prefix("## "))
         .collect();
-    assert_eq!(sections, ["API", "Docs", "Reference pages", "Optional"]);
+    assert_eq!(
+        sections,
+        [
+            "API",
+            "Docs",
+            "Shop calculators",
+            "Reference pages",
+            "Optional"
+        ]
+    );
     // Under an H2, every line is a list item that is a link, with optional
     // notes after a colon. Nothing else.
     let lists = text.split_once("\n## ").unwrap().1;
@@ -95,6 +104,7 @@ async fn llms_full_txt_is_the_pages_themselves() {
         "/guides/wmi.md",
         "/guides/model-year.md",
         "/guides/check-digit.md",
+        "/tools/parts-matrix.md",
         "/data.md",
         "/about.md",
     ] {

@@ -21,6 +21,7 @@ struct Home {
     years: Vec<u16>,
     makes: Vec<Make>,
     guides: &'static [crate::site::guides::Guide],
+    tools: &'static [&'static crate::site::tools::Tool],
 }
 
 pub async fn home(State(state): State<AppState>) -> Response {
@@ -39,8 +40,8 @@ pub async fn home(State(state): State<AppState>) -> Response {
         &Home {
             page: Page::new(
                 &state,
-                seo::title("Free VIN decoder for auto repair shops"),
-                "Decode any 17-character VIN to its year, make, model, trim, engine and safety equipment. Free, with no account and no key. Data from NHTSA.",
+                seo::title("Free VIN decoder and shop calculators"),
+                "Decode any 17-character VIN to its year, make, model, trim, engine and safety equipment, and use free calculators for a repair shop's prices. No account and no key.",
             )
             .indexed(&state, "/")
             .with_mono()
@@ -51,6 +52,7 @@ pub async fn home(State(state): State<AppState>) -> Response {
             years,
             makes: makes.into_iter().map(Make::from).collect(),
             guides: &crate::site::guides::GUIDES,
+            tools: &crate::site::tools::TOOLS,
         },
     )
 }

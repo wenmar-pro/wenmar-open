@@ -60,6 +60,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - `wenmar-open-wasm` crate (not published): `wenmar-vin` and `wenmar-vehicles` behind one JSON call, over a database made of rows the caller has already read.
 - `wenmar-vehicles`: `vin_rows`, the rows one VIN needs read through a `Source`, moved from `wenmar-open-turso`, which re-exports it.
 - `shop-math` crate (not published): the arithmetic of the shop calculators, with money as whole cents and percentages as whole thousandths of a percent.
+- Shop calculators on the website under `/tools`, starting with a parts markup matrix: a form with no script, a result that can be bookmarked and printed, gross profit targets shown with their sources, and a Markdown version of each page. `Tools` is in the header, and the home page, the sitemap and `/llms.txt` list the calculators.
 
 ### Changed
 

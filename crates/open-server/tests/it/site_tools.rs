@@ -570,3 +570,62 @@ async fn a_calculator_that_does_not_exist_is_404() {
         assert!(html.contains("<h1>There is no page here</h1>"), "{path}");
     }
 }
+
+#[tokio::test]
+async fn the_calculators_are_reached_from_the_home_page_the_sitemap_and_llms_txt() {
+    let app = common::app().await;
+    // The home page: a list under the vehicle picker, one link each.
+    let (_, home) = page(&app, "/").await;
+    assert_targets(&home, "/");
+    let picker = home.find(r#"action="/pick""#).unwrap();
+    let list = home.find("<h2>Shop calculators</h2>").unwrap();
+    let guides = home.find("<h2>About VINs</h2>").unwrap();
+    assert!(picker < list && list < guides);
+    assert!(
+        home.contains(
+            r#"<li><a href="/tools/parts-matrix">Parts markup matrix calculator</a></li>"#
+        )
+    );
+    // The site says in one line that it is both things.
+    assert!(home.contains("<title>Free VIN decoder and shop calculators - Wenmar Open</title>"));
+    assert!(home.contains("and use free calculators for a repair shop"));
+    let (_, about) = page(&app, "/about").await;
+    assert!(about.contains("with free shop calculators"));
+
+    // The sitemap lists the index and each calculator, as it lists the guides.
+    let (_, sitemap) = page(&app, "/sitemaps/pages.xml").await;
+    assert!(sitemap.contains("<loc>https://open.example/tools</loc>"));
+    assert!(sitemap.contains("<loc>https://open.example/tools/parts-matrix</loc>"));
+    assert!(
+        !sitemap.contains("parts-matrix?"),
+        "no filled-in form is listed"
+    );
+
+    // llms.txt lists them as Markdown, and each of those exists.
+    let (_, text) = page(&app, "/llms.txt").await;
+    assert!(
+        text.contains(
+            "\n## Shop calculators\n\n- [Shop calculators](https://open.example/tools.md)"
+        )
+    );
+    assert!(text.contains(
+        "- [Parts markup matrix calculator](https://open.example/tools/parts-matrix.md): Works out what a part sells for"
+    ));
+    assert!(
+        text.lines().nth(2).unwrap().contains("shop calculators"),
+        "{text}"
+    );
+    for path in ["/tools.md", "/tools/parts-matrix.md"] {
+        assert_eq!(app.get(path).await.status(), StatusCode::OK, "{path}");
+    }
+    // llms-full.txt holds the calculator's Markdown, line for line.
+    let (_, full) = page(&app, "/llms-full.txt").await;
+    assert!(full.contains("\n## Parts markup matrix calculator\n"));
+    let (_, own) = page(&app, "/tools/parts-matrix.md").await;
+    for line in own
+        .lines()
+        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+    {
+        assert!(full.contains(line), "missing: {line}");
+    }
+}
