@@ -1,0 +1,77 @@
+{#- The pieces every calculator page is made of. A page imports this file
+    and calls them in the order of the comments. -#}
+
+{#- 1 and 2: the heading people search for, and what the page works out. -#}
+{% macro opening(tool) %}
+<h1>{{ tool.title }}</h1>
+<p>{{ tool.summary }}</p>
+{% endmacro %}
+
+{#- A label and its box, with what was typed. -#}
+{% macro input(f) %}
+<label for="{{ f.name }}">{{ f.label }}</label>
+<input id="{{ f.name }}" name="{{ f.name }}" type="text" inputmode="decimal" autocomplete="off" value="{{ f.value }}"{% if f.error.is_some() %} aria-invalid="true" aria-describedby="{{ f.error_id() }}"{% endif %}>
+{% endmacro %}
+
+{#- 3: one field of the form, with the message beside it. -#}
+{% macro field(f) %}
+<div class="field">
+{% call input(f) %}
+{% if let Some(error) = f.error -%}
+<p class="warning" id="{{ f.error_id() }}">{{ error }}</p>
+{% endif -%}
+</div>
+{% endmacro %}
+
+{#- 4, when a field could not be read: where the trouble is. -#}
+{% macro no_result(troubles) %}
+<p>There is no result yet. Correct what is marked above:</p>
+<ul class="plain links">
+{% for trouble in troubles -%}
+<li><a href="#{{ trouble.0 }}">{{ trouble.1 }}</a></li>
+{% endfor -%}
+</ul>
+{% endmacro %}
+
+{#- 4: the print button. The script shows it; without the script it stays
+    hidden. -#}
+{% macro actions() %}
+<div class="actions">
+<button type="button" data-print hidden>Print</button>
+</div>
+{% endmacro %}
+
+{#- 4: a table of figures. The first cell of a row names the row. -#}
+{% macro table(t) %}
+<div class="scroll">
+<table{% if t.prose %} class="prose"{% endif %}>
+<caption>{{ t.caption }}</caption>
+<thead><tr>{% for cell in t.head %}<th scope="col">{{ cell }}</th>{% endfor %}</tr></thead>
+<tbody>
+{% for row in t.rows -%}
+<tr>{% for cell in row %}{% if loop.first %}<th scope="row">{{ cell }}</th>{% else %}<td>{{ cell }}</td>{% endif %}{% endfor %}</tr>
+{% endfor -%}
+</tbody>
+</table>
+</div>
+{% endmacro %}
+
+{#- 4: a figure beside its gross profit target. -#}
+{% macro target(t) %}
+<p class="target"><strong>{{ t.label }}: {{ t.figure }}.</strong> That is {{ t.standing }} the typical range of {{ t.low }} to {{ t.high }} for {{ t.of }}. The usual target is {{ t.usual }}.</p>
+<p class="note">These figures are for a general repair shop. A tire shop or a heavy-duty shop runs different numbers. The range is given as typical by {% for source in t.range_sources %}{% if !loop.first %} and {% endif %}<a href="{{ source.url }}">{{ source.name }}</a>{% endfor %}, and the usual target as what shops aim for by {% for source in t.usual_sources %}{% if !loop.first %} and {% endif %}<a href="{{ source.url }}">{{ source.name }}</a>{% endfor %}. Neither is a survey of what shops earn.</p>
+{% endmacro %}
+
+{#- 5: the formula, in plain words. -#}
+{% macro how(lines) %}
+<h2 id="how">How this is worked out</h2>
+{% for line in lines -%}
+<p>{{ line }}</p>
+{% endfor -%}
+{% endmacro %}
+
+{#- 6 and 7: what this is not, and the one link to Wenmar Pro. -#}
+{% macro closing(tool) %}
+<p class="note">{{ crate::site::tools::pieces::ADVICE }}</p>
+<p class="pro"><a href="{{ tool.pro_link() }}">Wenmar Pro</a> {{ tool.pro_does }}</p>
+{% endmacro %}

@@ -202,8 +202,10 @@ async fn print_is_black_on_white_whatever_the_scheme() {
     }
     // `!important`, because a selector such as `ul.plain` outweighs `.screen`
     // and would put the links list of a result page back on paper.
+    // A calculator's form is the one form that is printed: its fields are
+    // the inputs the result was worked out from.
     assert!(print.contains(
-        ".skip,.by,.top nav,.crumbs,.actions,form,.screen,.pro,.more{display:none!important}"
+        ".skip,.by,.top nav,.crumbs,.actions,form:not(.calc),.screen,.pro,.more{display:none!important}"
     ));
     // Nothing outside the print rules sets `display` with `!important`, which
     // would outweigh that rule in turn, except the `hidden` attribute.
@@ -263,5 +265,28 @@ async fn whatever_can_be_tapped_is_tall_enough() {
     for path in ["/", "/vin/KM8K2", "/vin/KM8K2CAB4PUO01140", "/nothing"] {
         let (_, html) = page(&app, path).await;
         assert_targets(&html, path);
+    }
+}
+
+#[tokio::test]
+async fn a_calculators_form_holds_plain_figures_and_marks_a_field_it_could_not_read() {
+    let css = stylesheet().await;
+    // The VIN box is set in capitals of the fixed-width face. A figure is
+    // not: it is in the text face, as typed, with digits of one width.
+    assert!(css.contains(
+        "form.calc input{font-family:inherit;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}"
+    ));
+    // A field that could not be read has the edge of a warning, in the
+    // warning's own colour, and its message sits close under it.
+    assert!(css.contains(
+        "input[aria-invalid]{border-color:var(--warn-text);box-shadow:0 0 0 1px var(--warn-text)}"
+    ));
+    assert!(css.contains(".field .warning{margin:4px 0 0}"));
+    // No colour of its own: every colour in the rules for a form is a token.
+    for rule in css
+        .split('}')
+        .filter(|rule| rule.contains("calc") || rule.contains("aria-invalid"))
+    {
+        assert!(!rule.contains('#'), "a colour outside the tokens: {rule}");
     }
 }

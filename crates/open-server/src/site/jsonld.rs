@@ -216,6 +216,7 @@ mod tests {
             include_str!("../../templates/vin.html"),
             include_str!("../../templates/vin_form.html"),
             include_str!("../../templates/wmi.html"),
+            include_str!("../../templates/tool.html"),
         ];
         let uses: usize = templates
             .iter()
