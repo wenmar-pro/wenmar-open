@@ -11,6 +11,7 @@
 //! calculation, and shows the values of the result with their `Display`.
 
 mod decimal;
+pub mod labor_rate;
 mod money;
 pub mod parts_matrix;
 mod percent;
