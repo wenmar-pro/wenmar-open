@@ -12,6 +12,7 @@
 
 mod decimal;
 mod money;
+pub mod parts_matrix;
 mod percent;
 mod quantity;
 pub mod targets;
