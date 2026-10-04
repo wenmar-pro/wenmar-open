@@ -205,6 +205,14 @@ mod tests {
                 include_str!("parts_matrix/result.rs"),
             ),
             ("parts_matrix/doc.rs", include_str!("parts_matrix/doc.rs")),
+            (
+                "labor_rate.html",
+                include_str!("../../../templates/labor_rate.html"),
+            ),
+            ("labor_rate/mod.rs", include_str!("labor_rate/mod.rs")),
+            ("labor_rate/form.rs", include_str!("labor_rate/form.rs")),
+            ("labor_rate/result.rs", include_str!("labor_rate/result.rs")),
+            ("labor_rate/doc.rs", include_str!("labor_rate/doc.rs")),
         ];
         for (name, text) in files {
             let code = text.split("#[cfg(test)]").next().unwrap();

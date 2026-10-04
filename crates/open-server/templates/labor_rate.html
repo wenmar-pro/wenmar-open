@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% import "tool.html" as piece %}
+{% block content %}
+{% call piece::opening(tool) %}
+<form class="calc" id="calc" action="{{ tool.path() }}#result" method="get">
+{% if example -%}
+<p class="note">The form is filled in with an example. Change the figures and press the button.</p>
+{% endif -%}
+<h2 id="needed">The rate the shop needs</h2>
+<p class="help">For one month. Technician cost is wages and what the shop pays on top of wages, for all technicians together. Overhead is everything else the shop pays: rent, service advisors, insurance, software, equipment. Productivity is hours billed as a percent of hours paid. Gross profit on parts is what parts sales leave after their cost.</p>
+{% if let Some(error) = form.needed.error -%}
+<p class="warning" id="needed-error">{{ error }}</p>
+{% endif -%}
+{% call piece::field(form.needed.technicians) %}
+{% call piece::field(form.needed.paid_hours) %}
+{% call piece::field(form.needed.productivity) %}
+{% call piece::field(form.needed.technician_cost) %}
+{% call piece::field(form.needed.overhead) %}
+{% call piece::field(form.needed.parts_profit) %}
+{% call piece::field(form.needed.target_profit) %}
+{% call piece::field(form.needed.target_labor) %}
+<p class="help">{{ defaults }}</p>
+<h2 id="getting">The rate the shop is getting</h2>
+<p class="help">For one period, such as last month. The two parts are worked out apart: leave every field of one part empty to work out only the other.</p>
+{% if let Some(error) = form.getting.error -%}
+<p class="warning" id="getting-error">{{ error }}</p>
+{% endif -%}
+{% call piece::field(form.getting.labor_sales) %}
+{% call piece::field(form.getting.hours_billed) %}
+{% call piece::field(form.getting.posted_rate) %}
+{% call piece::field(form.getting.period_cost) %}
+<div class="screen"><button class="primary" type="submit">Work it out</button></div>
+</form>
+<h2 id="result">Result</h2>
+{% if example -%}
+<p class="note">This is the result of the example in the form.</p>
+{% endif -%}
+{% call piece::actions() %}
+{% if let Some(shown) = needed -%}
+{% call piece::table(shown.table) %}
+{% if let Some(covered) = shown.covered -%}
+<p><strong>{{ covered }}</strong></p>
+{% endif -%}
+<p>{{ shown.compared }}</p>
+{% if let Some(profit) = shown.gross_profit -%}
+{% call piece::target(profit) %}
+{% endif -%}
+{% else if form.needed.left_empty -%}
+<p class="note">Nothing was entered for the rate the shop needs, so it is not worked out.</p>
+{% else -%}
+<p><strong>The rate the shop needs.</strong></p>
+{% call piece::no_result(needed_troubles) %}
+{% endif -%}
+{% if let Some(shown) = getting -%}
+{% call piece::table(shown.table) %}
+{% if let Some(posted) = shown.posted -%}
+<p>{{ posted }}</p>
+{% endif -%}
+{% if let Some(profit) = shown.gross_profit -%}
+{% call piece::target(profit) %}
+{% endif -%}
+{% else if form.getting.left_empty -%}
+<p class="note">Nothing was entered for the rate the shop is getting, so it is not worked out.</p>
+{% else -%}
+<p><strong>The rate the shop is getting.</strong></p>
+{% call piece::no_result(getting_troubles) %}
+{% endif -%}
+{% call piece::how(how) %}
+{% call piece::closing(tool) %}
+{% endblock %}
