@@ -18,6 +18,9 @@ pub mod vin_rows;
 #[cfg(test)]
 #[path = "../build_id.rs"]
 mod build_id;
+#[cfg(test)]
+#[path = "../rates_build.rs"]
+mod rates_build;
 
 use std::sync::Arc;
 use std::time::Duration;

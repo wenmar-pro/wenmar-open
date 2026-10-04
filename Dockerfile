@@ -14,6 +14,8 @@ FROM rust:1.99.0-bookworm AS builder
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
+# The rates of the Canadian invoice page, which the server's build reads.
+COPY data/rates ./data/rates
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/app/target \
     cargo build --release --locked -p open-server \

@@ -6,6 +6,7 @@
 //! page. [`TOOLS`] is the one list of calculators: the index, the home
 //! page, the sitemap and `llms.txt` all read it.
 
+pub mod canada_invoice_tax;
 pub mod field;
 pub mod gross_profit;
 pub mod labor_rate;
