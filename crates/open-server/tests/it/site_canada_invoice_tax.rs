@@ -118,6 +118,16 @@ async fn the_canadian_page_opens_with_a_labelled_example_and_its_result() {
         .map(|part| main.find(part).unwrap_or_else(|| panic!("missing: {part}")))
         .collect();
     assert!(places.is_sorted(), "{places:?}");
+    // The disclaimer sits beside the result, between its table and the
+    // sources, and links to the section on what is covered.
+    let disclaimer = r##"<p class="note">For a retail repair invoice to a consumer. This is arithmetic, not tax advice: see <a href="#covers">what this covers</a> below.</p>"##;
+    let (table_end, note_at, sources_at) = (
+        main.find("</table>").unwrap(),
+        main.find(disclaimer).expect("the disclaimer"),
+        main.find(r#"<h2 id="sources">"#).unwrap(),
+    );
+    assert!(table_end < note_at && note_at < sources_at);
+    assert_eq!(main.matches(disclaimer).count(), 1);
     // One link to Wenmar Pro in the page's own part, with its own marker.
     assert_eq!(main.matches("wenmarpro.com").count(), 1);
 
@@ -179,6 +189,7 @@ async fn the_canadian_page_opens_with_a_labelled_example_and_its_result() {
         assert!(text.contains(stated), "the Markdown: {stated}");
     }
     assert!(text.contains("This page describes the calculator and does not compute."));
+    assert!(text.contains("For a retail repair invoice to a consumer. This is arithmetic, not tax advice: see what this covers above."));
 
     // The footer says whose rates these are and when they were checked,
     // in place of the data version, and links to the sources on the page.
@@ -255,7 +266,7 @@ const WORKED: [Worked; 11] = [
         &["$20.00", "$14.00"],
         &[
             ["GST 5% on $868.37", "$43.42"],
-            ["RST 7% on $868.37", "$60.79"],
+            ["RST (Manitoba&#39;s PST) 7% on $868.37", "$60.79"],
         ],
         "$972.58",
     ),
@@ -369,7 +380,11 @@ async fn a_worked_invoice_for_each_confirmed_province_is_shown_line_by_line() {
     assert!(
         html.contains("<p>PST 6%: on labour, parts and shop supplies. Not on the tire fee.</p>")
     );
-    assert!(html.contains("when the fee is a separate line on the invoice"));
+    // The note says what the exemption rests on, under the result.
+    let note = "This page follows Saskatchewan&#39;s Bulletin PST-15, which lists tires among the environmental fees not charged PST when shown as a separate line. That the tire recycling fee is one of them is this page&#39;s reading; check with Saskatchewan Finance.";
+    assert!(html.contains(&format!("<p class=\"note\">{note}</p>")));
+    assert!(html.find("</table>").unwrap() < html.find(note).unwrap());
+    assert!(!html.contains("when the fee is a separate line on the invoice"));
     // Ontario has no tire field, and says what a shop does with a fee of
     // its own.
     let (_, html) = page(&app, &worked_address(province("ON"))).await;
@@ -674,8 +689,11 @@ async fn a_field_that_cannot_be_read_gets_a_message_and_the_rest_keep_what_was_t
     assert!(main.contains(
         r##"<li><a href="#tires_passenger_light_truck">New tires: passenger and light truck: Use a whole number.</a></li>"##
     ));
-    // The province's rates and sources are still shown.
+    // The province's rates and sources are still shown, and the rates are
+    // not said to be those of a result there is none of.
     assert!(main.contains(r#"<h2 id="sources">Rates and sources for Nova Scotia</h2>"#));
+    assert!(main.contains(" These are the rates held for Nova Scotia:</p>"));
+    assert!(!main.contains("These are the rates the result above uses"));
     assert!(main.contains(r#"<h2 id="how">How this is worked out</h2>"#));
 
     // Nothing on the invoice at all is said at the form.

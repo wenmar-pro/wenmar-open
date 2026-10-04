@@ -12,7 +12,7 @@ use crate::site::markdown::{Doc, Table};
 use crate::site::pages::{section, with_code, with_links, with_table};
 use crate::site::tools::canada_invoice_tax::form::{Form, example};
 use crate::site::tools::canada_invoice_tax::rates::{PROVINCES, Source};
-use crate::site::tools::canada_invoice_tax::result::{checked, formulas, rate_lines, scope, table};
+use crate::site::tools::canada_invoice_tax::result::{checked, disclaimer, formulas, rate_lines, scope, table};
 use crate::site::tools::canada_invoice_tax::{PATH, SUMMARY, TITLE};
 use crate::site::tools::pieces::ADVICE;
 
@@ -124,6 +124,11 @@ pub fn doc(base: &str) -> Doc {
                 entered.join("; ")
             ),
             checked(worked.province),
+            {
+                // The section on what it covers is above the example here.
+                let (before, link, _) = disclaimer();
+                format!("{before}{link} above.")
+            },
         ];
         sections.push(with_table(
             section("A worked example", &refs(&lines)),

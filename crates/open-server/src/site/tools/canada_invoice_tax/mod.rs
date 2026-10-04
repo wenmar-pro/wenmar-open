@@ -81,6 +81,7 @@ struct View {
     province: Option<ProvinceView>,
     /// The provinces not yet covered, each with what is missing.
     waiting: Vec<(&'static str, String)>,
+    disclaimer: (&'static str, &'static str, &'static str),
     scope: Vec<String>,
     how: Vec<String>,
 }
@@ -118,6 +119,7 @@ fn page(page: Page, tool: &'static Tool, sent: &Sent) -> Response {
             table: worked.as_ref().map(result::table),
             province: form.chosen.map(ProvinceView::of),
             waiting,
+            disclaimer: result::disclaimer(),
             scope: result::scope(),
             how: result::formulas(),
             form,

@@ -123,6 +123,17 @@ pub fn formulas() -> Vec<String> {
     .to_vec()
 }
 
+/// The sentence beside the result: what the figures are for and what they
+/// are not, in three parts, the middle one being the words that link to
+/// the section on what the calculator covers.
+pub fn disclaimer() -> (&'static str, &'static str, &'static str) {
+    (
+        "For a retail repair invoice to a consumer. This is arithmetic, not tax advice: see ",
+        "what this covers",
+        " below.",
+    )
+}
+
 /// What the calculator covers and what it does not.
 pub fn scope() -> Vec<String> {
     vec![

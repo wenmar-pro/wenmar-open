@@ -53,6 +53,7 @@
 {% endif -%}
 {% call piece::actions() %}
 {% call piece::table(table) %}
+<p class="note">{{ disclaimer.0 }}<a href="#covers">{{ disclaimer.1 }}</a>{{ disclaimer.2 }}</p>
 {% if let Some(province) = province -%}
 {% for note in province.notes -%}
 <p class="note">{{ note }}</p>
@@ -63,7 +64,7 @@
 {% endif -%}
 {% if let Some(province) = province -%}
 <h2 id="sources">Rates and sources for {{ province.name }}</h2>
-<p>{{ province.checked }} These are the rates the result above uses:</p>
+<p>{{ province.checked }} {% if table.is_some() %}These are the rates the result above uses:{% else %}These are the rates held for {{ province.name }}:{% endif %}</p>
 {% for line in province.rates -%}
 <p>{{ line }}</p>
 {% endfor -%}
