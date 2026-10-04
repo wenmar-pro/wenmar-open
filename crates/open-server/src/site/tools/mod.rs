@@ -7,6 +7,7 @@
 //! page, the sitemap and `llms.txt` all read it.
 
 pub mod field;
+pub mod gross_profit;
 pub mod labor_rate;
 pub mod parts_matrix;
 pub mod pieces;
