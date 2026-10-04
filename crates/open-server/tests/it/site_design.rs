@@ -7,7 +7,7 @@ use axum::http::StatusCode;
 use crate::common::{self, assert_basics, assert_head, assert_targets, page};
 
 /// One page of every kind that exists at this point of the plan.
-const PAGES: [&str; 11] = [
+const PAGES: [&str; 13] = [
     "/",
     "/makes",
     "/makes/honda",
@@ -18,6 +18,8 @@ const PAGES: [&str; 11] = [
     "/about",
     "/vin/KM8K2CAB4PU001140",
     "/vin/KM8K2",
+    "/tools",
+    "/tools/parts-matrix",
     "/nothing",
 ];
 
@@ -291,4 +293,85 @@ async fn a_calculators_form_holds_plain_figures_and_marks_a_field_it_could_not_r
     {
         assert!(!rule.contains('#'), "a colour outside the tokens: {rule}");
     }
+}
+
+#[tokio::test]
+async fn six_header_entries_fit_a_small_phone() {
+    // Measured in a browser at 320 pixels: at the text size the six links
+    // are 261 pixels wide and the row is 272, so they took two rows. At
+    // the small size they are 228, and six pixels between them fits.
+    let css = stylesheet().await;
+    assert!(css.contains("gap:0 6px;font-size:var(--small)}}"));
+    // Smaller letters, and still as tall as a finger.
+    assert!(css.contains(".name,.by,.top nav a,footer a,ul.plain a,.more a,.crumbs a{display:inline-flex;align-items:center;min-height:var(--touch)}"));
+    let app = common::app().await;
+    for path in ["/", "/tools", "/tools/parts-matrix", "/nothing"] {
+        let (_, html) = page(&app, path).await;
+        let nav = html.split(r#"<nav aria-label="Site">"#).nth(1).unwrap();
+        let nav = nav.split("</nav>").next().unwrap();
+        assert_eq!(nav.matches("<a href=").count(), 6, "{path}");
+        // No entry is long enough to need a second line.
+        for name in nav.split("</a>").filter_map(|link| link.rsplit('>').next()) {
+            assert!(name.trim().len() <= 9, "{path}: {name}");
+        }
+    }
+}
+
+#[tokio::test]
+async fn the_rows_of_the_matrix_form_fit_a_small_phone() {
+    let css = stylesheet().await;
+    // Three boxes and the row's number share the width, whatever it is:
+    // a box may shrink below the width a browser gives it by default.
+    assert!(css.contains(
+        ".tier{display:grid;grid-template-columns:1em repeat(3,minmax(0,1fr));gap:0 8px;align-items:end}"
+    ));
+    // Measured at 320 pixels: a box is 75 pixels wide inside its padding,
+    // and 1000.00 is shown whole.
+    assert!(css.contains(".tier input{padding:8px 6px}"));
+    // The labels of the rows after the first are off the screen, not gone.
+    assert!(css.contains(".tier.rest label{position:absolute;left:-999px}"));
+    // A message under a row has the row's whole width.
+    assert!(css.contains(".tier .warning{grid-column:1/-1;margin:4px 0 0}"));
+    let app = common::app().await;
+    let (_, html) = page(&app, "/tools/parts-matrix").await;
+    assert_eq!(html.matches(r#"<div class="tier"#).count(), 8);
+    assert_eq!(html.matches(r#"<div class="tier rest"#).count(), 7);
+    assert_eq!(html.matches(r#"role="group" aria-label="Row "#).count(), 8);
+    // No box asks for a width of its own.
+    assert!(!html.contains(" size=") && !html.contains("style="));
+    // The result table scrolls inside its own box.
+    assert!(html.contains(
+        "<div class=\"scroll\">\n<table class=\"prose\">\n<caption>The matrix</caption>"
+    ));
+    assert_targets(&html, "/tools/parts-matrix");
+}
+
+#[tokio::test]
+async fn a_calculator_prints_its_inputs_and_its_result_and_not_the_navigation() {
+    let css = stylesheet().await;
+    let print = css.split("@media print{").nth(1).expect("print rules");
+    assert!(print.contains("form:not(.calc)"));
+    // The class of the rows after the first is not one the print rules hide.
+    assert!(print.contains(".more{display:none!important}") && !print.contains(".rest"));
+    let app = common::app().await;
+    let (_, html) = page(&app, "/tools/parts-matrix").await;
+    // Printed: the form, with the rows that hold something.
+    assert!(html.contains(r#"<form class="calc" id="calc""#));
+    assert_eq!(
+        html.matches(r#"<div class="tier rest screen""#).count(),
+        2,
+        "rows 7 and 8 of the example are empty"
+    );
+    // Not printed: the presets and what is said of them, the button, the
+    // print button, the link to Wenmar Pro.
+    assert!(html.contains(r#"<ul class="plain links screen">"#));
+    assert!(html.contains(r#"<p class="note screen">"#));
+    assert!(html.contains(r#"<div class="screen"><button class="primary" type="submit">"#));
+    assert!(html.contains(
+        "<div class=\"actions\">\n<button type=\"button\" data-print hidden>Print</button>"
+    ));
+    assert!(html.contains(r#"<p class="pro">"#));
+    // The tools index has nothing to hide but the layout's own parts.
+    let (_, index) = page(&app, "/tools").await;
+    assert!(!index.contains("<form") && !index.contains("data-print"));
 }
