@@ -410,6 +410,16 @@ fn check_digit(base: &str) -> Doc {
     }
 }
 
+/// Who says what shops aim for: the other page below when one source gives
+/// the target, and the others when more do.
+fn who_gives_the_target(sources: usize) -> &'static str {
+    if sources == 1 {
+        "the other says"
+    } else {
+        "the others say"
+    }
+}
+
 fn parts_matrix(base: &str) -> Doc {
     let calculator = format!("{base}/tools/parts-matrix");
     let sources = source_links(&PARTS);
@@ -461,7 +471,11 @@ fn parts_matrix(base: &str) -> Doc {
                             PARTS.range.low, PARTS.range.high, PARTS.usual
                         )
                         .as_str(),
-                        "The range is what the first page below calls typical, and the target is what the others say shops aim for. They are not a survey of what shops earn, and this site does not say what any shop should charge.",
+                        format!(
+                            "The range is what the first page below calls typical, and the target is what {} shops aim for. They are not a survey of what shops earn, and this site does not say what any shop should charge.",
+                            who_gives_the_target(PARTS.usual_sources.len())
+                        )
+                        .as_str(),
                     ],
                 ),
                 &sources,
@@ -703,6 +717,19 @@ mod tests {
     use wenmar_vin::{Vin, check_digit, model_year};
 
     use super::*;
+
+    #[test]
+    fn the_parts_guide_says_the_other_or_the_others_by_how_many_sources_give_the_target() {
+        assert_eq!(who_gives_the_target(1), "the other says");
+        assert_eq!(who_gives_the_target(2), "the others say");
+        let text = markdown::doc(&parts_matrix("https://open.example"));
+        let sentence = if PARTS.usual_sources.len() == 1 {
+            "the target is what the other says shops aim for"
+        } else {
+            "the target is what the others say shops aim for"
+        };
+        assert!(text.contains(sentence), "{sentence}");
+    }
 
     /// A VIN with `year` in position 10 and `seventh` in position 7.
     fn vin_with(year: char, seventh: char) -> Vin {

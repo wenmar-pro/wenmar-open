@@ -205,7 +205,7 @@ async fn a_filled_in_form_shows_what_was_sent_and_its_results() {
         ("Effective labor rate, per hour billed", "$120.00"),
         ("Effective rate as a percent of the posted rate", "109.091%"),
         ("Posted rate less effective rate, per hour", "-$10.00"),
-        ("The same over the hours billed", "-$2,500.00"),
+        ("Posted rate × hours billed, less labor sales", "-$2,500.00"),
     ] {
         assert!(
             main.contains(&row(name, amount)),
