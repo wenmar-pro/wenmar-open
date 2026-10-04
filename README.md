@@ -8,7 +8,7 @@ Wenmar Open is built and hosted by [Wenmar Pro](https://wenmarpro.com), shop man
 
 ## What it will be
 
-- **A website** at `open.wenmarpro.com` where a service advisor or tech can paste a VIN and get the vehicle back, and where a shop owner can use free calculators, starting with a parts markup matrix.
+- **A website** at `open.wenmarpro.com` where a service advisor or tech can paste a VIN and get the vehicle back, and where a shop owner can use free calculators: a parts markup matrix, a labor rate, gross profit, and Canadian invoice tax and tire fees.
 - **A JSON API** at `open.wenmarpro.com/v1`, open to any origin, with no key and no account.
 - **A Rust crate**, `wenmar-vin`, for decoding VINs in-process and offline.
 - **An npm package**, [`wenmar-open`](clients/js/README.md): a small typed client for the hosted API, and an offline mode, `wenmar-open/offline`, that runs the same decoder as WebAssembly over the data file. The data file is its own package, [`wenmar-open-data`](clients/data/README.md).
@@ -110,7 +110,7 @@ Each is a thin wrapper over the matching `mise run` task, and `mise run` remains
 | `crates/open-server` | The website, the JSON API and the MCP endpoint, served from one read-only data file |
 | `crates/wenmar-open-turso` | The data file read through `turso`: what the server uses, as a library for other async Rust programs |
 | `crates/wenmar-open-wasm` | The decoder and the catalog behind one JSON call, built as WebAssembly for the npm package's offline mode. Not published as a crate |
-| `crates/shop-math` | The arithmetic of the shop calculators: money, percentages, gross profit targets, the parts matrix, the labor rate and the gross profit check. Not published as a crate |
+| `crates/shop-math` | The arithmetic of the shop calculators: money, percentages, gross profit targets, the parts matrix, the labor rate, the gross profit check and the taxes and tire fees on a Canadian invoice. Not published as a crate |
 | `clients/js` | The `wenmar-open` npm package: a typed client for the hosted API, and `wenmar-open/offline` |
 | `clients/data` | The `wenmar-open-data` npm package: the data file, and a script that writes it as SQL for Cloudflare D1 |
 

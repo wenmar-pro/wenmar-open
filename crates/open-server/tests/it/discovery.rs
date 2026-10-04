@@ -19,6 +19,9 @@ async fn llms_txt_follows_the_convention() {
         text.lines().filter(|line| line.starts_with("# ")).count(),
         1
     );
+    assert!(
+        text.contains("and calculators for a shop's prices, margins and Canadian invoice taxes.")
+    );
     // The limit is the one the server enforces.
     assert!(
         text.contains("One address may make 42 requests a minute"),

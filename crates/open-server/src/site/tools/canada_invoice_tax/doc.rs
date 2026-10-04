@@ -12,7 +12,9 @@ use crate::site::markdown::{Doc, Table};
 use crate::site::pages::{section, with_code, with_links, with_table};
 use crate::site::tools::canada_invoice_tax::form::{Form, example};
 use crate::site::tools::canada_invoice_tax::rates::{PROVINCES, Source};
-use crate::site::tools::canada_invoice_tax::result::{checked, disclaimer, formulas, rate_lines, scope, table};
+use crate::site::tools::canada_invoice_tax::result::{
+    checked, disclaimer, formulas, rate_lines, scope, table,
+};
 use crate::site::tools::canada_invoice_tax::{PATH, SUMMARY, TITLE};
 use crate::site::tools::pieces::ADVICE;
 
