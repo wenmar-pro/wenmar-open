@@ -6,6 +6,7 @@
 
 pub mod form;
 pub mod rates;
+pub mod result;
 
 /// The page's address, its heading and its one sentence.
 pub const PATH: &str = "/tools/canada-invoice-tax";
