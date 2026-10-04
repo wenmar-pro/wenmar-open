@@ -92,6 +92,11 @@ pub struct Page {
     /// Whether the page shows vehicle data, and so says in its footer
     /// which data version it was read from. A calculator does not.
     pub vehicle_data: bool,
+    /// What a page of rates says in its footer in place of the data
+    /// version: whose rates they are and the day they were checked. The
+    /// footer follows it with a link to the page's own list of sources,
+    /// which is the element with the id `sources`.
+    pub rates: Option<String>,
 }
 
 impl Page {
@@ -113,6 +118,7 @@ impl Page {
             og_type: "website",
             json_ld: None,
             vehicle_data: true,
+            rates: None,
         }
     }
 
@@ -134,6 +140,13 @@ impl Page {
     /// version.
     pub fn without_vehicle_data(mut self) -> Page {
         self.vehicle_data = false;
+        self
+    }
+
+    /// Says the page's figures rest on rates, and what its footer says of
+    /// them: "Rates for Ontario as of 2026-10-03."
+    pub fn with_rates(mut self, rates: String) -> Page {
+        self.rates = Some(rates);
         self
     }
 

@@ -206,6 +206,30 @@ mod tests {
             ),
             ("parts_matrix/doc.rs", include_str!("parts_matrix/doc.rs")),
             (
+                "canada_invoice_tax.html",
+                include_str!("../../../templates/canada_invoice_tax.html"),
+            ),
+            (
+                "canada_invoice_tax/mod.rs",
+                include_str!("canada_invoice_tax/mod.rs"),
+            ),
+            (
+                "canada_invoice_tax/form.rs",
+                include_str!("canada_invoice_tax/form.rs"),
+            ),
+            (
+                "canada_invoice_tax/result.rs",
+                include_str!("canada_invoice_tax/result.rs"),
+            ),
+            (
+                "canada_invoice_tax/doc.rs",
+                include_str!("canada_invoice_tax/doc.rs"),
+            ),
+            (
+                "canada_invoice_tax/rates.rs",
+                include_str!("canada_invoice_tax/rates.rs"),
+            ),
+            (
                 "gross_profit.html",
                 include_str!("../../../templates/gross_profit.html"),
             ),

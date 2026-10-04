@@ -252,6 +252,10 @@ async fn titles_and_descriptions_are_for_what_people_search_and_are_unique() {
             "Labor rate calculator for auto repair shops - Wenmar Open",
         ),
         (
+            "/tools/canada-invoice-tax",
+            "Canadian invoice tax and tire fee calculator - Wenmar Open",
+        ),
+        (
             "/makes",
             "Car and truck makes, with models by year - Wenmar Open",
         ),

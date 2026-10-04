@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% import "tool.html" as piece %}
+{% block content %}
+{% call piece::opening(tool) %}
+<p class="note">Amounts are in Canadian dollars ({{ currency }}).</p>
+<form class="calc" id="calc" action="{{ tool.path() }}#result" method="get">
+{% if example -%}
+<p class="note">The form is filled in with an example. Change the figures and press the button.</p>
+{% endif -%}
+{% if let Some(error) = form.error -%}
+<p class="warning" id="calc-error">{{ error }}</p>
+{% endif -%}
+<div class="field">
+<label for="province">{{ form.province.label }}</label>
+<select id="province" name="province"{% if form.province.error.is_some() %} aria-invalid="true" aria-describedby="{{ form.province.error_id() }}"{% endif %}>
+<option value=""{% if form.chosen.is_none() %} selected{% endif %}>Choose a province or territory</option>
+{% for choice in covered -%}
+<option value="{{ choice.code }}"{% if choice.selected %} selected{% endif %}>{{ choice.name }}</option>
+{% endfor -%}
+{% if !not_covered.is_empty() -%}
+<optgroup label="Not yet covered">
+{% for choice in not_covered -%}
+<option value="{{ choice.code }}" disabled>{{ choice.name }}</option>
+{% endfor -%}
+</optgroup>
+{% endif -%}
+</select>
+{% if let Some(error) = form.province.error -%}
+<p class="warning" id="{{ form.province.error_id() }}">{{ error }}</p>
+{% endif -%}
+</div>
+<p class="help">The tire fields are those of the province chosen. To see another province's, choose it and press the button. Shop supplies and the tire fields may be left empty.</p>
+{% call piece::field(form.labour) %}
+{% call piece::field(form.parts) %}
+{% call piece::field(form.supplies) %}
+{% for field in form.tires -%}
+{% call piece::field(field) %}
+{% endfor -%}
+{% if let Some(province) = province -%}
+{% if let Some(statement) = province.no_tire_fee -%}
+<p class="note">{{ statement }}</p>
+{% endif -%}
+{% endif -%}
+<div class="screen"><button class="primary" type="submit">Work it out</button></div>
+</form>
+<h2 id="result">Result</h2>
+{% if let Some(table) = table -%}
+{% if example -%}
+<p class="note">This is the result of the example in the form.</p>
+{% endif -%}
+{% if let Some(left_out) = form.left_out -%}
+<p class="warning" id="tires-left-out">{{ left_out }}</p>
+{% endif -%}
+{% call piece::actions() %}
+{% call piece::table(table) %}
+{% if let Some(province) = province -%}
+{% for note in province.notes -%}
+<p class="note">{{ note }}</p>
+{% endfor -%}
+{% endif -%}
+{% else -%}
+{% call piece::no_result(troubles) %}
+{% endif -%}
+{% if let Some(province) = province -%}
+<h2 id="sources">Rates and sources for {{ province.name }}</h2>
+<p>{{ province.checked }} These are the rates the result above uses:</p>
+{% for line in province.rates -%}
+<p>{{ line }}</p>
+{% endfor -%}
+<p>Each was read from these pages:</p>
+<ul class="plain links">
+{% for source in province.sources -%}
+<li><a href="{{ source.1 }}">{{ source.0 }}</a></li>
+{% endfor -%}
+</ul>
+{% endif -%}
+{% call piece::how(how) %}
+<h2 id="covers">What this covers</h2>
+{% for line in scope -%}
+<p>{{ line }}</p>
+{% endfor -%}
+{% if !waiting.is_empty() -%}
+<h2 id="not-covered">Not yet covered</h2>
+<p>Nothing is worked out for these, because a rule has no source yet:</p>
+{% for place in waiting -%}
+<p>{{ place.0 }}: {{ place.1 }}</p>
+{% endfor -%}
+{% endif -%}
+{% call piece::closing(tool) %}
+{% endblock %}

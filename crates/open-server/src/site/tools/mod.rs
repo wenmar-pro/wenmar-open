@@ -67,7 +67,12 @@ impl Tool {
 
 /// Every calculator that exists, in the order they are listed. A new one
 /// is added here and nowhere else.
-pub static TOOLS: [&Tool; 3] = [&parts_matrix::TOOL, &labor_rate::TOOL, &gross_profit::TOOL];
+pub static TOOLS: [&Tool; 4] = [
+    &parts_matrix::TOOL,
+    &labor_rate::TOOL,
+    &gross_profit::TOOL,
+    &canada_invoice_tax::TOOL,
+];
 
 /// How long a browser may keep a page worked out from a query string. It
 /// holds a shop's own figures, so no shared cache keeps it.
