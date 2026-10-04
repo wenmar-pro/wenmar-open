@@ -5,6 +5,7 @@
 //! page.
 
 pub mod field;
+pub mod parts_matrix;
 pub mod pieces;
 pub mod target;
 
