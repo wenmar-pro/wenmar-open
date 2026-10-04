@@ -131,7 +131,7 @@ pub fn getting(result: &EffectiveRate) -> GettingShown {
             against.per_hour.to_string(),
         ));
         rows.push((
-            "The same over the hours billed",
+            "Posted rate × hours billed, less labor sales",
             against.over_the_period.to_string(),
         ));
         posted = Some(match against.per_hour.cmp(&Money::ZERO) {
@@ -218,7 +218,7 @@ mod tests {
                 "Effective labor rate, per hour billed | $92.31",
                 "Effective rate as a percent of the posted rate | 76.925%",
                 "Posted rate less effective rate, per hour | $27.69",
-                "The same over the hours billed | $14,400.00",
+                "Posted rate × hours billed, less labor sales | $14,400.00",
             ]
         );
         assert_eq!(
@@ -309,7 +309,7 @@ mod tests {
                 "Effective labor rate, per hour billed | $130.00",
                 "Effective rate as a percent of the posted rate | 108.333%",
                 "Posted rate less effective rate, per hour | -$10.00",
-                "The same over the hours billed | -$4,000.00",
+                "Posted rate × hours billed, less labor sales | -$4,000.00",
             ]
         );
         assert_eq!(

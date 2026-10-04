@@ -171,7 +171,7 @@ mod tests {
             "| Effective labor rate, per hour billed | $92.31 |\n",
             "| Effective rate as a percent of the posted rate | 76.925% |\n",
             "| Posted rate less effective rate, per hour | $27.69 |\n",
-            "| The same over the hours billed | $14,400.00 |\n",
+            "| Posted rate × hours billed, less labor sales | $14,400.00 |\n",
             "The shop is getting less for an hour billed than it posts.",
             "Labor gross profit: 62.5%. That is inside the typical range of 60% to 75% for labor gross profit. The usual target is 70%.",
             "```\nhttps://open.example/tools/labor-rate?technicians=3&paid_hours=173&productivity=85&technician_cost=18000.00&overhead=25000.00&parts_profit=12000.00&target_profit=10&target_labor=70&labor_sales=48000.00&hours_billed=520&posted_rate=120.00&period_cost=18000.00\n```",

@@ -204,12 +204,20 @@ fn check_province<'a>(
                 ));
             }
         }
+        if !(tax.on_labour || tax.on_parts || tax.on_supplies || tax.on_tire_fee) {
+            return Err(format!(
+                "the tax {name} is charged on nothing: every on_ switch is false"
+            ));
+        }
         if tax.on_other_taxes {
             return Err(format!(
                 "the tax {name}: on_other_taxes is true, and the calculator has no arithmetic for a tax on a tax"
             ));
         }
         check_sources(file, &tax.sources, used).map_err(|why| format!("the tax {name} {why}"))?;
+    }
+    if names.contains("HST") && province.tax.len() > 1 {
+        return Err("has a tax named HST and another tax: HST is the only tax there".to_owned());
     }
     let mut classes = BTreeSet::new();
     for fee in &province.tire_fee {
@@ -673,6 +681,16 @@ sources = ["one"]
                 "on_labour = true\non_parts = true\non_supplies = false",
                 "on_labour = \"yes\"\non_parts = true\non_supplies = false",
                 "invalid type",
+            ),
+            (
+                "on_labour = true\non_parts = true\non_supplies = false\non_tire_fee = false",
+                "on_labour = false\non_parts = false\non_supplies = false\non_tire_fee = false",
+                "XA: the tax TAX is charged on nothing",
+            ),
+            (
+                "[[province.tire_fee]]\nclass = \"small_1\"",
+                "[[province.tax]]\nname = \"HST\"\nrate = \"5\"\non_labour = true\non_parts = true\non_supplies = true\non_tire_fee = true\non_other_taxes = false\nsources = [\"one\"]\n\n[[province.tire_fee]]\nclass = \"small_1\"",
+                "XA: has a tax named HST and another tax",
             ),
             // A tire fee.
             (
