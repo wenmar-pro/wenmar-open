@@ -19,7 +19,7 @@ use crate::state::AppState;
 /// What the service is, in one paragraph. Both files open with it.
 fn summary(data_version: &str) -> String {
     format!(
-        "Free vehicle data and shop calculators for auto repair shops: VIN decoding, a year, make, model, submodel and engine catalog built from NHTSA's vPIC, and calculators for a shop's prices. No API key and no account. Read-only. Data version {data_version}."
+        "Free vehicle data and shop calculators for auto repair shops: VIN decoding, a year, make, model, submodel and engine catalog built from NHTSA's vPIC, and calculators for a shop's prices, margins and Canadian invoice taxes. No API key and no account. Read-only. Data version {data_version}."
     )
 }
 
