@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/wenmar-vin", "crates/wenmar-vehicles", "crates/open-data", "crates/open-server", "crates/wenmar-open-cli", "crates/open-mcp", "crates/wenmar-open-turso", "crates/wenmar-open-wasm"]
+members = ["crates/wenmar-vin", "crates/wenmar-vehicles", "crates/open-data", "crates/open-server", "crates/wenmar-open-cli", "crates/open-mcp", "crates/wenmar-open-turso", "crates/wenmar-open-wasm", "crates/shop-math"]
 
 [workspace.package]
 # The one version of everything this repository publishes: the three library

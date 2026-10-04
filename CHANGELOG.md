@@ -59,6 +59,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - `wenmar-open-d1`, a script in `wenmar-open-data` that writes the data file as SQL files for Cloudflare D1.
 - `wenmar-open-wasm` crate (not published): `wenmar-vin` and `wenmar-vehicles` behind one JSON call, over a database made of rows the caller has already read.
 - `wenmar-vehicles`: `vin_rows`, the rows one VIN needs read through a `Source`, moved from `wenmar-open-turso`, which re-exports it.
+- `shop-math` crate (not published): the arithmetic of the shop calculators, with money as whole cents and percentages as whole thousandths of a percent.
 
 ### Changed
 
