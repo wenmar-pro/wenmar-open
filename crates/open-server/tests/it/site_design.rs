@@ -7,7 +7,7 @@ use axum::http::StatusCode;
 use crate::common::{self, assert_basics, assert_head, assert_targets, page};
 
 /// One page of every kind that exists at this point of the plan.
-const PAGES: [&str; 13] = [
+const PAGES: [&str; 14] = [
     "/",
     "/makes",
     "/makes/honda",
@@ -20,6 +20,7 @@ const PAGES: [&str; 13] = [
     "/vin/KM8K2",
     "/tools",
     "/tools/parts-matrix",
+    "/tools/labor-rate",
     "/nothing",
 ];
 
@@ -374,4 +375,49 @@ async fn a_calculator_prints_its_inputs_and_its_result_and_not_the_navigation() 
     // The tools index has nothing to hide but the layout's own parts.
     let (_, index) = page(&app, "/tools").await;
     assert!(!index.contains("<form") && !index.contains("data-print"));
+}
+
+#[tokio::test]
+async fn the_labor_rate_page_fits_a_small_phone_and_prints_its_form_and_results() {
+    let css = stylesheet().await;
+    let app = common::app().await;
+    let (_, html) = page(&app, "/tools/labor-rate").await;
+    assert_targets(&html, "/tools/labor-rate");
+    // Twelve boxes, one to a row, each inside the shared piece that puts
+    // its message under it. No box asks for a width of its own, and the
+    // page has no rule of its own in the stylesheet.
+    assert_eq!(html.matches(r#"<div class="field">"#).count(), 12);
+    assert_eq!(html.matches("<input ").count(), 12);
+    assert!(!html.contains(r#"class="tier"#));
+    assert!(!html.contains(" size=") && !html.contains("style="));
+    assert!(!css.contains("labor"));
+    // A label is a line or two at 320 pixels: measured there, the longest
+    // (42 characters) takes two lines.
+    for label in html.split("<label for=").skip(1) {
+        let text = label.split('>').nth(1).unwrap();
+        let text = text.split("</label").next().unwrap();
+        assert!(text.len() <= 42, "{text}");
+    }
+    // Two columns share the width and wrap: neither table keeps its cells
+    // on one line, so neither scrolls sideways.
+    assert!(css.contains("table{width:100%;table-layout:fixed;"));
+    assert_eq!(
+        html.matches("<div class=\"scroll\">\n<table>\n<caption>")
+            .count(),
+        2
+    );
+    assert!(!html.contains(r#"<table class="prose">"#));
+    // Printed: the one form with both of its parts, and both results.
+    let print = css.split("@media print{").nth(1).expect("print rules");
+    assert!(print.contains("form:not(.calc)"));
+    assert_eq!(html.matches(r#"<form class="calc" id="calc""#).count(), 1);
+    let form = html.split("<form").nth(1).unwrap();
+    let form = form.split("</form>").next().unwrap();
+    assert!(form.contains(r#"<h2 id="needed">"#) && form.contains(r#"<h2 id="getting">"#));
+    // Not printed: the button, the print button, the link to Wenmar Pro.
+    assert!(html.contains(r#"<div class="screen"><button class="primary" type="submit">"#));
+    assert!(html.contains(
+        "<div class=\"actions\">\n<button type=\"button\" data-print hidden>Print</button>"
+    ));
+    assert!(html.contains(r#"<p class="pro">"#));
 }
