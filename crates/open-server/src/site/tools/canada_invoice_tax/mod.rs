@@ -4,6 +4,7 @@
 //! No rate, rule or fee is written here: each is in `data/rates/canada.toml`
 //! and reaches this code through [`rates`].
 
+pub mod doc;
 pub mod form;
 pub mod rates;
 pub mod result;
