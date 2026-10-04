@@ -12,6 +12,7 @@
 
 mod decimal;
 pub mod gross_profit;
+pub mod invoice_tax;
 pub mod labor_rate;
 mod money;
 pub mod parts_matrix;
