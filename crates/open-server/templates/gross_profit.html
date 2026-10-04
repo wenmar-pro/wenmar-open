@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% import "tool.html" as piece %}
+{% block content %}
+{% call piece::opening(tool) %}
+<form class="calc" id="calc" action="{{ tool.path() }}#result" method="get">
+{% if example -%}
+<p class="note">The form is filled in with an example. Change the figures and press the button.</p>
+{% endif -%}
+{% if let Some(error) = form.error -%}
+<p class="warning" id="calc-error">{{ error }}</p>
+{% endif -%}
+<p class="help">For one period, such as a month. Technician cost is what the technicians are paid, with what the shop pays on top of wages. Parts cost and sublet cost are what the shop paid for them. A shop that sold no labor or no parts writes a zero there. Sublet may be left empty.</p>
+{% call piece::field(form.labor_sales) %}
+{% call piece::field(form.technician_cost) %}
+{% call piece::field(form.parts_sales) %}
+{% call piece::field(form.parts_cost) %}
+{% call piece::field(form.sublet_sales) %}
+{% call piece::field(form.sublet_cost) %}
+<div class="screen"><button class="primary" type="submit">Work it out</button></div>
+</form>
+<h2 id="result">Result</h2>
+{% if let Some(shown) = shown -%}
+{% if example -%}
+<p class="note">This is the result of the example in the form.</p>
+{% endif -%}
+{% call piece::actions() %}
+{% call piece::table(shown.table) %}
+{% if let Some(labor) = shown.labor -%}
+{% call piece::target(labor) %}
+{% endif -%}
+{% if let Some(short) = shown.labor_short -%}
+<p><strong>{{ short }}</strong></p>
+{% endif -%}
+{% if let Some(parts) = shown.parts -%}
+{% call piece::target(parts) %}
+{% endif -%}
+{% if let Some(short) = shown.parts_short -%}
+<p><strong>{{ short }}</strong></p>
+{% endif -%}
+<p class="note">{{ sublet_alone }}</p>
+{% if let Some(overall) = shown.overall -%}
+{% call piece::target(overall) %}
+{% endif -%}
+{% else -%}
+{% call piece::no_result(troubles) %}
+{% endif -%}
+{% call piece::how(how) %}
+{% call piece::closing(tool) %}
+{% endblock %}

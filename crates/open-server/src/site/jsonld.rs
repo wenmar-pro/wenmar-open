@@ -218,6 +218,7 @@ mod tests {
             include_str!("../../templates/wmi.html"),
             include_str!("../../templates/tool.html"),
             include_str!("../../templates/parts_matrix.html"),
+            include_str!("../../templates/gross_profit.html"),
             include_str!("../../templates/labor_rate.html"),
         ];
         let uses: usize = templates

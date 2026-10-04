@@ -206,6 +206,17 @@ mod tests {
             ),
             ("parts_matrix/doc.rs", include_str!("parts_matrix/doc.rs")),
             (
+                "gross_profit.html",
+                include_str!("../../../templates/gross_profit.html"),
+            ),
+            ("gross_profit/mod.rs", include_str!("gross_profit/mod.rs")),
+            ("gross_profit/form.rs", include_str!("gross_profit/form.rs")),
+            (
+                "gross_profit/result.rs",
+                include_str!("gross_profit/result.rs"),
+            ),
+            ("gross_profit/doc.rs", include_str!("gross_profit/doc.rs")),
+            (
                 "labor_rate.html",
                 include_str!("../../../templates/labor_rate.html"),
             ),

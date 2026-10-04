@@ -105,6 +105,7 @@ async fn llms_full_txt_is_the_pages_themselves() {
         "/guides/model-year.md",
         "/guides/check-digit.md",
         "/tools/parts-matrix.md",
+        "/tools/gross-profit.md",
         "/tools/labor-rate.md",
         "/data.md",
         "/about.md",
