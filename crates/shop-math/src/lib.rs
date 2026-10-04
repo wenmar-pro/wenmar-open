@@ -14,6 +14,7 @@ mod decimal;
 mod money;
 mod percent;
 mod quantity;
+pub mod targets;
 
 pub use decimal::{ParseError, TooLarge};
 pub use money::Money;
