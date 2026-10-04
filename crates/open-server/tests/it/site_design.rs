@@ -7,7 +7,7 @@ use axum::http::StatusCode;
 use crate::common::{self, assert_basics, assert_head, assert_targets, page};
 
 /// One page of every kind that exists at this point of the plan.
-const PAGES: [&str; 15] = [
+const PAGES: [&str; 16] = [
     "/",
     "/makes",
     "/makes/honda",
@@ -20,6 +20,7 @@ const PAGES: [&str; 15] = [
     "/vin/KM8K2",
     "/tools",
     "/tools/parts-matrix",
+    "/tools/canada-invoice-tax",
     "/tools/gross-profit",
     "/tools/labor-rate",
     "/nothing",
@@ -469,4 +470,62 @@ async fn the_gross_profit_page_fits_a_small_phone_and_prints_its_form_and_result
         "<div class=\"actions\">\n<button type=\"button\" data-print hidden>Print</button>"
     ));
     assert!(html.contains(r#"<p class="pro">"#));
+}
+
+#[tokio::test]
+async fn the_canadian_page_fits_a_small_phone_and_prints_its_form_and_result() {
+    let css = stylesheet().await;
+    let app = common::app().await;
+    // Quebec has the longest tire class labels of any province.
+    let quebec = "/tools/canada-invoice-tax?province=QC&labour=180.00&parts=640.00&supplies=14.37&tires_diameter_83_82_cm_or_less=4&tires_diameter_over_83_82_cm_to_123_19_cm=1";
+    for path in ["/tools/canada-invoice-tax", quebec] {
+        let (_, html) = page(&app, path).await;
+        assert_targets(&html, path);
+        // The list of provinces and five boxes, one to a row, each inside
+        // the piece that puts its message under it. No box asks for a
+        // width of its own, and the page has no rule of its own in the
+        // stylesheet.
+        assert_eq!(html.matches(r#"<div class="field">"#).count(), 6, "{path}");
+        assert_eq!(html.matches("<input ").count(), 5, "{path}");
+        assert_eq!(html.matches("<select ").count(), 1, "{path}");
+        assert!(!html.contains(r#"class="tier"#));
+        assert!(!html.contains(" size=") && !html.contains("style="));
+        // A label is words with spaces between them, so it wraps: nothing
+        // in one is longer than a phone is wide.
+        for label in html.split("<label for=").skip(1) {
+            let text = label.split('>').nth(1).unwrap();
+            let text = text.split("</label").next().unwrap();
+            assert!(text.split(' ').all(|word| word.len() <= 16), "{text}");
+        }
+        // The result is one table of two columns: what a line is, and its
+        // amount. It is not the kind that keeps a cell on one line, so a
+        // long tire class wraps inside its cell and the amounts stay in
+        // sight.
+        assert_eq!(html.matches("<table").count(), 1, "{path}");
+        assert!(html.contains("<div class=\"scroll\">\n<table>\n<caption>Invoice in "));
+        assert!(html.contains(
+            r#"<thead><tr><th scope="col">Line</th><th scope="col">Amount</th></tr></thead>"#
+        ));
+        // The sources are a list of links, each tall enough to tap.
+        assert_eq!(
+            html.matches(r#"<ul class="plain links">"#).count(),
+            1,
+            "{path}"
+        );
+        // Printed: the form and the result.
+        assert_eq!(html.matches(r#"<form class="calc" id="calc""#).count(), 1);
+        // Not printed: the button, the print button, the link to Wenmar Pro.
+        assert!(html.contains(r#"<div class="screen"><button class="primary" type="submit">"#));
+        assert!(html.contains(
+            "<div class=\"actions\">\n<button type=\"button\" data-print hidden>Print</button>"
+        ));
+        assert!(html.contains(r#"<p class="pro">"#));
+    }
+    assert!(!css.contains("canada") && !css.contains("province") && !css.contains("tires"));
+    assert!(css.contains("table{width:100%;table-layout:fixed"));
+    assert!(css.contains("ul.links{grid-template-columns:1fr}"));
+    // A long word breaks instead of pushing the page sideways.
+    assert!(css.contains("overflow-wrap:anywhere"));
+    let print = css.split("@media print{").nth(1).expect("print rules");
+    assert!(print.contains("form:not(.calc)"));
 }
