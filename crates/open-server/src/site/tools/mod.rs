@@ -84,6 +84,15 @@ pub fn index(base: &str) -> Doc {
             )
         })
         .collect();
+    let guides: Vec<(&str, String)> = crate::site::guides::GUIDES
+        .iter()
+        .filter(|guide| !guide.about_vins())
+        .map(|guide| (guide.title, format!("{base}{}", guide.path())))
+        .collect();
+    sections.push(with_links(
+        section("Guides", &["Longer answers that go with the calculators."]),
+        &guides,
+    ));
     sections.push(section(
         "How they work",
         &[

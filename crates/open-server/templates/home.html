@@ -29,7 +29,9 @@
 <h2>About VINs</h2>
 <ul class="plain links">
 {% for guide in guides -%}
+{% if guide.about_vins() -%}
 <li><a href="/guides/{{ guide.slug }}">{{ guide.title }}</a></li>
+{% endif -%}
 {% endfor -%}
 </ul>
 {% endblock %}
