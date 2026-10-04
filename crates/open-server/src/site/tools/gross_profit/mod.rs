@@ -1,6 +1,7 @@
 //! `/tools/gross-profit`: what labor, parts and sublet made in a period,
 //! each beside its target.
 
+pub mod doc;
 pub mod form;
 pub mod result;
 
