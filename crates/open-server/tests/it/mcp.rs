@@ -292,6 +292,38 @@ async fn there_are_no_streams_or_sessions() {
     assert_eq!(header(&response, "cache-control"), "no-store");
 }
 
+/// Claude's connector dialog takes the bare domain. A refusal there reads
+/// to the client as a sign-in prompt, so the site's own address and `/mcp/`
+/// answer as `/mcp` does, and the home page is still a page.
+#[tokio::test]
+async fn the_bare_domain_and_a_trailing_slash_are_the_mcp_endpoint_too() {
+    let app = common::app().await;
+    let initialize = json!({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": { "protocolVersion": "2025-06-18", "capabilities": {} }
+    })
+    .to_string();
+    for path in ["/", "/mcp/"] {
+        let response = app.post_json(path, &initialize).await;
+        assert_eq!(response.status(), StatusCode::OK, "{path}");
+        assert!(header(&response, "content-type").starts_with("application/json"));
+        assert_eq!(header(&response, "x-robots-tag"), "noindex", "{path}");
+        let answer = body_json(response).await;
+        assert_eq!(answer["result"]["protocolVersion"], "2025-06-18", "{path}");
+        assert_eq!(answer["result"]["serverInfo"]["name"], "wenmar-open");
+    }
+    let response = app.post_json("/", "not json").await;
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    assert_eq!(body_json(response).await["error"]["code"], -32700);
+    let response = app.get("/mcp/").await;
+    assert_eq!(response.status(), StatusCode::METHOD_NOT_ALLOWED);
+    let response = app.get("/").await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert!(header(&response, "content-type").starts_with("text/html"));
+}
+
 #[tokio::test]
 async fn an_oversized_message_is_refused() {
     let app = common::app().await;

@@ -148,6 +148,13 @@ pub fn app(state: AppState) -> Router {
                 .get(mcp::not_allowed)
                 .delete(mcp::not_allowed),
         )
+        // The same address with a trailing slash, as it is often pasted.
+        .route(
+            "/mcp/",
+            axum::routing::post(mcp::post)
+                .get(mcp::not_allowed)
+                .delete(mcp::not_allowed),
+        )
         .merge(site::router())
         .fallback(site::fallback)
         .method_not_allowed_fallback(method_not_allowed)

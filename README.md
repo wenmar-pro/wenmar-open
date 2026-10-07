@@ -50,7 +50,7 @@ Fields and endpoints are only ever added.
 ### For AI agents
 
 - `GET /v1/vin/{vin}` needs no key and no header: an assistant that can fetch an address can decode a VIN.
-- `/mcp` is a Model Context Protocol endpoint (Streamable HTTP, no key) with two tools, `wenmar_vin` and `wenmar_vehicles`. It answers protocol revision 2026-07-28 and the revisions that open with `initialize`.
+- `/mcp` is a Model Context Protocol endpoint (Streamable HTTP, no key) with two tools, `wenmar_vin` and `wenmar_vehicles`. It answers protocol revision 2026-07-28 and the revisions that open with `initialize`. The site's own address, `https://open.wenmarpro.com`, answers MCP messages too, so a connector given the bare domain works.
 - `/llms.txt` describes the service for language models, and `/llms-full.txt` is the documentation as one Markdown file.
 - `/.well-known/api-catalog` points to the OpenAPI description (RFC 9727).
 - `robots.txt` welcomes AI crawlers on everything except single VINs.
