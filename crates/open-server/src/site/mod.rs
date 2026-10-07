@@ -274,10 +274,12 @@ pub async fn fallback(State(state): State<AppState>, uri: Uri) -> Response {
     not_found(&state)
 }
 
-fn is_page(path: &str) -> bool {
+fn is_page(method: &Method, path: &str) -> bool {
     !(path.starts_with("/v1/")
         || path == "/v1"
         || path == "/mcp"
+        || path == "/mcp/"
+        || (path == "/" && method == Method::POST)
         || path == "/health"
         || path == "/.well-known/api-catalog")
 }
@@ -317,7 +319,7 @@ fn kept_private(headers: &HeaderMap) -> bool {
 /// answered "unchanged", and only a public page carries an `ETag`.
 pub async fn page_headers(State(state): State<AppState>, request: Request, next: Next) -> Response {
     let path = request.uri().path().to_owned();
-    if !is_page(&path) {
+    if !is_page(request.method(), &path) {
         let mut response = next.run(request).await;
         // JSON and MCP answers are not pages to index.
         response
@@ -374,7 +376,7 @@ pub async fn page_refusals(
     request: Request,
     next: Next,
 ) -> Response {
-    let page = is_page(request.uri().path());
+    let page = is_page(request.method(), request.uri().path());
     let response = next.run(request).await;
     let status = response.status();
     let (heading, message) = match status {
@@ -424,7 +426,10 @@ pub async fn page_refusals(
 /// The pages.
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/", get(home::home))
+        // A POST to the site's own address is an MCP client given the bare
+        // domain, as Claude's connector dialog invites. It is answered as at
+        // `/mcp`: refused, the client would take it for a sign-in prompt.
+        .route("/", get(home::home).post(crate::mcp::post))
         .route("/vin", get(home::vin_form))
         .route("/pick", get(home::pick))
         .route("/vin/{vin}", get(vin::result))

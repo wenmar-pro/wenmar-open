@@ -4,6 +4,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Fixed
+
+- `open-server`: the MCP endpoint also answers at the site's own address and at `/mcp/`. Claude's custom connector dialog was given `https://open.wenmarpro.com`, got `405` for its first message, took that for a sign-in prompt and failed to register with a sign-in service that does not exist.
+
 ## [0.1.0] - 2026-10-01
 
 ### Added
