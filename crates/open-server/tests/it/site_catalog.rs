@@ -62,6 +62,34 @@ async fn a_make_page_lists_its_models_for_a_year() {
     assert!(html.contains(r#"<a href="/makes/ranger-trailers/tilt-deck/2019">Tilt Deck</a>"#));
 }
 
+// A page for one year is a filter of the page it came from: it is not
+// indexed, it says so in the header as well as the head, and it names the
+// page it filters as the one that is indexed.
+#[tokio::test]
+async fn a_year_filter_is_not_indexed_and_names_the_page_it_filters() {
+    let app = common::app().await;
+    for (path, to) in [
+        ("/makes?year=2023", "/makes"),
+        ("/makes/honda?year=2019", "/makes/honda"),
+        ("/makes/honda?year=soon", "/makes/honda"),
+    ] {
+        let response = app.get(path).await;
+        assert_eq!(response.status(), StatusCode::OK, "{path}");
+        assert_eq!(header(&response, "x-robots-tag"), "noindex", "{path}");
+        let html = common::body_text(response).await;
+        assert!(
+            html.contains(r#"<meta name="robots" content="noindex">"#),
+            "{path}"
+        );
+        assert!(
+            html.contains(&format!(
+                r#"<link rel="canonical" href="https://open.example{to}">"#
+            )),
+            "{path} does not name {to} as the page that is indexed:\n{html}"
+        );
+    }
+}
+
 #[tokio::test]
 async fn a_make_given_by_name_or_alias_goes_to_its_one_address() {
     let app = common::app().await;

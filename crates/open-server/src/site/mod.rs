@@ -209,6 +209,15 @@ pub fn html<T: Template>(status: StatusCode, template: &T) -> Response {
     }
 }
 
+/// Says in a page's headers what `<meta name="robots" content="noindex">`
+/// says in its head: a page that is not indexed says so both ways, as the
+/// result pages and the Markdown copies already do.
+pub fn unindexed(response: &mut Response) {
+    response
+        .headers_mut()
+        .insert("x-robots-tag", HeaderValue::from_static("noindex"));
+}
+
 #[derive(Template)]
 #[template(path = "problem.html")]
 pub struct Problem {

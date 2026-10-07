@@ -5,7 +5,7 @@
 use askama::Template;
 use axum::extract::rejection::{PathRejection, QueryRejection};
 use axum::extract::{Path, Query, State};
-use axum::http::StatusCode;
+use axum::http::{StatusCode, Uri};
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::Deserialize;
 use wenmar_vehicles::text::is_slug;
@@ -122,7 +122,7 @@ fn makes_markdown(year: Option<u16>, makes: &[Make], cut: bool) -> String {
     text
 }
 
-async fn makes_in(state: AppState, year: Option<u16>, format: Format) -> Response {
+async fn makes_in(state: AppState, year: Option<u16>, asked: bool, format: Format) -> Response {
     let loader = move |worker: &Worker| {
         worker
             .catalog
@@ -150,14 +150,21 @@ async fn makes_in(state: AppState, year: Option<u16>, format: Format) -> Respons
         "Every make of car, multipurpose vehicle and truck in NHTSA's data, with its models by year, their trims and engines.",
     )
     .in_section("makes");
-    // Only the full list is indexed; a list for one year is a filter of it.
+    // Only the full list is offered a Markdown version with it; a list for
+    // one year is a filter of it.
     let page = match year {
-        None => page.indexed(&state, "/makes").with_markdown("/makes.md"),
+        None => page.with_markdown("/makes.md"),
         Some(_) => page,
     };
+    // The full list is the page to index. A list for one year, or behind
+    // any other query string, is a filter of it: not indexed, and naming
+    // the list as the page that is.
+    let page = page.indexed(&state, "/makes");
+    let page = if asked { page.with_query() } else { page };
+    let indexed = page.index;
     let cut = cut_short.then_some(MOST_LISTED);
     let (popular, others) = makes.into_iter().partition(|make| make.popular);
-    site::html(
+    let mut response = site::html(
         StatusCode::OK,
         &MakesPage {
             page,
@@ -166,21 +173,29 @@ async fn makes_in(state: AppState, year: Option<u16>, format: Format) -> Respons
             others,
             cut,
         },
-    )
+    );
+    if !indexed {
+        site::unindexed(&mut response);
+    }
+    response
 }
 
 pub async fn makes(
     State(state): State<AppState>,
     query: Result<Query<YearQuery>, QueryRejection>,
+    uri: Uri,
 ) -> Response {
-    makes_in(state, year_of(query), Format::Html).await
+    let asked = uri.query().is_some();
+    makes_in(state, year_of(query), asked, Format::Html).await
 }
 
 pub async fn makes_md(
     State(state): State<AppState>,
     query: Result<Query<YearQuery>, QueryRejection>,
+    uri: Uri,
 ) -> Response {
-    makes_in(state, year_of(query), Format::Markdown).await
+    let asked = uri.query().is_some();
+    makes_in(state, year_of(query), asked, Format::Markdown).await
 }
 
 // ----- one make -----
@@ -327,15 +342,16 @@ pub async fn make(
     State(state): State<AppState>,
     path: Result<Path<String>, PathRejection>,
     query: Result<Query<YearQuery>, QueryRejection>,
+    uri: Uri,
 ) -> Response {
     // An address that is not text names no make.
     let Ok(Path(segment)) = path else {
         return site::not_found(&state);
     };
     let (text, format) = markdown::split(&segment);
-    let asked = year_of(query);
+    let filter = year_of(query);
     let text = text.to_owned();
-    let found = match load(&state, move |worker| load_make(worker, &text, asked)).await {
+    let found = match load(&state, move |worker| load_make(worker, &text, filter)).await {
         Ok(found) => found,
         Err(error) => return site::failed(&state, &error),
     };
@@ -349,7 +365,7 @@ pub async fn make(
             } else {
                 ""
             };
-            let year = asked
+            let year = filter
                 .map(|year| format!("?year={year}"))
                 .unwrap_or_default();
             return Redirect::permanent(&format!("/makes/{slug}{suffix}{year}")).into_response();
@@ -390,17 +406,27 @@ pub async fn make(
     .under(vec![("Makes".to_owned(), "/makes".to_owned())]);
     let trail = page.trail(&view.name);
     let page = page.describing(vec![trail]);
-    // The page without a year is the one to index, and only for a make of
-    // cars, MPVs or trucks: a trailer maker's page is there for whoever
-    // asks for it, and is in no sitemap.
-    let page = match asked {
-        None if view.light => page
-            .indexed(&state, &path)
-            .with_markdown(&format!("{path}.md")),
+    // A filtered page keeps no Markdown link: its Markdown version is the
+    // page without the year.
+    let page = match filter {
         None => page.with_markdown(&format!("{path}.md")),
         Some(_) => page,
     };
-    site::html(StatusCode::OK, &MakePage { page, view })
+    // The page without a query string is the one to index, and only for a
+    // make of cars, MPVs or trucks: a trailer maker's page is there for
+    // whoever asks for it, and is in no sitemap. With a query string the
+    // page is a filter of that one, which is named as the page that is.
+    let page = match (view.light, uri.query().is_some()) {
+        (true, false) => page.indexed(&state, &path),
+        (true, true) => page.indexed(&state, &path).with_query(),
+        (false, _) => page,
+    };
+    let indexed = page.index;
+    let mut response = site::html(StatusCode::OK, &MakePage { page, view });
+    if !indexed {
+        site::unindexed(&mut response);
+    }
+    response
 }
 
 // ----- one model year -----
