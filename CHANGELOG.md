@@ -4,6 +4,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Added
+
+- A monthly release: `.github/workflows/monthly-release.yml` publishes a release on the 10th of each month with nobody pressing anything. It waits for green CI on `main`, runs `scripts/release-bump.sh` to bump every version, cut the changelog and name the data version in `config/deploy.yml`, then commits, tags and pushes. `scripts/release-bump-test.sh` tests it, and CI runs that test.
+
 ### Fixed
 
 - `open-server`: the MCP endpoint also answers at the site's own address and at `/mcp/`. Claude's custom connector dialog was given `https://open.wenmarpro.com`, got `405` for its first message, took that for a sign-in prompt and failed to register with a sign-in service that does not exist.

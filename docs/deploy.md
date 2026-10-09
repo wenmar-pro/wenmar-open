@@ -194,7 +194,7 @@ Tests check what the pages contain. Only looking checks how they look. Before th
 Each month, or when a data release is published:
 
 1. Put the new data file in `data/build/` (step 3 above).
-2. Change `DATA_VERSION` in `config/deploy.yml` and commit.
+2. `DATA_VERSION` is already set: the monthly release writes the version of the `data-YYYY.MM` release into `config/deploy.yml` and commits it to `main` (see "The monthly release" in `docs/releasing.md`). Check `git status` is clean before deploying, so the image is built around the data release that exists. Change the line by hand only when deploying a data release the monthly release has not cut yet.
 3. `kamal deploy`.
 4. `curl -s https://open.wenmarpro.com/v1/meta` shows the new version.
 
