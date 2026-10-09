@@ -17,7 +17,9 @@ jobs:
       - run: cargo test --workspace --all-features
       # Not part of cargo test, so mise run check does not run it. It clones
       # the repository and compiles into this runner's own target/, so it needs
-      # the pinned toolchain the step above installed.
+      # the pinned toolchain the step above installed, and it must stay after
+      # cargo test: a bumped version compiled in the clone is cached under the
+      # new version's fingerprint, and cargo test would read it as this tree's.
       - run: scripts/release-bump-test.sh
 
   msrv:
