@@ -31,6 +31,14 @@ description = "Check that a release would work: versions, changelog, dry runs. P
 depends = ["check", "js"]
 run = "scripts/release-check.sh"
 
+[tasks.release-bump]
+description = "Bump every version, cut the changelog and record the data version. Commits nothing"
+run = ["scripts/release-bump.sh"]
+
+[tasks.release-bump-test]
+description = "Test scripts/release-bump.sh against the trees it must accept or refuse"
+run = ["scripts/release-bump-test.sh"]
+
 [tasks.data]
 description = "Download NHTSA's newest vPIC release and build the data file"
 run = '''

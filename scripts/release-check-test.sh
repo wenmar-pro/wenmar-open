@@ -43,6 +43,10 @@ git -C "$clone" -c user.name=test -c user.email=test@example.invalid \
 if [ -d "$root/clients/js/node_modules" ]; then
   ln -s "$root/clients/js/node_modules" "$clone/clients/js/node_modules"
 fi
+# clients/js/scripts/build-wasm.mjs reads the built artifact from target/
+# under its own repository root and ignores CARGO_TARGET_DIR, so without this
+# the clone has no target/ to read and npm run build fails on a missing file.
+ln -s "$root/target" "$clone/target"
 
 failed=0
 pass() { echo "ok      $1"; }
