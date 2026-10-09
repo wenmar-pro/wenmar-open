@@ -35,3 +35,6 @@ dist/
 .idea/
 .vscode/
 *.swp
+
+# Isolated worktrees for feature work
+.worktrees/
