@@ -73,11 +73,16 @@ if [ -n "${RELEASE_TAG:-}" ]; then
 fi
 
 step "The release workflow's actions"
-# The jobs that publish may ask crates.io and npm for a publishing token. A
-# tag such as v4 can be moved to other code by whoever controls the action;
-# a commit cannot. A checkout that keeps its credentials leaves the job's
-# GitHub token in .git/config for every later step to read.
-node - .github/workflows/release.yml <<'EOF' || fail "the release workflow's actions are not as a release needs them"
+# Every workflow a release runs through: release.yml publishes, and
+# monthly-release.yml pushes the tag that starts it. The jobs that publish may
+# ask crates.io and npm for a publishing token. A tag such as v4 can be moved
+# to other code by whoever controls the action; a commit cannot. A checkout
+# that keeps its credentials leaves the job's GitHub token in .git/config for
+# every later step to read. monthly-release.yml holds a write token of its own,
+# so it must keep no credentials either.
+for workflow in .github/workflows/release.yml .github/workflows/monthly-release.yml; do
+  [ -f "$workflow" ] || continue
+  node - "$workflow" <<'EOF' || fail "a release workflow's actions are not as a release needs them"
 const fs = require("node:fs");
 const file = process.argv[2];
 const lines = fs.readFileSync(file, "utf8").split("\n");
@@ -113,6 +118,7 @@ lines.forEach((line, index) => {
 if (count === 0) refuse(0, "no action found; has the file changed shape?");
 process.exit(ok ? 0 : 1);
 EOF
+done
 
 step "Which crates are published"
 cargo metadata --no-deps --format-version 1 --locked > "$scratch/metadata.json"
