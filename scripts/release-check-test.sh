@@ -13,6 +13,7 @@
 #                                 commit: steps 1 and 2 done, nothing committed
 #   action_at_a_moving_tag        an action in release.yml named by a tag
 #   checkout_keeps_credentials    a checkout without persist-credentials: false
+#   server_json_version_disagrees  server.json still at the previous version
 set -euo pipefail
 cd "$(dirname "$0")/.."
 root=$PWD
@@ -42,6 +43,12 @@ git -C "$clone" -c user.name=test -c user.email=test@example.invalid \
 # Saves a download: the check runs `npm ci` only when this is missing.
 if [ -d "$root/clients/js/node_modules" ]; then
   ln -s "$root/clients/js/node_modules" "$clone/clients/js/node_modules"
+fi
+# Saves a rebuild, and lets build-wasm.mjs find it: cargo is told to build into
+# this repository's target/, while that script reads the WebAssembly from the
+# clone's own. The symlink makes the two names the same files.
+if [ -d "$root/target" ]; then
+  ln -s "$root/target" "$clone/target"
 fi
 
 failed=0
@@ -79,6 +86,13 @@ version_change_not_committed() {
       api.info.version = version;
       fs.writeFileSync(file, JSON.stringify(api, null, 2) + "\n");
     ' crates/open-server/openapi.json "$new"
+    node -e '
+      const fs = require("node:fs");
+      const [file, version] = process.argv.slice(1);
+      const server = JSON.parse(fs.readFileSync(file, "utf8"));
+      server.version = version;
+      fs.writeFileSync(file, JSON.stringify(server, null, 2) + "\n");
+    ' server.json "$new"
     # Step 2.
     awk -v section="## [$new] - $(date +%Y-%m-%d)" '
       /^## \[Unreleased\]/ { print; print ""; print section; next }
@@ -129,9 +143,22 @@ checkout_keeps_credentials() {
   refused "${FUNCNAME[0]}" "persist-credentials: false"
 }
 
+server_json_version_disagrees() {
+  restore
+  local old new
+  old=$(sed -n 's/^  "version": "\(.*\)",$/\1/p' "$clone/server.json")
+  new=$(echo "$old" | awk -F. '{ print $1 "." $2 + 1 ".0" }')
+  sed -i.bak "s/\"version\": \"$old\"/\"version\": \"$new\"/" "$clone/server.json"
+  rm "$clone/server.json.bak"
+  grep -Fq "\"version\": \"$new\"" "$clone/server.json" ||
+    { miss "${FUNCNAME[0]}" "the case did not change server.json"; return; }
+  refused "${FUNCNAME[0]}" "server.json, its version has $new"
+}
+
 action_at_a_moving_tag
 checkout_keeps_credentials
+server_json_version_disagrees
 version_change_not_committed
 
 [ "$failed" = 0 ] || { echo "release-check-test: failed"; exit 1; }
-echo "release-check-test: 3 passed. Nothing was published, tagged or pushed."
+echo "release-check-test: 4 passed. Nothing was published, tagged or pushed."

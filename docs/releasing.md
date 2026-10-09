@@ -12,7 +12,7 @@ The data file is released separately, every month, by `.github/workflows/data-re
 
 ## Versions
 
-- Everything has the same version. It is written in `Cargo.toml` (under `[workspace.package]`, and in the three lines for `wenmar-vin`, `wenmar-vehicles` and `wenmar-open-turso` under `[workspace.dependencies]`) and in `clients/js/package.json`.
+- Everything has the same version. It is written in `Cargo.toml` (under `[workspace.package]`, and in the three lines for `wenmar-vin`, `wenmar-vehicles` and `wenmar-open-turso` under `[workspace.dependencies]`), in `clients/js/package.json` and in `server.json`.
 - Until 1.0: a change an application has to react to is a new minor version (`0.1.3` to `0.2.0`). Anything else is a patch (`0.1.3` to `0.1.4`).
 - The data file has its own version, `YYYY.MM`, or `YYYY.MM.N` for a rebuild. What ties code to data is the data file's schema version. A version of the code reads data files of one schema version; when that changes, it is a new minor version and the changelog says that older data files must be replaced.
 - The npm package `wenmar-open-data` is versioned `<schema>.<YYYYMM>.<rebuild>`: data `2026.09` at schema version 3 is `3.202609.0`. `wenmar-open` names the schema version it reads as an optional peer, `"wenmar-open-data": "^3.0.0"` in `clients/js/package.json`. When the schema version changes, change that range in the same commit; `npm test` in `clients/js` fails until it matches the decoder.
@@ -118,7 +118,7 @@ npm view wenmar-open-data version dist.unpackedSize
    UPDATE_OPENAPI=1 cargo test --workspace --all-features --test it openapi
    ```
 
-   The first updates `package.json` and `package-lock.json`; the second, `Cargo.lock`; the third, the version inside `crates/open-server/openapi.json`. `wenmar-open` `0.1.0` is already on npm, with the hosted client only, and npm takes a version once: the release that carries the offline mode is `0.2.0`, so this step is not skipped for it.
+   The first updates `package.json` and `package-lock.json`; the second, `Cargo.lock`; the third, the version inside `crates/open-server/openapi.json`. `server.json` at the repository root names the hosted server for the MCP registry and takes the version by hand: replace its `version` too, and the check in step 3 refuses a release where it disagrees. `wenmar-open` `0.1.0` is already on npm, with the hosted client only, and npm takes a version once: the release that carries the offline mode is `0.2.0`, so this step is not skipped for it.
 
 2. **Cut the changelog.** In `CHANGELOG.md`, rename `## [Unreleased]` to `## [0.2.0] - 2026-11-03` (the version and today's date) and add a new, empty `## [Unreleased]` above it.
 
