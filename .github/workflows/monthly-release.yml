@@ -1,0 +1,140 @@
+name: Monthly release
+
+# Publishes a release on the 10th of each month, on its own:
+#
+#   1. check out main
+#   2. wait for CI to have passed for this commit
+#   3. read the newest data-YYYY.MM release's version
+#   4. run scripts/release-bump.sh, which bumps every version, cuts the
+#      changelog and names the data version in config/deploy.yml
+#   5. commit, tag v<version>, and push both
+#
+# Pushing the tag starts .github/workflows/release.yml, which is unchanged: it
+# publishes to crates.io, npm, GitHub and the binary archives. This job ends
+# there.
+#
+# Nothing is published when CI is red or has not finished for this commit, when
+# the changelog's [Unreleased] section holds no bullet, or when the version is
+# already tagged. Each of those is a failed or empty run, not a release. Two
+# months in a row can both be skipped; that is intended.
+#
+# DATA_VERSION comes from the newest plain data-YYYY.MM release, not from the
+# date: config/deploy.yml's DATA_VERSION names a file that must exist in
+# data/build/, and a rebuild's release, data-YYYY.MM.N, has a file under a name
+# no release ever builds by hand. The step fails rather than guessing the month.
+#
+# No secret is used or stored. The checkout keeps no credentials, because this
+# job asks GitHub for a write token and pushes a tag: the code it runs must not
+# be able to read one out of .git/config. The push step asks for the token
+# itself, and rewrites the remote URL there and nowhere else.
+
+on:
+  schedule:
+    # 09:00 UTC on the 10th of each month, after data-release.yml at 06:00.
+    - cron: "0 9 10 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: monthly-release
+  cancel-in-progress: false
+
+env:
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      # The CI workflow must have finished successfully for the commit being
+      # released. --status completed means a run still going is not found at
+      # all, which is what the message covers.
+      - name: CI passed for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          run_id=$(gh run list --workflow CI --commit "$GITHUB_SHA" \
+            --status completed --json databaseId,conclusion \
+            --limit 1 --jq '.[0].databaseId // empty')
+          if [ -z "$run_id" ]; then
+            echo "No finished CI run for $GITHUB_SHA. Nothing is published." >&2
+            exit 1
+          fi
+          conclusion=$(gh run view "$run_id" --json conclusion --jq .conclusion)
+          echo "CI run $run_id: $conclusion"
+          [ "$conclusion" = "success" ] || { echo "CI did not pass." >&2; exit 1; }
+
+      - name: The newest data release
+        id: data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version=$(gh release list --limit 20 \
+            --json tagName --jq '.[].tagName' \
+            | sed -n 's/^data-\([0-9]\{4\}\.[0-9]\{2\}\)$/\1/p' \
+            | sort -r | head -n 1)
+          [ -n "$version" ] || { echo "No data-YYYY.MM release found." >&2; exit 1; }
+          echo "DATA_VERSION=$version" >> "$GITHUB_ENV"
+          echo "Data version $version."
+
+      # No flag is passed, so the script decides minor or patch from the
+      # changelog, which keeps that decision out of this file.
+      - name: Bump every version
+        id: bump
+        run: |
+          set -euo pipefail
+          output=$(scripts/release-bump.sh)
+          printf '%s\n' "$output" >> "$GITHUB_STEP_SUMMARY"
+          version=$(printf '%s\n' "$output" | sed -n 's/^version=//p' | tail -n 1)
+          if [ -z "$version" ]; then
+            echo "Nothing under [Unreleased]. No release this month." >> "$GITHUB_STEP_SUMMARY"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      # gh release create refuses a tag that exists only after the crates are
+      # published, so the version is checked here first. scripts/tag-exists.sh
+      # exits 2 when the tags could not be read, which must not be read as "no
+      # such tag".
+      - name: Refuse a version that is already tagged
+        if: steps.bump.outputs.skip == 'false'
+        run: |
+          set -euo pipefail
+          tag="v${{ steps.bump.outputs.version }}"
+          if scripts/tag-exists.sh "$tag"; then
+            echo "$tag is already tagged. Nothing is published." >&2
+            exit 1
+          else
+            status=$?
+            [ "$status" -eq 1 ] || { echo "Could not read the tags on origin." >&2; exit "$status"; }
+          fi
+
+      - name: Commit, tag and push
+        if: steps.bump.outputs.skip == 'false'
+        env:
+          VERSION: ${{ steps.bump.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git add -A
+          git commit -m "chore: release v$VERSION" -m "Cut from CHANGELOG.md's [Unreleased] section."
+          git tag "v$VERSION"
+          git push origin HEAD:main
+          git push origin "v$VERSION"
