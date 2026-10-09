@@ -6,7 +6,8 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ### Added
 
-- A monthly release: `.github/workflows/monthly-release.yml` publishes a release on the 10th of each month with nobody pressing anything. It waits for green CI on `main`, runs `scripts/release-bump.sh` to bump every version, cut the changelog and name the data version in `config/deploy.yml`, then commits, tags and pushes. `scripts/release-bump-test.sh` tests it, and CI runs that test.
+- `bin/release`: the monthly release, run by hand on the 10th. It refuses unless `main` is clean, pushed and green in CI; bumps every version, cuts the changelog and records the data version in `config/deploy.yml` through `scripts/release-bump.sh`; then runs `scripts/release-check.sh`, commits and tags, and prints the two pushes to run. It pushes nothing itself and stores no secret. `scripts/release-test.sh` and `scripts/release-bump-test.sh` test it, and CI runs both.
+- `.github/workflows/monthly-release.yml` does the same thing unattended on the same schedule. It is written and checked but not switched on; see "The monthly release" in `docs/releasing.md`.
 
 ### Fixed
 

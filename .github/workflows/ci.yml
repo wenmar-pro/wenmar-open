@@ -21,6 +21,10 @@ jobs:
       # cargo test: a bumped version compiled in the clone is cached under the
       # new version's fingerprint, and cargo test would read it as this tree's.
       - run: scripts/release-bump-test.sh
+      # The same reason, and it must stay after both cargo test and the bump
+      # test above: this one makes a real release in its clone, so its target/
+      # holds a bumped version too.
+      - run: scripts/release-test.sh
 
   msrv:
     runs-on: ubuntu-latest

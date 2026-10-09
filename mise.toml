@@ -35,6 +35,14 @@ run = "scripts/release-check.sh"
 description = "Bump every version, cut the changelog and record the data version. Commits nothing"
 run = ["scripts/release-bump.sh"]
 
+[tasks.release]
+description = "Make the monthly release by hand: check, bump, cut the changelog, commit and tag. Pushes nothing"
+run = ["scripts/release.sh"]
+
+[tasks.release-test]
+description = "Test scripts/release.sh against the states it must refuse, and the release it must make"
+run = ["scripts/release-test.sh"]
+
 [tasks.release-bump-test]
 description = "Test scripts/release-bump.sh against the trees it must accept or refuse"
 run = ["scripts/release-bump-test.sh"]

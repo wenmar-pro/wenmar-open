@@ -12,13 +12,34 @@ The data file is released separately, every month, by `.github/workflows/data-re
 
 ## The monthly release
 
-`.github/workflows/monthly-release.yml` runs at 09:00 UTC on the 10th of each month, after the data release at 06:00, and does steps 1, 2 and 5 of "Making a release" with no person at the keyboard: it waits for CI on `main` to pass, runs `scripts/release-bump.sh`, then commits, tags and pushes.
+On the 10th of each month, after the data release at 06:00, run this from a clean checkout of `main`:
 
-It publishes through `release.yml`, which is unchanged. A tag pushed by the workflow starts it exactly as a hand-pushed tag does.
+```bash
+bin/release
+```
 
-Nothing is published when CI is red or has not finished for that commit, when `CHANGELOG.md`'s `[Unreleased]` section holds no bullet, or when the version is already tagged. Each of those is a failed or empty run, not a release, and two months in a row can both be skipped.
+It is steps 1, 2 and 5 of "Making a release", in one command and with nothing to remember. It refuses rather than half-releasing when the tree is not `main`, when it is dirty, when `main` is not what `origin/main` has, when CI is not green for that commit, when there is no data release to name, or when the version is already tagged. An empty `[Unreleased]` is not a refusal: it stops successfully and says there is nothing to say, because a month with nothing to say is not a release.
 
-`DATA_VERSION` is required, and it names the data release the release records. With neither flag the script decides minor or patch from the changelog, following the rule in "Versions"; `--patch` and `--minor` force it for a release made by hand. The script commits nothing, so what it does can be read first:
+It then leaves one commit and one tag in your checkout and prints the two pushes to run. **Nothing is pushed for you.** Read the diff, then:
+
+```bash
+git push origin main
+git push origin v0.2.0
+```
+
+Pushing the tag starts `release.yml`, which is unchanged, and that is what publishes to crates.io, npm, GitHub and the binary archives.
+
+The data version it records is the newest `data-YYYY.MM` release, so run it after the data release. Pass one by hand when the data release has not run yet: `bin/release --data-version 2026.10`.
+
+No secret is stored and no GitHub setting has to change. You push as yourself, and the tag ruleset admits repository administrators, which is how every tag so far was pushed.
+
+`scripts/release.sh` holds the logic and `scripts/release-test.sh` tests it; `bin/release` is the wrapper.
+
+`.github/workflows/monthly-release.yml` does the same thing unattended on the same schedule. It is written and checked, but it is not switched on: its push would be refused by the tag ruleset, because Actions pushes as `github-actions[bot]` rather than as an administrator. Turning it on is one change by hand, described below.
+
+### Seeing what a release would do, without doing it
+
+`scripts/release-bump.sh` does the version work on its own, and commits nothing:
 
 ```bash
 git clone https://github.com/wenmar-pro/wenmar-open.git /tmp/try-release
@@ -26,6 +47,8 @@ cd /tmp/try-release
 DATA_VERSION=2026.10 scripts/release-bump.sh
 git diff
 ```
+
+With neither `--patch` nor `--minor` it decides minor or patch from the changelog, following the rule in "Versions". Pass one of those to force it.
 
 ## Versions
 
@@ -46,9 +69,9 @@ Do these once, in this order, before the first release. They are done by the own
 2. **Settings, Environments, New environment.** Name it `release`. Under "Deployment branches and tags" choose "Selected branches and tags" and add a tag rule `v*`, so only a release tag can use the environment.
 3. Optional: in the same environment, add yourself under "Required reviewers". Each release then waits for your approval before each of its two publishing jobs.
 4. **Settings, Rules, Rulesets, New tag ruleset.** Target tags matching `v*`. Restrict creations, updates and deletions, with only repository administrators on the bypass list. Then only an administrator can start a release, and nobody can move a release tag.
-5. On that ruleset, add the GitHub Actions app to the bypass list, keeping repository administrators on it. As written the ruleset restricts tag creation to administrators, which would refuse the push from `.github/workflows/monthly-release.yml`. Tags stay restricted to that list, and still cannot be moved or deleted by a person.
+5. Nothing further is needed for `bin/release`: you push as yourself, and administrators are already on the bypass list. To run the release unattended instead, see "The monthly release": the `v*` ruleset then needs the GitHub Actions app added to its bypass list, because Actions pushes as `github-actions[bot]` rather than as an administrator. Tags stay restricted to that list, and still cannot be moved or deleted by a person.
 
-The `release` environment needs no change: it already admits deployment from a `v*` tag, and the monthly release pushes that tag before `release.yml` starts.
+The `release` environment needs no change either way: it already admits deployment from a `v*` tag, and that tag is pushed before `release.yml` starts.
 
 Nothing is added under "Secrets and variables".
 
@@ -219,4 +242,4 @@ If a `binaries` job fails, the version is already published and the release exis
 
 - It does not deploy `open.wenmarpro.com`. That is `docs/deploy.md`.
 - It does not build or publish a data file or `wenmar-open-data`. The data release does.
-- It does not deploy. The monthly release writes the data version into `config/deploy.yml` and commits it to `main`; `kamal deploy` stays a command a person runs.
+- It does not deploy. The release writes the data version into `config/deploy.yml` and commits it to `main`; `kamal deploy` stays a command a person runs.
