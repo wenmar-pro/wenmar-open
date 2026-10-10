@@ -39,6 +39,14 @@ export CARGO_TARGET_DIR="$root/target"
 export MISE_TRUSTED_CONFIG_PATHS="$scratch"
 
 git clone --quiet "$root" "$clone"
+# release.sh makes its own commit as whoever ran it, and a CI runner has no
+# identity to commit under: git stops with "Author identity unknown", and the
+# cases that expect a release fail. The commits below pass -c user.name=test,
+# but that says nothing to the script under test. Give the clone an identity of
+# its own, as the developer's machine and .github/workflows/monthly-release.yml
+# both have, so the two cases that make a real release can make one.
+git -C "$clone" config user.name test
+git -C "$clone" config user.email test@example.invalid
 # A clone of a shallow repository is shallow too, and git refuses a push from a
 # shallow clone with "shallow update not allowed". This script pushes main and
 # tags below, so it cannot run in one. Name the cause rather than let the first

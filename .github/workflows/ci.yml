@@ -7,9 +7,9 @@ on:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Not a size question but a correctness one. The two release test
           # scripts clone this checkout and push tags and branches from the
@@ -35,14 +35,14 @@ jobs:
       - run: scripts/release-test.sh
 
   msrv:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: rustup toolchain install 1.92 --profile minimal
       - run: cargo +1.92 test --workspace --all-features
 
   js:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
       fail-fast: false
@@ -53,12 +53,12 @@ jobs:
       run:
         working-directory: clients/js
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # npm test builds crates/wenmar-open-wasm for wasm32-unknown-unknown,
       # which rust-toolchain.toml lists as a target.
       - name: Install pinned toolchain
         run: rustup toolchain install
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
           cache: npm
