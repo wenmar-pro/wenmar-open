@@ -24,10 +24,9 @@ tower = { version = "0.5", features = ["util"] }
 tower-http = { version = "0.6", features = ["cors", "catch-panic"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
-turso = { version = "0.8.1", default-features = false, features = ["fts"] }
 utoipa = { version = "5", features = ["axum_extras"] }
 utoipa-axum = "0.2"
-wenmar-open-turso.workspace = true
+wenmar-open-db.workspace = true
 wenmar-vehicles.workspace = true
 wenmar-vin.workspace = true
 

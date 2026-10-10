@@ -66,11 +66,7 @@ async fn main() -> ExitCode {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                // turso warns at every start that a read-only file stays in
-                // SQLite's legacy journal mode. That is intended here.
-                .unwrap_or_else(|_| {
-                    tracing_subscriber::EnvFilter::new("info,turso_core=error,tantivy=warn")
-                }),
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
         )
         .init();
     match run().await {

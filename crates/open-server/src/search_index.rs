@@ -168,9 +168,8 @@ impl SearchIndex {
         // uppercase `OR` and none can become syntax.
         let query = words.join(" OR ");
         let connection = self.connection.lock().await;
-        // bm25() is negative and the better the match the further below
-        // zero it sits, so best first is ascending — turso's tantivy score
-        // was positive and ordered the other way round.
+        // bm25() scores in negative numbers: the better the match, the
+        // further below zero it sits, so best first is ascending.
         let mut statement = connection.prepare(
             "SELECT make, model, year_from, year_to
              FROM model_text

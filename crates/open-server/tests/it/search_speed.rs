@@ -12,14 +12,17 @@ use std::time::{Duration, Instant};
 
 use open_server::db::Db;
 use wenmar_vehicles::sqlite::SqliteSource;
-use wenmar_vehicles::{Catalog, Scope, Source, sql};
+use wenmar_vehicles::{Catalog, Scope, Source, Value, sql};
 
 use crate::common;
 
-/// The steps the server's engine takes to answer a statement.
-fn plan(source: &impl Source, statement: &str) -> Vec<String> {
+/// The steps the server's engine takes to answer a statement. SQLite wants
+/// one value bound per parameter even to draw up a plan, and the plan does
+/// not depend on the values, so they are all NULL.
+fn plan(source: &impl Source, statement: &str, parameters: usize) -> Vec<String> {
+    let nulls = vec![Value::Null; parameters];
     source
-        .query(&format!("EXPLAIN QUERY PLAN {statement}"), &[])
+        .query(&format!("EXPLAIN QUERY PLAN {statement}"), &nulls)
         .unwrap()
         .iter()
         .map(|row| row.last().and_then(|step| step.text()).unwrap().to_owned())
@@ -33,13 +36,15 @@ async fn the_search_statements_reach_model_years_through_an_index() {
     let plans = db
         .run(|worker| {
             [
-                ("SEARCH_MODELS", sql::SEARCH_MODELS),
-                ("SEARCH_MODELS_PREFIX", sql::SEARCH_MODELS_PREFIX),
-                ("SEARCH_MAKE_MODELS", sql::SEARCH_MAKE_MODELS),
-                ("SEARCH_SUBMODELS", sql::SEARCH_SUBMODELS),
-                ("SEARCH_MAKE_SUBMODELS", sql::SEARCH_MAKE_SUBMODELS),
+                ("SEARCH_MODELS", sql::SEARCH_MODELS, 6),
+                ("SEARCH_MODELS_PREFIX", sql::SEARCH_MODELS_PREFIX, 6),
+                ("SEARCH_MAKE_MODELS", sql::SEARCH_MAKE_MODELS, 5),
+                ("SEARCH_SUBMODELS", sql::SEARCH_SUBMODELS, 6),
+                ("SEARCH_MAKE_SUBMODELS", sql::SEARCH_MAKE_SUBMODELS, 6),
             ]
-            .map(|(name, statement)| (name, plan(&worker.source, statement)))
+            .map(|(name, statement, parameters)| {
+                (name, plan(&worker.source, statement, parameters))
+            })
         })
         .await
         .unwrap();
@@ -156,11 +161,11 @@ async fn both_engines_find_the_same_entries_in_the_same_order() {
                 entries.into_iter().map(|entry| entry.id).collect()
             };
             let expected = ids(through_sqlite.search(text, scope, 10).unwrap());
-            let through_turso = ids(db
+            let through_server = ids(db
                 .run(move |worker| worker.catalog.search(text, scope, 10).unwrap())
                 .await
                 .unwrap());
-            assert_eq!(through_turso, expected, "{text:?} in {scope:?}");
+            assert_eq!(through_server, expected, "{text:?} in {scope:?}");
             found += expected.len();
         }
     }

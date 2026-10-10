@@ -1,4 +1,4 @@
 //! The rows one VIN needs, read before decoding. The code is in the
-//! `wenmar-open-turso` crate.
+//! `wenmar-open-db` crate.
 
-pub use wenmar_open_turso::vin_rows::{VinRows, fetch};
+pub use wenmar_open_db::vin_rows::{VinRows, fetch};

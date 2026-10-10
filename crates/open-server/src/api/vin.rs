@@ -6,7 +6,7 @@ use axum::extract::{Path, Query, State};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use utoipa::{IntoParams, ToSchema};
-use wenmar_open_turso::DecodeFailure;
+use wenmar_open_db::DecodeFailure;
 use wenmar_vin::DecodeOptions;
 
 use crate::api::types::VinDecode;
@@ -15,14 +15,14 @@ use crate::db::Worker;
 use crate::error::{ApiError, ErrorBody};
 use crate::state::AppState;
 
-pub use wenmar_open_turso::current_year;
+pub use wenmar_open_db::current_year;
 
 /// Most VINs in one batch.
 pub const MOST_VINS: usize = 50;
 
 /// Longest text read as a VIN. A VIN has 17 characters; spaces and dashes
 /// are allowed, so there is some room. Anything longer is refused unread.
-pub const LONGEST_INPUT: usize = wenmar_open_turso::LONGEST_INPUT;
+pub const LONGEST_INPUT: usize = wenmar_open_db::LONGEST_INPUT;
 
 /// The first model year a 17-character VIN can have.
 const FIRST_YEAR: u16 = 1980;
