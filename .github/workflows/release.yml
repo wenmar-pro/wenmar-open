@@ -4,7 +4,7 @@ name: Release
 #
 #   verify    the tag is on main and names the version in the manifests;
 #             the checks CI runs; scripts/release-check.sh
-#   crates    wenmar-vin, wenmar-vehicles, wenmar-open-turso to crates.io
+#   crates    wenmar-vin, wenmar-vehicles, wenmar-open-db to crates.io
 #   npm       wenmar-open to npm, with provenance
 #             The package holds the decoder as WebAssembly, built in that
 #             job from the tagged commit.
@@ -114,7 +114,7 @@ jobs:
         run: |
           set -euo pipefail
           pending=""
-          for crate in wenmar-vin wenmar-vehicles wenmar-open-turso; do
+          for crate in wenmar-vin wenmar-vehicles wenmar-open-db; do
             code=$(curl -s -o /dev/null -w '%{http_code}' \
               -A "wenmar-open release workflow (https://github.com/wenmar-pro/wenmar-open)" \
               "https://crates.io/api/v1/crates/$crate/$VERSION")
@@ -228,7 +228,7 @@ jobs:
           ' CHANGELOG.md | sed -e '/./,$!d' > notes.md
           {
             echo
-            echo "Crates: [wenmar-vin](https://crates.io/crates/wenmar-vin/$VERSION), [wenmar-vehicles](https://crates.io/crates/wenmar-vehicles/$VERSION), [wenmar-open-turso](https://crates.io/crates/wenmar-open-turso/$VERSION)."
+            echo "Crates: [wenmar-vin](https://crates.io/crates/wenmar-vin/$VERSION), [wenmar-vehicles](https://crates.io/crates/wenmar-vehicles/$VERSION), [wenmar-open-db](https://crates.io/crates/wenmar-open-db/$VERSION)."
             echo "npm: [wenmar-open](https://www.npmjs.com/package/wenmar-open/v/$VERSION)."
           } >> notes.md
           gh release create "v$VERSION" \

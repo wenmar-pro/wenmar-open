@@ -6,7 +6,7 @@ use serde::Serialize;
 use wenmar_vehicles::{Catalog, CatalogError, Selection, SourceError};
 use wenmar_vin::{DecodeError, DecodeOptions, Decoded, Decoder, Vin};
 
-use crate::db::{Db, DbError, TursoSource, Worker};
+use crate::db::{Db, DbError, SqliteSource, Worker};
 use crate::vin_rows::{self, VinRows};
 
 /// Longest text read as a VIN, in bytes. A VIN has 17 characters; spaces and
@@ -112,7 +112,7 @@ impl Db {
     /// one connection.
     pub async fn catalog<T, F>(&self, work: F) -> Result<T, DbError>
     where
-        F: FnOnce(&Catalog<TursoSource>) -> T + Send + 'static,
+        F: FnOnce(&Catalog<SqliteSource>) -> T + Send + 'static,
         T: Send + 'static,
     {
         self.run(move |worker| work(&worker.catalog)).await

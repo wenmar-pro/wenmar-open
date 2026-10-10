@@ -37,7 +37,7 @@ USER 1000:1000
 ENV OPEN_DATA=/app/data/wenmar-open.sqlite3 \
     PORT=3000 \
     OPEN_TRUSTED_PROXIES=1 \
-    RUST_LOG=info,turso_core=error,tantivy=warn
+    RUST_LOG=info
 
 # Opens the data file exactly as the server will. A missing file, one of
 # another schema version, or one that is not a data file fails the build.

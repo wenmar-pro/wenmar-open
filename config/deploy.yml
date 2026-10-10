@@ -34,7 +34,7 @@ env:
     # One proxy, the Kamal proxy, is in front. Its X-Forwarded-For entry is
     # the client's address.
     OPEN_TRUSTED_PROXIES: "1"
-    RUST_LOG: info,turso_core=error,tantivy=warn
+    RUST_LOG: info
 
 aliases:
   logs: app logs -f

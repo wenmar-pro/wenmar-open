@@ -9,7 +9,8 @@ pub struct Config {
     pub data: PathBuf,
     /// `PORT`: the port to listen on, on every interface. Default 3000.
     pub port: u16,
-    /// `OPEN_CONNECTIONS`: read-only connections to the data file. Default 4.
+    /// `OPEN_CONNECTIONS`: connection slots; each holds two read-only
+    /// connections to the data file. Default 4.
     pub connections: usize,
     /// `OPEN_TRUSTED_PROXIES`: how many reverse proxies in front of the
     /// server add to `X-Forwarded-For`. Default 0: the header is ignored.

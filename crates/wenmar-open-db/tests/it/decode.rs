@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use wenmar_open_turso::{Db, DecodeFailure, LONGEST_INPUT};
+use wenmar_open_db::{Db, DecodeFailure, LONGEST_INPUT};
 use wenmar_vehicles::Scope;
 use wenmar_vin::{DecodeError, DecodeOptions};
 

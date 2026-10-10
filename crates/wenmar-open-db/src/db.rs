@@ -1,23 +1,31 @@
-//! The data file, read through the `turso` crate.
+//! The data file, read through the `rusqlite` crate.
 //!
 //! The file is opened read-only and never written. A fixed number of
 //! connections is shared by every request. All database work runs on tokio's
 //! blocking thread pool, through [`Db::run`], because the catalog library's
-//! [`Source`] is a blocking call.
+//! [`Source`](wenmar_vehicles::Source) is a blocking call.
+//!
+//! A `rusqlite::Connection` is `Send` but not `Sync`: it may move between
+//! threads but may not be shared between tasks. The pool is how a fixed
+//! number of connections serves any number of callers, and it is why this
+//! crate exists rather than a bare `Connection`.
 //!
 //! Work that costs the engine more than a few lookups, such as a free-text
 //! search or a list of years that has to be read from every model year,
 //! goes through [`Db::run_slow`], which may use only some of the
 //! connections. The rest are always there for a VIN decode.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError};
 
+use rusqlite::{Connection, OpenFlags};
 use serde::Serialize;
-use tokio::runtime::Handle;
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
-use wenmar_vehicles::schema::SCHEMA_VERSION;
 use wenmar_vehicles::{Catalog, Source, SourceError, Value};
+
+/// The catalog's `Source`, re-exported so the type of [`Worker::source`]
+/// and `Catalog<SqliteSource>` can be named from this crate.
+pub use wenmar_vehicles::sqlite::SqliteSource;
 
 /// What the data file says about itself.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -43,96 +51,67 @@ pub enum DbError {
     Stopped,
 }
 
-/// One read-only connection to the data file.
+/// Opens a connection to the data file that can only read it. Blocking.
 ///
-/// `query` waits for the answer, so a `TursoSource` must only be used on a
-/// blocking thread. Nothing outside this module can make one: callers reach
-/// it through [`Db::run`].
-#[derive(Clone)]
-pub struct TursoSource {
-    connection: turso::Connection,
-    runtime: Handle,
-}
-
-fn to_turso(value: &Value) -> turso::Value {
-    match value {
-        Value::Null => turso::Value::Null,
-        Value::Integer(number) => turso::Value::Integer(*number),
-        Value::Real(number) => turso::Value::Real(*number),
-        Value::Text(text) => turso::Value::Text(text.clone()),
-    }
-}
-
-fn from_turso(value: turso::Value) -> Value {
-    match value {
-        turso::Value::Null => Value::Null,
-        turso::Value::Integer(number) => Value::Integer(number),
-        turso::Value::Real(number) => Value::Real(number),
-        turso::Value::Text(text) => Value::Text(text),
-        // The data file has no blob columns.
-        turso::Value::Blob(_) => Value::Null,
-    }
-}
-
-async fn all_rows(
-    connection: &turso::Connection,
-    sql: &str,
-    params: Vec<turso::Value>,
-) -> Result<Vec<Vec<Value>>, turso::Error> {
-    let mut rows = connection
-        .query(sql, turso::params_from_iter(params))
-        .await?;
-    let columns = rows.column_count();
-    let mut found = Vec::new();
-    while let Some(row) = rows.next().await? {
-        let mut values = Vec::with_capacity(columns);
-        for index in 0..columns {
-            values.push(from_turso(row.get_value(index)?));
-        }
-        found.push(values);
-    }
-    Ok(found)
-}
-
-impl Source for TursoSource {
-    fn query(&self, sql: &str, params: &[Value]) -> Result<Vec<Vec<Value>>, SourceError> {
-        let params = params.iter().map(to_turso).collect();
-        Ok(self
-            .runtime
-            .block_on(all_rows(&self.connection, sql, params))?)
-    }
+/// `NO_MUTEX` because SQLite's own mutexes protect a connection shared by
+/// nothing, and this crate's pool gives each query a connection of its own.
+fn read_only(path: &Path) -> Result<Connection, rusqlite::Error> {
+    Connection::open_with_flags(
+        path,
+        OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX,
+    )
 }
 
 /// A connection with the catalog that reads through it.
 pub struct Worker {
     /// For queries the catalog library does not make, such as a VIN's rows.
-    pub source: TursoSource,
-    pub catalog: Catalog<TursoSource>,
+    pub source: SqliteSource,
+    pub catalog: Catalog<SqliteSource>,
 }
 
 impl Worker {
-    /// Blocks. Reads the makes, aliases, vehicle types and year range.
-    fn new(database: &turso::Database, runtime: Handle) -> Result<Worker, DbError> {
-        let connection = database
-            .connect()
-            .map_err(|error| DbError::Read(error.into()))?;
-        let source = TursoSource {
-            connection,
-            runtime,
-        };
-        let catalog = Catalog::new(source.clone()).map_err(|error| DbError::Read(error.into()))?;
+    /// Blocks. Opens the data file read-only, asks SQLite to map it, and
+    /// reads the makes, aliases, vehicle types and year range.
+    ///
+    /// A worker is two read-only connections: the catalog holds one of its
+    /// own. `rusqlite::Connection` may not be shared between threads, so
+    /// there is no way to hand the same one to both.
+    fn new(path: &Path) -> Result<Worker, DbError> {
+        let source = open_source(path)?;
+        let catalog =
+            Catalog::new(open_source(path)?).map_err(|error| DbError::Read(error.into()))?;
         Ok(Worker { source, catalog })
     }
 }
 
+/// Opens one read-only connection to the data file and asks SQLite to map
+/// it. Blocking.
+///
+/// The data file is read-only and read repeatedly, so map it rather than
+/// copying pages through the buffer cache. The value is the file's length;
+/// SQLite maps on demand and the mapping is shared by every connection in
+/// the pool. A filesystem that cannot map it ignores the pragma.
+fn open_source(path: &Path) -> Result<SqliteSource, DbError> {
+    let connection = read_only(path).map_err(|error| DbError::Read(error.into()))?;
+    let length = std::fs::metadata(path)
+        .map_err(|error| DbError::Read(error.into()))?
+        .len();
+    connection
+        .pragma_update(None, "mmap_size", i64::try_from(length).unwrap_or(i64::MAX))
+        .map_err(|error| DbError::Read(error.into()))?;
+    SqliteSource::from_connection(connection).map_err(DbError::Read)
+}
+
 /// The open data file.
 pub struct Db {
-    database: turso::Database,
-    runtime: Handle,
+    /// Opened afresh when a worker is missing, which only happens after a
+    /// task panicked. Keeping the path is enough: every worker opens its
+    /// own read-only connections.
+    path: PathBuf,
     idle: Arc<Mutex<Vec<Worker>>>,
     permits: Arc<Semaphore>,
     size: usize,
-    /// Places for slow work: fewer than there are connections.
+    /// Places for slow work: fewer than there are slots.
     slow: Arc<Semaphore>,
     slow_size: usize,
     meta: Meta,
@@ -163,76 +142,69 @@ fn meta_value(rows: &[Vec<Value>], key: &str) -> Option<String> {
     })
 }
 
+/// Reads the `meta` table: what the data file says about itself. Blocks.
+///
+/// The schema-version check is `SqliteSource::from_connection`'s — every
+/// connection passes through it — so the check and its message are written
+/// once, in `wenmar-vehicles`. The one thing it does not look for is
+/// `data_version`, which only this server cares about.
+fn read_meta(path: &Path) -> Result<Meta, DbError> {
+    let connection = read_only(path).map_err(|error| DbError::Read(error.into()))?;
+    let source = SqliteSource::from_connection(connection)
+        .map_err(|error| DbError::NotADataFile(error.to_string()))?;
+    let rows = source
+        .query("SELECT key, value FROM meta", &[])
+        .map_err(|_| {
+            DbError::NotADataFile(
+                "not a Wenmar Open data file: its meta table could not be read".to_owned(),
+            )
+        })?;
+    let Some(data_version) = meta_value(&rows, "data_version") else {
+        return Err(DbError::NotADataFile(
+            "not a Wenmar Open data file: meta has no data_version".to_owned(),
+        ));
+    };
+    Ok(Meta {
+        data_version,
+        vpic_release: meta_value(&rows, "vpic_release").unwrap_or_default(),
+        built_at: meta_value(&rows, "built_at").unwrap_or_default(),
+    })
+}
+
 impl Db {
-    /// Opens a data file read-only with `connections` connections.
+    /// Opens a data file read-only with `connections` pool slots.
+    ///
+    /// The argument counts slots, not connections: each slot holds two
+    /// read-only connections, one for the catalog and one for
+    /// [`Worker::source`], and one more is opened while the file's `meta`
+    /// table is read. All of them map the same file pages, one shared OS
+    /// mapping; where the platform cannot map the file, each connection
+    /// falls back to its own SQLite page cache (about 2 MiB by default).
     ///
     /// Refuses a file that is missing, has no `meta` table, or was built for
     /// another schema version.
     pub async fn open(path: &Path, connections: usize) -> Result<Db, DbError> {
-        let shown = path.display().to_string();
-        // turso would create an empty database for a path that does not
+        // rusqlite would create an empty database for a path that does not
         // exist; a missing data file must stop the server instead.
         if !path.is_file() {
-            return Err(DbError::Missing(shown));
+            return Err(DbError::Missing(path.display().to_string()));
         }
-        let Some(text) = path.to_str() else {
-            return Err(DbError::Missing(shown));
-        };
-        let database = turso::Builder::new_local(text)
-            .read_only(true)
-            .build()
-            .await
-            .map_err(|error| DbError::Read(error.into()))?;
-        let connection = database
-            .connect()
-            .map_err(|error| DbError::Read(error.into()))?;
-        let rows = all_rows(&connection, "SELECT key, value FROM meta", Vec::new())
-            .await
-            .map_err(|_| {
-                DbError::NotADataFile(
-                    "not a Wenmar Open data file: it has no meta table".to_owned(),
-                )
-            })?;
-        match meta_value(&rows, "schema_version").as_deref() {
-            Some(SCHEMA_VERSION) => {}
-            Some(other) => {
-                return Err(DbError::NotADataFile(format!(
-                    "data file has schema version {other}, this build reads version {SCHEMA_VERSION}; rebuild the data file with open-data build"
-                )));
-            }
-            None => {
-                return Err(DbError::NotADataFile(
-                    "not a Wenmar Open data file: meta has no schema_version".to_owned(),
-                ));
-            }
-        }
-        let Some(data_version) = meta_value(&rows, "data_version") else {
-            return Err(DbError::NotADataFile(
-                "not a Wenmar Open data file: meta has no data_version".to_owned(),
-            ));
-        };
-        let meta = Meta {
-            data_version,
-            vpic_release: meta_value(&rows, "vpic_release").unwrap_or_default(),
-            built_at: meta_value(&rows, "built_at").unwrap_or_default(),
-        };
-
+        let path = path.to_path_buf();
         let size = connections.max(1);
-        let runtime = Handle::current();
-        let workers = {
-            let database = database.clone();
-            let runtime = runtime.clone();
+        let (meta, workers) = {
+            let path = path.clone();
             tokio::task::spawn_blocking(move || {
-                (0..size)
-                    .map(|_| Worker::new(&database, runtime.clone()))
-                    .collect::<Result<Vec<Worker>, DbError>>()
+                let meta = read_meta(&path)?;
+                let workers = (0..size)
+                    .map(|_| Worker::new(&path))
+                    .collect::<Result<Vec<Worker>, DbError>>()?;
+                Ok::<_, DbError>((meta, workers))
             })
             .await
             .map_err(|_| DbError::Stopped)??
         };
         Ok(Db {
-            database,
-            runtime,
+            path,
             idle: Arc::new(Mutex::new(workers)),
             permits: Arc::new(Semaphore::new(size)),
             size,
@@ -292,8 +264,7 @@ impl Db {
             .await
             .map_err(|_| DbError::Stopped)?;
         let idle = Arc::clone(&self.idle);
-        let database = self.database.clone();
-        let runtime = self.runtime.clone();
+        let path = self.path.clone();
         let size = self.size;
         tokio::task::spawn_blocking(move || {
             let _permit = permit;
@@ -302,7 +273,7 @@ impl Db {
             // A worker is missing only if an earlier task panicked.
             let worker = match taken {
                 Some(worker) => worker,
-                None => Worker::new(&database, runtime)?,
+                None => Worker::new(&path)?,
             };
             let output = work(&worker);
             let mut idle = idle.lock().unwrap_or_else(PoisonError::into_inner);
