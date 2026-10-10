@@ -354,7 +354,7 @@ export interface components {
             data_version: string;
             /**
              * @description The version of the server.
-             * @example 0.1.0
+             * @example 0.2.0
              */
             server_version: string;
             /**
