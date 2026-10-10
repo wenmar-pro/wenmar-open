@@ -8,7 +8,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 - `open-server` reads the data file through `rusqlite`, and its free-text search index is built over SQLite's FTS5 instead of turso.
 - `open-server`: a free-text search for light vehicles could return fewer results than asked for. The search index fetched four times the requested rows and discarded the ones outside the scope, hoping the discarded ones left room — but only 11% of the 31,470 models in the index are light, so a query matching many heavy models could fill that window before a light one appeared. The scope is now applied in SQL and the limit is what the caller asked for. The same over-fetch was in place before, through turso.
-- `wenmar-open-turso` is replaced by `wenmar-open-db`, the same library over `rusqlite`. Nothing a consumer of the crate wrote needs to change beyond the dependency: the names and signatures are the same (`Db`, `DbError`, `Meta`, `Worker`, `Decode`), the data file is still opened read-only, and `TursoSource` is gone in favour of `wenmar_vehicles::sqlite::SqliteSource`. `wenmar-open-turso` `0.1.0` is yanked on crates.io.
+- `wenmar-open-turso` is replaced by `wenmar-open-db`, the same library over `rusqlite`. Nothing a consumer of the crate wrote needs to change beyond the dependency: the names and signatures are the same (`Db`, `DbError`, `Meta`, `Worker`, `Decode`), the data file is still opened read-only, and `TursoSource` is gone in favour of `wenmar_vehicles::sqlite::SqliteSource`. `wenmar-open-turso` must be yanked on crates.io when this is released; crates.io keeps the version either way, and only a yank stops new dependents.
 
 ### Removed
 

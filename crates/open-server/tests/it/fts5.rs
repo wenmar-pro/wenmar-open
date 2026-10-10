@@ -292,9 +292,23 @@ fn block_on<F: std::future::Future>(future: F) -> F::Output {
 /// not in the repository and CI has none, so the tests that need the real
 /// catalog do nothing without it.
 fn data_file() -> Option<std::path::PathBuf> {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../data/build/wenmar-open-2026.09.sqlite3");
-    path.is_file().then_some(path)
+    // The newest file, not one named by month: a file named here would go
+    // missing at the next data release and these tests would skip silently,
+    // which is how the contract they hold would go unrecorded.
+    let mut files: Vec<std::path::PathBuf> = std::fs::read_dir(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data/build"),
+    )
+    .ok()?
+    .filter_map(|entry| entry.ok())
+    .map(|entry| entry.path())
+    .filter(|path| {
+        path.file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| name.starts_with("wenmar-open-") && name.ends_with(".sqlite3"))
+    })
+    .collect();
+    files.sort();
+    files.pop()
 }
 
 /// The rows `state.rs` builds the server's index from, read from the real
@@ -316,7 +330,10 @@ async fn bare_fts5_on_the_real_index_shows_where_it_diverges() {
         );
         return;
     };
-    assert_eq!(rows.len(), 31_470, "the 2026.09 release");
+    // The count is a guard, not the point: it proves the whole index was read
+    // and not a prefix. It has to be updated when a monthly data file brings
+    // a different number of models.
+    assert_eq!(rows.len(), 31_470, "the model count of the data file");
     let connection = index(&rows);
     for text in ["f150", "chevy", "2019 civic si", "civic honda"] {
         println!("{text:?} -> {:?}", models(&connection, text, 10));

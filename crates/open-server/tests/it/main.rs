@@ -15,6 +15,7 @@ mod mcp;
 mod offline;
 mod openapi;
 mod search;
+mod search_runtime;
 mod search_speed;
 mod serve;
 mod site;

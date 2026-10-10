@@ -5,8 +5,8 @@
 //! rows from end to end cost the server most of a second. None of these
 //! tests needs the real file: the engine is asked how it will answer each
 //! statement, a search is timed against one reading of every model year on
-//! a catalog large enough to tell the two apart, and the answers are
-//! compared with SQLite's.
+//! a catalog large enough to tell the two apart, and the answers the server
+//! gives are compared with those from a plain connection to the same file.
 
 use std::time::{Duration, Instant};
 
@@ -36,6 +36,11 @@ async fn the_search_statements_reach_model_years_through_an_index() {
     let plans = db
         .run(|worker| {
             [
+                // The counts are each statement's own highest `?N`, which
+                // SQLite requires to match exactly. `crates/wenmar-vehicles/
+                // src/sql.rs` is where they are written; a statement that
+                // gains a parameter fails here with a binding error, which is
+                // the reminder to update this table.
                 ("SEARCH_MODELS", sql::SEARCH_MODELS, 6),
                 ("SEARCH_MODELS_PREFIX", sql::SEARCH_MODELS_PREFIX, 6),
                 ("SEARCH_MAKE_MODELS", sql::SEARCH_MAKE_MODELS, 5),
@@ -128,9 +133,9 @@ async fn a_search_does_not_read_every_model_year_over_and_over() {
 }
 
 #[tokio::test]
-async fn both_engines_find_the_same_entries_in_the_same_order() {
+async fn the_server_and_a_plain_connection_find_the_same_entries_in_the_same_order() {
     let fixture = common::large_data_file();
-    let through_sqlite = Catalog::new(SqliteSource::open(fixture.path()).unwrap()).unwrap();
+    let direct = Catalog::new(SqliteSource::open(fixture.path()).unwrap()).unwrap();
     let db = Db::open(&fixture.path(), 1).await.unwrap();
     let texts = [
         // A name forty models share: only the order picks the ten.
@@ -160,7 +165,7 @@ async fn both_engines_find_the_same_entries_in_the_same_order() {
             let ids = |entries: Vec<wenmar_vehicles::Entry>| -> Vec<String> {
                 entries.into_iter().map(|entry| entry.id).collect()
             };
-            let expected = ids(through_sqlite.search(text, scope, 10).unwrap());
+            let expected = ids(direct.search(text, scope, 10).unwrap());
             let through_server = ids(db
                 .run(move |worker| worker.catalog.search(text, scope, 10).unwrap())
                 .await

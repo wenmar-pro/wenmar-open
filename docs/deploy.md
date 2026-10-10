@@ -206,7 +206,7 @@ The same holds for a deploy that changes the server and not the data. The `ETag`
 
 - **The new container does not become healthy.** Kamal leaves the previous one serving. `kamal app logs` shows why; the usual cause is a data file of the wrong schema version, which the image build should already have refused.
 - **A bad release is live.** `kamal rollback <version>` returns to an earlier image; `kamal app containers` lists the versions on the server.
-- **The container is killed for memory.** Set `OPEN_CONNECTIONS: "2"` under `env.clear` in `config/deploy.yml` and deploy. Each connection keeps its own copy of the list of makes.
+- **The container is killed for memory.** Set `OPEN_CONNECTIONS: "2"` under `env.clear` in `config/deploy.yml` and deploy. Each slot keeps its own copy of the list of makes, and a slot holds two connections.
 - **A flood of traffic.** The container's limits protect the product, but the traffic still arrives at the product's address. Put a CDN in front of `open.wenmarpro.com`, or move the service to its own server. Neither needs a code change; with a CDN in front, set `OPEN_TRUSTED_PROXIES` to `2`.
 
 ## Settings
@@ -218,7 +218,7 @@ The same holds for a deploy that changes the server and not the data. The `ETag`
 | `OPEN_BASE_URL` | `https://open.wenmarpro.com` | The public address, used in links. |
 | `OPEN_TRUSTED_PROXIES` | `0` | Reverse proxies in front that add to `X-Forwarded-For`. `1` in production. |
 | `OPEN_RATE_LIMIT` | `600` | Requests one address may make in a minute. |
-| `OPEN_CONNECTIONS` | `4` | Read-only connections to the data file. |
+| `OPEN_CONNECTIONS` | `4` | Connection slots. Each holds two read-only connections to the data file, so `4` is eight. |
 | `RUST_LOG` | `info` | Log level. |
 
 ## Limits that are not settings

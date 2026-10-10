@@ -8,7 +8,7 @@
 //! a model.
 
 use rusqlite::{Connection, params};
-use tokio::sync::Mutex;
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use wenmar_vehicles::text::normalize;
 use wenmar_vehicles::{Source, SourceError, Value};
 
@@ -105,8 +105,9 @@ pub fn words(text: &str) -> Vec<String> {
 
 pub struct SearchIndex {
     // A rusqlite in-memory connection owns its own database for its
-    // lifetime, so there is no handle to keep alive.
-    connection: Mutex<Connection>,
+    // lifetime, so there is no handle to keep alive. The Arc is what lets
+    // `find` move the lock into a blocking task.
+    connection: Arc<Mutex<Connection>>,
 }
 
 impl std::fmt::Debug for SearchIndex {
@@ -116,9 +117,20 @@ impl std::fmt::Debug for SearchIndex {
 }
 
 impl SearchIndex {
-    /// Builds the index in memory. About 0.4 seconds for the 31,470 models
-    /// of the 2026.09 release.
+    /// Builds the index in memory, off the async runtime.
+    ///
+    /// About 0.1 seconds for the 31,470 models of the 2026.09 release in a
+    /// release build, and seconds in a debug build, so this is not work to do
+    /// on a runtime thread.
     pub async fn build(rows: &[IndexRow]) -> Result<SearchIndex, rusqlite::Error> {
+        let rows = rows.to_vec();
+        tokio::task::spawn_blocking(move || Self::build_blocking(&rows))
+            .await
+            .map_err(|_| rusqlite::Error::InvalidQuery)?
+    }
+
+    /// The build itself. Blocking; called from `build`, off the runtime.
+    fn build_blocking(rows: &[IndexRow]) -> Result<SearchIndex, rusqlite::Error> {
         let connection = Connection::open_in_memory()?;
         connection.execute_batch(
             "CREATE VIRTUAL TABLE model_text USING fts5(
@@ -147,11 +159,16 @@ impl SearchIndex {
         }
         connection.execute("COMMIT", ())?;
         Ok(SearchIndex {
-            connection: Mutex::new(connection),
+            connection: Arc::new(Mutex::new(connection)),
         })
     }
 
     /// Models whose text has any of the words, best first.
+    ///
+    /// The query is run off the async runtime. `rusqlite` is a synchronous
+    /// wrapper around C SQLite, so the work is ordinary blocking I/O and
+    /// computation; doing it on a runtime thread would hold one worker for the
+    /// length of the query.
     pub async fn find(
         &self,
         text: &str,
@@ -167,7 +184,28 @@ impl SearchIndex {
         // are lowercase letters and digits, so none of them is FTS5's
         // uppercase `OR` and none can become syntax.
         let query = words.join(" OR ");
-        let connection = self.connection.lock().await;
+        let connection = self.connection.clone();
+        // The connection is behind a std Mutex, so it has to be moved into
+        // the blocking task; that is why this is not a plain `&self` capture.
+        tokio::task::spawn_blocking(move || {
+            // A poisoned lock would mean a previous query panicked while
+            // holding it. The connection is still usable, so take it.
+            let connection = connection.lock().unwrap_or_else(PoisonError::into_inner);
+            let mut found = Self::query(&connection, &query, light_only, limit)?;
+            found.truncate(limit);
+            Ok(found)
+        })
+        .await
+        .map_err(|_| rusqlite::Error::InvalidQuery)?
+    }
+
+    /// The search itself. Blocking; called from `find`, off the runtime.
+    fn query(
+        connection: &MutexGuard<'_, Connection>,
+        query: &str,
+        light_only: bool,
+        limit: usize,
+    ) -> Result<Vec<Found>, rusqlite::Error> {
         // bm25() scores in negative numbers: the better the match, the
         // further below zero it sits, so best first is ascending.
         let mut statement = connection.prepare(
