@@ -4276,6 +4276,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "wenmar-open-db"
+version = "0.2.0"
+dependencies = [
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "wenmar-vehicles",
+ "wenmar-vin",
+]
+
+[[package]]
 name = "wenmar-open-turso"
 version = "0.2.0"
 dependencies = [

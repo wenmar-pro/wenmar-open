@@ -1,0 +1,33 @@
+[package]
+name = "wenmar-open-db"
+version.workspace = true
+description = "Reads a Wenmar Open data file through the rusqlite crate: VIN decoding and the vehicle catalog in-process, read-only, from async code."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "README.md"
+keywords = ["vin", "vehicle", "automotive", "sqlite"]
+categories = ["database"]
+
+[dependencies]
+# `bundled` is not optional: the crate compiles its own SQLite, with FTS5,
+# and never depends on the system's version.
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+serde.workspace = true
+thiserror.workspace = true
+tokio = { version = "1", features = ["rt", "sync"] }
+wenmar-vehicles = { workspace = true, features = ["sqlite"] }
+wenmar-vin.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+tempfile = "3.27.0"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+wenmar-vehicles = { workspace = true, features = ["sqlite"] }
+wenmar-vin = { workspace = true, features = ["sqlite"] }
+
+[[test]]
+name = "it"
+path = "tests/it/main.rs"
