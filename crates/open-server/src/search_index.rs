@@ -1,5 +1,5 @@
-//! The server's own search index: a second turso database with a full-text
-//! index over make and model names.
+//! The server's own search index: a second SQLite database, in memory,
+//! with a full-text index over make and model names.
 //!
 //! The published data file is plain SQLite and stays that way. This index
 //! is the server's, is rebuilt in memory from the data file at every start,
@@ -7,6 +7,7 @@
 //! reading of the text finds nothing, so that words in any order still find
 //! a model.
 
+use rusqlite::{Connection, params};
 use tokio::sync::Mutex;
 use wenmar_vehicles::text::normalize;
 use wenmar_vehicles::{Source, SourceError, Value};
@@ -103,9 +104,9 @@ pub fn words(text: &str) -> Vec<String> {
 }
 
 pub struct SearchIndex {
-    connection: Mutex<turso::Connection>,
-    // Keeps the in-memory database alive.
-    _database: turso::Database,
+    // A rusqlite in-memory connection owns its own database for its
+    // lifetime, so there is no handle to keep alive.
+    connection: Mutex<Connection>,
 }
 
 impl std::fmt::Debug for SearchIndex {
@@ -117,49 +118,36 @@ impl std::fmt::Debug for SearchIndex {
 impl SearchIndex {
     /// Builds the index in memory. About 0.4 seconds for the 31,470 models
     /// of the 2026.09 release.
-    pub async fn build(rows: &[IndexRow]) -> Result<SearchIndex, turso::Error> {
-        let database = turso::Builder::new_local(":memory:")
-            .experimental_index_method(true)
-            .build()
-            .await?;
-        let connection = database.connect()?;
-        connection
-            .execute_batch(
-                "CREATE TABLE model (
-                     id        INTEGER PRIMARY KEY,
-                     make      TEXT NOT NULL,
-                     model     TEXT NOT NULL,
-                     year_from INTEGER NOT NULL,
-                     year_to   INTEGER NOT NULL,
-                     light     INTEGER NOT NULL,
-                     text      TEXT NOT NULL
-                 );",
-            )
-            .await?;
-        connection.execute("BEGIN", ()).await?;
+    pub async fn build(rows: &[IndexRow]) -> Result<SearchIndex, rusqlite::Error> {
+        let connection = Connection::open_in_memory()?;
+        connection.execute_batch(
+            "CREATE VIRTUAL TABLE model_text USING fts5(
+                 make UNINDEXED,
+                 model UNINDEXED,
+                 year_from UNINDEXED,
+                 year_to UNINDEXED,
+                 light UNINDEXED,
+                 text
+             );",
+        )?;
+        connection.execute("BEGIN", ())?;
         for row in rows {
-            connection
-                .execute(
-                    "INSERT INTO model (make, model, year_from, year_to, light, text)
-                     VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-                    turso::params_from_iter(vec![
-                        turso::Value::Text(row.make.clone()),
-                        turso::Value::Text(row.model.clone()),
-                        turso::Value::Integer(i64::from(row.year_from)),
-                        turso::Value::Integer(i64::from(row.year_to)),
-                        turso::Value::Integer(i64::from(row.light)),
-                        turso::Value::Text(row.text.clone()),
-                    ]),
-                )
-                .await?;
+            connection.execute(
+                "INSERT INTO model_text (make, model, year_from, year_to, light, text)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                params![
+                    row.make,
+                    row.model,
+                    row.year_from,
+                    row.year_to,
+                    row.light,
+                    row.text
+                ],
+            )?;
         }
-        connection.execute("COMMIT", ()).await?;
-        connection
-            .execute("CREATE INDEX model_text ON model USING fts (text)", ())
-            .await?;
+        connection.execute("COMMIT", ())?;
         Ok(SearchIndex {
             connection: Mutex::new(connection),
-            _database: database,
         })
     }
 
@@ -169,45 +157,55 @@ impl SearchIndex {
         text: &str,
         light_only: bool,
         limit: usize,
-    ) -> Result<Vec<Found>, turso::Error> {
+    ) -> Result<Vec<Found>, rusqlite::Error> {
         let words = words(text);
         if words.is_empty() {
             return Ok(Vec::new());
         }
-        let query = words.join(" ");
+        // A bare FTS5 query conjoins its words, where tantivy matched any
+        // of them; OR between the words keeps the old promise. The words
+        // are lowercase letters and digits, so none of them is FTS5's
+        // uppercase `OR` and none can become syntax.
+        let query = words.join(" OR ");
         let connection = self.connection.lock().await;
-        let mut rows = connection
-            .query(
-                "SELECT make, model, year_from, year_to, light
-                 FROM model
-                 WHERE fts_match(text, ?1)
-                 ORDER BY fts_score(text, ?1) DESC
-                 LIMIT ?2",
-                turso::params_from_iter(vec![
-                    turso::Value::Text(query),
-                    // Room for the rows the scope will remove.
-                    turso::Value::Integer(i64::try_from(limit.saturating_mul(4)).unwrap_or(200)),
-                ]),
-            )
-            .await?;
+        // bm25() is negative and the better the match the further below
+        // zero it sits, so best first is ascending — turso's tantivy score
+        // was positive and ordered the other way round.
+        let mut statement = connection.prepare(
+            "SELECT make, model, year_from, year_to, light
+             FROM model_text
+             WHERE model_text MATCH ?1
+             ORDER BY bm25(model_text)
+             LIMIT ?2",
+        )?;
+        let rows = statement.query_map(
+            params![
+                query,
+                // Room for the rows the scope will remove.
+                i64::try_from(limit.saturating_mul(4)).unwrap_or(200)
+            ],
+            |row| {
+                Ok((
+                    row.get::<_, String>(0).unwrap_or_default(),
+                    row.get::<_, String>(1).unwrap_or_default(),
+                    row.get::<_, i64>(2).unwrap_or(0),
+                    row.get::<_, i64>(3).unwrap_or(0),
+                    row.get::<_, i64>(4).unwrap_or(0),
+                ))
+            },
+        )?;
         let mut found = Vec::new();
-        while let Some(row) = rows.next().await? {
-            let light = row.get_value(4)?.as_integer().copied().unwrap_or(0) != 0;
-            if light_only && !light {
+        for row in rows {
+            let (make, model, year_from, year_to, light) = row?;
+            if light_only && light == 0 {
                 continue;
             }
-            let year = |index: usize| -> Result<u16, turso::Error> {
-                Ok(row
-                    .get_value(index)?
-                    .as_integer()
-                    .and_then(|year| u16::try_from(*year).ok())
-                    .unwrap_or(0))
-            };
+            let year = |year: i64| u16::try_from(year).unwrap_or(0);
             found.push(Found {
-                make: row.get_value(0)?.as_text().cloned().unwrap_or_default(),
-                model: row.get_value(1)?.as_text().cloned().unwrap_or_default(),
-                year_from: year(2)?,
-                year_to: year(3)?,
+                make,
+                model,
+                year_from: year(year_from),
+                year_to: year(year_to),
             });
             if found.len() >= limit {
                 break;
@@ -235,6 +233,9 @@ mod tests {
     async fn index() -> SearchIndex {
         SearchIndex::build(&[
             row("honda", "civic", true, "honda civic civic"),
+            // The same words as the Civic, scoring lower: two models for
+            // one query, so the order between them is the sort direction.
+            row("honda", "civic-si", true, "honda civic si civicsi"),
             row("honda", "cr-v", true, "honda cr-v crv"),
             row("ford", "f-150", true, "ford f-150 f150"),
             row(
@@ -282,7 +283,14 @@ mod tests {
     #[tokio::test]
     async fn words_in_any_order_find_a_model() {
         let index = index().await;
-        assert_eq!(models(&index, "civic honda").await[0], "honda civic");
+        // Both Civics, the plain one first: the query reaches either, and
+        // the order between them is the index's ranking, best first. The
+        // CR-V shares only `honda`, so the words in any order reach it
+        // too, after the Civics.
+        assert_eq!(
+            models(&index, "civic honda").await,
+            ["honda civic", "honda civic-si", "honda cr-v"]
+        );
         assert_eq!(models(&index, "the civic by honda").await[0], "honda civic");
         assert_eq!(models(&index, "f150").await, ["ford f-150"]);
         assert_eq!(models(&index, "chevy").await, ["chevrolet silverado"]);
@@ -311,8 +319,12 @@ mod tests {
             let found = index.find(text, false, 10).await;
             assert_eq!(found.unwrap(), Vec::new(), "{text}");
         }
-        // Syntax around a real word is dropped and the word still counts.
-        assert_eq!(models(&index, "text:civic").await, ["honda civic"]);
+        // Syntax around a real word is dropped and the word still counts;
+        // both Civics hold it, the plain one first.
+        assert_eq!(
+            models(&index, "text:civic").await,
+            ["honda civic", "honda civic-si"]
+        );
         assert_eq!(models(&index, "\"civic\" -honda").await[0], "honda civic");
     }
 }

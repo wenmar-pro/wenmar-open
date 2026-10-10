@@ -18,7 +18,7 @@
 
 use rusqlite::{Connection, params};
 
-use open_server::search_index::{IndexRow, words};
+use open_server::search_index::{Found, IndexRow, SearchIndex, words};
 
 /// An FTS5 index shaped like the server's, built over rows.
 ///
@@ -201,6 +201,58 @@ fn user_text_that_is_query_syntax_finds_nothing_and_does_not_fail() {
             "{text}"
         );
     }
+}
+
+/// The port itself, asked the fixture questions the unit tests in
+/// `search_index.rs` ask. Two models share `civic honda` here on purpose,
+/// so an engine that ranks them the other way round — or that conjoins
+/// the words and drops the stray-word query — has something to fail on.
+#[test]
+fn the_index_gives_the_fixture_the_answers_the_study_found() {
+    let index = block_on(SearchIndex::build(&rows())).unwrap();
+    // The two Civics, the plain one first: the sort direction, and the
+    // OR join, in one assertion. `cr-v` shares only `honda`, so the OR
+    // query reaches it too, last.
+    assert_eq!(
+        found(&index, "civic honda", true),
+        ["honda civic", "honda civic-si", "honda cr-v"]
+    );
+    // The stray words cost nothing: the Civic is still first, as tantivy
+    // had it, where a bare FTS5 query finds nothing at all.
+    assert_eq!(found(&index, "the civic by honda", true)[0], "honda civic");
+    // The matching form of a name.
+    assert_eq!(found(&index, "f150", true), ["ford f-150"]);
+    // A make alias.
+    assert_eq!(found(&index, "chevy", true), ["chevrolet silverado"]);
+    // The scope and the years come back through the port unchanged.
+    assert!(found(&index, "tilt deck", true).is_empty());
+    let all = block_on(index.find("tilt deck", false, 10)).unwrap();
+    assert_eq!(
+        format!("{} {}", all[0].make, all[0].model),
+        "ranger-trailers tilt-deck"
+    );
+    assert_eq!((all[0].year_from, all[0].year_to), (2018, 2020));
+}
+
+/// The models `SearchIndex` returns for a text, best first, the way the
+/// server asks.
+fn found(index: &SearchIndex, text: &str, light_only: bool) -> Vec<String> {
+    block_on(async {
+        index
+            .find(text, light_only, 10)
+            .await
+            .unwrap()
+            .into_iter()
+            .map(|Found { make, model, .. }| format!("{make} {model}"))
+            .collect()
+    })
+}
+
+fn block_on<F: std::future::Future>(future: F) -> F::Output {
+    tokio::runtime::Builder::new_current_thread()
+        .build()
+        .unwrap()
+        .block_on(future)
 }
 
 /// The data file `mise run data` builds, when it has been built. It is
