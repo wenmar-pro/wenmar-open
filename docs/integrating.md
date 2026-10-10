@@ -215,7 +215,7 @@ let decode = db.decode_vin("KM8K2CAB4PU001140", DecodeOptions::default()).await?
 let makes = db.catalog(|catalog| catalog.makes(Some(2019), Scope::Light, "", 50)).await??;
 ```
 
-`decode` serializes to the same JSON as `GET /v1/vin/{vin}`. The file is opened read-only: nothing is written to it or beside it, and no lock is taken, so several programs can read one file.
+`decode` serializes to the same JSON as `GET /v1/vin/{vin}`. The file is opened read-only: nothing is written to it or beside it. SQLite's read locks are honoured, and they let any number of readers share one file, so several programs can read it at the same time.
 
 ## The data file
 
