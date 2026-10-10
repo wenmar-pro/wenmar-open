@@ -219,7 +219,7 @@ The same holds for a deploy that changes the server and not the data. The `ETag`
 | `OPEN_TRUSTED_PROXIES` | `0` | Reverse proxies in front that add to `X-Forwarded-For`. `1` in production. |
 | `OPEN_RATE_LIMIT` | `600` | Requests one address may make in a minute. |
 | `OPEN_CONNECTIONS` | `4` | Read-only connections to the data file. |
-| `RUST_LOG` | `info,turso_core=error,tantivy=warn` | Log level. |
+| `RUST_LOG` | `info` | Log level. |
 
 ## Limits that are not settings
 
