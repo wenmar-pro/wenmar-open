@@ -6,10 +6,15 @@
 //! The bundled SQLite has none of turso's names: `CREATE INDEX ... USING
 //! fts` is a syntax error and `fts_match` and `fts_score` do not exist, so
 //! this builds the same normalized `text` as an FTS5 virtual table and asks
-//! it the same query text. Two things turned out not to carry over, and
-//! each has a test of its own below: SQLite's bm25() is negative where
-//! tantivy's score was positive, and a bare FTS5 query conjoins its words
-//! where tantivy disjoined them.
+//! it the same words.
+//!
+//! The file separates two things. The *engine study* is what a bare FTS5
+//! query answers — the query text the server builds today — including
+//! where it diverges: FTS5 conjoins the words of a bare query where
+//! tantivy disjoined them, and orders a negative bm25() ascending where
+//! tantivy ordered a positive score descending. The *contract* follows
+//! from the study: the port puts OR between the words, keeps bm25()
+//! ascending, and must give the OR-joined answers the last test pins.
 
 use rusqlite::{Connection, params};
 
@@ -55,12 +60,8 @@ fn index(rows: &[IndexRow]) -> Connection {
     connection
 }
 
-/// The models FTS5 returns for `text`, best first.
-fn models(connection: &Connection, text: &str, limit: i64) -> Vec<String> {
-    let words = words(text);
-    if words.is_empty() {
-        return Vec::new();
-    }
+/// The models FTS5 returns for a query, best first.
+fn ranked(connection: &Connection, query: &str, limit: i64) -> Vec<String> {
     let mut statement = connection
         .prepare(
             "SELECT make, model FROM model_text
@@ -72,9 +73,11 @@ fn models(connection: &Connection, text: &str, limit: i64) -> Vec<String> {
     // turso ordered a tantivy score, larger first, by `fts_score ... DESC`.
     // SQLite's bm25() is negative, the better the match the further from
     // zero downwards, so best first is ascending, and the hidden `rank`
-    // column orders the same way.
+    // column orders the same way. The fixture shares a query between two
+    // models on purpose, so a port that orders the other way round has
+    // something to fail on.
     let rows = statement
-        .query_map(params![words.join(" "), limit], |row| {
+        .query_map(params![query, limit], |row| {
             Ok(format!(
                 "{} {}",
                 row.get::<_, String>(0)?,
@@ -83,6 +86,22 @@ fn models(connection: &Connection, text: &str, limit: i64) -> Vec<String> {
         })
         .unwrap();
     rows.map(|row| row.unwrap()).collect()
+}
+
+/// The models FTS5 returns for `text` asked the way the server asks it
+/// today: the words of the text, bare, in one string.
+fn models(connection: &Connection, text: &str, limit: i64) -> Vec<String> {
+    let words = words(text);
+    if words.is_empty() {
+        return Vec::new();
+    }
+    ranked(connection, &words.join(" "), limit)
+}
+
+/// The query the port must ask instead: the words with OR between them,
+/// so any of them finds a model, as tantivy's query did.
+fn or_joined(text: &str) -> String {
+    words(text).join(" OR ")
 }
 
 fn row(make: &str, model: &str, light: bool, text: &str) -> IndexRow {
@@ -99,6 +118,9 @@ fn row(make: &str, model: &str, light: bool, text: &str) -> IndexRow {
 fn rows() -> Vec<IndexRow> {
     vec![
         row("honda", "civic", true, "honda civic civic"),
+        // The same words as the Civic, scoring lower: two models for one
+        // query, so the order between them is the sort direction.
+        row("honda", "civic-si", true, "honda civic si civicsi"),
         row("honda", "cr-v", true, "honda cr-v crv"),
         row("ford", "f-150", true, "ford f-150 f150"),
         row(
@@ -116,11 +138,21 @@ fn rows() -> Vec<IndexRow> {
     ]
 }
 
+/// The engine study on the fixture: what bare FTS5 — the query text the
+/// server builds today — answers, and which way round it sorts. Not the
+/// port's contract: the port asks its words with OR between them, as the
+/// last test pins.
 #[test]
-fn native_fts5_finds_models_the_way_the_server_promises() {
+fn bare_fts5_ranks_the_fixture_models_best_first() {
     let connection = index(&rows());
-    // Words in any order, and the matching form of a name.
-    assert_eq!(models(&connection, "civic honda", 10)[0], "honda civic");
+    // Both models have the words in any order; the Civic, with more of
+    // them and less else, ranks first. Reversing the sort direction
+    // reverses this list.
+    assert_eq!(
+        models(&connection, "civic honda", 10),
+        ["honda civic", "honda civic-si"]
+    );
+    // The matching form of a name.
     assert_eq!(models(&connection, "f150", 10), ["ford f-150"]);
     // A make alias.
     assert_eq!(models(&connection, "chevy", 10), ["chevrolet silverado"]);
@@ -140,8 +172,12 @@ fn native_fts5_wants_every_word_where_turso_wanted_any() {
         models(&connection, "the civic by honda", 10),
         Vec::<String>::new()
     );
-    // Both words together still find the model that has both.
-    assert_eq!(models(&connection, "civic honda", 10), ["honda civic"]);
+    // Both words together still find the models that have both, and only
+    // those.
+    assert_eq!(
+        models(&connection, "civic honda", 10),
+        ["honda civic", "honda civic-si"]
+    );
 }
 
 #[test]
@@ -155,21 +191,21 @@ fn user_text_that_is_query_syntax_finds_nothing_and_does_not_fail() {
         "AND OR NOT",
         "%",
     ] {
-        // The server drops everything but letters and digits before asking,
-        // so only the empty case reaches FTS5 as an empty query.
-        if words(text).is_empty() {
-            assert_eq!(
-                models(&connection, text, 10),
-                Vec::<String>::new(),
-                "{text}"
-            );
-        }
+        // The server drops everything but letters and digits before
+        // asking, so the text that still has words reaches FTS5 as plain
+        // words and must find nothing — and must not fail its parser.
+        // What is left with no words is answered empty without asking.
+        assert_eq!(
+            models(&connection, text, 10),
+            Vec::<String>::new(),
+            "{text}"
+        );
     }
 }
 
-/// The data file `mise run data` builds, when it has been built. It is not
-/// in the repository, so the tests that need the real catalog do nothing
-/// without it.
+/// The data file `mise run data` builds, when it has been built. It is
+/// not in the repository and CI has none, so the tests that need the real
+/// catalog do nothing without it.
 fn data_file() -> Option<std::path::PathBuf> {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../data/build/wenmar-open-2026.09.sqlite3");
@@ -184,13 +220,15 @@ fn real_rows() -> Option<Vec<IndexRow>> {
     Some(open_server::search_index::rows(&source).unwrap())
 }
 
-/// The queries the port must answer the same way on the real index, and
-/// the first ten models each returns. Run with `-- --nocapture` to read
-/// them; Task 3's port has to reproduce these orderings.
+/// The engine study on the real catalog: what a bare FTS5 query answers,
+/// and where that diverges from tantivy. Diagnosis, not the contract:
+/// run with `-- --nocapture` to read the whole lists.
 #[tokio::test]
-async fn the_real_index_ranks_the_way_the_port_must_reproduce() {
+async fn bare_fts5_on_the_real_index_shows_where_it_diverges() {
     let Some(rows) = real_rows() else {
-        eprintln!("no real data file beside this worktree: nothing to rank");
+        eprintln!(
+            "no data file beside this worktree: nothing to rank; build one with `mise run data`"
+        );
         return;
     };
     assert_eq!(rows.len(), 31_470, "the 2026.09 release");
@@ -204,10 +242,13 @@ async fn the_real_index_ranks_the_way_the_port_must_reproduce() {
     // Both words together: the three Civics, the plain one first.
     assert_eq!(models(&connection, "civic honda", 10)[0], "honda civic");
     // The alias `chevy` is in every Chevrolet model's text, all tied on
-    // this one word, and FTS5 breaks the tie by nothing better than the
-    // order the models were added in.
+    // this one word. The order among the ties is the order `MODELS_SQL`
+    // read the models in — it has no ORDER BY — so the set is pinned
+    // here, not the order; the printed list shows the read order.
+    let mut chevy = models(&connection, "chevy", 10);
+    chevy.sort();
     assert_eq!(
-        models(&connection, "chevy", 10),
+        chevy,
         [
             "chevrolet aveo",
             "chevrolet camaro",
@@ -228,4 +269,51 @@ async fn the_real_index_ranks_the_way_the_port_must_reproduce() {
         models(&connection, "2019 civic si", 10),
         Vec::<String>::new()
     );
+}
+
+/// The contract for the port: the same words asked with OR between them,
+/// which is tantivy's answer shape. On the real index Task 3's port must
+/// give these heads, best first by bm25(), whatever it does internally.
+/// Run with `-- --nocapture` to read the whole lists.
+#[tokio::test]
+async fn or_joined_queries_give_the_answers_the_port_must_give() {
+    let Some(rows) = real_rows() else {
+        eprintln!(
+            "no data file beside this worktree: nothing to rank; build one with `mise run data`"
+        );
+        return;
+    };
+    let connection = index(&rows);
+    for text in [
+        "f150",
+        "chevy",
+        "2019 civic si",
+        "civic honda",
+        "the civic by honda",
+    ] {
+        println!(
+            "{:?} -> {:?}",
+            or_joined(text),
+            ranked(&connection, &or_joined(text), 10)
+        );
+    }
+    // turso found the Civic first even with the stray words, and still
+    // does with the words joined: the tail is the models whose names hold
+    // `by`, as turso's was.
+    assert_eq!(
+        ranked(&connection, &or_joined("the civic by honda"), 10)[0],
+        "honda civic"
+    );
+    // The year is in no model's text; the words still find the model the
+    // words were looking for, as tantivy did.
+    assert_eq!(
+        ranked(&connection, &or_joined("2019 civic si"), 10)[0],
+        "honda civic-si"
+    );
+    assert_eq!(
+        ranked(&connection, &or_joined("civic honda"), 10)[0],
+        "honda civic"
+    );
+    // A single word is its own query, joined or not.
+    assert_eq!(ranked(&connection, &or_joined("f150"), 10), ["ford f-150"]);
 }
