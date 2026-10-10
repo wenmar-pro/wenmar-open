@@ -172,17 +172,20 @@ impl SearchIndex {
         // zero it sits, so best first is ascending — turso's tantivy score
         // was positive and ordered the other way round.
         let mut statement = connection.prepare(
-            "SELECT make, model, year_from, year_to, light
+            "SELECT make, model, year_from, year_to
              FROM model_text
              WHERE model_text MATCH ?1
+               AND (?2 = 0 OR light = 1)
              ORDER BY bm25(model_text)
-             LIMIT ?2",
+             LIMIT ?3",
         )?;
         let rows = statement.query_map(
             params![
                 query,
-                // Room for the rows the scope will remove.
-                i64::try_from(limit.saturating_mul(4)).unwrap_or(200)
+                i64::from(light_only),
+                // The real limit: what the scope allows is what counts
+                // towards it, so there is nothing to make room for.
+                i64::try_from(limit).unwrap_or(i64::MAX),
             ],
             |row| {
                 Ok((
@@ -190,16 +193,14 @@ impl SearchIndex {
                     row.get::<_, String>(1).unwrap_or_default(),
                     row.get::<_, i64>(2).unwrap_or(0),
                     row.get::<_, i64>(3).unwrap_or(0),
-                    row.get::<_, i64>(4).unwrap_or(0),
                 ))
             },
         )?;
+        // SQL applies the scope and the limit, so every row that comes
+        // back is a keeper: no post-fetch filtering and no early break.
         let mut found = Vec::new();
         for row in rows {
-            let (make, model, year_from, year_to, light) = row?;
-            if light_only && light == 0 {
-                continue;
-            }
+            let (make, model, year_from, year_to) = row?;
             let year = |year: i64| u16::try_from(year).unwrap_or(0);
             found.push(Found {
                 make,
@@ -207,9 +208,6 @@ impl SearchIndex {
                 year_from: year(year_from),
                 year_to: year(year_to),
             });
-            if found.len() >= limit {
-                break;
-            }
         }
         Ok(found)
     }

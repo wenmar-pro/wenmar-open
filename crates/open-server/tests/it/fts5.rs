@@ -234,12 +234,45 @@ fn the_index_gives_the_fixture_the_answers_the_study_found() {
     assert_eq!((all[0].year_from, all[0].year_to), (2018, 2020));
 }
 
+/// The rows for the scope test. Of the 31,470 models of the real index
+/// only 3,608 (11%) are light, so a query's best matches are usually
+/// heavy ones; here the four heavy matches all outrank the single light
+/// one, because the same word twice in a document scores better than
+/// once.
+fn scope_rows() -> Vec<IndexRow> {
+    let mut rows: Vec<IndexRow> = ["cougar", "monarch", "comet", "galaxie"]
+        .into_iter()
+        .map(|model| row("ford", model, false, "ford escort escort"))
+        .collect();
+    rows.push(row("ford", "escort", true, "ford escort lx"));
+    rows
+}
+
+/// The scope is the engine's to apply, not the caller's guess. A search
+/// with a limit of one is fetched four rows wide the old way, the four
+/// heavy matches fill the window, and the light Escort is never seen —
+/// which is the bug: only what the scope allows may count towards the
+/// limit.
+#[test]
+fn the_scope_is_applied_in_sql_so_heavy_models_cannot_push_a_light_one_out() {
+    let index = block_on(SearchIndex::build(&scope_rows())).unwrap();
+    // The only light match, found even though four better-scoring heavy
+    // models stand between the top of the ranking and it.
+    assert_eq!(found_up_to(&index, "escort", true, 1), ["ford escort"]);
+    // The whole scope sees all five, heavy ones first.
+    assert_eq!(found_up_to(&index, "escort", false, 5).len(), 5);
+}
+
 /// The models `SearchIndex` returns for a text, best first, the way the
 /// server asks.
 fn found(index: &SearchIndex, text: &str, light_only: bool) -> Vec<String> {
+    found_up_to(index, text, light_only, 10)
+}
+
+fn found_up_to(index: &SearchIndex, text: &str, light_only: bool, limit: usize) -> Vec<String> {
     block_on(async {
         index
-            .find(text, light_only, 10)
+            .find(text, light_only, limit)
             .await
             .unwrap()
             .into_iter()
