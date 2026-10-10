@@ -55,6 +55,64 @@ pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair
 /// The names of the tools, in the order `tools/list` gives them.
 pub const TOOL_NAMES: [&str; 2] = ["wenmar_vin", "wenmar_vehicles"];
 
+/// The Server Card schema a card must conform to. The schema's own pattern
+/// pins the `/v1/` family, so a breaking change to the shape arrives as a
+/// new one.
+pub const CARD_SCHEMA: &str =
+    "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json";
+
+/// The media type of a Server Card, and of the AI Catalog that points at one.
+pub const CARD_TYPE: &str = "application/mcp-server-card+json";
+pub const CATALOG_TYPE: &str = "application/ai-catalog+json";
+
+/// One line, at most a hundred characters, on what this server is for. The
+/// schema sets that limit, and `registry server.json` holds the same words.
+pub const CARD_DESCRIPTION: &str =
+    "Free VIN decoder and vehicle catalog from NHTSA vPIC data. Read-only, no key.";
+
+/// The Server Card (SEP-2127): what this server is and where to reach it,
+/// for a client that has a domain and no connection yet.
+///
+/// Every value comes from the same place the running server reads it, so the
+/// card cannot claim a name, a version or a protocol revision that
+/// `server/discover` would contradict. It carries no tools, resources,
+/// prompts or capabilities: the SEP excludes primitives on purpose, because a
+/// static document cannot say what a client would be allowed to reach.
+pub fn server_card(base: &str, legacy: &[&'static str], server_version: &str) -> Value {
+    json!({
+        "$schema": CARD_SCHEMA,
+        "name": "com.wenmarpro/wenmar-open",
+        "title": "Wenmar Open",
+        "description": CARD_DESCRIPTION,
+        "version": server_version,
+        "websiteUrl": base,
+        "repository": {
+            "url": "https://github.com/wenmar-pro/wenmar-open",
+            "source": "github"
+        },
+        "remotes": [{
+            "type": "streamable-http",
+            "url": format!("{base}/mcp"),
+            "supportedProtocolVersions": supported(legacy)
+        }]
+    })
+}
+
+/// The AI Catalog (SEP-2127): the entry a client that has only a domain
+/// reads to learn that this domain serves an MCP server at all. It carries
+/// no fields of its own beyond the card's address, so the card cannot drift
+/// from what it says.
+pub fn ai_catalog(base: &str) -> Value {
+    json!({
+        "specVersion": "1.0",
+        "entries": [{
+            "identifier": "urn:air:open.wenmarpro.com:mcp:wenmar-open",
+            "type": CARD_TYPE,
+            "url": format!("{base}/mcp/server-card")
+        }]
+    })
+}
+
 /// The tools, as `tools/list` returns them.
 pub fn tools() -> Value {
     json!([

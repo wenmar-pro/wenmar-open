@@ -4,9 +4,7 @@ This is what to do by hand after `open.wenmarpro.com` is live. Nothing in this r
 
 **What this can and cannot do.** Nothing here makes an assistant choose this service. An assistant uses a tool because a person connected it, or fetches an address because it found one that looked right. What this work does is make the service easy to find, cheap to try and hard to use wrongly: no key, one request, a plain answer, and a description in each place an assistant or its builder looks. Whether people ask for it is up to them.
 
-Everything below was read on 2026-10-01. The MCP Registry, the connector directories and the AI crawlers' rules all change; read the linked page again before acting on a step.
-
-## First: check what the site says about itself
+Everything below was read on 2026-10-01, except the Server Card and Hermes sections, which were read on 2026-10-10. The MCP Registry, the connector directories and the AI crawlers' rules all change; read the linked page again before acting on a step.
 
 ```bash
 base=https://open.wenmarpro.com
@@ -14,6 +12,8 @@ curl -s $base/robots.txt
 curl -s $base/llms.txt | head -20
 curl -s -o /dev/null -w '%{http_code} %{size_download}\n' $base/llms-full.txt
 curl -si $base/.well-known/api-catalog | head -12
+curl -si $base/mcp/server-card | head -12
+curl -s  $base/.well-known/ai-catalog.json
 curl -s $base/sitemap.xml | head -5
 curl -s -X POST $base/mcp \
   -H 'Content-Type: application/json' \
@@ -81,7 +81,47 @@ The official registry is at <https://registry.modelcontextprotocol.io>. It is in
 
 5. `version` in `server.json` is the server's version, and a test keeps the two equal. Publish again when it changes.
 
-Not done, and why: there is no "server card" at a well-known address. That proposal (SEP-1649, then SEP-2127) is still a draft whose address has changed twice. When it is accepted, it is one more route.
+Not done, and why: nothing else. A "server card" is now served at `/mcp/server-card`, `/.well-known/mcp/server-card.json` and `/.well-known/mcp`, and `/.well-known/ai-catalog.json` points at it. The next section says how.
+
+## The MCP Server Card
+
+SEP-2127 reached Final as an Extensions Track SEP. It is a static JSON document
+that says what this server is and where to connect, for a client that has a
+domain and no connection yet. The values are built from the same constants
+`server/discover` answers with, and a test fails if the two ever disagree.
+
+| Address | Media type | What it is for |
+|---|---|---|
+| `/mcp/server-card` | `application/mcp-server-card+json` | The address SEP-2127 reserves: the card hangs off the streamable-HTTP URL |
+| `/.well-known/mcp/server-card.json` | the same | An alias, for a client that only looks under `.well-known` |
+| `/.well-known/mcp` | the same | The same, without the `.json` |
+| `/.well-known/ai-catalog.json` | `application/ai-catalog+json` | The route that actually answers "which servers does this domain serve?" |
+
+The SEP recommends *against* `.well-known` for a card, on the grounds that
+`.well-known` is for site-wide metadata and the AI Catalog already carries each
+card's exact `url`. All four are served anyway: a card may sit at any
+unreserved URI, and an alias that costs nothing is worth more than an argument
+about which address is correct.
+
+**The AI Catalog is the one that matters.** A client given only
+`https://open.wenmarpro.com` fetches `/.well-known/ai-catalog.json`, reads the
+entry whose `type` is `application/mcp-server-card+json`, and fetches the
+`url` it names. Without the catalog there is nothing for a client to read.
+
+Two things the card deliberately does not carry, both by decision of the SEP:
+
+- **No tools, resources or prompts.** A static document cannot say what a given
+  client may reach; that varies with identity, configuration and deployment.
+- **No `capabilities`.** The same reasoning. A card that advertises them is
+  ignored by a conforming client.
+
+The card answers 304 to `If-None-Match`, and carries an `ETag` and
+`Cache-Control: public, max-age=3600`. Check it, and the catalog, with:
+
+```bash
+curl -si https://open.wenmarpro.com/mcp/server-card | head -12
+curl -s  https://open.wenmarpro.com/.well-known/ai-catalog.json
+```
 
 ## Claude
 
@@ -127,6 +167,7 @@ Two ways, from least work to most.
 
 | Where | How | Note |
 |---|---|---|
+| Hermes Agent | A pull request against `optional-mcps/` in `NousResearch/hermes-agent` | No community tier; entries are merged by review. Written up in `docs/hermes-catalog-submission` |
 | GitHub MCP Registry | Publish to the official registry, then ask GitHub to include the server | The instruction is from 2025 and may have changed |
 | Smithery | <https://smithery.ai/new>, with the `/mcp` address | Needs Streamable HTTP, which this is |
 | mcp.so | <https://mcp.so/submit> | Asks for a repository address: after the repository is public |

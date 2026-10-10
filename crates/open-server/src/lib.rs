@@ -142,6 +142,13 @@ pub fn app(state: AppState) -> Router {
         .route("/llms.txt", get(llms::llms_txt))
         .route("/llms-full.txt", get(llms::llms_full_txt))
         .route("/.well-known/api-catalog", get(site::seo::api_catalog))
+        .route("/.well-known/ai-catalog.json", get(mcp::ai_catalog))
+        // The Server Card of SEP-2127, at the address the SEP reserves under
+        // the streamable-HTTP URL, and at the two `.well-known` addresses a
+        // client may look under instead. All three are the same document.
+        .route("/mcp/server-card", get(mcp::server_card))
+        .route("/.well-known/mcp/server-card.json", get(mcp::server_card))
+        .route("/.well-known/mcp", get(mcp::server_card))
         .route(
             "/mcp",
             axum::routing::post(mcp::post)

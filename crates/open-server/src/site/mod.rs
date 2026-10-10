@@ -274,14 +274,21 @@ pub async fn fallback(State(state): State<AppState>, uri: Uri) -> Response {
     not_found(&state)
 }
 
+/// Whether an answer is a page of the site rather than a document a program
+/// reads. Only a page is wrapped in the layout, given the site's caching
+/// rules and marked for a search engine.
 fn is_page(method: &Method, path: &str) -> bool {
     !(path.starts_with("/v1/")
         || path == "/v1"
         || path == "/mcp"
         || path == "/mcp/"
+        || path == "/mcp/server-card"
+        || path == "/.well-known/mcp"
+        || path == "/.well-known/mcp/server-card.json"
+        || path == "/.well-known/ai-catalog.json"
+        || path == "/.well-known/api-catalog"
         || (path == "/" && method == Method::POST)
-        || path == "/health"
-        || path == "/.well-known/api-catalog")
+        || path == "/health")
 }
 
 /// What a browser may do with any page of this site, whatever its status.

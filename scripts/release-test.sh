@@ -39,6 +39,15 @@ export CARGO_TARGET_DIR="$root/target"
 export MISE_TRUSTED_CONFIG_PATHS="$scratch"
 
 git clone --quiet "$root" "$clone"
+# A clone of a shallow repository is shallow too, and git refuses a push from a
+# shallow clone with "shallow update not allowed". This script pushes main and
+# tags below, so it cannot run in one. Name the cause rather than let the first
+# push fail with an error about git internals.
+if git -C "$clone" rev-parse --is-shallow-repository | grep -qx true; then
+  echo "release-test: this repository is a shallow clone, so it cannot push." >&2
+  echo "Clone it whole, or run 'git fetch --unshallow' here first." >&2
+  exit 1
+fi
 if ! git diff --quiet HEAD; then
   git diff --binary HEAD | git -C "$clone" apply
 fi

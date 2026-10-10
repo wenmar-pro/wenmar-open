@@ -10,6 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Not a size question but a correctness one. The two release test
+          # scripts clone this checkout and push tags and branches from the
+          # clone into a bare repository of their own. actions/checkout
+          # defaults to fetch-depth 1, a clone of a shallow repository is
+          # shallow too, and git refuses such a push with "shallow update not
+          # allowed". Ask for the whole history, as release.yml does.
+          fetch-depth: 0
       - name: Install pinned toolchain
         run: rustup toolchain install
       - run: cargo fmt --all --check

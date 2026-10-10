@@ -142,6 +142,14 @@ pub fn docs(state: &AppState) -> Doc {
                         "API catalog",
                         format!("{base}/.well-known/api-catalog"),
                     ),
+                    (
+                        "MCP server card, for a client that is finding the server",
+                        format!("{base}/mcp/server-card"),
+                    ),
+                    (
+                        "AI catalog, for a client that has only this domain",
+                        format!("{base}/.well-known/ai-catalog.json"),
+                    ),
                 ],
             ),
         ],

@@ -1,0 +1,45 @@
+# Nous-approved MCP catalog entry.
+# Presence in this directory = approval. Merged via PR review.
+manifest_version: 1
+
+name: wenmar-open
+description: 'Free VIN decoder and vehicle catalog from NHTSA vPIC. Read-only, no key.'
+source: https://open.wenmarpro.com/docs
+
+# Vendor-hosted remote MCP (URL-only — Hermes never spawns a local process
+# for this entry). No authentication required (verified live: initialize
+# succeeds anonymously).
+
+transport:
+  type: http
+  url: https://open.wenmarpro.com/mcp
+
+auth:
+  type: none
+
+# Composer-suggestion triggers (desktop brand pills).
+suggest:
+  keywords:
+    - vin
+    - vehicle
+    - nhtsa
+    - decoder
+    - mechanic
+  hosts:
+    - wenmarpro.com
+    - nhtsa.gov
+
+post_install: |
+  No account, API key or sign-up needed — the tools are available as soon as
+  the session restarts.
+
+  Two tools, both read-only. `wenmar_vin` decodes a 17-character VIN into
+  year, make, model, trim, engine, drivetrain and safety equipment, one at a
+  time or up to 50 in a batch. `wenmar_vehicles` steps through year, make,
+  model, submodel and engine, searches by free text, or looks up a vehicle id.
+
+  A wrong check digit is reported as a warning, not an error: many genuine
+  VINs from outside North America fail the check.
+
+  The same data is a REST API with no key at https://open.wenmarpro.com, and
+  a Server Card at https://open.wenmarpro.com/mcp/server-card.

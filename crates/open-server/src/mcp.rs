@@ -17,7 +17,7 @@
 use axum::Json;
 use axum::extract::State;
 use axum::extract::rejection::JsonRejection;
-use axum::http::{HeaderMap, HeaderValue, StatusCode, header};
+use axum::http::{HeaderMap, HeaderValue, Method, StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use open_mcp::{
     Era, HEADER_MISMATCH, INVALID_PARAMS, INVALID_REQUEST, METHOD_NOT_FOUND, MODERN_VERSIONS,
@@ -201,6 +201,132 @@ fn unsupported(id: &Value, requested: &str) -> Response {
             }),
         ),
     )
+}
+
+/// `GET <streamable-http-url>/server-card`: the Server Card of SEP-2127.
+///
+/// The same document is served at `/.well-known/mcp/server-card.json` and
+/// `/.well-known/mcp`. The SEP reserves the first and recommends against the
+/// other two, but a card may sit at any unreserved URI, and serving them
+/// costs nothing: a client that only looks under `.well-known` finds the
+/// server either way.
+///
+/// It is static public metadata, so it carries the `ETag` and the
+/// `If-None-Match` answer the SEP asks a host for, and any origin may read
+/// it. The CORS layer already allows every origin.
+pub async fn server_card(
+    State(state): State<AppState>,
+    method: Method,
+    headers: HeaderMap,
+) -> Response {
+    let card = open_mcp::server_card(
+        &state.config().base_url,
+        &PROTOCOL_VERSIONS,
+        env!("CARGO_PKG_VERSION"),
+    );
+    document(
+        &state,
+        method,
+        headers,
+        open_mcp::CARD_TYPE,
+        card,
+        Some(&format!("{}/mcp/server-card", state.config().base_url)),
+    )
+}
+
+/// `GET /.well-known/ai-catalog.json`: how a client holding only a domain
+/// learns that this domain serves an MCP server, and where its card is.
+pub async fn ai_catalog(State(state): State<AppState>) -> Response {
+    let catalog = open_mcp::ai_catalog(&state.config().base_url);
+    let bytes = serde_json::to_vec_pretty(&catalog).unwrap_or_else(|_| b"{}".to_vec());
+    (
+        [
+            (
+                header::CONTENT_TYPE,
+                HeaderValue::from_static(open_mcp::CATALOG_TYPE),
+            ),
+            (
+                header::CACHE_CONTROL,
+                HeaderValue::from_static("public, max-age=3600"),
+            ),
+        ],
+        bytes,
+    )
+        .into_response()
+}
+
+/// A public JSON document: the media type it is served under, an hour of
+/// caching, and a `304` for a visitor that already holds this build.
+///
+/// The validator names the document, not the data file behind it. A card is
+/// static metadata, so a new month of data must not cost every client that
+/// polls a fresh download.
+fn document(
+    _state: &AppState,
+    method: Method,
+    headers: HeaderMap,
+    media_type: &'static str,
+    body: Value,
+    link_to: Option<&String>,
+) -> Response {
+    let bytes = serde_json::to_vec_pretty(&body).unwrap_or_else(|_| b"{}".to_vec());
+    let etag = document_etag(&bytes);
+    let cacheable = matches!(method, Method::GET | Method::HEAD);
+    let unchanged = cacheable
+        && headers
+            .get(header::IF_NONE_MATCH)
+            .is_some_and(|tag| crate::headers::names(tag, etag.to_str().unwrap_or_default()));
+    let mut response = if unchanged {
+        let mut response = Response::new(axum::body::Body::empty());
+        *response.status_mut() = StatusCode::NOT_MODIFIED;
+        response
+    } else {
+        let mut response = bytes.into_response();
+        response
+            .headers_mut()
+            .insert(header::CONTENT_TYPE, HeaderValue::from_static(media_type));
+        response
+    };
+    let headers = response.headers_mut();
+    if cacheable {
+        headers.insert(
+            header::CACHE_CONTROL,
+            HeaderValue::from_static("public, max-age=3600"),
+        );
+        headers.insert(header::ETAG, etag);
+        headers.insert(
+            header::X_CONTENT_TYPE_OPTIONS,
+            HeaderValue::from_static("nosniff"),
+        );
+        if let Some(address) = link_to
+            && let Ok(value) = HeaderValue::from_str(&format!(
+                "<{address}>; rel=\"http://modelcontextprotocol.io/server-card\""
+            ))
+        {
+            headers.insert(header::LINK, value);
+        }
+    } else {
+        headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    }
+    response
+}
+
+/// A weak validator for a document this server built, from its own bytes.
+///
+/// A card is the same whatever the data file holds, so the validator must not
+/// name the data version: that would make every monthly data build cost each
+/// client that polls one useless download.
+fn document_etag(bytes: &[u8]) -> HeaderValue {
+    // FNV-1a over the bytes. Two builds that produce the same card produce
+    // the same value; two cards that differ produce different ones. A
+    // collision costs a client one extra fetch and nothing else.
+    let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
+    for byte in bytes {
+        hash ^= u64::from(*byte);
+        hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    let text = format!("W/\"{}-{hash:x}\"", crate::BUILD_ID);
+    HeaderValue::from_str(&text).unwrap_or_else(|_| HeaderValue::from_static("W/\"card\""))
 }
 
 /// `POST /mcp`.
