@@ -7,6 +7,7 @@ mod capture;
 mod common;
 mod db;
 mod discovery;
+mod fts5;
 mod http;
 mod limit;
 mod log;
