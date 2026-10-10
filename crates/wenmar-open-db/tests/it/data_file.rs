@@ -126,11 +126,39 @@ async fn database_work_does_not_hold_up_the_runtime() {
 }
 
 #[tokio::test]
-async fn a_data_file_the_platform_cannot_map_is_still_readable() {
-    // mmap_size is a hint. Where the filesystem cannot honour it the file
-    // must still open and decode: the pragma may never be the reason a data
-    // file is refused. -1 asks for no mapping at all, which is the shape of
-    // "this platform will not map it".
+async fn opening_the_data_file_does_not_hold_up_the_runtime() {
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::time::Duration;
+
+    // The same shape as `database_work_does_not_hold_up_the_runtime`, for
+    // the work `Db::open` does itself: the meta read and every slot's two
+    // connections. If any of it ran on the runtime thread the ticker could
+    // not run while the file opened. Enough slots that the opening takes
+    // long enough to tell the difference.
+    let fixture = common::data_file();
+    let ticks = Arc::new(AtomicUsize::new(0));
+    let ticker = {
+        let ticks = Arc::clone(&ticks);
+        tokio::spawn(async move {
+            loop {
+                tokio::time::sleep(Duration::from_millis(1)).await;
+                ticks.fetch_add(1, Ordering::Relaxed);
+            }
+        })
+    };
+    Db::open(&fixture.path(), 64).await.unwrap();
+    ticker.abort();
+    let ticked = ticks.load(Ordering::Relaxed);
+    assert!(ticked >= 5, "the runtime ran {ticked} ticks while opening");
+}
+
+#[tokio::test]
+async fn the_mmap_pragma_never_breaks_reading() {
+    // SQLite never errors on mmap_size: it silently falls back. Setting it
+    // to -1 after opening asks for no mapping at all — the shape of "this
+    // platform will not map it" — and reading must go on exactly as it
+    // did, because the pragma may never be the reason a data file fails.
     let fixture = common::data_file();
     let db = Db::open(&fixture.path(), 1).await.unwrap();
     assert!(
@@ -149,8 +177,9 @@ async fn a_data_file_the_platform_cannot_map_is_still_readable() {
 #[tokio::test]
 async fn every_connection_comes_back_to_the_pool() {
     // rusqlite::Connection is Send but not Sync, so the pool is what makes
-    // concurrency work at all. A worker dropped instead of returned would
-    // shrink the pool a little at a time until nothing could run.
+    // concurrency work at all. This proves liveness, not pool size: far
+    // more tasks than slots all finish, because `start` puts every worker
+    // back and replaces any that a panic took.
     let fixture = common::data_file();
     let size = 4;
     let db = std::sync::Arc::new(Db::open(&fixture.path(), size).await.unwrap());
@@ -169,11 +198,12 @@ async fn every_connection_comes_back_to_the_pool() {
             task.await.unwrap();
         }
     }
-    // Nothing was lost, so the pool is still full and every connection works.
+    // Every task was answered, and slow work still has its reserved half.
     assert_eq!(db.slow_connections(), size / 2);
     let db = std::sync::Arc::try_unwrap(db)
         .map_err(|_| "a handle was left behind")
         .unwrap();
+    // After all that, one more query still answers: the connections work.
     let years = db
         .run(|worker| worker.catalog.years(Scope::Light, "").unwrap())
         .await

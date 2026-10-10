@@ -5,15 +5,23 @@
 //! is never held up by a query.
 //!
 //! The file is only ever read. It is opened read-only, so no journal, WAL
-//! or lock file is created beside it, a write is refused, and SQLite takes
-//! no lock other readers would notice: other programs may read the same
-//! file at the same time. Nothing in this crate hands out a
-//! `rusqlite::Connection`.
+//! or lock file is created beside it, and a write is refused. SQLite's own
+//! read locks are honoured, and they let any number of readers share the
+//! file, so other programs may read it at the same time. Nothing in this
+//! crate hands out a `rusqlite::Connection`.
 //!
 //! A `rusqlite::Connection` is `Send` but not `Sync`: it may move between
 //! threads but may not be shared between tasks. That is why this crate
 //! keeps a fixed pool of connections behind [`Db::run`], and why every
 //! query has a connection of its own for as long as it runs.
+//!
+//! The second argument of [`Db::open`] counts pool slots, not connections.
+//! Each slot holds two read-only connections — one for the catalog, one
+//! for [`Worker::source`] — plus one while the file's `meta` table is
+//! read. All of them map the same file pages, one shared OS mapping, not a
+//! copy each; where the platform cannot map the file, each connection
+//! falls back to its own SQLite page cache (about 2 MiB by default), and
+//! that is what a larger slot count really costs.
 //!
 //! ```no_run
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -36,5 +44,5 @@ pub mod db;
 pub mod decode;
 pub mod vin_rows;
 
-pub use db::{Db, DbError, Meta, Worker};
+pub use db::{Db, DbError, Meta, SqliteSource, Worker};
 pub use decode::{Decode, DecodeFailure, LONGEST_INPUT, current_year};

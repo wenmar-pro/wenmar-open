@@ -21,8 +21,7 @@ use std::sync::{Arc, Mutex, PoisonError};
 use rusqlite::{Connection, OpenFlags};
 use serde::Serialize;
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
-use wenmar_vehicles::schema::SCHEMA_VERSION;
-use wenmar_vehicles::{Catalog, SourceError, Value};
+use wenmar_vehicles::{Catalog, Source, SourceError, Value};
 
 /// The catalog's `Source`, re-exported so the type of [`Worker::source`]
 /// and `Catalog<SqliteSource>` can be named from this crate.
@@ -112,7 +111,7 @@ pub struct Db {
     idle: Arc<Mutex<Vec<Worker>>>,
     permits: Arc<Semaphore>,
     size: usize,
-    /// Places for slow work: fewer than there are connections.
+    /// Places for slow work: fewer than there are slots.
     slow: Arc<Semaphore>,
     slow_size: usize,
     meta: Meta,
@@ -143,26 +142,23 @@ fn meta_value(rows: &[Vec<Value>], key: &str) -> Option<String> {
     })
 }
 
-/// Reads the `meta` table: what the data file says about itself, and which
-/// schema version it was built for. Blocks.
+/// Reads the `meta` table: what the data file says about itself. Blocks.
+///
+/// The schema-version check is `SqliteSource::from_connection`'s — every
+/// connection passes through it — so the check and its message are written
+/// once, in `wenmar-vehicles`. The one thing it does not look for is
+/// `data_version`, which only this server cares about.
 fn read_meta(path: &Path) -> Result<Meta, DbError> {
     let connection = read_only(path).map_err(|error| DbError::Read(error.into()))?;
-    let rows = meta_rows(&connection).map_err(|_| {
-        DbError::NotADataFile("not a Wenmar Open data file: it has no meta table".to_owned())
-    })?;
-    match meta_value(&rows, "schema_version").as_deref() {
-        Some(SCHEMA_VERSION) => {}
-        Some(other) => {
-            return Err(DbError::NotADataFile(format!(
-                "data file has schema version {other}, this build reads version {SCHEMA_VERSION}; rebuild the data file with open-data build"
-            )));
-        }
-        None => {
-            return Err(DbError::NotADataFile(
-                "not a Wenmar Open data file: meta has no schema_version".to_owned(),
-            ));
-        }
-    }
+    let source = SqliteSource::from_connection(connection)
+        .map_err(|error| DbError::NotADataFile(error.to_string()))?;
+    let rows = source
+        .query("SELECT key, value FROM meta", &[])
+        .map_err(|_| {
+            DbError::NotADataFile(
+                "not a Wenmar Open data file: its meta table could not be read".to_owned(),
+            )
+        })?;
     let Some(data_version) = meta_value(&rows, "data_version") else {
         return Err(DbError::NotADataFile(
             "not a Wenmar Open data file: meta has no data_version".to_owned(),
@@ -175,33 +171,15 @@ fn read_meta(path: &Path) -> Result<Meta, DbError> {
     })
 }
 
-/// Every row of the `meta` table as the catalog's `Value`s, so one lookup
-/// works for every key. Blocks.
-fn meta_rows(connection: &Connection) -> rusqlite::Result<Vec<Vec<Value>>> {
-    use rusqlite::types::ValueRef;
-
-    let mut statement = connection.prepare("SELECT key, value FROM meta")?;
-    let mut rows = statement.query([])?;
-    let mut found = Vec::new();
-    while let Some(row) = rows.next()? {
-        let mut pair = Vec::with_capacity(2);
-        for index in 0..2 {
-            pair.push(match row.get_ref(index)? {
-                ValueRef::Null => Value::Null,
-                ValueRef::Integer(number) => Value::Integer(number),
-                ValueRef::Real(number) => Value::Real(number),
-                ValueRef::Text(text) => Value::Text(String::from_utf8_lossy(text).into_owned()),
-                // The meta table holds no blobs.
-                ValueRef::Blob(_) => Value::Null,
-            });
-        }
-        found.push(pair);
-    }
-    Ok(found)
-}
-
 impl Db {
-    /// Opens a data file read-only with `connections` connections.
+    /// Opens a data file read-only with `connections` pool slots.
+    ///
+    /// The argument counts slots, not connections: each slot holds two
+    /// read-only connections, one for the catalog and one for
+    /// [`Worker::source`], and one more is opened while the file's `meta`
+    /// table is read. All of them map the same file pages, one shared OS
+    /// mapping; where the platform cannot map the file, each connection
+    /// falls back to its own SQLite page cache (about 2 MiB by default).
     ///
     /// Refuses a file that is missing, has no `meta` table, or was built for
     /// another schema version.
