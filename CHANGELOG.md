@@ -4,14 +4,23 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-09
+
 ### Added
 
+- `wenmar-open` npm package: the offline mode, `wenmar-open/offline`, which decodes a VIN in the consumer's own process with no network. The decoder is the same Rust code as the crates, compiled to WebAssembly; the data is read through Node's own SQLite, a Cloudflare D1 store, or any SQLite store the caller supplies.
+- `wenmar-open-data` npm package: the data file as an npm package, so the offline mode has something to read. Its version is its schema version, the year and month of the data, and a rebuild number, so `^3.202609.0` takes every later month and never a file this decoder cannot read.
 - `bin/release`: the monthly release, run by hand on the 10th. It refuses unless `main` is clean, pushed and green in CI; bumps every version, cuts the changelog and records the data version in `config/deploy.yml` through `scripts/release-bump.sh`; then runs `scripts/release-check.sh`, commits and tags, and prints the two pushes to run. It pushes nothing itself and stores no secret. `scripts/release-test.sh` and `scripts/release-bump-test.sh` test it, and CI runs both.
 - `.github/workflows/monthly-release.yml` does the same thing unattended on the same schedule. It is written and checked but not switched on; see "The monthly release" in `docs/releasing.md`.
 
 ### Fixed
 
 - `open-server`: the MCP endpoint also answers at the site's own address and at `/mcp/`. Claude's custom connector dialog was given `https://open.wenmarpro.com`, got `405` for its first message, took that for a sign-in prompt and failed to register with a sign-in service that does not exist.
+
+### Internal
+
+- Tests that decode a VIN from a clean install of the *packed* npm tarballs, so a release that left the offline mode out of its tarball fails before it is published rather than after. This is what 0.1.0 did: its tarball carried the hosted client only.
+- `release-check`: `server.json` is checked against the version like every other file that records it. It is asserted against the build by a test but was in neither the runbook nor the check, so it went stale without complaint.
 
 ## [0.1.0] - 2026-10-01
 

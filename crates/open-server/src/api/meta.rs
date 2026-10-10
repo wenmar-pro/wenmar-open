@@ -19,7 +19,7 @@ pub struct MetaResponse {
     #[schema(example = "2026-10-01 04:25:57")]
     pub built_at: String,
     /// The version of the server.
-    #[schema(example = "0.1.0")]
+    #[schema(example = "0.2.0")]
     pub server_version: String,
 }
 

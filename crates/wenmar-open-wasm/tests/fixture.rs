@@ -5,6 +5,12 @@
 //! After a change that is meant to change them:
 //!
 //!   UPDATE_FIXTURES=1 cargo test -p wenmar-open-wasm --test fixture
+//!
+//! After a version change, `touch src/engine.rs` first. The recorded
+//! `server_version` comes from `env!("CARGO_PKG_VERSION")`, which is baked in
+//! when the crate is compiled, and a version change alone does not make cargo
+//! rebuild it. Without the touch this test passes while writing the old
+//! version back into the fixture.
 
 mod common;
 

@@ -100,7 +100,7 @@ new=$(next_version "$mode")
 
 # Every file is checked before any write, so a missing file cannot leave a
 # half-written tree.
-required_files=(Cargo.toml Cargo.lock CHANGELOG.md \
+required_files=(Cargo.toml Cargo.lock CHANGELOG.md server.json \
   clients/js/package.json clients/js/package-lock.json \
   crates/open-server/openapi.json config/deploy.yml)
 for f in "${required_files[@]}"; do
@@ -127,6 +127,18 @@ changed+=(Cargo.lock)
 # than hand-edit.
 UPDATE_OPENAPI=1 cargo test --quiet -p open-server --test it openapi
 changed+=(crates/open-server/openapi.json)
+
+# server.json: the MCP registry file. release-check.sh reads its version and
+# the server's own tests assert it against CARGO_PKG_VERSION, so a miss here
+# fails the release rather than shipping.
+node -e '
+  const fs = require("node:fs");
+  const [file, version] = process.argv.slice(1);
+  const server = JSON.parse(fs.readFileSync(file, "utf8"));
+  server.version = version;
+  fs.writeFileSync(file, JSON.stringify(server, null, 2) + "\n");
+' server.json "$new"
+changed+=(server.json)
 
 # config/deploy.yml: the one DATA_VERSION line under builder.args.
 [ "$(grep -c '^ *DATA_VERSION: ' config/deploy.yml)" = 1 ] ||

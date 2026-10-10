@@ -27,6 +27,15 @@ export CARGO_TARGET_DIR="$root/target"
 export MISE_TRUSTED_CONFIG_PATHS="$scratch"
 
 git clone --quiet "$root" "$clone"
+# A clone of a shallow repository is shallow too, and the cases below push tags
+# into a repository of their own, which git refuses from a shallow clone with
+# "shallow update not allowed". That names a git internal and not the cause, so
+# say what is wrong while the reader still knows which step is running.
+if git -C "$clone" rev-parse --is-shallow-repository | grep -qx true; then
+  echo "release-bump-test: this repository is a shallow clone, so the cases that" >&2
+  echo "push cannot run. Clone it whole, or run 'git fetch --unshallow' here first." >&2
+  exit 1
+fi
 if ! git diff --quiet HEAD; then
   git diff --binary HEAD | git -C "$clone" apply
 fi
@@ -118,12 +127,13 @@ patch_bump_writes_every_file() {
   bump DATA_VERSION=2026.10 --patch || { miss "${FUNCNAME[0]}" "the script failed"; return; }
   [ "$(chose)" = "$want" ] || { miss "${FUNCNAME[0]}" "chose '$(chose)', wanted $want"; return; }
   for f in Cargo.toml Cargo.lock clients/js/package.json clients/js/package-lock.json \
-           crates/open-server/openapi.json CHANGELOG.md; do
+           crates/open-server/openapi.json server.json CHANGELOG.md; do
     git -C "$clone" diff --quiet -- "$f" && { miss "${FUNCNAME[0]}" "$f did not change"; return; }
   done
   [ "$(node -p "require('$clone/clients/js/package.json').version")" = "$want" ] || { miss "${FUNCNAME[0]}" "package.json disagrees"; return; }
   [ "$(node -p "require('$clone/clients/js/package-lock.json').packages[''].version")" = "$want" ] || { miss "${FUNCNAME[0]}" "package-lock.json disagrees"; return; }
   [ "$(node -p "require('$clone/crates/open-server/openapi.json').info.version")" = "$want" ] || { miss "${FUNCNAME[0]}" "openapi.json disagrees"; return; }
+  [ "$(node -p "require('$clone/server.json').version")" = "$want" ] || { miss "${FUNCNAME[0]}" "server.json disagrees"; return; }
   [ "$(sed -n 's/^ *DATA_VERSION: "\(.*\)"$/\1/p' "$clone/config/deploy.yml")" = "2026.10" ] || { miss "${FUNCNAME[0]}" "DATA_VERSION is not 2026.10"; return; }
   pass "${FUNCNAME[0]}"
 }

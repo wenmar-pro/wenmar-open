@@ -54,6 +54,7 @@ const found = {
   "clients/js/package-lock.json": lock.version,
   "clients/js/package-lock.json, its root package": lock.packages[""].version,
   "crates/open-server/openapi.json, info.version": read("crates/open-server/openapi.json").info.version,
+  "server.json, its version": read("server.json").version,
 };
 let ok = true;
 for (const [where, has] of Object.entries(found)) {
