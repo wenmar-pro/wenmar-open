@@ -4,6 +4,19 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Changed
+
+- `open-server` reads the data file through `rusqlite`, and its free-text search index is built over SQLite's FTS5 instead of turso. Behaviour is unchanged.
+- `wenmar-open-turso` is replaced by `wenmar-open-db`, the same library over `rusqlite`. Nothing a consumer of the crate wrote needs to change beyond the dependency: the names and signatures are the same (`Db`, `DbError`, `Meta`, `Worker`, `Decode`), the data file is still opened read-only, and `TursoSource` is gone in favour of `wenmar_vehicles::sqlite::SqliteSource`. `wenmar-open-turso` `0.1.0` is yanked on crates.io.
+
+### Removed
+
+- The `turso` dependency, and with it the tantivy tree it carried: about 2 GB of build output and nearly 2,000 lines of `Cargo.lock`. The bundled SQLite that `rusqlite` compiles has FTS5 and honours SQLite's file locks.
+
+### Internal
+
+- `release-check`: the crate it would publish is `wenmar-open-db`, and it checks that the `wenmar-open-data` manifest still ships the data file and that `scripts/prepare.mjs` still gives the published manifest its version from the data file's own meta table, so a placeholder version cannot reach npm unnoticed.
+
 ## [0.2.0] - 2026-10-09
 
 ### Added

@@ -2,7 +2,7 @@
 
 A release publishes one version of everything at once:
 
-- three crates on crates.io: `wenmar-vin`, `wenmar-vehicles`, `wenmar-open-turso`;
+- three crates on crates.io: `wenmar-vin`, `wenmar-vehicles`, `wenmar-open-db`;
 - the npm package `wenmar-open`;
 - a GitHub release `v<version>`, with that version's section of the changelog as its notes and the `wenmar-open` command-line tool built for macOS (arm64, x86_64) and Linux (x86_64, arm64).
 
@@ -52,7 +52,7 @@ With neither `--patch` nor `--minor` it decides minor or patch from the changelo
 
 ## Versions
 
-- Everything has the same version. It is written in `Cargo.toml` (under `[workspace.package]`, and in the three lines for `wenmar-vin`, `wenmar-vehicles` and `wenmar-open-turso` under `[workspace.dependencies]`), in `clients/js/package.json` and in `server.json`.
+- Everything has the same version. It is written in `Cargo.toml` (under `[workspace.package]`, and in the three lines for `wenmar-vin`, `wenmar-vehicles` and `wenmar-open-db` under `[workspace.dependencies]`), in `clients/js/package.json` and in `server.json`.
 - Until 1.0: a change an application has to react to is a new minor version (`0.1.3` to `0.2.0`). Anything else is a patch (`0.1.3` to `0.1.4`).
 - The data file has its own version, `YYYY.MM`, or `YYYY.MM.N` for a rebuild. What ties code to data is the data file's schema version. A version of the code reads data files of one schema version; when that changes, it is a new minor version and the changelog says that older data files must be replaced.
 - The npm package `wenmar-open-data` is versioned `<schema>.<YYYYMM>.<rebuild>`: data `2026.09` at schema version 3 is `3.202609.0`. `wenmar-open` names the schema version it reads as an optional peer, `"wenmar-open-data": "^3.0.0"` in `clients/js/package.json`. When the schema version changes, change that range in the same commit; `npm test` in `clients/js` fails until it matches the decoder.
@@ -86,7 +86,7 @@ A crate must exist before it can be given a trusted publisher, so the first vers
    ```bash
    mise run release-check
    cargo login
-   cargo publish --locked -p wenmar-vin -p wenmar-vehicles -p wenmar-open-turso
+   cargo publish --locked -p wenmar-vin -p wenmar-vehicles -p wenmar-open-db
    cargo logout
    ```
 

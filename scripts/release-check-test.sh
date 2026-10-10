@@ -14,6 +14,10 @@
 #   action_at_a_moving_tag        an action in release.yml named by a tag
 #   checkout_keeps_credentials    a checkout without persist-credentials: false
 #   server_json_version_disagrees  server.json still at the previous version
+#   published_names_the_deleted_crate
+#                                 release-check.sh would publish
+#                                 wenmar-open-turso, which the workspace no
+#                                 longer has
 set -euo pipefail
 cd "$(dirname "$0")/.."
 root=$PWD
@@ -124,6 +128,20 @@ refused() {
   fi
 }
 
+published_names_the_deleted_crate() {
+  restore
+  # The check must first be right about what it publishes, or putting the
+  # deleted crate back in proves nothing.
+  grep -Fxq 'PUBLISHED="wenmar-vin wenmar-vehicles wenmar-open-db"' "$clone/scripts/release-check.sh" ||
+    { miss "${FUNCNAME[0]}" "scripts/release-check.sh does not publish wenmar-open-db"; return; }
+  sed -i.bak 's/"wenmar-vin wenmar-vehicles wenmar-open-db"/"wenmar-vin wenmar-vehicles wenmar-open-turso"/' \
+    "$clone/scripts/release-check.sh"
+  rm "$clone/scripts/release-check.sh.bak"
+  grep -Fxq 'PUBLISHED="wenmar-vin wenmar-vehicles wenmar-open-turso"' "$clone/scripts/release-check.sh" ||
+    { miss "${FUNCNAME[0]}" "the case did not change scripts/release-check.sh"; return; }
+  refused "${FUNCNAME[0]}" "does not have wenmar-open-turso at version"
+}
+
 action_at_a_moving_tag() {
   restore
   sed -i.bak -E 's|(uses: rust-lang/crates-io-auth-action)@.*|\1@v1|' "$clone/$workflow"
@@ -160,7 +178,8 @@ server_json_version_disagrees() {
 action_at_a_moving_tag
 checkout_keeps_credentials
 server_json_version_disagrees
+published_names_the_deleted_crate
 version_change_not_committed
 
 [ "$failed" = 0 ] || { echo "release-check-test: failed"; exit 1; }
-echo "release-check-test: 4 passed. Nothing was published, tagged or pushed."
+echo "release-check-test: 5 passed. Nothing was published, tagged or pushed."

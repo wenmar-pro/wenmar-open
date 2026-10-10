@@ -202,11 +202,11 @@ let entry = catalog.selection(&decoded)?;        // the catalog entry the VIN re
 
 These calls block. In an async server, run them on a blocking thread.
 
-**With `turso`**, in an async (tokio) program, use `wenmar-open-turso`. It does the blocking-thread work for you:
+**From async code**, in a tokio program, use `wenmar-open-db`. It does the blocking-thread work for you:
 
 ```rust
 use std::path::Path;
-use wenmar_open_turso::Db;
+use wenmar_open_db::Db;
 use wenmar_vehicles::Scope;
 use wenmar_vin::DecodeOptions;
 

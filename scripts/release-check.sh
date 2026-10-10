@@ -9,16 +9,15 @@
 #   RELEASE_CHECK_UNRELEASED=1  before the changelog is cut: accept a
 #                               non-empty [Unreleased] section instead of a
 #                               section for the version
-#   RELEASE_CHECK_FULL=1        build every packaged crate, including the
-#                               turso adapter (about 2 GB more in target/;
-#                               the release workflow sets it)
+#   RELEASE_CHECK_FULL=1        build every packaged crate, including
+#                               wenmar-open-db (the release workflow sets it)
 #
 # `mise run release-check` runs `mise run check` and `mise run js` first.
 # scripts/release-check-test.sh tests this script; run it after changing it.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-PUBLISHED="wenmar-vin wenmar-vehicles wenmar-open-turso"
+PUBLISHED="wenmar-vin wenmar-vehicles wenmar-open-db"
 export CARGO_INCREMENTAL=0
 scratch=$(mktemp -d)
 trap 'rm -rf "$scratch"' EXIT
@@ -192,14 +191,14 @@ done
 # differs from the last commit. A real `cargo publish` never has the flag.
 step "cargo publish --dry-run"
 if [ "${RELEASE_CHECK_FULL:-0}" = "1" ]; then
-  cargo publish --dry-run --locked --allow-dirty -p wenmar-vin -p wenmar-vehicles -p wenmar-open-turso
+  cargo publish --dry-run --locked --allow-dirty -p wenmar-vin -p wenmar-vehicles -p wenmar-open-db
 else
-  # The two small crates are built from their packages. The turso adapter is
+  # The two small crates are built from their packages. wenmar-open-db is
   # packaged and its dependencies resolved, but it is not built: building it
-  # from its package needs a second copy of turso in target/.
+  # from its package compiles its bundled SQLite a second time.
   cargo publish --dry-run --locked --allow-dirty -p wenmar-vin -p wenmar-vehicles
-  cargo publish --dry-run --locked --allow-dirty --no-verify -p wenmar-vin -p wenmar-vehicles -p wenmar-open-turso
-  echo "wenmar-open-turso was packaged but not built from its package."
+  cargo publish --dry-run --locked --allow-dirty --no-verify -p wenmar-vin -p wenmar-vehicles -p wenmar-open-db
+  echo "wenmar-open-db was packaged but not built from its package."
   echo "RELEASE_CHECK_FULL=1 builds it; the release workflow does."
 fi
 
@@ -244,6 +243,40 @@ for (const needed of [
   }
 }
 process.exit(ok ? 0 : 1);
+EOF
+
+step "The data package"
+# wenmar-open-data is published from clients/data/build, which
+# clients/data/scripts/prepare.mjs writes from a data file: it copies
+# clients/data/package.json and gives the copy a version taken from the
+# file's own meta table through npmVersion (clients/data/lib/version.mjs).
+# The committed manifest's own version is a placeholder that must never
+# reach npm, so without a built data package what can be checked here is
+# that the wiring is in place: the manifest still ships the data file, and
+# prepare.mjs still takes the version from npmVersion and writes it into
+# the manifest it copies.
+node <<'EOF' || fail "the data package is not as a release needs it"
+const fs = require("node:fs");
+const manifest = JSON.parse(fs.readFileSync("clients/data/package.json", "utf8"));
+console.log(`clients/data/package.json ships: ${manifest.files.join(", ")}`);
+if (!manifest.files.includes("wenmar-open.sqlite3")) {
+  console.error("release-check: clients/data/package.json does not ship wenmar-open.sqlite3");
+  process.exit(1);
+}
+const prepare = fs.readFileSync("clients/data/scripts/prepare.mjs", "utf8");
+if (!prepare.includes("const version = npmVersion(meta.schema_version, meta.data_version);")) {
+  console.error(
+    "release-check: clients/data/scripts/prepare.mjs does not take the version from npmVersion(meta.schema_version, meta.data_version)",
+  );
+  process.exit(1);
+}
+if (!prepare.includes("manifest.version = version;")) {
+  console.error(
+    "release-check: clients/data/scripts/prepare.mjs does not write that version into the package.json it publishes",
+  );
+  process.exit(1);
+}
+console.log("clients/data/scripts/prepare.mjs gives the package.json it publishes its version.");
 EOF
 
 printf '\nrelease-check: version %s would release. Nothing was published, tagged or pushed.\n' "$version"

@@ -61,7 +61,7 @@ What to do by hand so that search engines and assistants find a deployed copy: [
 ## Using it from an application
 
 - From JavaScript or TypeScript: the [`wenmar-open`](clients/js/README.md) npm package. The hosted client has no dependencies and runs in Node 20 and later, browsers, Cloudflare Workers, Deno and Bun. Its offline mode needs the data file: from [`wenmar-open-data`](clients/data/README.md) in Node, or imported into Cloudflare D1 for a Worker.
-- From Rust, with no network: `wenmar-vin` and `wenmar-vehicles` read a data file through `rusqlite`, and [`wenmar-open-turso`](crates/wenmar-open-turso/README.md) reads one through `turso` from async code.
+- From Rust, with no network: `wenmar-vin` and `wenmar-vehicles` read a data file through `rusqlite`, and [`wenmar-open-db`](crates/wenmar-open-db/README.md) holds one open, read-only, as a pool for async programs.
 - Replacing calls to NHTSA's hosted API, or a job that copies makes and models: [docs/integrating.md](docs/integrating.md).
 
 Releases are described in [docs/releasing.md](docs/releasing.md).
@@ -98,7 +98,7 @@ Each is a thin wrapper over the matching `mise run` task, and `mise run` remains
 
 ## Repository layout
 
-`crates/wenmar-vin`, `crates/wenmar-vehicles`, `crates/wenmar-open-turso`, `crates/open-data`, `crates/wenmar-open-cli`, `crates/open-mcp`, `crates/open-server`, `crates/wenmar-open-wasm`, `crates/shop-math`, `clients/js` and `clients/data` exist so far. The rest is planned.
+`crates/wenmar-vin`, `crates/wenmar-vehicles`, `crates/wenmar-open-db`, `crates/open-data`, `crates/wenmar-open-cli`, `crates/open-mcp`, `crates/open-server`, `crates/wenmar-open-wasm`, `crates/shop-math`, `clients/js` and `clients/data` exist so far. The rest is planned.
 
 | Path | What it is |
 |---|---|
@@ -108,7 +108,7 @@ Each is a thin wrapper over the matching `mise run` task, and `mise run` remains
 | `crates/wenmar-open-cli` | The `wenmar-open` command-line tool |
 | `crates/open-mcp` | The MCP tool definitions the server and the command-line tool share |
 | `crates/open-server` | The website, the JSON API and the MCP endpoint, served from one read-only data file |
-| `crates/wenmar-open-turso` | The data file read through `turso`: what the server uses, as a library for other async Rust programs |
+| `crates/wenmar-open-db` | The data file read through `rusqlite`, held open read-only as a pool: what the server uses, as a library for other async Rust programs |
 | `crates/wenmar-open-wasm` | The decoder and the catalog behind one JSON call, built as WebAssembly for the npm package's offline mode. Not published as a crate |
 | `crates/shop-math` | The arithmetic of the shop calculators: money, percentages, gross profit targets, the parts matrix, the labor rate, the gross profit check and the taxes and tire fees on a Canadian invoice. Not published as a crate |
 | `clients/js` | The `wenmar-open` npm package: a typed client for the hosted API, and `wenmar-open/offline` |
