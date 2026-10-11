@@ -8,7 +8,7 @@ members = ["crates/wenmar-vin", "crates/wenmar-vehicles", "crates/open-data", "c
 # Change it here, in the three lines for this workspace's own libraries
 # below, and in clients/js/package.json. `mise run release-check` fails if
 # they disagree. See docs/releasing.md.
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.92"
 license = "MIT"
@@ -21,9 +21,9 @@ serde_json = "1"
 thiserror = "2"
 # This workspace's own libraries. A published crate carries this version as
 # its requirement on the others, so it is always the version above.
-wenmar-vin = { version = "0.1.0", path = "crates/wenmar-vin" }
-wenmar-vehicles = { version = "0.1.0", path = "crates/wenmar-vehicles" }
-wenmar-open-db = { version = "0.1.0", path = "crates/wenmar-open-db" }
+wenmar-vin = { version = "0.2.0", path = "crates/wenmar-vin" }
+wenmar-vehicles = { version = "0.2.0", path = "crates/wenmar-vehicles" }
+wenmar-open-db = { version = "0.2.0", path = "crates/wenmar-open-db" }
 
 # Dependencies carry no debug information: it is most of the size of
 # `target/`, and backtraces keep file and line for this workspace's own code.

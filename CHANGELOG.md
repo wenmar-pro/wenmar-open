@@ -4,6 +4,8 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-10
+
 ### Added
 
 - `wenmar-open` npm package: the offline mode, `wenmar-open/offline`, which decodes a VIN in the consumer's own process with no network. The decoder is the same Rust code as the crates, compiled to WebAssembly; the data is read through Node's own SQLite, a Cloudflare D1 store, or any SQLite store the caller supplies.
