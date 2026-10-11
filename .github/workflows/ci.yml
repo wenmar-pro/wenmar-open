@@ -33,6 +33,10 @@ jobs:
       # test above: this one makes a real release in its clone, so its target/
       # holds a bumped version too.
       - run: scripts/release-test.sh
+      # This one builds and installs an npm package in its clone. It compiles
+      # no Rust, so it is independent of the two above, but it still needs Node
+      # and the data-file tables from the workspace.
+      - run: scripts/release-data-test.sh
 
   msrv:
     runs-on: ubuntu-24.04

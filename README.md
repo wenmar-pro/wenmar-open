@@ -92,6 +92,7 @@ Without mise: `OPEN_DATA=data/build/wenmar-open-2026.09.sqlite3 cargo run -p ope
 | `bin/parity`, `bin/catalog-parity` | Compare the data and the catalog with NHTSA's answers |
 | `bin/js` | Build and test the npm client |
 | `bin/release-check` | Check that a release would work |
+| `bin/release-data` | Build and verify the `wenmar-open-data` npm package. Publishes nothing |
 | `bin/doctor` | Check whether the data file and the API answer |
 
 Each is a thin wrapper over the matching `mise run` task, and `mise run` remains the way to pass a task options.

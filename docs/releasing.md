@@ -12,6 +12,51 @@ The data file is released separately, every month, by `.github/workflows/data-re
 
 ## The monthly release
 
+There are two packages to publish and the order matters: `wenmar-open-data` has to be on npm before
+`wenmar-open`, because the client names it as an optional peer of a schema version and anything older
+does not satisfy that range. Two commands, each refusing on its own conditions:
+
+```bash
+bin/release-data   # the data package
+bin/release        # the crates, the client and the archives
+```
+
+On the 10th of each month `data-release.yml` does the first of these unattended at 06:00, so usually
+`bin/release-data` is only needed the first time, or when you want to see the package before it goes
+out.
+
+### The data package
+
+```bash
+bin/release-data
+```
+
+It finds the newest `data-YYYY.MM` release, downloads its file, checks it against the SHA256 the
+release published, assembles `wenmar-open-data` with `clients/data/scripts/prepare.mjs` into
+`clients/data/build`, and then **verifies the package**: it packs it, installs the tarball into a
+scratch directory, and reads the data file's own meta table back out. A package carrying no data file
+— which is what `0.0.1` on npm is — is refused there rather than after it is published.
+
+It then stops and prints the `npm publish` to run. **Nothing is published for you**: an npm version
+cannot be reused, so that command is yours to read first.
+
+```bash
+npm publish --provenance --access public clients/data/build
+```
+
+It refuses rather than half-doing anything when the tree is not a clean `main` (the package embeds
+this checkout's README, licence and notices), when there is no data release to name, when the
+checksum does not match, when the file is not a Wenmar Open data file, when the packed package does
+not hold the data that was asked for, or when that version is already on npm.
+
+Pass `--data-version YYYY.MM` to build a specific month. Pass `--data-file PATH` to build from a file
+you already have — one you built with `mise run data`, say — which skips the download.
+
+It needs no stored credential: the release is public. `scripts/release-data.sh` holds the logic and
+`scripts/release-data-test.sh` tests it; `bin/release-data` is the wrapper.
+
+### The code release
+
 On the 10th of each month, after the data release at 06:00, run this from a clean checkout of `main`:
 
 ```bash
@@ -106,7 +151,6 @@ A crate must exist before it can be given a trusted publisher, so the first vers
 ### npm
 
 The package `wenmar-open` already exists: version `0.1.0` is published, and it holds the hosted client only. So no publish by hand is needed.
-
 1. Sign in to npmjs.com as the package's owner. Open the package `wenmar-open`, then **Settings**, then **Trusted Publisher**, and choose **GitHub Actions**:
 
    | Field | Value |
@@ -141,7 +185,15 @@ To approve each npm release by hand instead: leave `npm publish` unticked, chang
 
 3. On the same page, under **Publishing access**, choose **Require two-factor authentication and disallow tokens**.
 
-The first time, publish the data that is already released: run "Data release" from `main` with "Run workflow". The `release` job finds `data-2026.09` (or the current one) already released and does nothing; the `npm` job downloads that release's file and publishes it.
+The first time, publish the data that is already released. Either run "Data release" from `main` with "Run workflow": the `release` job finds `data-2026.09` (or the current one) already released and does nothing, and the `npm` job downloads that release's file and publishes it. Or do it from a checkout, which also shows you the package first:
+
+```bash
+bin/release-data
+npm publish --provenance --access public clients/data/build
+```
+
+The second needs you to be signed in to npm as the package's owner; the first does not, because the
+workflow is the trusted publisher.
 
 The package is about 49 MB to upload and 167 MB unpacked. npm documents no size limit; the reports of refused packages begin at about 230 MB packed.
 
