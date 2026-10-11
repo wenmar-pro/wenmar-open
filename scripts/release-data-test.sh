@@ -346,6 +346,23 @@ builds_and_verifies_the_package() {
     miss builds_and_verifies_the_package "it did not print the publish command"
     problems=1
   }
+  # The command has to be one that can be run. This script runs from a
+  # checkout, and npm can only make a provenance statement when the publish
+  # comes from GitHub Actions or GitLab CI: anywhere else it refuses with
+  # "Automatic provenance generation not supported for provider: null" and
+  # publishes nothing. The workflow path is where provenance comes from.
+  # Match the command itself, not the prose: the words appear in why there is
+  # no such flag.
+  if grep -E '^[[:space:]]*npm publish' "$scratch/seen" | grep -q -- '--provenance'; then
+    miss builds_and_verifies_the_package \
+      "it printed a --provenance command, which npm refuses outside a supported CI provider"
+    problems=1
+  fi
+  grep -qi "workflow" "$scratch/seen" || {
+    miss builds_and_verifies_the_package \
+      "it did not say where provenance does come from"
+    problems=1
+  }
   # And it must not have published anything.
   grep -qi "^+ wenmar-open-data" "$scratch/seen" && {
     miss builds_and_verifies_the_package "it published"

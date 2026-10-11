@@ -159,6 +159,10 @@ body=$'\n### Fixed\n\n- a thing\n'
 # because an assignment in front of a function call outlives it in bash.
 ci_conclusion='"success"'
 ci_status=completed
+# How often the script re-reads CI, and how long it keeps asking. A case that
+# wants a wait sets these; 0 means the case does not care.
+ci_poll=0
+ci_timeout=0
 data_tags="data-2026.10"
 changelog_body="$body"
 
@@ -192,7 +196,9 @@ prepare() {
 # The script under test, in the clone, with the API answered from files.
 attempt() {
   last_status=0
-  (cd "$clone" && env RELEASE_API_DIR="$api" scripts/release.sh "$@") \
+  (cd "$clone" && env RELEASE_API_DIR="$api" \
+    RELEASE_CI_POLL_SECONDS="$ci_poll" RELEASE_CI_TIMEOUT_SECONDS="$ci_timeout" \
+    scripts/release.sh "$@") \
     > "$scratch/output" 2>&1 || last_status=$?
 }
 
@@ -240,9 +246,38 @@ refuses_when_ci_is_red() {
 refuses_when_ci_has_not_finished() {
   ci_status=in_progress
   ci_conclusion=null
+  # A run still going is waited on, so this case has to say how long it is
+  # prepared to wait before the run counts as never finishing.
+  ci_poll=1
+  ci_timeout=2
   prepare
   attempt
   refused "${FUNCNAME[0]}" "CI has passed"
+}
+
+# The ordinary case: the release is started while CI is still running, and CI
+# goes green while the script is waiting. Redrawing the run from another
+# process is the only way a file-based API can show a run that changes, and it
+# is what makes this a test of waiting rather than of reading.
+waits_for_ci_to_finish() {
+  ci_status=in_progress
+  ci_conclusion=null
+  ci_poll=1
+  ci_timeout=60
+  prepare
+  ( sleep 2; ci_runs "$(git -C "$clone" rev-parse HEAD)" '"success"' completed ) &
+  local flipper=$!
+  attempt
+  wait "$flipper" 2>/dev/null || true
+  if [ "$last_status" -ne 0 ]; then
+    miss "${FUNCNAME[0]}" "it failed instead of waiting: $(grep -F 'release: ' "$scratch/output" | tail -n 1)"
+    return
+  fi
+  if grep -Fq "in_progress" "$scratch/output" && grep -Fq "CI run 1 passed" "$scratch/output"; then
+    pass "${FUNCNAME[0]}"
+  else
+    miss "${FUNCNAME[0]}" "it released without ever waiting: $(tail -n 3 "$scratch/output" | tr '\n' ' ')"
+  fi
 }
 
 refuses_when_ci_is_missing() {
@@ -343,7 +378,8 @@ makes_the_commit_and_the_tag() {
 }
 
 for case in refuses_off_main refuses_a_dirty_tree refuses_when_main_is_unpushed \
-  refuses_when_ci_is_red refuses_when_ci_has_not_finished refuses_when_ci_is_missing \
+  refuses_when_ci_is_red refuses_when_ci_has_not_finished waits_for_ci_to_finish \
+  refuses_when_ci_is_missing \
   refuses_when_ci_is_for_another_commit refuses_when_no_data_release \
   refuses_a_bad_data_version refuses_a_malformed_data_version \
   refuses_an_already_published_tag picks_the_newest_plain_data_release \
@@ -353,10 +389,12 @@ for case in refuses_off_main refuses_a_dirty_tree refuses_when_main_is_unpushed 
   # changed for the next.
   ci_conclusion='"success"'
   ci_status=completed
+  ci_poll=0
+  ci_timeout=0
   data_tags="data-2026.10"
   changelog_body="$body"
   "$case"
 done
 
 [ "$failed" = 0 ] || { echo "release-test: failed"; exit 1; }
-echo "release-test: 14 passed. Nothing was pushed, tagged or published."
+echo "release-test: 15 passed. Nothing was pushed, tagged or published."

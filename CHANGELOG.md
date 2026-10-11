@@ -16,6 +16,9 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ### Internal
 
+- `bin/release-data`: the `wenmar-open-data` npm package, made from a checkout instead of through the Actions interface. It finds the newest `data-YYYY.MM` release, checks the file against the SHA256 that release published, assembles the package with `clients/data/scripts/prepare.mjs`, and then verifies it: it packs the package, installs the tarball into a scratch directory and reads the data file's own meta table back out. A package carrying no data file — which is what `0.0.1` on npm is — is refused there rather than after it is published. It publishes nothing and pushes nothing: it prints the `npm publish` to run. `scripts/release-data-test.sh` tests it, and CI runs it.
+- `bin/release` waited for nothing. It read CI once and refused while a run was still going, so a release started just after a push always failed and had to be started again. It now polls every 30 seconds for up to 30 minutes, printing the run's URL while it waits. A red run, or one still going after 30 minutes, refuses exactly as before.
+- The `npm publish` that `bin/release-data` prints no longer carries `--provenance`. npm only makes a provenance statement for a publish coming from GitHub Actions or GitLab CI, and refuses anywhere else with `Automatic provenance generation not supported for provider: null` before publishing a byte. The workflow path — the `npm` job of `data-release.yml` — still does, and is the way to publish with provenance.
 - `release-check`: the crate it would publish is `wenmar-open-db`, and it checks that the `wenmar-open-data` manifest still ships the data file and that `scripts/prepare.mjs` still gives the published manifest its version from the data file's own meta table, so a placeholder version cannot reach npm unnoticed.
 
 ## [0.2.0] - 2026-10-09

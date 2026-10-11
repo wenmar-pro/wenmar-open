@@ -16,7 +16,8 @@
 #
 # In order, refusing rather than half-doing anything:
 #   1. on main, working tree clean, main matching origin/main
-#   2. CI finished successfully for this commit on main
+#   2. CI finished successfully for this commit on main, waiting out a run
+#      that is still going
 #   3. a data version, from the newest plain data-YYYY.MM release, or
 #      --data-version
 #   4. scripts/release-bump.sh, which decides the version from the changelog
@@ -88,22 +89,55 @@ git fetch --quiet origin main
 [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] ||
   fail "main is not what origin/main has. Push or pull, then run this again."
 
-# 2. CI for this commit, on main. A run still going is not finished, and a red
+# 2. CI for this commit, on main. A run still going is waited for, and a red
 # one releases nothing.
 sha=$(git rev-parse HEAD)
-runs=$(get "actions/runs?head_sha=$sha&per_page=20")
-# The query already asks for this commit; the filter is repeated here so the
-# check is this script's own and does not rest on the query being honoured.
-ci_id=$(printf '%s' "$runs" |
-  jq -r --arg sha "$sha" \
-    '[.workflow_runs[] | select(.name == "CI" and .head_branch == "main" and .head_sha == $sha)] |
-     sort_by(.created_at) | last | .id // empty')
-[ -n "$ci_id" ] ||
-  fail "no CI run for $(git rev-parse --short "$sha") on main. Push, wait for it, then run this again."
-conclusion=$(printf '%s' "$runs" | jq -r --argjson id "$ci_id" '
-  [.workflow_runs[] | select(.id == $id)] | .[0].conclusion // "not finished"')
-ci_url=$(printf '%s' "$runs" | jq -r --argjson id "$ci_id" '
-  [.workflow_runs[] | select(.id == $id)] | .[0].html_url // ""')
+# How long to keep asking, and how often. A CI run here builds the workspace,
+# runs the npm packages and makes two throwaway clones, so it runs for tens of
+# minutes: asking once and giving up would mean every release had to be
+# started twice. Polling is coarse on purpose — GitHub's anonymous API allows
+# 60 requests an hour and this reads one per poll — so set GH_TOKEN when
+# waiting out a long run. RELEASE_CI_POLL_SECONDS and
+# RELEASE_CI_TIMEOUT_SECONDS exist for scripts/release-test.sh, which cannot
+# wait out a real one.
+poll="${RELEASE_CI_POLL_SECONDS:-30}"
+waited="${RELEASE_CI_TIMEOUT_SECONDS:-1800}"
+deadline=$(( $(date +%s) + waited ))
+said_waiting=0
+
+while :; do
+  runs=$(get "actions/runs?head_sha=$sha&per_page=20")
+  # The query already asks for this commit; the filter is repeated here so the
+  # check is this script's own and does not rest on the query being honoured.
+  ci_id=$(printf '%s' "$runs" |
+    jq -r --arg sha "$sha" \
+      '[.workflow_runs[] | select(.name == "CI" and .head_branch == "main" and .head_sha == $sha)] |
+       sort_by(.created_at) | last | .id // empty')
+  [ -n "$ci_id" ] ||
+    fail "no CI run for $(git rev-parse --short "$sha") on main. Push, wait for it, then run this again."
+  # One read of the run: the status says whether to keep waiting, and only a
+  # finished run has a conclusion worth judging.
+  ci_run=$(printf '%s' "$runs" | jq -c --argjson id "$ci_id" '
+    [.workflow_runs[] | select(.id == $id)] | .[0] // {}')
+  ci_status=$(printf '%s' "$ci_run" | jq -r '.status // "unknown"')
+  ci_url=$(printf '%s' "$ci_run" | jq -r '.html_url // ""')
+  if [ "$ci_status" = "completed" ]; then
+    break
+  fi
+  if [ "$(date +%s)" -ge "$deadline" ]; then
+    echo "CI run $ci_id is still $ci_status after ${waited}s." >&2
+    [ -n "$ci_url" ] && echo "$ci_url" >&2
+    fail "nothing is tagged until CI has passed on this commit."
+  fi
+  if [ "$said_waiting" -eq 0 ]; then
+    echo "CI run $ci_id is $ci_status. Waiting for it, up to ${waited}s."
+    [ -n "$ci_url" ] && echo "$ci_url"
+    said_waiting=1
+  fi
+  sleep "$poll"
+done
+
+conclusion=$(printf '%s' "$ci_run" | jq -r '.conclusion // "no conclusion"')
 if [ "$conclusion" != "success" ]; then
   echo "CI run $ci_id is $conclusion." >&2
   [ -n "$ci_url" ] && echo "$ci_url" >&2

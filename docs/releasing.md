@@ -41,8 +41,14 @@ It then stops and prints the `npm publish` to run. **Nothing is published for yo
 cannot be reused, so that command is yours to read first.
 
 ```bash
-npm publish --provenance --access public clients/data/build
+npm publish --access public clients/data/build
 ```
+
+No `--provenance`, and there cannot be one: npm only makes a provenance statement for a publish coming
+from GitHub Actions or GitLab CI, and refuses anywhere else with `Automatic provenance generation not
+supported for provider: null` before publishing anything. A package published from your machine
+carries no provenance statement. If you want one, use the workflow path — the `npm` job of
+`data-release.yml`, which is a trusted publisher and needs no npm login.
 
 It refuses rather than half-doing anything when the tree is not a clean `main` (the package embeds
 this checkout's README, licence and notices), when there is no data release to name, when the
@@ -64,6 +70,13 @@ bin/release
 ```
 
 It is steps 1, 2 and 5 of "Making a release", in one command and with nothing to remember. It refuses rather than half-releasing when the tree is not `main`, when it is dirty, when `main` is not what `origin/main` has, when CI is not green for that commit, when there is no data release to name, or when the version is already tagged. An empty `[Unreleased]` is not a refusal: it stops successfully and says there is nothing to say, because a month with nothing to say is not a release.
+
+**A CI run that is still going is waited for, not refused.** CI here builds the workspace, runs the npm
+packages and makes two throwaway clones, so it runs for tens of minutes; it used to read CI once and
+give up, which meant every release had to be started twice. It now polls every 30 seconds for up to 30
+minutes and prints the run's URL while it waits. Set `GH_TOKEN` to raise GitHub's rate limit, or
+`RELEASE_CI_POLL_SECONDS` and `RELEASE_CI_TIMEOUT_SECONDS` to change the waiting. A run that goes red,
+or one still going after 30 minutes, refuses exactly as before.
 
 It then leaves one commit and one tag in your checkout and prints the two pushes to run. **Nothing is pushed for you.** Read the diff, then:
 
@@ -189,11 +202,12 @@ The first time, publish the data that is already released. Either run "Data rele
 
 ```bash
 bin/release-data
-npm publish --provenance --access public clients/data/build
+npm publish --access public clients/data/build
 ```
 
-The second needs you to be signed in to npm as the package's owner; the first does not, because the
-workflow is the trusted publisher.
+The second needs you to be signed in to npm as the package's owner, and publishes without a
+provenance statement, because npm will not make one outside a supported CI provider; the first does
+not need a login at all, because the workflow is the trusted publisher, and does carry provenance.
 
 The package is about 49 MB to upload and 167 MB unpacked. npm documents no size limit; the reports of refused packages begin at about 230 MB packed.
 

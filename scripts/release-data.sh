@@ -215,10 +215,18 @@ tarball after installing it. Nothing has been published.
 
 To publish it, and then the code release that depends on it:
 
-  npm publish --provenance --access public "$package_dir"
+  npm publish --access public "$package_dir"
   bin/release
 
 The data package has to be on npm first: wenmar-open names it as an optional
 peer of a schema version, and the 0.0.1 placeholder on npm does not satisfy
 that range.
+
+There is no --provenance on that command, and there cannot be: npm only makes
+a provenance statement for a publish coming from GitHub Actions or GitLab CI,
+and refuses anywhere else with "Automatic provenance generation not supported
+for provider: null" before publishing a byte. A package published from here
+carries no provenance statement. If you want one, publish through the
+"npm" job of .github/workflows/data-release.yml instead, which is a trusted
+publisher and needs no npm login.
 EOF
