@@ -3,7 +3,7 @@
   "name": "com.wenmarpro/wenmar-open",
   "title": "Wenmar Open",
   "description": "Free VIN decoder and vehicle catalog from NHTSA vPIC data. Read-only, no key.",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "websiteUrl": "https://open.wenmarpro.com",
   "remotes": [
     {

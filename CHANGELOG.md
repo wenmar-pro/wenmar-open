@@ -4,6 +4,13 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Added
+
+- `wenmar-open` npm package: the offline mode, `wenmar-open/offline`, which decodes a VIN in the consumer's own process with no network. The decoder is the same Rust code as the crates, compiled to WebAssembly; the data is read through Node's own SQLite, a Cloudflare D1 store, or any SQLite store the caller supplies.
+- `wenmar-open-data` npm package: the data file as an npm package, so the offline mode has something to read. Its version is its schema version, the year and month of the data, and a rebuild number, so `^3.202609.0` takes every later month and never a file this decoder cannot read.
+- `bin/release`: the monthly release, run by hand on the 10th. It refuses unless `main` is clean, pushed and green in CI; bumps every version, cuts the changelog and records the data version in `config/deploy.yml` through `scripts/release-bump.sh`; then runs `scripts/release-check.sh`, commits and tags, and prints the two pushes to run. It pushes nothing itself and stores no secret. `scripts/release-test.sh` and `scripts/release-bump-test.sh` test it, and CI runs both.
+- `.github/workflows/monthly-release.yml` does the same thing unattended on the same schedule. It is written and checked but not switched on; see "The monthly release" in `docs/releasing.md`.
+
 ### Changed
 
 - `open-server` reads the data file through `rusqlite`, and its free-text search index is built over SQLite's FTS5 instead of turso.
@@ -14,22 +21,6 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 - The `turso` dependency, and with it the tantivy tree it carried: about 2 GB of build output and 2,114 lines of `Cargo.lock`. The bundled SQLite that `rusqlite` compiles has FTS5 and honours SQLite's file locks.
 
-### Internal
-
-- `bin/release-data`: the `wenmar-open-data` npm package, made from a checkout instead of through the Actions interface. It finds the newest `data-YYYY.MM` release, checks the file against the SHA256 that release published, assembles the package with `clients/data/scripts/prepare.mjs`, and then verifies it: it packs the package, installs the tarball into a scratch directory and reads the data file's own meta table back out. A package carrying no data file — which is what `0.0.1` on npm is — is refused there rather than after it is published. It publishes nothing and pushes nothing: it prints the `npm publish` to run. `scripts/release-data-test.sh` tests it, and CI runs it.
-- `bin/release` waited for nothing. It read CI once and refused while a run was still going, so a release started just after a push always failed and had to be started again. It now polls every 30 seconds for up to 30 minutes, printing the run's URL while it waits. A red run, or one still going after 30 minutes, refuses exactly as before.
-- The `npm publish` that `bin/release-data` prints no longer carries `--provenance`. npm only makes a provenance statement for a publish coming from GitHub Actions or GitLab CI, and refuses anywhere else with `Automatic provenance generation not supported for provider: null` before publishing a byte. The workflow path — the `npm` job of `data-release.yml` — still does, and is the way to publish with provenance.
-- `release-check`: the crate it would publish is `wenmar-open-db`, and it checks that the `wenmar-open-data` manifest still ships the data file and that `scripts/prepare.mjs` still gives the published manifest its version from the data file's own meta table, so a placeholder version cannot reach npm unnoticed.
-
-## [0.2.0] - 2026-10-09
-
-### Added
-
-- `wenmar-open` npm package: the offline mode, `wenmar-open/offline`, which decodes a VIN in the consumer's own process with no network. The decoder is the same Rust code as the crates, compiled to WebAssembly; the data is read through Node's own SQLite, a Cloudflare D1 store, or any SQLite store the caller supplies.
-- `wenmar-open-data` npm package: the data file as an npm package, so the offline mode has something to read. Its version is its schema version, the year and month of the data, and a rebuild number, so `^3.202609.0` takes every later month and never a file this decoder cannot read.
-- `bin/release`: the monthly release, run by hand on the 10th. It refuses unless `main` is clean, pushed and green in CI; bumps every version, cuts the changelog and records the data version in `config/deploy.yml` through `scripts/release-bump.sh`; then runs `scripts/release-check.sh`, commits and tags, and prints the two pushes to run. It pushes nothing itself and stores no secret. `scripts/release-test.sh` and `scripts/release-bump-test.sh` test it, and CI runs both.
-- `.github/workflows/monthly-release.yml` does the same thing unattended on the same schedule. It is written and checked but not switched on; see "The monthly release" in `docs/releasing.md`.
-
 ### Fixed
 
 - `open-server`: the MCP endpoint also answers at the site's own address and at `/mcp/`. Claude's custom connector dialog was given `https://open.wenmarpro.com`, got `405` for its first message, took that for a sign-in prompt and failed to register with a sign-in service that does not exist.
@@ -38,6 +29,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 - Tests that decode a VIN from a clean install of the *packed* npm tarballs, so a release that left the offline mode out of its tarball fails before it is published rather than after. This is what 0.1.0 did: its tarball carried the hosted client only.
 - `release-check`: `server.json` is checked against the version like every other file that records it. It is asserted against the build by a test but was in neither the runbook nor the check, so it went stale without complaint.
+- `release-check`: the crate it would publish is `wenmar-open-db`, and it checks that the `wenmar-open-data` manifest still ships the data file and that `scripts/prepare.mjs` still gives the published manifest its version from the data file's own meta table, so a placeholder version cannot reach npm unnoticed.
+- `bin/release-data`: the `wenmar-open-data` npm package, made from a checkout instead of through the Actions interface. It finds the newest `data-YYYY.MM` release, checks the file against the SHA256 that release published, assembles the package with `clients/data/scripts/prepare.mjs`, and then verifies it: it packs the package, installs the tarball into a scratch directory and reads the data file's own meta table back out. A package carrying no data file — which is what `0.0.1` on npm is — is refused there rather than after it is published. It publishes nothing and pushes nothing: it prints the `npm publish` to run. `scripts/release-data-test.sh` tests it, and CI runs it.
+- `bin/release` waited for nothing. It read CI once and refused while a run was still going, so a release started just after a push always failed and had to be started again. It now polls every 30 seconds for up to 30 minutes, printing the run's URL while it waits. A red run, or one still going after 30 minutes, refuses exactly as before.
+- The `npm publish` that `bin/release-data` prints no longer carries `--provenance`. npm only makes a provenance statement for a publish coming from GitHub Actions or GitLab CI, and refuses anywhere else with `Automatic provenance generation not supported for provider: null` before publishing a byte. The workflow path — the `npm` job of `data-release.yml` — still does, and is the way to publish with provenance.
 
 ## [0.1.0] - 2026-10-01
 
