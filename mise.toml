@@ -35,6 +35,14 @@ run = "scripts/release-check.sh"
 description = "Bump every version, cut the changelog and record the data version. Commits nothing"
 run = ["scripts/release-bump.sh"]
 
+[tasks.release-data]
+description = "Build and verify the wenmar-open-data npm package from a data release. Publishes nothing"
+run = ["scripts/release-data.sh"]
+
+[tasks.release-data-test]
+description = "Test scripts/release-data.sh against the states it must refuse, and the package it must build"
+run = ["scripts/release-data-test.sh"]
+
 [tasks.release]
 description = "Make the monthly release by hand: check, bump, cut the changelog, commit and tag. Pushes nothing"
 run = ["scripts/release.sh"]
