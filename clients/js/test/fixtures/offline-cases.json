@@ -861,7 +861,7 @@
         "ok": {
           "built_at": "2026-10-01 04:25:57",
           "data_version": "2026.09",
-          "server_version": "0.2.0",
+          "server_version": "0.1.0",
           "vpic_release": "vPICList_lite_2026_09"
         }
       },

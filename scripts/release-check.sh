@@ -54,6 +54,16 @@ const found = {
   "clients/js/package-lock.json, its root package": lock.packages[""].version,
   "crates/open-server/openapi.json, info.version": read("crates/open-server/openapi.json").info.version,
   "server.json, its version": read("server.json").version,
+  // The npm fixtures record the version too, and not in a place anyone reads by
+  // eye: offline-cases.json carries the server_version the decoder answers
+  // with, taken from CARGO_PKG_VERSION when the crate is compiled. Distinct
+  // values join into one string, so cases that disagree fail the comparison
+  // rather than quietly agreeing on the first.
+  "clients/js/test/fixtures/offline-cases.json, its server_version": [
+    ...new Set(read("clients/js/test/fixtures/offline-cases.json").cases
+      .map((c) => c.answer && c.answer.ok && c.answer.ok.server_version)
+      .filter(Boolean)),
+  ].join(", "),
 };
 let ok = true;
 for (const [where, has] of Object.entries(found)) {

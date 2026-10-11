@@ -11,6 +11,11 @@
 //! when the crate is compiled, and a version change alone does not make cargo
 //! rebuild it. Without the touch this test passes while writing the old
 //! version back into the fixture.
+//!
+//! `scripts/release-bump.sh` does both of these during a release, and
+//! `scripts/release-check.sh` fails a release whose fixture still carries the
+//! old version, so a release cannot leave this stale. A version change made by
+//! hand still needs the touch above.
 
 mod common;
 

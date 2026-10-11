@@ -128,6 +128,16 @@ changed+=(Cargo.lock)
 UPDATE_OPENAPI=1 cargo test --quiet -p open-server --test it openapi
 changed+=(crates/open-server/openapi.json)
 
+# The npm fixtures record the version as well. offline-cases.json answers with
+# server_version, which is CARGO_PKG_VERSION baked in when the crate is
+# compiled, and a version change alone does not make cargo rebuild it — so the
+# source is touched first, or this writes the old version back and the fixture
+# test passes on a stale file. The fixture test builds its own in-memory
+# database, so it needs no data file.
+touch crates/wenmar-open-wasm/src/engine.rs
+UPDATE_FIXTURES=1 cargo test --quiet -p wenmar-open-wasm --test fixture
+changed+=(clients/js/test/fixtures/offline-cases.json clients/js/test/fixtures/offline.sql)
+
 # server.json: the MCP registry file. release-check.sh reads its version and
 # the server's own tests assert it against CARGO_PKG_VERSION, so a miss here
 # fails the release rather than shipping.

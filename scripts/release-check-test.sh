@@ -14,6 +14,7 @@
 #   action_at_a_moving_tag        an action in release.yml named by a tag
 #   checkout_keeps_credentials    a checkout without persist-credentials: false
 #   server_json_version_disagrees  server.json still at the previous version
+#   fixture_version_disagrees      the npm fixtures still at the previous version
 #   published_names_the_deleted_crate
 #                                 release-check.sh would publish
 #                                 wenmar-open-turso, which the workspace no
@@ -99,6 +100,20 @@ version_change_not_committed() {
       server.version = version;
       fs.writeFileSync(file, JSON.stringify(server, null, 2) + "\n");
     ' server.json "$new"
+    # The npm fixtures carry the version too. Rewritten rather than rebuilt:
+    # this harness is about the check, and compiling the wasm crate here would
+    # cost more than the check it feeds.
+    node -e '
+      const fs = require("node:fs");
+      const [file, version] = process.argv.slice(1);
+      const fixture = JSON.parse(fs.readFileSync(file, "utf8"));
+      for (const c of fixture.cases) {
+        if (c.answer && c.answer.ok && "server_version" in c.answer.ok) {
+          c.answer.ok.server_version = version;
+        }
+      }
+      fs.writeFileSync(file, JSON.stringify(fixture, null, 2) + "\n");
+    ' clients/js/test/fixtures/offline-cases.json "$new"
     # Step 2.
     awk -v section="## [$new] - $(date +%Y-%m-%d)" '
       /^## \[Unreleased\]/ { print; print ""; print section; next }
@@ -175,11 +190,29 @@ server_json_version_disagrees() {
   refused "${FUNCNAME[0]}" "server.json, its version has $new"
 }
 
+# The npm fixtures record the version as well, and nothing reads it by eye. A
+# version change without regenerating them is what turns a release commit red
+# in CI rather than at the check, which is one commit too late.
+fixture_version_disagrees() {
+  restore
+  local old new
+  old=$(sed -n 's/.*"server_version": "\(.*\)".*/\1/p' \
+    "$clone/clients/js/test/fixtures/offline-cases.json" | head -n 1)
+  new=$(echo "$old" | awk -F. '{ print $1 "." $2 + 1 ".0" }')
+  sed -i.bak "s/\"server_version\": \"$old\"/\"server_version\": \"$new\"/g" \
+    "$clone/clients/js/test/fixtures/offline-cases.json"
+  rm "$clone/clients/js/test/fixtures/offline-cases.json.bak"
+  grep -Fq "\"server_version\": \"$new\"" "$clone/clients/js/test/fixtures/offline-cases.json" ||
+    { miss "${FUNCNAME[0]}" "the case did not change the fixture"; return; }
+  refused "${FUNCNAME[0]}" "server_version has $new"
+}
+
 action_at_a_moving_tag
 checkout_keeps_credentials
 server_json_version_disagrees
+fixture_version_disagrees
 published_names_the_deleted_crate
 version_change_not_committed
 
 [ "$failed" = 0 ] || { echo "release-check-test: failed"; exit 1; }
-echo "release-check-test: 5 passed. Nothing was published, tagged or pushed."
+echo "release-check-test: 6 passed. Nothing was published, tagged or pushed."
