@@ -42,6 +42,7 @@
 # scripts/release-data-test.sh tests this script; run it after changing it.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+root=$PWD
 
 api="https://api.github.com/repos/wenmar-pro/wenmar-open"
 api_dir="${RELEASE_API_DIR:-}"
@@ -149,16 +150,19 @@ fi
 
 # 4. The package. prepare.mjs reads the schema and the month out of the file's
 # own meta table and names the package from them, so the version is never
-# written by hand anywhere in this script.
-node clients/data/scripts/prepare.mjs "$data_file" "$scratch/package"
-version=$(node -p "require('$scratch/package/package.json').version")
+# written by hand anywhere in this script. It lands in clients/data/build, which
+# is gitignored and is where the data release workflow assembles it too, so the
+# directory you publish from survives this script.
+package_dir="$root/clients/data/build"
+node clients/data/scripts/prepare.mjs "$data_file" "$package_dir"
+version=$(node -p "require('$package_dir/package.json').version")
 echo "Package wenmar-open-data@$version."
 
 # 5. The proof. 0.0.1 was a placeholder whose tarball held a README and
 # nothing else, so the check is on what the packed tarball actually carries:
 # installed into a scratch directory and asked for its meta table. A package
 # without the data file in it fails here rather than after it is published.
-tarball=$(cd "$scratch/package" && npm pack --silent --pack-destination "$scratch")
+tarball=$(cd "$package_dir" && npm pack --silent --pack-destination "$scratch")
 tarball="$scratch/$(basename "$tarball")"
 scratch_home="$scratch/home"
 mkdir -p "$scratch_home"
@@ -204,20 +208,17 @@ published=$(npm view "wenmar-open-data@$version" version 2>/dev/null) || publish
 # 7. Stop. Everything above is reversible; npm publish is not.
 cat <<EOF
 
-wenmar-open-data@$version is built, verified and unpacked in $scratch/package.
+wenmar-open-data@$version is built, verified and unpacked in $package_dir.
 
 It holds a real data file of $data_version, read back out of the packed
 tarball after installing it. Nothing has been published.
 
 To publish it, and then the code release that depends on it:
 
-  npm publish --provenance --access public "$scratch/package"
+  npm publish --provenance --access public "$package_dir"
   bin/release
 
 The data package has to be on npm first: wenmar-open names it as an optional
 peer of a schema version, and the 0.0.1 placeholder on npm does not satisfy
 that range.
-
-The scratch directory is removed when this exits. To keep it, copy it out
-first.
 EOF
