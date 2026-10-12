@@ -7,6 +7,7 @@
 
 pub mod answer;
 pub mod bulletins;
+pub mod complaints;
 pub mod dataset;
 pub mod error;
 pub mod fuel;
