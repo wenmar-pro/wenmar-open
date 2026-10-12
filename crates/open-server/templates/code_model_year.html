@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<h1><span class="mono">{{ code }}</span> on the {{ name }}</h1>
+<p>{{ note }}</p>
+{% if let Some(found) = description -%}
+<h2>{{ found.title }}</h2>
+<p>{{ found.meaning }}</p>
+<h3>Common causes</h3>
+<ul>
+{% for cause in found.common_causes -%}
+<li>{{ cause }}</li>
+{% endfor -%}
+</ul>
+<h3>Check first</h3>
+<ul>
+{% for check in found.checks -%}
+<li>{{ check }}</li>
+{% endfor -%}
+</ul>
+<p class="note">{{ found.note }} <a href="/codes/{{ found.code }}">More about <span class="mono">{{ found.code }}</span></a></p>
+{% else if generic -%}
+<p>Nobody has written a description of this code yet.</p>
+{% else -%}
+<p>This code is specific to a manufacturer and is not described here. Its meaning is in the manufacturer's service information.</p>
+{% endif -%}
+{% if let Some(count) = named_count -%}
+{% if naming.is_empty() -%}
+<p>No bulletin for this model year names <span class="mono">{{ code }}</span>, {{ dated }}.</p>
+{% else -%}
+<table class="prose">
+<caption>Bulletins for this model year that name {{ code }}</caption>
+<tbody>
+{% for line in naming -%}
+<tr><th scope="row"><a class="mono" href="{{ line.href }}">{{ line.label }}</a></th><td>{{ line.date }}. {{ line.kind }}{% if !line.summary.is_empty() %}. {{ line.summary }}{% endif %}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">{{ count }} on file from NHTSA, {{ dated }}. <a href="{{ bulletins_href }}">See them in the bulletin list</a>. A bulletin lists model years: read the document for which vehicles it concerns.</p>
+{% endif -%}
+{% else -%}
+<p class="note">This server holds no bulletins, so it cannot say which name this code.</p>
+{% endif -%}
+{% if !about.is_empty() -%}
+<table class="prose">
+<caption>Other bulletins about the same components</caption>
+<tbody>
+{% for line in about -%}
+<tr><th scope="row"><a class="mono" href="{{ line.href }}">{{ line.label }}</a></th><td>{{ line.date }}. {{ line.kind }}{% if !line.summary.is_empty() %}. {{ line.summary }}{% endif %}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+{% endif -%}
+{% if !recalls.is_empty() -%}
+<table class="prose">
+<caption>Recalls about the same components</caption>
+<tbody>
+{% for recall in recalls -%}
+<tr><th scope="row"><a class="mono" href="{{ recall.href }}">{{ recall.campaign }}</a></th><td>{{ recall.date }}{% if !recall.component.is_empty() %}. {{ recall.component }}{% endif %}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">A recall listed here may apply to the model year. Only the manufacturer can say whether it applies to one vehicle.</p>
+{% endif -%}
+<ul class="plain links">
+<li><a href="{{ model_year_path }}">The {{ name }}</a></li>
+{% if codes_index -%}
+<li><a href="/codes">Every trouble code</a></li>
+{% endif -%}
+<li><a href="{% if let Some(form) = report.form %}{{ form }}{% else %}{{ report.issue }}{% endif %}">Report an error on this page</a></li>
+{% if let Some(mail) = report.mail -%}
+<li><a href="{{ mail }}">Report an error by email</a></li>
+{% endif -%}
+</ul>
+{% endblock %}

@@ -128,3 +128,121 @@ async fn a_code_has_one_address_and_only_where_it_is_described() {
         );
     }
 }
+
+const KONA_CODE: &str = "/makes/hyundai/kona/2023/codes/P0420";
+
+#[tokio::test]
+async fn a_code_on_a_model_year_shows_its_bulletins_and_recalls() {
+    let app = common::codes_app().await;
+    let response = app.get(KONA_CODE).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    // It has a bulletin to show, so it is offered to search engines.
+    assert!(response.headers().get("x-robots-tag").is_none());
+    let (_, html) = page(&app, KONA_CODE).await;
+    common::assert_basics(&html, KONA_CODE);
+    common::assert_head(&html, KONA_CODE);
+    assert!(html.contains("<h1><span class=\"mono\">P0420</span> on the 2023 Hyundai Kona</h1>"));
+    assert!(html.contains(
+        "<link rel=\"canonical\" href=\"https://open.example/makes/hyundai/kona/2023/codes/P0420\">"
+    ));
+    assert!(!html.contains("<meta name=\"robots\" content=\"noindex"));
+    // The description, and where the whole of it is.
+    assert!(html.contains("<h2>Made-up title two</h2>"));
+    assert!(html.contains("<p>Made-up meaning two.</p>"));
+    assert!(html.contains("<li>Made-up check B</li>"));
+    assert!(html.contains("href=\"/codes/P0420\""));
+    // The bulletin that names it, then one about the same components,
+    // then the recalls about them.
+    let naming = html
+        .find("<caption>Bulletins for this model year that name P0420</caption>")
+        .unwrap();
+    let about = html
+        .find("<caption>Other bulletins about the same components</caption>")
+        .unwrap();
+    let recalls = html
+        .find("<caption>Recalls about the same components</caption>")
+        .unwrap();
+    assert!(naming < about && about < recalls);
+    let first = html.find("href=\"/bulletins/11000001\"").unwrap();
+    let second = html.find("href=\"/bulletins/11000003\"").unwrap();
+    assert!(naming < first && first < about && about < second && second < recalls);
+    assert!(html[recalls..].contains("href=\"/recalls/tc/2023101\""));
+    assert!(html[recalls..].contains("href=\"/recalls/nhtsa/23V123000\""));
+    assert!(html.contains("href=\"/makes/hyundai/kona/2023/bulletins?code=P0420\""));
+    assert!(html.contains("may apply to the model year"));
+    assert!(html.contains("Only the manufacturer can say whether it applies to one vehicle."));
+    assert!(html.contains("Report an error on this page"));
+    common::assert_no_injection(&html);
+
+    let text = common::markdown(&app, &format!("{KONA_CODE}.md")).await;
+    assert!(text.starts_with("# P0420 on the 2023 Hyundai Kona\n"));
+    assert!(text.contains("## P0420: Made\\-up title two"));
+    assert!(text.contains("## Bulletins for this model year that name P0420"));
+    assert!(text.contains("(https://open.example/bulletins/11000001)"));
+    assert!(text.contains("## Recalls about the same components"));
+}
+
+#[tokio::test]
+async fn a_page_with_nothing_to_show_answers_and_is_not_indexed() {
+    let app = common::codes_app().await;
+    for (path, words) in [
+        // Described, but nothing of this vehicle is about its component.
+        (
+            "/makes/chevrolet/silverado/2019/codes/U0001",
+            "Made-up title three",
+        ),
+        // Generic and not described; no bulletin names it.
+        (
+            "/makes/hyundai/kona/2023/codes/P0001",
+            "Nobody has written a description of this code yet.",
+        ),
+    ] {
+        let response = app.get(path).await;
+        assert_eq!(response.status(), StatusCode::OK, "{path}");
+        assert_eq!(header(&response, "x-robots-tag"), "noindex", "{path}");
+        let (_, html) = page(&app, path).await;
+        assert!(html.contains(words), "{path}");
+        assert!(
+            html.contains("<meta name=\"robots\" content=\"noindex"),
+            "{path}"
+        );
+        assert!(
+            html.contains("No bulletin for this model year names"),
+            "{path}"
+        );
+        assert!(!html.contains("<caption>Recalls about the same components</caption>"));
+    }
+    // A manufacturer-specific code a bulletin names: no description, one
+    // bulletin, and so a page worth showing.
+    let path = "/makes/hyundai/kona/2023/codes/C1234";
+    let response = app.get(path).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert!(response.headers().get("x-robots-tag").is_none());
+    let (_, html) = page(&app, path).await;
+    assert!(html.contains("This code is specific to a manufacturer and is not described here."));
+    assert!(html.contains("href=\"/bulletins/11000004\""));
+    assert!(!html.contains("href=\"/codes/C1234\""));
+
+    for path in [
+        "/makes/hyundai/kona/2023/codes/p0420",
+        "/makes/hyundai/kona/2023/codes/zebra",
+        "/makes/hyundai/kona/2023/codes",
+        "/makes/hyundai/kona/1899/codes/P0420",
+        "/makes/hyundai/nothing/2023/codes/P0420",
+        "/makes/hyundai/kona/2023/codes/P0420/more",
+    ] {
+        let (status, _) = page(&app, path).await;
+        assert_eq!(status, StatusCode::NOT_FOUND, "{path}");
+    }
+    // Recalls alone: nothing can be said about a code.
+    let app = common::recalls_app().await;
+    let (status, _) = page(&app, KONA_CODE).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    // Bulletins and no codes: the page is there, without a description.
+    let app = common::bulletins_app().await;
+    let (status, html) = page(&app, KONA_CODE).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("href=\"/bulletins/11000001\""));
+    assert!(html.contains("Nobody has written a description of this code yet."));
+    assert!(!html.contains("href=\"/codes/P0420\""));
+}

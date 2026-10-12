@@ -468,6 +468,10 @@ pub fn router() -> Router<AppState> {
         .route("/codes", get(codes::index))
         .route("/codes.md", get(codes::index_md))
         .route("/codes/{code}", get(codes::code))
+        .route(
+            "/makes/{make}/{model}/{year}/codes/{code}",
+            get(codes::model_year_code),
+        )
         .route("/recalls", get(recalls::index))
         .route("/recalls/{source}/{campaign}", get(recalls::campaign))
         .route("/wmi/{code}", get(wmi::wmi))

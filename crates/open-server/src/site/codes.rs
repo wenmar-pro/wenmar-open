@@ -12,13 +12,17 @@ use axum::http::StatusCode;
 use axum::response::Response;
 use serde::Deserialize;
 use wenmar_shopdata::Dataset;
-use wenmar_shopdata::codes::{CodeQuery, CodeSummary, MOST_CODES_LISTED, NOTE, SYSTEMS};
+use wenmar_shopdata::codes::{
+    CodeQuery, CodeSummary, MOST_CODES_LISTED, NOTE, SYSTEMS, VEHICLE_NOTE, is_code,
+};
+use wenmar_vehicles::text::is_slug;
 
-use crate::api::codes::code_op;
-use crate::api::types::Code;
+use crate::api::codes::{code_op, vehicle_code_of, vehicle_code_shop};
+use crate::api::recalls::model_year;
+use crate::api::types::{Bulletin, Code, VehicleCode};
 use crate::error::ApiError;
 use crate::site::markdown::{self, Format, escape};
-use crate::site::{self, Page, jsonld, report, seo};
+use crate::site::{self, Page, bulletins, jsonld, report, seo};
 use crate::state::AppState;
 
 /// What the index may be narrowed by.
@@ -258,4 +262,243 @@ pub async fn code(
             report,
         },
     )
+}
+
+// ----- a code on a model year -----
+
+/// A recall beside a code.
+pub struct RecallLine {
+    pub campaign: String,
+    pub href: String,
+    pub date: String,
+    pub component: String,
+}
+
+#[derive(Template)]
+#[template(path = "code_model_year.html")]
+struct ModelYearCodePage {
+    page: Page,
+    code: String,
+    /// `2023 Hyundai Kona`.
+    name: String,
+    note: &'static str,
+    generic: bool,
+    description: Option<Code>,
+    /// How many bulletins of the model year name the code. `None` where
+    /// bulletins are not held.
+    named_count: Option<u64>,
+    naming: Vec<bulletins::Line>,
+    bulletins_href: String,
+    about: Vec<bulletins::Line>,
+    recalls: Vec<RecallLine>,
+    dated: String,
+    model_year_path: String,
+    /// Whether `/codes` exists on this server.
+    codes_index: bool,
+    report: report::ReportLinks,
+}
+
+fn bulletin_markdown(lines: &[Bulletin]) -> String {
+    let mut text = String::new();
+    for bulletin in lines {
+        text.push_str(&format!(
+            "- [{}]({}), {}",
+            bulletin.nhtsa_id, bulletin.url, bulletin.date_added
+        ));
+        if let Some(summary) = &bulletin.summary {
+            text.push_str(&format!(": {}", escape(summary)));
+        }
+        text.push('\n');
+    }
+    text
+}
+
+fn vehicle_markdown(name: &str, answer: &VehicleCode) -> String {
+    let code = &answer.code;
+    let mut text = format!(
+        "# {code} on the {}\n\n{}\n",
+        escape(name),
+        escape(&answer.note)
+    );
+    match &answer.description {
+        Some(found) => text.push_str(&format!("\n{}", description_markdown(found, 2))),
+        None if answer.generic => {
+            text.push_str("\nNobody has written a description of this code yet.\n");
+        }
+        None => {
+            text.push_str("\nThis code is specific to a manufacturer and is not described here.\n")
+        }
+    }
+    if let Some(named) = &answer.bulletins {
+        text.push_str(&format!(
+            "\n## Bulletins for this model year that name {code}\n\n"
+        ));
+        if named.bulletins.is_empty() {
+            text.push_str("None on file.\n");
+        } else {
+            text.push_str(&bulletin_markdown(&named.bulletins));
+        }
+    }
+    if let Some(about) = answer
+        .related
+        .bulletins
+        .as_ref()
+        .filter(|list| !list.is_empty())
+    {
+        text.push_str("\n## Other bulletins about the same components\n\n");
+        text.push_str(&bulletin_markdown(about));
+    }
+    if let Some(recalls) = answer
+        .related
+        .recalls
+        .as_ref()
+        .filter(|found| !found.recalls.is_empty())
+    {
+        text.push_str("\n## Recalls about the same components\n\n");
+        for recall in &recalls.recalls {
+            text.push_str(&format!(
+                "- [{}]({}), {}\n",
+                escape(&recall.campaign),
+                recall.url,
+                recall.date.as_deref().unwrap_or("date not on file")
+            ));
+        }
+        text.push_str(
+            "\nA recall listed here may apply to the model year. Only the manufacturer can say whether it applies to one vehicle.\n",
+        );
+    }
+    text
+}
+
+/// `/makes/{make}/{model}/{year}/codes/{code}` and its Markdown twin. Any
+/// code answers where the server holds codes or bulletins. The page is
+/// offered to search engines only when it shows a bulletin or a recall.
+pub async fn model_year_code(
+    State(state): State<AppState>,
+    path: Result<Path<(String, String, String, String)>, PathRejection>,
+) -> Response {
+    let Ok(Path((make, model, year, segment))) = path else {
+        return site::not_found(&state);
+    };
+    let (stem, format) = markdown::split(&segment);
+    let Some(year) = site::year_in(&year) else {
+        return site::not_found(&state);
+    };
+    if !is_code(stem) || !is_slug(&make) || !is_slug(&model) {
+        return site::not_found(&state);
+    }
+    let Ok(shop) = vehicle_code_shop(&state) else {
+        return site::not_found(&state);
+    };
+    let id = format!("{year:04}_{make}_{model}");
+    let found = match state.db().run(move |worker| model_year(worker, &id)).await {
+        Ok(Ok(Some(found))) => found,
+        Ok(Ok(None)) => return site::not_found(&state),
+        Ok(Err(error)) => return site::failed(&state, &ApiError::from(error)),
+        Err(error) => return site::failed(&state, &ApiError::from(error)),
+    };
+    let answer = match vehicle_code_of(&state, shop, &found, stem.to_owned()).await {
+        Ok(answer) => answer,
+        Err(error) => return site::failed(&state, &error),
+    };
+    let model_year_path = format!("/makes/{}/{}/{year}", found.make_slug, found.model_slug);
+    let path = format!("{model_year_path}/codes/{}", answer.code);
+    let name = format!(
+        "{} {} {}",
+        answer.vehicle.year, answer.vehicle.make, answer.vehicle.model
+    );
+    if format == Format::Markdown {
+        let canonical = format!("{}{path}", state.config().base_url);
+        return markdown::response(vehicle_markdown(&name, &answer), &canonical);
+    }
+    let naming: Vec<bulletins::Line> = answer
+        .bulletins
+        .iter()
+        .flat_map(|named| named.bulletins.iter().map(bulletins::line))
+        .collect();
+    let about: Vec<bulletins::Line> = answer
+        .related
+        .bulletins
+        .iter()
+        .flat_map(|list| list.iter().map(bulletins::line))
+        .collect();
+    let recalls: Vec<RecallLine> = answer
+        .related
+        .recalls
+        .iter()
+        .flat_map(|found| found.recalls.iter())
+        .map(|recall| RecallLine {
+            campaign: recall.campaign.clone(),
+            href: format!("/recalls/{}/{}", recall.source, recall.campaign),
+            date: recall
+                .date
+                .clone()
+                .unwrap_or_else(|| "date not on file".to_owned()),
+            component: recall.component.clone().unwrap_or_default(),
+        })
+        .collect();
+    // Worth a search engine's while only with something of this vehicle
+    // on it, and only for a car, an MPV or a truck.
+    let shows_something = !naming.is_empty() || !about.is_empty() || !recalls.is_empty();
+    let heading = format!("{} on the {name}", answer.code);
+    let description = seo::description(
+        &[&[
+            format!(
+                "Trouble code {} on the {name}: what it means, the service bulletins that name it and the recalls about the same components.",
+                answer.code
+            ),
+            format!("Trouble code {} on the {name}.", answer.code),
+        ]],
+        160,
+    );
+    let page = Page::new(&state, seo::title(&heading), description)
+        .with_markdown(&format!("{path}.md"))
+        .with_mono()
+        .in_section("makes")
+        .under(vec![
+            ("Makes".to_owned(), "/makes".to_owned()),
+            (
+                answer.vehicle.make.clone(),
+                format!("/makes/{}", found.make_slug),
+            ),
+            (name.clone(), model_year_path.clone()),
+        ]);
+    let trail = page.trail(&answer.code);
+    let page = page.describing(vec![trail]);
+    let page = if found.light && shows_something {
+        page.indexed(&state, &path)
+    } else {
+        page
+    };
+    let indexed = page.index;
+    let report = report::links(state.config(), &path, &format!("{} {name}", answer.code));
+    let mut response = site::html(
+        StatusCode::OK,
+        &ModelYearCodePage {
+            page,
+            name,
+            note: VEHICLE_NOTE,
+            generic: answer.generic,
+            named_count: answer.bulletins.as_ref().map(|named| named.count),
+            bulletins_href: format!("{model_year_path}/bulletins?code={}", answer.code),
+            naming,
+            about,
+            recalls,
+            dated: answer
+                .bulletins
+                .as_ref()
+                .and_then(|named| named.as_of.as_ref())
+                .map(|day| format!("as of {day}"))
+                .unwrap_or_default(),
+            model_year_path,
+            codes_index: state.dataset(Dataset::Codes).is_ok(),
+            description: answer.description,
+            code: answer.code,
+            report,
+        },
+    );
+    if !indexed {
+        site::unindexed(&mut response);
+    }
+    response
 }
