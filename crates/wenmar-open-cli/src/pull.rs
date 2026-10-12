@@ -435,6 +435,11 @@ pub fn shop_version_numbers(version: &str) -> Option<Vec<u32>> {
 
 /// Reads one release of the release list. `None` when it is not a
 /// published shop release with its file and its manifest attached.
+///
+/// A release has two shop files. This takes the offline one, by its exact
+/// name, `wenmar-open-shop-<version>.sqlite3.gz`. The other,
+/// `wenmar-open-shop-full-<version>.sqlite3.gz`, also holds the datasets
+/// only the hosted service carries, and is never downloaded here.
 pub fn shop_release_of(release: &Value) -> Option<ShopRelease> {
     let flag = |name: &str| release.get(name).and_then(Value::as_bool).unwrap_or(false);
     if flag("draft") || flag("prerelease") {
@@ -797,6 +802,35 @@ mod tests {
         // The data file's own list does not take a shop release for one.
         assert_eq!(newest(&releases).unwrap().version, "2026.09");
         assert!(shop_releases(&json!({ "message": "Not Found" })).is_empty());
+    }
+
+    #[test]
+    fn a_shop_release_with_two_files_gives_the_offline_one() {
+        // The full file and its checksum are listed first, as GitHub lists
+        // assets by name: "full" sorts before a digit.
+        let full = "wenmar-open-shop-full-2026.10.12.sqlite3.gz";
+        let mut both = shop_release("shop-2026.10.12", "2026.10.12");
+        let offline_assets = both["assets"].as_array().unwrap().clone();
+        let mut assets = vec![
+            json!({ "name": full, "browser_download_url": "https://example.test/full.gz" }),
+            json!({ "name": format!("{full}.sha256"), "browser_download_url": "https://example.test/full.sum" }),
+        ];
+        assets.extend(offline_assets);
+        both["assets"] = json!(assets);
+        let found = shop_release_of(&both).unwrap();
+        assert_eq!(found.url, "https://example.test/2026.10.12.gz");
+        assert_eq!(found.manifest, "https://example.test/2026.10.12.json");
+
+        // A release with the full file and no offline file is not one that
+        // `data pull --shop` can use: it is passed over, never downloaded.
+        let mut only_full = both.clone();
+        only_full["assets"] = json!([
+            both["assets"][0].clone(),
+            both["assets"][1].clone(),
+            both["assets"][3].clone()
+        ]);
+        assert_eq!(shop_release_of(&only_full), None);
+        assert!(shop_releases(&json!([only_full])).is_empty());
     }
 
     #[test]

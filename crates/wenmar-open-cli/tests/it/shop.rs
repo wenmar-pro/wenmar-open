@@ -549,6 +549,84 @@ fn pull_shop_needs_the_data_file_it_goes_with() {
     assert_eq!(server.seen().len(), before);
 }
 
+/// A release server whose one shop release has both files: the offline one
+/// under the name every release has had, and the full one, which holds the
+/// bulletins too. The full file answers with something that is not a shop
+/// file, so a download of it would fail.
+fn two_files() -> Server {
+    let offline = packed("2026.10.12", "2026.09");
+    server::serve(move |request: &Seen| {
+        let host = request.header("host").unwrap_or_default().to_owned();
+        let full = "wenmar-open-shop-full-2026.10.12.sqlite3.gz";
+        let mut both = release(&host, "2026.10.12");
+        // GitHub lists assets by name, so the full file comes first.
+        let mut assets = vec![
+            json!({ "name": full, "browser_download_url": format!("http://{host}/assets/{full}") }),
+            json!({ "name": format!("{full}.sha256"), "browser_download_url": format!("http://{host}/assets/{full}.sha256") }),
+        ];
+        assets.extend(both["assets"].as_array().unwrap().clone());
+        both["assets"] = json!(assets);
+        let bulletins = json!({ "as_of": "2026-10-11", "rows": 2, "licence": "public-domain", "attribution": "" });
+        match request.target.as_str() {
+            "/releases?per_page=100" => Reply::json(200, &json!([both])),
+            "/releases/tags/shop-2026.10.12" => Reply::json(200, &both),
+            // The manifest as scripts/shop-manifest.mjs writes it for two
+            // files: the fields it always had, and `full`.
+            "/assets/wenmar-open-shop-2026.10.12.json" => Reply::json(
+                200,
+                &json!({
+                    "data_version": "2026.10.12",
+                    "catalog_data_version": "2026.09",
+                    "schema_version": "1",
+                    "built_at": "2026-10-12 06:00:00",
+                    "bytes": 1,
+                    "sha256": "00",
+                    "datasets": serde_json::from_str::<Value>(common::SHOP_DATASETS).unwrap(),
+                    "full": { "bytes": 2, "sha256": "11", "datasets": { "bulletins": bulletins } }
+                }),
+            ),
+            "/assets/wenmar-open-shop-2026.10.12.sqlite3.gz" => Reply::bytes(offline.clone()),
+            "/assets/wenmar-open-shop-full-2026.10.12.sqlite3.gz" => {
+                Reply::bytes(gzip(b"the full file, which is not for here"))
+            }
+            _ => Reply::json(404, &json!({ "message": "Not Found" })),
+        }
+    })
+}
+
+#[test]
+fn pull_shop_takes_the_offline_file_and_never_the_full_one() {
+    let server = two_files();
+    let fixture = common::data_dir();
+    let env = env(&fixture, &server);
+
+    let run = common::run(&env, &["data", "pull", "--shop"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(run.json()["updated"], true);
+    assert_eq!(run.json()["data_version"], "2026.10.12");
+    assert_eq!(
+        server.targets(),
+        [
+            "/releases?per_page=100",
+            "/assets/wenmar-open-shop-2026.10.12.json",
+            "/assets/wenmar-open-shop-2026.10.12.sqlite3.gz"
+        ]
+    );
+    // Asked for by its day, and forced: the same file again.
+    let run = common::run(&env, &["data", "pull", "--shop", "2026.10.12", "--force"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(run.json()["updated"], true);
+    for target in server.targets() {
+        assert!(!target.contains("full"), "{target}");
+    }
+    // What is in place holds no bulletins, and answers.
+    let run = common::run(&env, &["data", "status", "--shop"]);
+    let datasets = run.json()["datasets"].clone();
+    assert!(datasets.get("recalls_us").is_some());
+    assert!(datasets.get("bulletins").is_none());
+    let run = common::run(&env, &["recalls", "vin", KONA, "--offline"]);
+    assert_eq!(run.json()["recalls"].as_array().unwrap().len(), 3);
+}
 /// What answers the download of a shop file.
 type Asset = Box<dyn Fn() -> Reply + Send>;
 
