@@ -33,6 +33,24 @@
 <p class="note">{{ sibling_caveat }}</p>
 {% endif -%}
 {% include "investigations_open.html" %}
+{% if let Some(updates) = maintenance -%}
+<h2 id="maintenance">Maintenance updates from the manufacturer</h2>
+<table class="prose">
+<caption>Maintenance bulletins from NHTSA, {{ updates.dated }}</caption>
+<tbody>
+{% for entry in updates.lines -%}
+<tr><th scope="row"><a class="mono" href="{{ entry.line.href }}">{{ entry.line.label }}</a></th><td>{{ entry.line.date }}{% if !entry.line.summary.is_empty() %}. {{ entry.line.summary }}{% endif %}{% if let Some(document) = entry.document %} <a href="{{ document }}">NHTSA's copy of the document (PDF)</a>{% endif %}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">{{ maintenance_note }}</p>
+<ul class="plain links">
+<li><a href="{{ updates.all_href }}">{{ updates.all_text }}</a></li>
+{% if let Some(url) = maintenance_url -%}
+<li><a href="{{ url }}">Maintenance schedule from {{ view.entry.make }}</a></li>
+{% endif -%}
+</ul>
+{% endif -%}
 <table>
 <caption>Trims</caption>
 <tbody>

@@ -938,3 +938,92 @@ pub async fn brief(state: &AppState, vehicle_id: &str) -> Option<Brief> {
         dated: dated(answer.as_of.as_ref()),
     })
 }
+
+// ----- maintenance updates, on the model-year page -----
+
+/// Maintenance bulletins shown on the model-year page.
+pub const MOST_MAINTENANCE: usize = 5;
+
+/// What the maintenance section says after its list.
+pub const MAINTENANCE_NOTE: &str = "Bulletins from the manufacturer that mention a maintenance schedule or a service interval, as NHTSA summarises them. They are not the schedule itself: read the document, and the owner's manual.";
+
+/// One maintenance bulletin, with the likelier address of NHTSA's copy
+/// of its document when the server has one.
+pub struct MaintenanceLine {
+    pub line: Line,
+    pub document: Option<String>,
+}
+
+/// The maintenance bulletins of a model year.
+pub struct MaintenanceUpdates {
+    /// Newest first, at most [`MOST_MAINTENANCE`].
+    pub lines: Vec<MaintenanceLine>,
+    /// Every maintenance bulletin of the model year.
+    pub total: u64,
+    /// The model year's bulletin list narrowed to them.
+    pub all_href: String,
+    /// `as of 2026-10-11`.
+    pub dated: String,
+    /// `All 3 maintenance bulletins for the 2023 Hyundai Kona`.
+    pub all_text: String,
+}
+
+/// The bulletins with the topic `maintenance` that list the model year
+/// `vehicle_id` names.
+///
+/// `None` on a server that holds no bulletins, for an id that names no
+/// model year, when the model year has none, and when they could not be
+/// read: the page that asked is then shown as it is without them.
+pub async fn maintenance(state: &AppState, vehicle_id: &str) -> Option<MaintenanceUpdates> {
+    let shop = state.dataset(Dataset::Bulletins).ok()?;
+    let id = vehicle_id.to_owned();
+    let found = state
+        .db()
+        .run(move |worker| model_year(worker, &id))
+        .await
+        .ok()?
+        .ok()??;
+    let asked = narrowed(BulletinFilter {
+        topic: Some("maintenance".to_owned()),
+        limit: Some(MOST_MAINTENANCE),
+        ..BulletinFilter::default()
+    })
+    .ok()?;
+    let answer = bulletins_of(state, shop, &found, asked).await.ok()?;
+    if answer.bulletins.is_empty() {
+        return None;
+    }
+    let total = answer
+        .counts
+        .topics
+        .iter()
+        .find(|entry| entry.id == "maintenance")
+        .map_or(answer.bulletins.len() as u64, |entry| entry.count);
+    let name = format!(
+        "{} {} {}",
+        answer.vehicle.year, answer.vehicle.make, answer.vehicle.model
+    );
+    Some(MaintenanceUpdates {
+        lines: answer
+            .bulletins
+            .iter()
+            .map(|bulletin| MaintenanceLine {
+                line: line(bulletin),
+                document: bulletin
+                    .document
+                    .as_ref()
+                    .map(|document| document.url.clone()),
+            })
+            .collect(),
+        total,
+        all_href: format!(
+            "/makes/{}/{}/{}/bulletins?topic=maintenance",
+            found.make_slug, found.model_slug, answer.vehicle.year
+        ),
+        dated: dated(answer.as_of.as_ref()),
+        all_text: format!(
+            "All {} for the {name}",
+            seo::count(total as usize, "maintenance bulletin")
+        ),
+    })
+}

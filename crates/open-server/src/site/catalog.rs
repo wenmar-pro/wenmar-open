@@ -706,6 +706,12 @@ struct ModelYearPage {
     /// there are none, and on a server with no such data.
     siblings: Vec<SiblingLine>,
     sibling_caveat: &'static str,
+    /// The maintenance bulletins of this model year. `None` when there are
+    /// none, and on a server with no bulletins.
+    maintenance: Option<site::bulletins::MaintenanceUpdates>,
+    /// The maker's own maintenance schedule, when the make has one on file.
+    maintenance_url: Option<String>,
+    maintenance_note: &'static str,
 }
 
 fn model_year_markdown(view: &ModelYearView, report: &report::ReportLinks) -> String {
@@ -889,6 +895,12 @@ pub async fn model_year(
     // On a server that holds recalls, a line about this model year's.
     // Without them the page is as it always was.
     let recalls = site::recalls::brief(&state, &view.entry.id).await;
+    // Maintenance bulletins for this model year, and the maker's own
+    // schedule page beside them when the make has one on file.
+    let maintenance = site::bulletins::maintenance(&state, &view.entry.id).await;
+    let maintenance_url: Option<String> = links::for_make(&view.entry.make)
+        .and_then(|found| found.maintenance_url)
+        .map(str::to_owned);
     // The same for the manufacturer's bulletins.
     let bulletins = site::bulletins::brief(&state, &view.entry.id).await;
     // The same for fuel consumption and engine oil.
@@ -917,6 +929,31 @@ pub async fn model_year(
                 "\n## Bulletins\n\n[{}]({}.md)\n",
                 brief.text, brief.href
             ));
+        }
+        if let Some(updates) = &maintenance {
+            text.push_str("\n## Maintenance updates from the manufacturer\n\n");
+            for entry in &updates.lines {
+                text.push_str(&format!(
+                    "- [{}]({}.md), {}",
+                    escape(&entry.line.label),
+                    entry.line.href,
+                    entry.line.date
+                ));
+                if !entry.line.summary.is_empty() {
+                    text.push_str(&format!(". {}", escape(&entry.line.summary)));
+                }
+                if let Some(document) = &entry.document {
+                    text.push_str(&format!(" [NHTSA's copy of the document]({document})"));
+                }
+                text.push('\n');
+            }
+            if let Some(url) = &maintenance_url {
+                text.push_str(&format!(
+                    "- [Maintenance schedule from {}]({url})\n",
+                    escape(&view.entry.make)
+                ));
+            }
+            text.push_str(&format!("\n{}\n", site::bulletins::MAINTENANCE_NOTE));
         }
         if !siblings.is_empty() {
             text.push_str("\n## Shares campaigns and bulletins with\n\n");
@@ -988,6 +1025,9 @@ pub async fn model_year(
             fuel,
             siblings,
             sibling_caveat: SIBLING_CAVEAT,
+            maintenance,
+            maintenance_url,
+            maintenance_note: site::bulletins::MAINTENANCE_NOTE,
         },
     )
 }
