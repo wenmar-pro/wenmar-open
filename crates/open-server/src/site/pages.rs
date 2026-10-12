@@ -242,7 +242,7 @@ pub fn about(_state: &AppState) -> Doc {
                 // second sentence about logs is to be reworded only after
                 // the proxy's log has been looked at: docs/deploy.md,
                 // "Check it".
-                &["There are no cookies, no accounts and no analytics scripts. The service's own log records the first 11 characters of a decoded VIN, which name the maker, model and plant, and not the serial number. The hosting proxy in front of the service keeps a request log of its own, with the address of each request and where it came from. The address of a decode, as a page or through the API, holds the whole VIN."],
+                &["There are no cookies, no accounts and no analytics scripts. The service's own log records the first 11 characters of a decoded VIN, which name the maker, model and plant, and not the serial number. The hosting proxy in front of the service keeps a request log of its own, with the address of each request and where it came from. The address of a decode, as a page or through the API, holds the whole VIN. A report sent through the form at /feedback is posted as a public issue on GitHub, with the text typed and nothing else: not the sender's address."],
             ),
             with_links(
                 section(

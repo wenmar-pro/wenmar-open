@@ -15,6 +15,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Website: `/data` and `/data.md` list every dataset served with its source, its licence and the attribution it requires. `NOTICE.md` holds the same table, and a test keeps the two the same.
 - `CONTRIBUTING.md`: rules for hand-written data. Where a record may not come from, the `source` and `checked` it must carry, what a pull request must show, and who approves it.
 - The tire size comparison calculator, at `/tools/tire-size`: the sidewall, diameter, circumference and revolutions per kilometre of two metric sizes, the difference between them and the speedometer error. Its arithmetic is in `shop-math`, in whole hundredths of a millimetre.
+- Website: `/feedback`, a form for reporting an error without a GitHub account. With `OPEN_GITHUB_TOKEN` set the server files the report as an issue in `OPEN_GITHUB_REPO`, and the "Report an error" links lead to the form. It has a trap field for programs, length limits, and a limit of 3 reports a minute from one address. Without a token it shows the GitHub and email links.
 
 ### Internal
 
