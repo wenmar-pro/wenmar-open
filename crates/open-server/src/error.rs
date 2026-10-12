@@ -6,6 +6,7 @@ use axum::response::{IntoResponse, Response};
 use serde::Serialize;
 use serde_json::{Value, json};
 use utoipa::ToSchema;
+use wenmar_shopdata::{Dataset, ShopError};
 use wenmar_vehicles::CatalogError;
 use wenmar_vin::{DecodeError, VinError};
 
@@ -20,8 +21,9 @@ pub struct ErrorBody {
 #[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
 pub struct ErrorDetail {
     /// A stable code to branch on. One of `invalid_vin`, `validation_failed`,
-    /// `not_found`, `method_not_allowed`, `payload_too_large`,
-    /// `uri_too_long`, `rate_limited`, `unavailable`, `internal_error`.
+    /// `not_found`, `dataset_unavailable`, `method_not_allowed`,
+    /// `payload_too_large`, `uri_too_long`, `rate_limited`, `unavailable`,
+    /// `internal_error`.
     #[schema(example = "invalid_vin")]
     pub code: String,
     /// A sentence for a person to read.
@@ -42,6 +44,8 @@ pub enum ApiError {
     Validation { message: String, details: Value },
     /// 404.
     NotFound(String),
+    /// 404. The server has no shop file, or one built without this dataset.
+    DatasetUnavailable(Dataset),
     /// 405.
     MethodNotAllowed,
     /// 413.
@@ -73,7 +77,7 @@ impl ApiError {
     pub fn status(&self) -> StatusCode {
         match self {
             ApiError::InvalidVin { .. } | ApiError::Validation { .. } => StatusCode::BAD_REQUEST,
-            ApiError::NotFound(_) => StatusCode::NOT_FOUND,
+            ApiError::NotFound(_) | ApiError::DatasetUnavailable(_) => StatusCode::NOT_FOUND,
             ApiError::MethodNotAllowed => StatusCode::METHOD_NOT_ALLOWED,
             ApiError::PayloadTooLarge => StatusCode::PAYLOAD_TOO_LARGE,
             ApiError::UriTooLong { .. } => StatusCode::URI_TOO_LONG,
@@ -93,6 +97,11 @@ impl ApiError {
                 ("validation_failed", message.clone(), details.clone())
             }
             ApiError::NotFound(message) => ("not_found", message.clone(), json!({})),
+            ApiError::DatasetUnavailable(dataset) => (
+                "dataset_unavailable",
+                ShopError::DatasetUnavailable(*dataset).to_string(),
+                json!({ "dataset": dataset.id() }),
+            ),
             ApiError::MethodNotAllowed => (
                 "method_not_allowed",
                 "This address does not accept that method.".to_owned(),
@@ -197,6 +206,15 @@ impl From<DbError> for ApiError {
     }
 }
 
+impl From<ShopError> for ApiError {
+    fn from(error: ShopError) -> ApiError {
+        match error {
+            ShopError::DatasetUnavailable(dataset) => ApiError::DatasetUnavailable(dataset),
+            other => ApiError::internal(describe(&other)),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -210,6 +228,7 @@ mod tests {
             },
             ApiError::validation("m"),
             ApiError::NotFound("m".to_owned()),
+            ApiError::DatasetUnavailable(Dataset::RecallsUs),
             ApiError::MethodNotAllowed,
             ApiError::PayloadTooLarge,
             ApiError::UriTooLong { max: 8192 },
@@ -232,6 +251,7 @@ mod tests {
                 "invalid_vin",
                 "validation_failed",
                 "not_found",
+                "dataset_unavailable",
                 "method_not_allowed",
                 "payload_too_large",
                 "uri_too_long",
@@ -266,5 +286,23 @@ mod tests {
             body["error"]["details"]["invalid_characters"],
             json!([{ "position": 12, "character": "O" }])
         );
+    }
+
+    #[test]
+    fn a_dataset_the_server_lacks_is_a_404_that_names_it() {
+        let error = ApiError::from(ShopError::DatasetUnavailable(Dataset::Bulletins));
+        assert_eq!(error, ApiError::DatasetUnavailable(Dataset::Bulletins));
+        assert_eq!(error.status(), StatusCode::NOT_FOUND);
+        assert_eq!(
+            serde_json::to_value(error.body()).unwrap(),
+            json!({ "error": {
+                "code": "dataset_unavailable",
+                "message": "The bulletins dataset is not available.",
+                "details": { "dataset": "bulletins" }
+            } })
+        );
+        // Any other shop error is ours, and says nothing of itself.
+        let hidden = ApiError::from(ShopError::Shape("recall"));
+        assert_eq!(hidden, ApiError::Internal);
     }
 }
