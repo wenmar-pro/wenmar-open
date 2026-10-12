@@ -1,5 +1,5 @@
 //! What the hosted `/mcp` endpoint and `wenmar-open mcp` have in common: the
-//! two gateway tools as an MCP client sees them, and the shapes of the
+//! gateway tools as an MCP client sees them, and the shapes of the
 //! messages that carry their results.
 //!
 //! Nothing here reads data or does I/O. Each server looks the answer up its
@@ -50,10 +50,10 @@ pub enum Era {
 pub const SERVER_NAME: &str = "wenmar-open";
 
 /// What a model is told about the server as a whole.
-pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. Every call is read-only and needs no key.";
+pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. Use wenmar_recalls to list the recall campaigns from NHTSA and Transport Canada that may apply to a model year. A recall listed may apply: only the manufacturer can confirm it for one VIN. Every call is read-only and needs no key.";
 
 /// The names of the tools, in the order `tools/list` gives them.
-pub const TOOL_NAMES: [&str; 2] = ["wenmar_vin", "wenmar_vehicles"];
+pub const TOOL_NAMES: [&str; 3] = ["wenmar_vin", "wenmar_vehicles", "wenmar_recalls"];
 
 /// The Server Card schema a card must conform to. The schema's own pattern
 /// pins the `/v1/` family, so a breaking change to the shape arrives as a
@@ -149,6 +149,31 @@ pub fn tools() -> Value {
                     "id": { "type": "string" },
                     "scope": { "type": "string" },
                     "limit": { "type": "integer" }
+                },
+                "required": ["action"]
+            },
+            "annotations": { "readOnlyHint": true, "openWorldHint": false }
+        },
+        {
+            "name": "wenmar_recalls",
+            "title": "Recalls",
+            "description": "Recall campaigns from NHTSA (United States) and Transport Canada that may apply to a vehicle. A campaign lists a year, a make and a model, so every answer has may_apply: true. It may apply; confirm by VIN with the manufacturer, or at the addresses in `lookup`. This is never a lookup by VIN. action=vehicle takes `id`, a vehicle id such as \"2018_ford_f-150\". action=vin takes `vin` (and optionally `year`): it decodes the VIN and lists the recalls of its model year. action=campaign takes `source` (nhtsa or tc) and `campaign`, such as \"19V888000\", and gives that campaign with every vehicle it lists. action=search lists campaigns newest first, narrowed by any of `make`, `model` (needs `make`), `year`, `component` and `query` (free text); `limit` is at most 100 and 25 when left out; `cursor` is `next_cursor` of the page before. `country` is us or ca on every action but campaign; left out, both.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "action": { "type": "string", "enum": ["vehicle", "vin", "campaign", "search"] },
+                    "id": { "type": "string", "description": "A vehicle id, such as 2018_ford_f-150." },
+                    "vin": { "type": "string", "description": "A 17-character VIN. Spaces and dashes are ignored." },
+                    "year": { "type": "integer", "description": "For vin: the model year to use. For search: only campaigns that list this model year." },
+                    "source": { "type": "string", "enum": ["nhtsa", "tc"] },
+                    "campaign": { "type": "string", "description": "The publisher's campaign number." },
+                    "make": { "type": "string" },
+                    "model": { "type": "string" },
+                    "component": { "type": "string" },
+                    "query": { "type": "string" },
+                    "country": { "type": "string", "enum": ["us", "ca"] },
+                    "limit": { "type": "integer" },
+                    "cursor": { "type": "string" }
                 },
                 "required": ["action"]
             },
@@ -339,7 +364,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn there_are_two_gateway_tools_and_each_needs_an_action() {
+    fn there_are_three_gateway_tools_and_each_needs_an_action() {
         let tools = tools();
         let tools = tools.as_array().unwrap();
         let names: Vec<&str> = tools
@@ -352,6 +377,36 @@ mod tests {
             assert_eq!(tool["inputSchema"]["required"], json!(["action"]));
             assert_eq!(tool["annotations"]["readOnlyHint"], true);
         }
+    }
+
+    #[test]
+    fn the_recalls_tool_says_may_apply_and_never_that_a_recall_applies() {
+        let tools = tools();
+        let tool = tools
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|tool| tool["name"] == "wenmar_recalls")
+            .unwrap();
+        let description = tool["description"].as_str().unwrap();
+        assert!(description.contains("may apply"), "{description}");
+        assert!(
+            description.contains("confirm by VIN with the manufacturer"),
+            "{description}"
+        );
+        assert!(
+            description.contains("never a lookup by VIN"),
+            "{description}"
+        );
+        for claim in ["applies to", "is affected", "open recall", "your vehicle"] {
+            assert!(!description.contains(claim), "{claim}");
+        }
+        assert_eq!(
+            tool["inputSchema"]["properties"]["action"]["enum"],
+            json!(["vehicle", "vin", "campaign", "search"])
+        );
+        assert!(INSTRUCTIONS.contains("wenmar_recalls"));
+        assert!(INSTRUCTIONS.contains("may apply"));
     }
 
     #[test]
