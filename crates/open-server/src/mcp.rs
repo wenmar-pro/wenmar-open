@@ -28,7 +28,7 @@ use serde::Deserialize;
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 
-use crate::api::{overview, recalls, vehicles, vin};
+use crate::api::{bulletins, overview, recalls, vehicles, vin};
 use crate::error::ApiError;
 use crate::state::AppState;
 
@@ -230,6 +230,54 @@ async fn recalls_tool(state: &AppState, action: &str, given: &Value) -> Result<V
     }
 }
 
+/// What a `wenmar_bulletins` call may carry besides the filter.
+#[derive(Debug, Default, Deserialize)]
+struct BulletinArguments {
+    id: Option<String>,
+    vin: Option<String>,
+    nhtsa_id: Option<i64>,
+    query: Option<String>,
+}
+
+/// Manufacturer bulletins. Each action is the function behind a `/v1`
+/// bulletin route, so a server with no bulletin data answers with the same
+/// `dataset_unavailable` error, as a tool error the model can read.
+async fn bulletins_tool(state: &AppState, action: &str, given: &Value) -> Result<Value, ApiError> {
+    let asked: BulletinArguments = arguments(given)?;
+    match action {
+        "vehicle" => {
+            let Some(id) = asked.id else {
+                return Err(ApiError::validation("id is required for action=vehicle"));
+            };
+            let mut filter: bulletins::BulletinFilter = arguments(given)?;
+            filter.q = asked.query.or(filter.q);
+            to_value(bulletins::vehicle_bulletins_op(state, id, filter).await?)
+        }
+        "vin" => {
+            let Some(vin) = asked.vin else {
+                return Err(ApiError::validation("vin is required for action=vin"));
+            };
+            let mut query: bulletins::VinBulletinsQuery = arguments(given)?;
+            query.q = asked.query.or(query.q);
+            to_value(bulletins::vin_bulletins_op(state, vin, query).await?)
+        }
+        "get" => {
+            let Some(nhtsa_id) = asked.nhtsa_id else {
+                return Err(ApiError::validation("nhtsa_id is required for action=get"));
+            };
+            to_value(bulletins::bulletin_op(state, &nhtsa_id.to_string()).await?)
+        }
+        "search" => {
+            let mut query: bulletins::BulletinSearchQuery = arguments(given)?;
+            query.q = asked.query.or(query.q);
+            to_value(bulletins::bulletin_search_op(state, query).await?)
+        }
+        _ => Err(ApiError::validation(
+            "action must be vehicle, vin, get or search",
+        )),
+    }
+}
+
 /// Runs one `tools/call`. `Err` is a protocol error; a tool that fails
 /// answers `Ok` with `isError`.
 async fn call(state: &AppState, params: &Value) -> Result<Value, (i64, String)> {
@@ -251,6 +299,7 @@ async fn call(state: &AppState, params: &Value) -> Result<Value, (i64, String)> 
         "wenmar_vin" => vin_tool(state, action, given).await,
         "wenmar_vehicles" => vehicles_tool(state, action, given).await,
         "wenmar_recalls" => recalls_tool(state, action, given).await,
+        "wenmar_bulletins" => bulletins_tool(state, action, given).await,
         _ => return Err((INVALID_PARAMS, format!("Unknown tool: {name:.60}"))),
     };
     Ok(match outcome {

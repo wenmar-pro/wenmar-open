@@ -50,10 +50,15 @@ pub enum Era {
 pub const SERVER_NAME: &str = "wenmar-open";
 
 /// What a model is told about the server as a whole.
-pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. The overview action of either gives everything held for one vehicle in one answer. Use wenmar_recalls to list the recall campaigns from NHTSA and Transport Canada that may apply to a model year. A recall listed may apply: only the manufacturer can confirm it for one VIN. Every call is read-only and needs no key.";
+pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. The overview action of either gives everything held for one vehicle in one answer. Use wenmar_recalls to list the recall campaigns from NHTSA and Transport Canada that may apply to a model year. A recall listed may apply: only the manufacturer can confirm it for one VIN. Use wenmar_bulletins to list the manufacturer service bulletins, warranty extensions and software updates that NHTSA publishes for a model year, or to search them by trouble code or by text. Every call is read-only and needs no key.";
 
 /// The names of the tools, in the order `tools/list` gives them.
-pub const TOOL_NAMES: [&str; 3] = ["wenmar_vin", "wenmar_vehicles", "wenmar_recalls"];
+pub const TOOL_NAMES: [&str; 4] = [
+    "wenmar_vin",
+    "wenmar_vehicles",
+    "wenmar_recalls",
+    "wenmar_bulletins",
+];
 
 /// The Server Card schema a card must conform to. The schema's own pattern
 /// pins the `/v1/` family, so a breaking change to the shape arrives as a
@@ -174,6 +179,32 @@ pub fn tools() -> Value {
                     "limit": { "type": "integer" },
                     "cursor": { "type": "string" },
                     "since": { "type": "string", "description": "For recent: a day, such as 2026-09-01. Campaigns reported on or after it are listed." }
+                },
+                "required": ["action"]
+            },
+            "annotations": { "readOnlyHint": true, "openWorldHint": false }
+        },
+        {
+            "name": "wenmar_bulletins",
+            "title": "Service bulletins",
+            "description": "Manufacturer communications NHTSA publishes: service bulletins, service campaigns, warranty extensions and over-the-air updates. Each has NHTSA's summary, the manufacturer's own document number, and `document`, the address NHTSA's copy of the document is expected at (not confirmed; null for old ones). The document itself is the manufacturer's and is not returned. A bulletin lists model years: it is not a recall and does not say a vehicle is affected. action=vehicle takes `id`, a vehicle id such as \"2018_ford_f-150\", and gives one page of that model year's bulletins, newest first, with `counts` by type, component, trouble code and topic. action=vin takes `vin` (and optionally `year`) and does the same for the model year the VIN decodes to. action=get takes `nhtsa_id` and gives one bulletin with every vehicle it lists. action=search lists all bulletins newest first, narrowed by `make`, `model` (needs `make`) and `year`. Every action but get takes `type` (service_bulletin, service_campaign, warranty_extension, over_the_air, emissions, other), `component` (an id from `counts.components`, such as brakes), `code` (a trouble code such as P0420), `topic` (maintenance), `query` (free text in the summary, such as a symptom), `limit` (at most 100, 25 when left out) and `cursor` (`next_cursor` of the page before). This tool needs the hosted service: a local data file does not hold bulletins.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "action": { "type": "string", "enum": ["vehicle", "vin", "get", "search"] },
+                    "id": { "type": "string", "description": "A vehicle id, such as 2018_ford_f-150." },
+                    "vin": { "type": "string", "description": "A 17-character VIN. Spaces and dashes are ignored." },
+                    "year": { "type": "integer", "description": "For vin: the model year to use. For search: only bulletins that list this model year." },
+                    "nhtsa_id": { "type": "integer", "description": "NHTSA's id number for the communication." },
+                    "make": { "type": "string" },
+                    "model": { "type": "string" },
+                    "type": { "type": "string", "enum": ["service_bulletin", "service_campaign", "warranty_extension", "over_the_air", "emissions", "other"] },
+                    "component": { "type": "string" },
+                    "code": { "type": "string" },
+                    "topic": { "type": "string", "enum": ["maintenance"] },
+                    "query": { "type": "string" },
+                    "limit": { "type": "integer" },
+                    "cursor": { "type": "string" }
                 },
                 "required": ["action"]
             },
@@ -364,7 +395,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn there_are_three_gateway_tools_and_each_needs_an_action() {
+    fn there_are_four_gateway_tools_and_each_needs_an_action() {
         let tools = tools();
         let tools = tools.as_array().unwrap();
         let names: Vec<&str> = tools
@@ -410,6 +441,28 @@ mod tests {
     }
 
     #[test]
+    fn the_bulletins_tool_says_what_a_bulletin_is_not() {
+        let tools = tools();
+        let tool = tools
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|tool| tool["name"] == "wenmar_bulletins")
+            .unwrap();
+        let description = tool["description"].as_str().unwrap();
+        assert!(description.contains("it is not a recall"), "{description}");
+        assert!(description.contains("not confirmed"), "{description}");
+        for claim in ["applies to", "is affected by"] {
+            assert!(!description.contains(claim), "{claim}");
+        }
+        assert_eq!(
+            tool["inputSchema"]["properties"]["action"]["enum"],
+            json!(["vehicle", "vin", "get", "search"])
+        );
+        assert!(INSTRUCTIONS.contains("wenmar_bulletins"));
+    }
+
+    #[test]
     fn the_overview_actions_are_on_the_three_tools_and_no_tool_was_added() {
         let tools = tools();
         let tool = |name: &str| {
@@ -427,7 +480,7 @@ mod tests {
                 .unwrap()
                 .clone()
         };
-        assert_eq!(TOOL_NAMES.len(), 3);
+        assert_eq!(TOOL_NAMES.len(), 4);
         assert!(actions("wenmar_vin").contains(&json!("overview")));
         for action in ["entry", "overview", "model_years"] {
             assert!(
@@ -469,7 +522,7 @@ mod tests {
         assert!(description.contains("safety (`id`"), "{description}");
         assert!(description.contains("NHTSA"), "{description}");
         // An action of a tool that exists: no tool was added.
-        assert_eq!(TOOL_NAMES.len(), 3);
+        assert_eq!(TOOL_NAMES.len(), 4);
     }
 
     #[test]

@@ -80,7 +80,15 @@ async fn a_client_can_initialize_and_list_the_tools() {
         .map(|tool| tool["name"].as_str().unwrap())
         .collect();
     // A few gateway tools, one per noun: not one per endpoint.
-    assert_eq!(names, ["wenmar_vin", "wenmar_vehicles", "wenmar_recalls"]);
+    assert_eq!(
+        names,
+        [
+            "wenmar_vin",
+            "wenmar_vehicles",
+            "wenmar_recalls",
+            "wenmar_bulletins"
+        ]
+    );
     for tool in tools {
         assert_eq!(tool["inputSchema"]["type"], "object");
         assert_eq!(tool["inputSchema"]["required"], json!(["action"]));
@@ -434,7 +442,15 @@ async fn a_client_with_no_handshake_discovers_lists_and_calls() {
         .iter()
         .map(|tool| tool["name"].as_str().unwrap())
         .collect();
-    assert_eq!(names, ["wenmar_vin", "wenmar_vehicles", "wenmar_recalls"]);
+    assert_eq!(
+        names,
+        [
+            "wenmar_vin",
+            "wenmar_vehicles",
+            "wenmar_recalls",
+            "wenmar_bulletins"
+        ]
+    );
     assert_eq!(answer["result"]["resultType"], "complete");
     assert_eq!(answer["result"]["ttlMs"], 3_600_000);
 
@@ -616,7 +632,7 @@ async fn a_client_that_shakes_hands_is_answered_as_before() {
     for headers in [&[][..], &[("mcp-protocol-version", "2025-06-18")][..]] {
         let (status, answer) = raw(&app, headers, &list).await;
         assert_eq!(status, StatusCode::OK, "{headers:?}");
-        assert_eq!(answer["result"]["tools"].as_array().unwrap().len(), 3);
+        assert_eq!(answer["result"]["tools"].as_array().unwrap().len(), 4);
         assert!(answer["result"].get("resultType").is_none(), "{answer}");
         assert!(answer["result"].get("_meta").is_none());
     }
@@ -738,6 +754,37 @@ async fn the_recalls_tool_gives_what_the_api_gives() {
 }
 
 #[tokio::test]
+async fn the_bulletins_tool_gives_what_the_api_gives() {
+    let app = common::bulletins_app().await;
+    let cases = [
+        (
+            json!({ "action": "vehicle", "id": "2023_hyundai_kona", "type": "warranty_extension" }),
+            "/v1/vehicles/2023_hyundai_kona/bulletins?type=warranty_extension",
+        ),
+        (
+            json!({ "action": "vin", "vin": common::KONA, "code": "P0420" }),
+            "/v1/vin/KM8K2CAB4PU001140/bulletins?code=P0420",
+        ),
+        (
+            json!({ "action": "get", "nhtsa_id": 11000006 }),
+            "/v1/bulletins/11000006",
+        ),
+        (
+            json!({ "action": "search", "make": "chevrolet", "query": "catalytic converter", "limit": 5 }),
+            "/v1/bulletins?make=chevrolet&q=catalytic%20converter&limit=5",
+        ),
+    ];
+    for (arguments, path) in cases {
+        let result = call(&app, "wenmar_bulletins", arguments.clone()).await;
+        assert_eq!(result["isError"], false, "{arguments}");
+        let (status, served) = app.json(path).await;
+        assert_eq!(status, StatusCode::OK, "{path}");
+        assert_eq!(text(&result), served, "{arguments}");
+        assert_eq!(result["structuredContent"], served, "{arguments}");
+    }
+}
+
+#[tokio::test]
 async fn the_recalls_tool_fails_as_the_api_does() {
     let app = common::recalls_app().await;
     let cases = [
@@ -843,6 +890,45 @@ async fn a_server_with_no_recall_data_answers_the_recalls_tool_with_a_tool_error
     .await;
     assert_eq!(result["isError"], false);
     assert_eq!(text(&result)["as_of"]["ca"], Value::Null);
+}
+
+#[tokio::test]
+async fn a_server_with_no_bulletin_data_answers_the_bulletins_tool_with_a_tool_error() {
+    // The recalls alone: no bulletins in the shop file.
+    let app = common::recalls_app().await;
+    let result = call(
+        &app,
+        "wenmar_bulletins",
+        json!({ "action": "vehicle", "id": "2023_hyundai_kona" }),
+    )
+    .await;
+    assert_eq!(result["isError"], true);
+    assert_eq!(
+        result["structuredContent"]["error"]["message"],
+        "The bulletins dataset is not available."
+    );
+    assert_eq!(
+        result["structuredContent"]["error"]["details"]["dataset"],
+        "bulletins"
+    );
+    // Every action is refused the same way, and the bad ones say so.
+    let app = common::bulletins_app().await;
+    let result = call(&app, "wenmar_bulletins", json!({ "action": "get" })).await;
+    assert_eq!(result["isError"], true);
+    assert!(
+        result
+            .to_string()
+            .contains("nhtsa_id is required for action=get"),
+        "{result}"
+    );
+    let result = call(&app, "wenmar_bulletins", json!({ "action": "nonsense" })).await;
+    assert_eq!(result["isError"], true);
+    assert!(
+        result
+            .to_string()
+            .contains("action must be vehicle, vin, get or search"),
+        "{result}"
+    );
 }
 
 #[tokio::test]

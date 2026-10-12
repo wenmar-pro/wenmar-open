@@ -73,7 +73,15 @@ fn a_client_can_initialize_and_list_the_tools() {
         .map(|tool| tool["name"].as_str().unwrap())
         .collect();
     // The same tools as the hosted endpoint, from the same definition.
-    assert_eq!(names, ["wenmar_vin", "wenmar_vehicles", "wenmar_recalls"]);
+    assert_eq!(
+        names,
+        [
+            "wenmar_vin",
+            "wenmar_vehicles",
+            "wenmar_recalls",
+            "wenmar_bulletins"
+        ]
+    );
     assert_eq!(answers[1]["result"]["tools"], open_mcp::tools());
     assert_eq!(answers[2]["result"], json!({}));
 }
