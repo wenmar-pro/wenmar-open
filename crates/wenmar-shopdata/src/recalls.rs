@@ -344,8 +344,11 @@ fn optional_integer(row: &[Value], column: usize) -> Option<i64> {
     row.get(column).and_then(Value::integer)
 }
 
-/// Reads a [`RecallSummary`] from the columns after `r.id`.
-fn summary(row: &[Value]) -> Result<RecallSummary, ShopError> {
+/// The columns [`summary`] reads, for a query over `recall r`.
+pub const SUMMARY_COLUMNS: &str = "r.id, r.source, r.campaign, r.report_date, r.manufacturer, r.component, COALESCE(r.summary_en, r.notes_en), r.mfr_campaign, r.units, r.do_not_drive, r.park_outside, r.notification";
+
+/// Reads a [`RecallSummary`] from [`SUMMARY_COLUMNS`].
+pub(crate) fn summary(row: &[Value]) -> Result<RecallSummary, ShopError> {
     let source = text(row, 1)?;
     let country = RecallSource::parse(&source)
         .ok_or(ShopError::Shape(TABLE))?

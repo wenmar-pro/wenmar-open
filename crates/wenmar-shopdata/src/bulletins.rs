@@ -637,6 +637,175 @@ impl<S: Source> ShopData<S> {
     }
 }
 
+/// Most bulletins or recalls a bulletin's page relates it to.
+pub const MOST_RELATED: usize = 10;
+
+/// A bulletin that lists hundreds of vehicles is related to others
+/// through its first lines only, so the lookup stays quick.
+pub const RELATED_LINES: usize = 40;
+
+/// The components two things are compared by: the parts a bulletin is
+/// about, or its systems when it names no part. `{id}` is a parameter
+/// number.
+const RELATED_COMPONENTS: &str = "SELECT c1.component_id FROM bulletin_component c1 JOIN component k ON k.id = c1.component_id WHERE c1.bulletin_id = ?{id} AND (k.parent IS NOT NULL OR NOT EXISTS (SELECT 1 FROM bulletin_component c3 JOIN component k3 ON k3.id = c3.component_id WHERE c3.bulletin_id = ?{id} AND k3.parent IS NOT NULL))";
+
+/// The first vehicle lines of a bulletin that name a model year.
+const RELATED_VEHICLES: &str = "SELECT bulletin_model_id, year_from, year_to FROM bulletin_vehicle WHERE bulletin_id = ?{id} AND year_from <> 0 LIMIT 40";
+
+impl<S: Source> ShopData<S> {
+    /// Other bulletins about a component this one is about that list a
+    /// model year this one lists, newest first.
+    pub fn related_bulletins(
+        &self,
+        nhtsa_id: i64,
+        limit: usize,
+    ) -> Result<Vec<BulletinSummary>, ShopError> {
+        self.require(Dataset::Bulletins)?;
+        let sql = format!(
+            "SELECT {COLUMNS} FROM bulletin b
+             WHERE b.id <> ?1
+               AND b.id IN (SELECT c2.bulletin_id FROM bulletin_component c2 WHERE c2.component_id IN ({components}))
+               AND b.id IN (SELECT v2.bulletin_id FROM ({vehicles}) v1
+                            JOIN bulletin_model m1 ON m1.id = v1.bulletin_model_id
+                            JOIN bulletin_model m2 ON m2.model_id = m1.model_id
+                            JOIN bulletin_vehicle v2 ON v2.bulletin_model_id = m2.id
+                                 AND v2.year_from <= v1.year_to AND v2.year_to >= v1.year_from)
+             ORDER BY b.added DESC, b.id DESC LIMIT ?2",
+            components = RELATED_COMPONENTS.replace("{id}", "1"),
+            vehicles = RELATED_VEHICLES.replace("{id}", "1"),
+        );
+        let limit = i64::try_from(limit.clamp(1, MOST_RELATED)).unwrap_or(1);
+        self.query(&sql, &[nhtsa_id.into(), limit.into()])?
+            .iter()
+            .map(|row| summary(row))
+            .collect()
+    }
+
+    /// Recall campaigns about a component this bulletin is about that list
+    /// a model year it lists, newest first. Empty when the file holds no
+    /// recalls, or was built before recalls had components.
+    pub fn related_recalls(
+        &self,
+        nhtsa_id: i64,
+        limit: usize,
+    ) -> Result<Vec<crate::recalls::RecallSummary>, ShopError> {
+        self.require(Dataset::Bulletins)?;
+        if self.require_recalls(None).is_err() || !self.has_table("recall_component")? {
+            return Ok(Vec::new());
+        }
+        let sql = format!(
+            "SELECT {columns} FROM recall r
+             WHERE r.id IN (SELECT rc.recall_id FROM recall_component rc WHERE rc.component_id IN ({components}))
+               AND r.id IN (SELECT rv.recall_id FROM ({vehicles}) v1
+                            JOIN bulletin_model m1 ON m1.id = v1.bulletin_model_id
+                            JOIN recall_vehicle rv ON rv.make_id = m1.make_id AND rv.model_id = m1.model_id
+                                 AND rv.year BETWEEN v1.year_from AND v1.year_to)
+             ORDER BY r.report_date DESC, r.id DESC LIMIT ?2",
+            columns = crate::recalls::SUMMARY_COLUMNS,
+            components = RELATED_COMPONENTS.replace("{id}", "1"),
+            vehicles = RELATED_VEHICLES.replace("{id}", "1"),
+        );
+        let limit = i64::try_from(limit.clamp(1, MOST_RELATED)).unwrap_or(1);
+        self.query(&sql, &[nhtsa_id.into(), limit.into()])?
+            .iter()
+            .map(|row| crate::recalls::summary(row))
+            .collect()
+    }
+
+    /// Whether the file has a table of this name. Tables are added to a
+    /// shop file without a new schema version, so a reader of a newer
+    /// table asks first.
+    pub fn has_table(&self, name: &str) -> Result<bool, ShopError> {
+        Ok(!self
+            .query(
+                "SELECT 1 FROM sqlite_schema WHERE type = 'table' AND name = ?1",
+                &[name.into()],
+            )?
+            .is_empty())
+    }
+
+    /// The years NHTSA published bulletins in, newest first, each with how
+    /// many it published.
+    pub fn bulletin_years_added(&self) -> Result<Vec<(u16, u64)>, ShopError> {
+        self.require(Dataset::Bulletins)?;
+        Ok(self
+            .query(
+                "SELECT CAST(substr(added, 1, 4) AS INTEGER), COUNT(*) FROM bulletin GROUP BY 1 ORDER BY 1 DESC",
+                &[],
+            )?
+            .iter()
+            .filter_map(|row| {
+                let year = row.first().and_then(Value::integer)?;
+                Some((u16::try_from(year).ok()?, count(row, 1)))
+            })
+            .collect())
+    }
+
+    /// The ids of the bulletins NHTSA published in one year, by id:
+    /// `limit` of them after the first `offset`.
+    pub fn bulletin_ids_added_in(
+        &self,
+        year: u16,
+        offset: usize,
+        limit: usize,
+    ) -> Result<Vec<i64>, ShopError> {
+        self.require(Dataset::Bulletins)?;
+        let from = format!("{year:04}-00-00");
+        let to = format!("{year:04}-99-99");
+        Ok(self
+            .query(
+                "SELECT id FROM bulletin WHERE added >= ?1 AND added <= ?2 ORDER BY id LIMIT ?3 OFFSET ?4",
+                &[
+                    from.as_str().into(),
+                    to.as_str().into(),
+                    i64::try_from(limit).unwrap_or(i64::MAX).into(),
+                    i64::try_from(offset).unwrap_or(i64::MAX).into(),
+                ],
+            )?
+            .iter()
+            .filter_map(|row| row.first().and_then(Value::integer))
+            .collect())
+    }
+
+    /// The model years with a bulletin matched to a catalog model, newest
+    /// first.
+    pub fn bulletin_model_years(&self) -> Result<Vec<u16>, ShopError> {
+        self.require(Dataset::Bulletins)?;
+        Ok(self
+            .query(
+                "SELECT y.year FROM bulletin_year y
+                 WHERE EXISTS (SELECT 1 FROM bulletin_vehicle v JOIN bulletin_model m ON m.id = v.bulletin_model_id
+                               WHERE m.model_id IS NOT NULL AND v.year_from <= y.year AND v.year_to >= y.year)
+                 ORDER BY y.year DESC",
+                &[],
+            )?
+            .iter()
+            .filter_map(|row| row.first().and_then(Value::integer))
+            .filter_map(|year| u16::try_from(year).ok())
+            .collect())
+    }
+
+    /// The catalog make and model ids with a bulletin in one model year.
+    pub fn bulletin_models(&self, year: u16) -> Result<Vec<(i64, i64)>, ShopError> {
+        self.require(Dataset::Bulletins)?;
+        Ok(self
+            .query(
+                "SELECT DISTINCT m.make_id, m.model_id FROM bulletin_vehicle v JOIN bulletin_model m ON m.id = v.bulletin_model_id
+                 WHERE v.year_from <= ?1 AND v.year_to >= ?1 AND m.make_id IS NOT NULL AND m.model_id IS NOT NULL
+                 ORDER BY 1, 2",
+                &[i64::from(year).into()],
+            )?
+            .iter()
+            .filter_map(|row| {
+                Some((
+                    row.first().and_then(Value::integer)?,
+                    row.get(1).and_then(Value::integer)?,
+                ))
+            })
+            .collect())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

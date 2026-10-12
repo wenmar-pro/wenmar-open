@@ -529,6 +529,121 @@ fn a_file_with_no_bulletins_names_the_dataset_and_runs_no_sql() {
     is_unavailable(shop.bulletin_counts(498, 900, 2023).unwrap_err());
 }
 
+/// [`held`] with two recall campaigns and their components beside the
+/// bulletins: one for the Kona of 2023 and one for the Silverado of 2019,
+/// both about the engine.
+fn held_with_recalls() -> ShopData<ShopSource> {
+    use wenmar_shopdata::schema::{RECALL_COMPONENTS, RECALLS};
+    let connection = Connection::open_in_memory().unwrap();
+    connection.execute_batch(META).unwrap();
+    let datasets = format!(
+        r#"{{{HELD},"recalls_us":{{"as_of":"2026-10-11","rows":2,"licence":"public-domain","attribution":""}}}}"#
+    );
+    for (key, value) in [
+        ("schema_version", SCHEMA_VERSION),
+        ("data_version", "2026.10.12"),
+        ("catalog_data_version", "2026.09"),
+        ("built_at", "2026-10-12 06:00:00"),
+        ("datasets", datasets.as_str()),
+    ] {
+        connection
+            .execute(
+                "INSERT INTO meta (key, value) VALUES (?1, ?2)",
+                [key, value],
+            )
+            .unwrap();
+    }
+    for ddl in [
+        BULLETINS,
+        COMPONENTS,
+        BULLETIN_COMPONENTS,
+        BULLETIN_TEXT,
+        RECALLS,
+        RECALL_COMPONENTS,
+    ] {
+        connection.execute_batch(ddl).unwrap();
+    }
+    connection.execute_batch(ROWS).unwrap();
+    connection
+        .execute_batch(
+            "INSERT INTO recall (id, source, campaign, report_date, component, summary_en) VALUES
+               (1, 'nhtsa', '23V123000', '2023-03-02', 'ENGINE', 'The engine may stall.'),
+               (2, 'nhtsa', '19V888000', '2019-12-12', 'ENGINE', 'The engine may stall.');
+             INSERT INTO recall_vehicle (recall_id, year, make_id, model_id, make_text, model_text, \"match\") VALUES
+               (1, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact'),
+               (2, 2019, 467, 1850, 'CHEVROLET', 'SILVERADO 1500', 'base');
+             INSERT INTO recall_component VALUES (1, 'engine'), (2, 'engine');",
+        )
+        .unwrap();
+    ShopData::new(ShopSource::from_connection(connection)).unwrap()
+}
+
+#[test]
+fn a_bulletin_is_related_by_vehicle_and_component() {
+    let shop = held_with_recalls();
+    let related = |id: i64| -> Vec<i64> {
+        shop.related_bulletins(id, 10)
+            .unwrap()
+            .into_iter()
+            .map(|bulletin| bulletin.nhtsa_id)
+            .collect()
+    };
+    // 11000001 is about a part, software: only bulletins about software
+    // for the Kona of 2022 or 2023 are related, not every engine bulletin.
+    assert_eq!(related(11000001), [11000003]);
+    // 11000007 names no part, so its system, the engine, is compared.
+    assert_eq!(related(11000007), [11000006]);
+    // No other bulletin is about a catalytic converter.
+    assert!(related(11000006).is_empty());
+    // No model year, or no component: nothing to relate by.
+    assert!(related(11000009).is_empty());
+    assert!(related(11000005).is_empty());
+
+    let recalls = |id: i64| -> Vec<String> {
+        shop.related_recalls(id, 10)
+            .unwrap()
+            .into_iter()
+            .map(|recall| recall.campaign)
+            .collect()
+    };
+    assert_eq!(recalls(11000007), ["19V888000"]);
+    assert!(recalls(11000004).is_empty());
+    // A file with no recalls, or none with components, relates nothing.
+    assert!(held().related_recalls(11000007, 10).unwrap().is_empty());
+    assert!(shop.has_table("recall_component").unwrap());
+    assert!(!held().has_table("recall_component").unwrap());
+}
+
+#[test]
+fn the_sitemaps_can_list_every_bulletin_and_every_model_year_with_one() {
+    let shop = held();
+    assert_eq!(
+        shop.bulletin_years_added().unwrap(),
+        [
+            (2026, 2),
+            (2025, 3),
+            (2024, 2),
+            (2023, 1),
+            (2022, 1),
+            (2017, 1)
+        ]
+    );
+    assert_eq!(
+        shop.bulletin_ids_added_in(2025, 0, 2).unwrap(),
+        [11000001, 11000002]
+    );
+    assert_eq!(shop.bulletin_ids_added_in(2025, 2, 2).unwrap(), [11000010]);
+    assert!(shop.bulletin_ids_added_in(2025, 3, 2).unwrap().is_empty());
+    assert!(shop.bulletin_ids_added_in(1990, 0, 9).unwrap().is_empty());
+    assert_eq!(
+        shop.bulletin_model_years().unwrap(),
+        [2023, 2022, 2020, 2019]
+    );
+    assert_eq!(shop.bulletin_models(2023).unwrap(), [(498, 900)]);
+    assert_eq!(shop.bulletin_models(2019).unwrap(), [(467, 1850)]);
+    assert!(shop.bulletin_models(2024).unwrap().is_empty());
+}
+
 /// Run by hand against a real shop file:
 /// `SHOP_FILE=data/build/shop/wenmar-open-shop-2026.10.12.sqlite3 cargo test --release -p wenmar-shopdata --features sqlite --test bulletins the_real_file_answers_quickly -- --ignored --nocapture`
 #[test]
