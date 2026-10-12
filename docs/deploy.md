@@ -275,7 +275,7 @@ The same holds for a deploy that changes the server and not the data. The `ETag`
 | `OPEN_GITHUB_API` | `https://api.github.com` | Where GitHub's API is. Change it only in tests. |
 | `RUST_LOG` | `info` | Log level. |
 
-With `OPEN_GITHUB_TOKEN` set the service makes one kind of outbound request: `POST {OPEN_GITHUB_API}/repos/{OPEN_GITHUB_REPO}/issues`. The token is the service's only secret. `config/deploy.yml` lists it under `env: secret:`, and `.kamal/secrets` fetches it with `bws`. At most 3 reports a minute are filed from one address, and 20 a minute in all.
+With `OPEN_GITHUB_TOKEN` set the service makes one kind of outbound request: `POST {OPEN_GITHUB_API}/repos/{OPEN_GITHUB_REPO}/issues`. The token is the service's only secret. `config/deploy.yml` lists it under `env: secret:`, and `.kamal/secrets` fetches it from Bitwarden Secrets Manager, where the secret must be named `OPEN_GITHUB_TOKEN`. At most 3 reports a minute are filed from one address, and 20 a minute in all.
 
 ## Limits that are not settings
 
