@@ -19,6 +19,7 @@ use crate::site::tools::target::source_links;
 use crate::site::{self, Page, jsonld, seo};
 use crate::state::AppState;
 
+mod diagnostics;
 mod fluids;
 
 /// The VIN the guides take apart: a 2023 Hyundai Kona. It is the example
@@ -589,7 +590,7 @@ pub const NOT_WRITTEN: &str = "This section has not been written yet.";
 
 /// Guides whose text is not written and approved. Nothing serves or lists
 /// them. A guide is published by moving its entry from here to [`GUIDES`].
-pub static DRAFTS: [Guide; 5] = [
+pub static DRAFTS: [Guide; 7] = [
     Guide {
         slug: "engine-oil-specifications",
         title: "Engine oil specifications explained",
@@ -624,6 +625,20 @@ pub static DRAFTS: [Guide; 5] = [
         description: "The refrigerants in vehicle air conditioning in plain words: which is used where, the fittings and oils that go with each, and the rules on handling them.",
         topic: Topic::Shop,
         doc: fluids::refrigerants,
+    },
+    Guide {
+        slug: "fuel-trims",
+        title: "How to read fuel trims",
+        description: "How to read short-term and long-term fuel trim on a scan tool: what the numbers mean, what is normal, and what a lean or a rich reading points to.",
+        topic: Topic::Shop,
+        doc: diagnostics::fuel_trims,
+    },
+    Guide {
+        slug: "readiness-monitors",
+        title: "OBD-II readiness monitors explained",
+        description: "What OBD-II readiness monitors are, which run all the time and which need a drive cycle, and what each one needs before it will run and report ready.",
+        topic: Topic::Shop,
+        doc: diagnostics::readiness_monitors,
     },
 ];
 
