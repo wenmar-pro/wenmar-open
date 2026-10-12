@@ -220,6 +220,8 @@ The same holds for a deploy that changes the server and not the data. The `ETag`
 | `OPEN_TRUSTED_PROXIES` | `0` | Reverse proxies in front that add to `X-Forwarded-For`. `1` in production. |
 | `OPEN_RATE_LIMIT` | `600` | Requests one address may make in a minute. |
 | `OPEN_CONNECTIONS` | `4` | Connection slots. Each holds two read-only connections to the data file, so `4` is eight. |
+| `OPEN_FEEDBACK_EMAIL` | none | Where "Report an error by email" sends mail. Unset: no email link is shown. |
+| `OPEN_GITHUB_REPO` | `wenmar-pro/wenmar-open` | The repository "Report an error on this page" opens an issue in, as `owner/name`. |
 | `RUST_LOG` | `info` | Log level. |
 
 ## Limits that are not settings
