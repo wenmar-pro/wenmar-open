@@ -8,13 +8,18 @@
 //! as if it were Latin-1, so a curly quote arrives as a control character
 //! (U+0092 for a right single quote); [`tidy`] puts the quote back.
 
+use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
 use anyhow::{Context, Result, bail};
+use wenmar_shopdata::{Dataset, DatasetEntry, licence};
 
+use crate::shop::build::ShapeContext;
 use crate::shop::matcher::NO_YEAR;
+use crate::shop::recalls::{self, RecallRecord, VehicleLine};
+use crate::sources::SourceRecord;
 
 /// The archives, in the order they are read.
 pub const FILES: [&str; 2] = ["FLAT_RCL_PRE_2010.zip", "FLAT_RCL_POST_2010.zip"];
@@ -322,6 +327,133 @@ pub fn parse(
         parse_reader(BufReader::new(entry), name, &mut counts, row)?;
     }
     Ok(counts)
+}
+
+/// The `source` column of a campaign from these files.
+pub const SOURCE: &str = "nhtsa";
+
+/// What separates the components and the part numbers of a campaign that
+/// has several.
+pub const COMPONENT_SEPARATOR: &str = "; ";
+pub const PART_SEPARATOR: &str = ", ";
+
+/// The first and last build date of one vehicle of a campaign.
+type Built = (Option<String>, Option<String>);
+
+/// A campaign gathered from its records.
+struct Campaign {
+    /// The first record. What a campaign says of itself is the same on
+    /// every one of its records.
+    first: NhtsaRecallRow,
+    /// Every component and part number its records name, each once, in
+    /// file order.
+    components: Vec<String>,
+    parts: Vec<String>,
+    /// Each make, model and year it lists, once, with its build dates.
+    vehicles: BTreeMap<(String, String, Option<i32>), Built>,
+}
+
+fn add_once(list: &mut Vec<String>, value: Option<&String>) {
+    if let Some(value) = value
+        && !list.contains(value)
+    {
+        list.push(value.clone());
+    }
+}
+
+/// The earlier of two dates, or whichever there is.
+fn earliest(left: Option<String>, right: Option<String>) -> Option<String> {
+    match (left, right) {
+        (Some(left), Some(right)) => Some(left.min(right)),
+        (left, right) => left.or(right),
+    }
+}
+
+/// The later of two dates, or whichever there is.
+fn latest(left: Option<String>, right: Option<String>) -> Option<String> {
+    match (left, right) {
+        (Some(left), Some(right)) => Some(left.max(right)),
+        (left, right) => left.or(right),
+    }
+}
+
+/// Builds the `recalls_us` dataset from the fetched `nhtsa-recalls`
+/// directory: one `recall` row for each vehicle campaign and one
+/// `recall_vehicle` row for each make, model and year it lists.
+pub fn shape(context: &mut ShapeContext<'_>, directory: &Path) -> Result<()> {
+    let as_of = SourceRecord::read(directory)?.as_of;
+    let mut campaigns: BTreeMap<String, Campaign> = BTreeMap::new();
+    parse(directory, &mut |row| {
+        let campaign = campaigns
+            .entry(row.campaign.clone())
+            .or_insert_with(|| Campaign {
+                first: row.clone(),
+                components: Vec::new(),
+                parts: Vec::new(),
+                vehicles: BTreeMap::new(),
+            });
+        add_once(&mut campaign.components, row.component.as_ref());
+        add_once(&mut campaign.parts, row.part_number.as_ref());
+        let built = campaign
+            .vehicles
+            .entry((row.make_text, row.model_text, row.year))
+            .or_default();
+        built.0 = earliest(built.0.take(), row.built_from);
+        built.1 = latest(built.1.take(), row.built_to);
+        Ok(())
+    })?;
+
+    recalls::create_tables(context.transaction)?;
+    for (number, campaign) in &campaigns {
+        let first = &campaign.first;
+        let component = campaign.components.join(COMPONENT_SEPARATOR);
+        let part_number = campaign.parts.join(PART_SEPARATOR);
+        let recall_id = recalls::insert_recall(
+            context.transaction,
+            &RecallRecord {
+                source: SOURCE,
+                campaign: number,
+                manufacturer: first.manufacturer.as_deref(),
+                report_date: first.report_date.as_deref(),
+                owner_notified: first.owner_notified.as_deref(),
+                component: (!component.is_empty()).then_some(component.as_str()),
+                summary_en: first.summary.as_deref(),
+                consequence_en: first.consequence.as_deref(),
+                remedy_en: first.remedy.as_deref(),
+                notes_en: first.notes.as_deref(),
+                mfr_campaign: first.mfr_campaign.as_deref(),
+                part_number: (!part_number.is_empty()).then_some(part_number.as_str()),
+                units: first.units,
+                do_not_drive: Some(first.do_not_drive),
+                park_outside: Some(first.park_outside),
+                ..RecallRecord::default()
+            },
+        )
+        .with_context(|| format!("storing campaign {number}"))?;
+        for ((make_text, model_text, year), (built_from, built_to)) in &campaign.vehicles {
+            recalls::insert_vehicle(
+                context.transaction,
+                context.matcher,
+                recall_id,
+                &VehicleLine {
+                    year: *year,
+                    make_text,
+                    model_text,
+                    built_from: built_from.as_deref(),
+                    built_to: built_to.as_deref(),
+                },
+            )?;
+        }
+    }
+    context.register(
+        Dataset::RecallsUs,
+        DatasetEntry {
+            as_of,
+            rows: campaigns.len() as u64,
+            licence: licence::PUBLIC_DOMAIN.to_owned(),
+            attribution: String::new(),
+        },
+    )
 }
 
 #[cfg(test)]

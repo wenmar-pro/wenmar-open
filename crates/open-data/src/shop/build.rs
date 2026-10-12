@@ -1,6 +1,6 @@
 //! Creates a shop file: one shape step per dataset given, then `meta`.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use rusqlite::{Connection, OpenFlags, OptionalExtension, Transaction};
@@ -20,7 +20,12 @@ pub struct ShopBuildInfo {
 /// The fetched sources to build from: one optional directory per source.
 /// A dataset whose source is not given is left out of the file.
 #[derive(Debug, Clone, Default)]
-pub struct ShopInputs {}
+pub struct ShopInputs {
+    /// `data/build/sources/nhtsa-recalls`.
+    pub nhtsa_recalls: Option<PathBuf>,
+    /// `data/build/sources/tc-recalls`.
+    pub tc_recalls: Option<PathBuf>,
+}
 
 /// What the finished file holds.
 #[derive(Debug, Clone)]
@@ -129,8 +134,16 @@ pub fn open_catalog(path: &Path) -> Result<(Connection, String)> {
 /// A plan that adds a dataset names its new field in the pattern below and
 /// adds one `if let Some(directory) = ... { module::shape(context, directory)?; }`.
 fn shape_all(context: &mut ShapeContext<'_>, inputs: &ShopInputs) -> Result<()> {
-    let ShopInputs {} = inputs;
-    let _ = context;
+    let ShopInputs {
+        nhtsa_recalls,
+        tc_recalls,
+    } = inputs;
+    if let Some(directory) = nhtsa_recalls {
+        crate::shop::nhtsa_recalls::shape(context, directory)?;
+    }
+    if let Some(directory) = tc_recalls {
+        crate::shop::tc_recalls::shape(context, directory)?;
+    }
     Ok(())
 }
 

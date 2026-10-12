@@ -5,11 +5,17 @@
 //! has one row for each year, make and model it lists. A comment may be
 //! quoted and run over several lines.
 
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs::File;
 use std::io;
 use std::path::Path;
 
 use anyhow::{Context, Result, bail};
+use wenmar_shopdata::{Dataset, DatasetEntry, licence};
+
+use crate::shop::build::ShapeContext;
+use crate::shop::recalls::{self, OGL_CANADA_ATTRIBUTION, RecallRecord, VehicleLine};
+use crate::sources::SourceRecord;
 
 /// The file, as `open-data fetch tc-recalls` saves it.
 pub const FILE: &str = "vrdb_full_monthly.csv";
@@ -268,6 +274,86 @@ pub fn parse(directory: &Path, row: &mut dyn FnMut(TcRecallRow) -> Result<()>) -
         )
     })?;
     parse_reader(io::BufReader::new(file), FILE, row)
+}
+
+/// The `source` column of a campaign from this file.
+pub const SOURCE: &str = "tc";
+
+/// A campaign gathered from its rows.
+struct Campaign {
+    /// The first kept row. What a campaign says of itself is the same on
+    /// every one of its rows.
+    first: TcRecallRow,
+    /// Each make, model and year it lists, once.
+    vehicles: BTreeSet<(String, String, Option<i32>)>,
+}
+
+/// Builds the `recalls_ca` dataset from the fetched `tc-recalls`
+/// directory: one `recall` row for each campaign with a kept row and one
+/// `recall_vehicle` row for each make, model and year it lists.
+pub fn shape(context: &mut ShapeContext<'_>, directory: &Path) -> Result<()> {
+    let as_of = SourceRecord::read(directory)?.as_of;
+    let mut campaigns: BTreeMap<String, Campaign> = BTreeMap::new();
+    parse(directory, &mut |row| {
+        let campaign = campaigns
+            .entry(row.campaign.clone())
+            .or_insert_with(|| Campaign {
+                first: row.clone(),
+                vehicles: BTreeSet::new(),
+            });
+        campaign
+            .vehicles
+            .insert((row.make_text, row.model_text, row.year));
+        Ok(())
+    })?;
+
+    recalls::create_tables(context.transaction)?;
+    for (number, campaign) in &campaigns {
+        let first = &campaign.first;
+        let recall_id = recalls::insert_recall(
+            context.transaction,
+            &RecallRecord {
+                source: SOURCE,
+                campaign: number,
+                report_date: first.recall_date.as_deref(),
+                component: first.system_en.as_deref(),
+                component_fr: first.system_fr.as_deref(),
+                notification: Some(first.notification_en.as_str())
+                    .filter(|kind| !kind.is_empty() && *kind != NOT_ENTERED),
+                notification_fr: Some(first.notification_fr.as_str())
+                    .filter(|kind| !kind.is_empty() && *kind != NOT_ENTERED_FR),
+                summary_en: first.comment_en.as_deref(),
+                summary_fr: first.comment_fr.as_deref(),
+                mfr_campaign: first.mfr_campaign.as_deref(),
+                units: first.units,
+                ..RecallRecord::default()
+            },
+        )
+        .with_context(|| format!("storing campaign {number}"))?;
+        for (make_text, model_text, year) in &campaign.vehicles {
+            recalls::insert_vehicle(
+                context.transaction,
+                context.matcher,
+                recall_id,
+                &VehicleLine {
+                    year: *year,
+                    make_text,
+                    model_text,
+                    built_from: None,
+                    built_to: None,
+                },
+            )?;
+        }
+    }
+    context.register(
+        Dataset::RecallsCa,
+        DatasetEntry {
+            as_of,
+            rows: campaigns.len() as u64,
+            licence: licence::OGL_CANADA.to_owned(),
+            attribution: OGL_CANADA_ATTRIBUTION.to_owned(),
+        },
+    )
 }
 
 #[cfg(test)]

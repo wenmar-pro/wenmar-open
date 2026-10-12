@@ -66,6 +66,12 @@ enum Command {
         /// Directory holding the curated files, such as shop/models.yaml.
         #[arg(long, default_value = "data")]
         curated: PathBuf,
+        /// The fetched nhtsa-recalls directory. Adds the recalls_us dataset.
+        #[arg(long)]
+        nhtsa_recalls: Option<PathBuf>,
+        /// The fetched tc-recalls directory. Adds the recalls_ca dataset.
+        #[arg(long)]
+        tc_recalls: Option<PathBuf>,
     },
     /// Decode one VIN against a data file and print the JSON.
     Decode {
@@ -251,6 +257,8 @@ fn main() -> Result<()> {
             out,
             data_version,
             curated,
+            nhtsa_recalls,
+            tc_recalls,
         } => {
             let built_at = now();
             let data_version = data_version.unwrap_or_else(|| {
@@ -264,7 +272,11 @@ fn main() -> Result<()> {
                 data_version,
                 built_at,
             };
-            let summary = build_shop(&catalog, &out, &curated, &info, &ShopInputs::default())?;
+            let inputs = ShopInputs {
+                nhtsa_recalls,
+                tc_recalls,
+            };
+            let summary = build_shop(&catalog, &out, &curated, &info, &inputs)?;
             println!(
                 "{}: shop data {}, matched against data {}, {} datasets",
                 out.display(),

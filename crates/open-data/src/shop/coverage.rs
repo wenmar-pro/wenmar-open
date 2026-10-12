@@ -43,7 +43,16 @@ pub struct CoverageTable {
 }
 
 /// Every dataset with vehicle rows. A plan that adds one adds an entry.
-pub const TABLES: &[CoverageTable] = &[];
+pub const TABLES: &[CoverageTable] = &[
+    CoverageTable {
+        dataset: Dataset::RecallsUs,
+        table: "(SELECT v.* FROM recall_vehicle v JOIN recall r ON r.id = v.recall_id WHERE r.source = 'nhtsa')",
+    },
+    CoverageTable {
+        dataset: Dataset::RecallsCa,
+        table: "(SELECT v.* FROM recall_vehicle v JOIN recall r ON r.id = v.recall_id WHERE r.source = 'tc')",
+    },
+];
 
 /// A name that matched no catalog model, and how many rows carry it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
