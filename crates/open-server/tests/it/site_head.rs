@@ -408,6 +408,11 @@ async fn reference_pages_lead_to_each_other_and_to_the_guides() {
         let main = main.split("</main>").next().unwrap();
         for link in main.split(r#"href=""#).skip(1) {
             let address = link.split('"').next().unwrap();
+            // A link off the site (the report-an-error links) is not this
+            // server's to answer.
+            if address.starts_with("https://") || address.starts_with("mailto:") {
+                continue;
+            }
             let status = app.get(address).await.status();
             assert_eq!(status, StatusCode::OK, "{path} links to {address}");
             followed += 1;

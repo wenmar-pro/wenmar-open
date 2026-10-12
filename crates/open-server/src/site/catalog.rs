@@ -15,7 +15,7 @@ use crate::api::types::{Entry, Make, Model};
 use crate::db::Worker;
 use crate::error::ApiError;
 use crate::site::markdown::{self, Format, escape};
-use crate::site::{self, Page, jsonld, seo};
+use crate::site::{self, Page, jsonld, report, seo};
 use crate::state::AppState;
 
 /// Most makes or models listed on one page, and most trims on a model year.
@@ -573,9 +573,10 @@ struct ModelYearPage {
     page: Page,
     view: ModelYearView,
     name: String,
+    report: report::ReportLinks,
 }
 
-fn model_year_markdown(view: &ModelYearView) -> String {
+fn model_year_markdown(view: &ModelYearView, report: &report::ReportLinks) -> String {
     let entry = &view.entry;
     let mut text = format!(
         "# {} {} {}\n\n",
@@ -659,6 +660,13 @@ fn model_year_markdown(view: &ModelYearView) -> String {
         "\nJSON: [/v1/vehicles/{id}](/v1/vehicles/{id})\n",
         id = entry.id
     ));
+    text.push_str(&format!(
+        "\n[Report an error on this page]({})\n",
+        report.issue
+    ));
+    if let Some(mail) = &report.mail {
+        text.push_str(&format!("[Report an error by email]({mail})\n"));
+    }
     text
 }
 
@@ -740,14 +748,15 @@ pub async fn model_year(
         "/makes/{}/{}/{}",
         view.make_slug, view.model_slug, view.entry.year
     );
-    if format == Format::Markdown {
-        let canonical = format!("{}{path}", state.config().base_url);
-        return markdown::response(model_year_markdown(&view), &canonical);
-    }
     let name = format!(
         "{} {} {}",
         view.entry.year, view.entry.make, view.entry.model
     );
+    let report = report::links(state.config(), &path, &name);
+    if format == Format::Markdown {
+        let canonical = format!("{}{path}", state.config().base_url);
+        return markdown::response(model_year_markdown(&view, &report), &canonical);
+    }
     let page = Page::new(
         &state,
         seo::title(&format!("{name} trims and engines")),
@@ -783,7 +792,15 @@ pub async fn model_year(
     } else {
         page
     };
-    site::html(StatusCode::OK, &ModelYearPage { page, view, name })
+    site::html(
+        StatusCode::OK,
+        &ModelYearPage {
+            page,
+            view,
+            name,
+            report,
+        },
+    )
 }
 
 #[cfg(test)]

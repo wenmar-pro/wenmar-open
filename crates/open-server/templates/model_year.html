@@ -54,5 +54,9 @@
 <ul class="plain links">
 <li><a href="/makes/{{ view.make_slug }}?year={{ view.entry.year }}">More {{ view.entry.make }} models for {{ view.entry.year }}</a></li>
 <li><a href="/">Decode a VIN</a></li>
+<li><a href="{{ report.issue }}">Report an error on this page</a></li>
+{% if let Some(mail) = report.mail -%}
+<li><a href="{{ mail }}">Report an error by email</a></li>
+{% endif -%}
 </ul>
 {% endblock %}

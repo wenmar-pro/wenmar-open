@@ -502,3 +502,58 @@ async fn a_list_that_is_cut_says_so() {
     let (_, html) = page(&app, "/makes/ford/f-150/2019").await;
     assert!(!html.contains("are shown."), "{html}");
 }
+
+#[tokio::test]
+async fn a_model_year_page_offers_a_report_in_both_forms() {
+    const ISSUE: &str = "https://github.com/wenmar-pro/wenmar-open/issues/new?template=data_correction.yml&title=Data%20correction%3A%202019%20Honda%20Civic&page=https%3A%2F%2Fopen.example%2Fmakes%2Fhonda%2Fcivic%2F2019&vehicle=2019%20Honda%20Civic";
+    let app = common::app().await;
+    let (_, html) = page(&app, "/makes/honda/civic/2019").await;
+    let link = format!(
+        r#"<li><a href="{}">Report an error on this page</a></li>"#,
+        ISSUE.replace('&', "&#38;")
+    );
+    assert!(html.contains(&link), "{html}");
+    assert!(!html.contains("mailto:"));
+    let text = markdown(&app, "/makes/honda/civic/2019.md").await;
+    assert!(
+        text.contains(&format!("\n[Report an error on this page]({ISSUE})\n")),
+        "{text}"
+    );
+    assert!(!text.contains("mailto:"));
+
+    let app = common::app_with(|config| {
+        config.feedback_email = Some("data@open.example".to_owned());
+    })
+    .await;
+    let (_, html) = page(&app, "/makes/honda/civic/2019").await;
+    assert!(
+        html.contains(r#"<li><a href="mailto:data@open.example?subject=Data%20correction%3A%202019%20Honda%20Civic&#38;body=Page%3A%20"#),
+        "{html}"
+    );
+    assert!(html.contains(">Report an error by email</a></li>"));
+    let text = markdown(&app, "/makes/honda/civic/2019.md").await;
+    assert!(
+        text.contains("\n[Report an error by email](mailto:data@open.example?subject="),
+        "{text}"
+    );
+    // A model whose name is markup: the name is encoded in the address.
+    for path in [
+        "/makes/b-b-script/model-img/2019",
+        "/makes/b-b-script/model-img/2019.md",
+    ] {
+        let (status, body) = page(&app, path).await;
+        assert_eq!(status, StatusCode::OK, "{path}");
+        if path.ends_with(".md") {
+            // Markdown puts a backslash before each angle bracket and
+            // parenthesis from the data, so the text is never markup.
+            assert!(body.contains(r"\<img src=x onerror=alert\(1\)\>"), "{path}");
+            assert!(!body.contains("<script>"), "{path}");
+        } else {
+            assert_no_injection(&body);
+        }
+        assert!(
+            body.contains("%3Cimg%20src%3Dx%20onerror%3Dalert%281%29%3E"),
+            "{path}"
+        );
+    }
+}
