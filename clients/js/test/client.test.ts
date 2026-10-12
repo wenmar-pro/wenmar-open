@@ -100,6 +100,36 @@ const calls: Record<string, { call: () => Promise<unknown>; method: string; url:
     method: "GET",
     url: `/v1/vin/${KONA}/recalls?country=ca&year=2023`,
   },
+  vehicle_fuel: {
+    call: () => client.fuel("2018_ford_f-150", { country: "ca" }),
+    method: "GET",
+    url: "/v1/vehicles/2018_ford_f-150/fuel?country=ca",
+  },
+  vin_fuel: {
+    call: () => client.vinFuel(KONA, { country: "us", year: 2023 }),
+    method: "GET",
+    url: `/v1/vin/${KONA}/fuel?country=us&year=2023`,
+  },
+  vehicle_specs: {
+    call: () => client.specs("2018_ford_f-150"),
+    method: "GET",
+    url: "/v1/vehicles/2018_ford_f-150/specs",
+  },
+  vin_specs: {
+    call: () => client.vinSpecs(KONA, { year: 2023 }),
+    method: "GET",
+    url: `/v1/vin/${KONA}/specs?year=2023`,
+  },
+  vehicle_fluids: {
+    call: () => client.fluids("2018_ford_f-150"),
+    method: "GET",
+    url: "/v1/vehicles/2018_ford_f-150/fluids",
+  },
+  vin_fluids: {
+    call: () => client.vinFluids(KONA),
+    method: "GET",
+    url: `/v1/vin/${KONA}/fluids`,
+  },
   recall_campaign: {
     call: () => client.recall("nhtsa", "19V888000"),
     method: "GET",

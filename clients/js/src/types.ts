@@ -35,6 +35,24 @@ export type RecallList = Schemas["RecallList"];
 export type Recall = Schemas["Recall"];
 /** Where one vehicle can be checked for recalls by VIN. */
 export type RecallLookup = Schemas["RecallLookup"];
+/** Fuel consumption ratings of one model year, from EPA and Natural Resources Canada. */
+export type VehicleFuel = Schemas["VehicleFuel"];
+/** Fuel consumption ratings for the vehicle a VIN decodes to. */
+export type VinFuel = Schemas["VinFuel"];
+/** One rating. `confidence` says how far it was matched: `model`, `engine` or `submodel`. */
+export type FuelRating = Schemas["FuelRating"];
+/** Specifications of one model year from EPA's files. */
+export type VehicleSpecs = Schemas["VehicleSpecs"];
+/** Specifications for the vehicle a VIN decodes to. */
+export type VinSpecs = Schemas["VinSpecs"];
+/** The specifications that come with one EPA rating. */
+export type Spec = Schemas["Spec"];
+/** The fluids of one model year. Today: the engine oil viscosity grade. */
+export type VehicleFluids = Schemas["VehicleFluids"];
+/** The fluids for the vehicle a VIN decodes to. */
+export type VinFluids = Schemas["VinFluids"];
+/** The oil grade a maker certified an engine with, per EPA. Not from the owner's manual. */
+export type EngineOil = Schemas["EngineOil"];
 /**
  * Everything held for one model year. A block the server has no data for is
  * `null`; `recalls` counts campaigns that may apply, never a lookup by VIN.
@@ -77,6 +95,9 @@ export type EnginesQuery = Query<"engines">;
 export type SearchQuery = Query<"search">;
 export type VehicleRecallsQuery = Query<"vehicle_recalls">;
 export type VinRecallsQuery = Query<"vin_recalls">;
+export type VehicleFuelQuery = Query<"vehicle_fuel">;
+export type VinFuelQuery = Query<"vin_fuel">;
+export type VinYearQuery = Query<"vin_specs">;
 export type RecallSearchQuery = Query<"recall_search">;
 export type VehicleInvestigationsQuery = Query<"vehicle_investigations">;
 export type RecentRecallsQuery = Query<"recent_recalls">;

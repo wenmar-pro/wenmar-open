@@ -282,6 +282,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vehicles/{id}/fluids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fluids of a model year. Today: the engine oil viscosity grade.
+         * @description The grade is the one the maker certified the engine with, as EPA's
+         *     Fuel Economy Guide records it. It is not read from the owner's manual,
+         *     and it gives no capacity and no specification. One entry per engine.
+         */
+        get: operations["vehicle_fluids"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vehicles/{id}/fuel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fuel consumption ratings of a model year.
+         * @description EPA's ratings and Natural Resources Canada's, each matched to the
+         *     model year. `confidence` says how far: `model`, `engine` or
+         *     `submodel`. `engine` is the catalog engine only when the match settled
+         *     one. `l_100km` and `mpg` (US gallons) are the same figures in two
+         *     units; both are null for a fuel not sold by the litre.
+         */
+        get: operations["vehicle_fuel"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vehicles/{id}/investigations": {
         parameters: {
             query?: never;
@@ -372,6 +418,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vehicles/{id}/specs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Specifications of a model year from EPA's files.
+         * @description One entry per EPA rating: transmission and gears, drive, recommended
+         *     fuel, forced induction, stop-start, cylinder deactivation, valves,
+         *     passenger and luggage volume, hybrid battery, and the emission
+         *     standards it was certified to. A field EPA does not give is null.
+         */
+        get: operations["vehicle_specs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vin/batch": {
         parameters: {
             query?: never;
@@ -412,6 +481,49 @@ export interface paths {
          *     warning says so.
          */
         get: operations["decode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vin/{vin}/fluids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fluids for the vehicle a VIN decodes to.
+         * @description When the decode settles the engine, `engine_oil` holds the one entry
+         *     of that engine, or none. Otherwise it holds every engine's.
+         */
+        get: operations["vin_fluids"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vin/{vin}/fuel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fuel consumption ratings for the vehicle a VIN decodes to.
+         * @description When the decode settles the engine, `engine_settled` is `true` and
+         *     `ratings` holds only the ratings matched to that engine. Otherwise it
+         *     holds every rating of the model year, as the vehicle route does.
+         */
+        get: operations["vin_fuel"];
         put?: never;
         post?: never;
         delete?: never;
@@ -466,6 +578,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vin/{vin}/specs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Specifications for the vehicle a VIN decodes to.
+         * @description Narrowed to the decoded engine when the decode settles it, as the
+         *     fuel route is.
+         */
+        get: operations["vin_specs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -497,6 +630,15 @@ export interface components {
              */
             expected: string;
             valid: boolean;
+        };
+        /** @description City, highway and combined consumption in litres per 100 km. */
+        Consumption: {
+            /** Format: double */
+            city?: number | null;
+            /** Format: double */
+            combined?: number | null;
+            /** Format: double */
+            highway?: number | null;
         };
         /** @description One dataset the server holds beside the catalog. */
         DatasetInfo: {
@@ -540,6 +682,38 @@ export interface components {
             model?: string | null;
             turbo?: boolean | null;
         };
+        /** @description The engine oil viscosity grade of one engine. */
+        EngineOil: {
+            /**
+             * @description The maker's own spellings the grades were read from.
+             * @example [
+             *       "5W30 GF-5"
+             *     ]
+             */
+            as_written: string[];
+            /**
+             * @description `engine` when the grade is for one catalog engine; `model` when
+             *     only the model year is known, and then `engine` is null.
+             */
+            confidence: string;
+            /** Format: int32 */
+            cylinders?: number | null;
+            /** Format: double */
+            displacement_l?: number | null;
+            engine?: null | components["schemas"]["EngineRef"];
+            /**
+             * @description Standard grades. More than one when the maker listed more than one.
+             * @example [
+             *       "5W-30"
+             *     ]
+             */
+            grades: string[];
+            /**
+             * @description Always `EPA fuel economy certification`: the grade the maker
+             *     certified with, not a reading of the owner's manual.
+             */
+            source: string;
+        };
         /** @description An engine in the engine step. */
         EngineOption: {
             /** @example 3-5l-turbo-v6 */
@@ -551,6 +725,21 @@ export interface components {
             /**
              * @description The characters in position 8 of a VIN that mean this engine and no
              *     other for this model year, where the data settles it.
+             */
+            vin8?: string | null;
+        };
+        /** @description A catalog engine of the model year. */
+        EngineRef: {
+            /**
+             * @description The engine's id form, as in a vehicle id.
+             * @example 2-7l-v6
+             */
+            id: string;
+            /** @example 2.7L V6 */
+            label: string;
+            /**
+             * @description The characters in position 8 of a VIN that mean this engine.
+             * @example P
              */
             vin8?: string | null;
         };
@@ -602,6 +791,85 @@ export interface components {
              * @example a VIN has 17 characters, this has 16
              */
             message: string;
+        };
+        /**
+         * @description The day each country's fuel ratings were current. Null for a country
+         *     this server holds no ratings for.
+         */
+        FuelAsOf: {
+            /** @example 2026-10-06 */
+            ca?: string | null;
+            /** @example 2026-09-29 */
+            us?: string | null;
+        };
+        /** @description One fuel consumption rating. */
+        FuelRating: {
+            /**
+             * Format: int32
+             * @description Tailpipe carbon dioxide, combined.
+             */
+            co2_g_km?: number | null;
+            /**
+             * @description How far the rating was matched: `model` (the model year only),
+             *     `engine` (one engine) or `submodel` (an engine and a trim).
+             * @example engine
+             */
+            confidence: string;
+            /**
+             * @description `us` or `ca`.
+             * @example us
+             */
+            country: string;
+            /** Format: int32 */
+            cylinders?: number | null;
+            /**
+             * @description The source's own name for the vehicle rated.
+             * @example F150 Pickup 2WD
+             */
+            described_as: string;
+            /** Format: double */
+            displacement_l?: number | null;
+            /** @example Rear-Wheel Drive */
+            drive?: string | null;
+            engine?: null | components["schemas"]["EngineRef"];
+            /**
+             * @description The fuel the figures are for, which is the recommended grade.
+             * @example Regular Gasoline
+             */
+            fuel_grade: string;
+            /**
+             * Format: double
+             * @description Combined electricity use.
+             */
+            kwh_100km?: number | null;
+            l_100km?: null | components["schemas"]["Consumption"];
+            /**
+             * @description How the model was found: `exact`, `base` or `curated`.
+             * @example exact
+             */
+            match: string;
+            mpg?: null | components["schemas"]["Mpg"];
+            /**
+             * Format: int32
+             * @description On a full battery.
+             */
+            range_km?: number | null;
+            /** Format: int32 */
+            range_mi?: number | null;
+            /** @description A second fuel the vehicle takes, such as `E85` or `Electricity`. */
+            second_fuel?: string | null;
+            /**
+             * @description `epa` or `nrcan`.
+             * @example epa
+             */
+            source: string;
+            /**
+             * @description EPA's id for the rating. Null for one from Natural Resources Canada.
+             * @example 39241
+             */
+            source_id?: string | null;
+            /** @example Automatic (S10) */
+            transmission?: string | null;
         };
         /**
          * @description One NHTSA defect investigation. An investigation is not a finding that a
@@ -804,6 +1072,15 @@ export interface components {
             may_apply: boolean;
             model: components["schemas"]["NamedId"];
             years: components["schemas"]["ModelYearSummary"][];
+        };
+        /** @description City, highway and combined economy in miles per US gallon. */
+        Mpg: {
+            /** Format: int32 */
+            city?: number | null;
+            /** Format: int32 */
+            combined?: number | null;
+            /** Format: int32 */
+            highway?: number | null;
         };
         /** @description A make or a model: its id form and its name. */
         NamedId: {
@@ -1435,6 +1712,90 @@ export interface components {
              */
             vehicle_id: string;
         };
+        /** @description The specifications that come with one EPA rating. */
+        Spec: {
+            /** @example Lithium Ion */
+            battery_type?: string | null;
+            /** Format: int32 */
+            battery_voltage?: number | null;
+            /** @description `model`, `engine` or `submodel`, as on a fuel rating. */
+            confidence: string;
+            cylinder_deactivation?: boolean | null;
+            /** @description The maker's name for it, such as `Active Fuel Management`. */
+            cylinder_deactivation_name?: string | null;
+            /** @example F150 Pickup 2WD */
+            described_as: string;
+            drive?: string | null;
+            /** @description EPA's kind of alternative powertrain: `Hybrid`, `Plug-in Hybrid`, `EV`, `FFV`, `Diesel`. */
+            electrification?: string | null;
+            emission_standards: components["schemas"]["SpecEmission"][];
+            engine?: null | components["schemas"]["EngineRef"];
+            ev_motor?: string | null;
+            /** Format: int32 */
+            exhaust_valves?: number | null;
+            /** @example Regular Gasoline */
+            fuel_grade: string;
+            /**
+             * @description Whether the grade is recommended or required, in EPA's words.
+             * @example Gasoline (Premium Unleaded Required)
+             */
+            fuel_usage?: string | null;
+            /** Format: int32 */
+            gears?: number | null;
+            /**
+             * Format: int32
+             * @description Per cylinder.
+             */
+            intake_valves?: number | null;
+            /** Format: int32 */
+            luggage_volume_ft3?: number | null;
+            /** Format: int32 */
+            luggage_volume_l?: number | null;
+            /** @description Rated motor power in kW, as EPA's file writes it: `135`, `8 and 30`. */
+            motor_kw?: string | null;
+            /** Format: int32 */
+            passenger_volume_ft3?: number | null;
+            /** Format: int32 */
+            passenger_volume_l?: number | null;
+            /** @example Standard Pickup Trucks 2WD */
+            size_class: string;
+            /** @example epa */
+            source: string;
+            /** @example 39241 */
+            source_id: string;
+            start_stop?: boolean | null;
+            supercharger: boolean;
+            transmission?: string | null;
+            /** @example Semi-Automatic */
+            transmission_type?: string | null;
+            turbo: boolean;
+            variable_valve_lift?: boolean | null;
+            variable_valve_timing?: boolean | null;
+        };
+        /** @description An emission standard a vehicle was certified to. */
+        SpecEmission: {
+            /**
+             * @description The engine family (test group).
+             * @example JFMXT02.73JK
+             */
+            engine_family: string;
+            /**
+             * Format: int32
+             * @description EPA's sales area code, a number. EPA's column list does not say
+             *     what each number means, so no name is given.
+             * @example 3
+             */
+            sales_area: number;
+            /**
+             * Format: int32
+             * @description EPA's smog rating, 1 (worst) to 10 (best).
+             */
+            smog_score?: number | null;
+            /** @example T3B70 */
+            standard: string;
+            /** @example Federal Tier 3 Bin 70 */
+            standard_text?: string | null;
+        };
         /** @description A submodel: a trim, or a series where the data has no trim. */
         Submodel: {
             /** @example ex-l */
@@ -1447,6 +1808,21 @@ export interface components {
             kind: string;
             /** @example EX-L */
             name: string;
+        };
+        /** @description The fluids of one model year. */
+        VehicleFluids: {
+            /** @example 2026-09-29 */
+            as_of?: string | null;
+            attribution: string[];
+            engine_oil: components["schemas"]["EngineOil"][];
+            vehicle: components["schemas"]["RecallVehicle"];
+        };
+        /** @description The fuel ratings of one model year. */
+        VehicleFuel: {
+            as_of: components["schemas"]["FuelAsOf"];
+            attribution: string[];
+            ratings: components["schemas"]["FuelRating"][];
+            vehicle: components["schemas"]["RecallVehicle"];
         };
         /** @description NHTSA investigations that list one model year. */
         VehicleInvestigations: {
@@ -1509,6 +1885,14 @@ export interface components {
             source_url: string;
             vehicle: components["schemas"]["RecallVehicle"];
         };
+        /** @description The specifications of one model year. */
+        VehicleSpecs: {
+            /** @example 2026-09-29 */
+            as_of?: string | null;
+            attribution: string[];
+            specs: components["schemas"]["Spec"][];
+            vehicle: components["schemas"]["RecallVehicle"];
+        };
         /** @description A decoded VIN. A field that could not be determined is left out. */
         VinDecode: {
             /**
@@ -1569,6 +1953,30 @@ export interface components {
              */
             year?: number | null;
         };
+        /** @description The fluids for the vehicle a VIN decodes to. */
+        VinFluids: {
+            as_of?: string | null;
+            attribution: string[];
+            decode: components["schemas"]["RecallDecode"];
+            engine?: null | components["schemas"]["EngineRef"];
+            engine_oil: components["schemas"]["EngineOil"][];
+            /** @description Whether `engine_oil` is narrowed to `engine`. */
+            engine_settled: boolean;
+            vehicle?: null | components["schemas"]["RecallVehicle"];
+            warnings: components["schemas"]["Warning"][];
+        };
+        /** @description The fuel ratings for the vehicle a VIN decodes to. */
+        VinFuel: {
+            as_of: components["schemas"]["FuelAsOf"];
+            attribution: string[];
+            decode: components["schemas"]["RecallDecode"];
+            engine?: null | components["schemas"]["EngineRef"];
+            /** @description Whether `ratings` is narrowed to `engine`. */
+            engine_settled: boolean;
+            ratings: components["schemas"]["FuelRating"][];
+            vehicle?: null | components["schemas"]["RecallVehicle"];
+            warnings: components["schemas"]["Warning"][];
+        };
         /**
          * @description What a batch decode says of recalls when `include=recalls` is asked:
          *     how many campaigns may apply to the model year the VIN decodes to.
@@ -1603,6 +2011,18 @@ export interface components {
              * @description The decode's warnings, and `no_catalog_vehicle` when the VIN names
              *     no model year to list recalls for.
              */
+            warnings: components["schemas"]["Warning"][];
+        };
+        /** @description The specifications for the vehicle a VIN decodes to. */
+        VinSpecs: {
+            as_of?: string | null;
+            attribution: string[];
+            decode: components["schemas"]["RecallDecode"];
+            engine?: null | components["schemas"]["EngineRef"];
+            /** @description Whether `specs` is narrowed to `engine`. */
+            engine_settled: boolean;
+            specs: components["schemas"]["Spec"][];
+            vehicle?: null | components["schemas"]["RecallVehicle"];
             warnings: components["schemas"]["Warning"][];
         };
         Warning: {
@@ -2265,6 +2685,91 @@ export interface operations {
             };
         };
     };
+    vehicle_fluids: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description A vehicle id.
+                 * @example 2018_ford_f-150
+                 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The engine oil grades, by engine. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleFluids"];
+                };
+            };
+            /** @description `not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no oil grades. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    vehicle_fuel: {
+        parameters: {
+            query?: {
+                /**
+                 * @description `us` for EPA's ratings, `ca` for Natural Resources Canada's.
+                 *     Leave out for both.
+                 */
+                country?: string;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description A vehicle id. Ratings are listed by year, make and model; a submodel or an engine in the id is set aside.
+                 * @example 2018_ford_f-150
+                 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The ratings, EPA's first, each by engine size. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleFuel"];
+                };
+            };
+            /** @description `validation_failed`: `country` is not `us` or `ca`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no fuel ratings, or none for the country asked for. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     vehicle_investigations: {
         parameters: {
             query?: {
@@ -2438,6 +2943,41 @@ export interface operations {
             };
         };
     };
+    vehicle_specs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description A vehicle id.
+                 * @example 2018_ford_f-150
+                 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The specifications, by engine size. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleSpecs"];
+                };
+            };
+            /** @description `not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no specifications. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     batch: {
         parameters: {
             query?: {
@@ -2564,6 +3104,102 @@ export interface operations {
             };
         };
     };
+    vin_fluids: {
+        parameters: {
+            query?: {
+                /** @description The model year, when the VIN's tenth character leaves two possible. */
+                year?: number;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description A 17-character VIN.
+                 * @example KM8K2CAB4PU001140
+                 */
+                vin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The engine oil grades. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VinFluids"];
+                };
+            };
+            /** @description `invalid_vin`, or `validation_failed` for `year`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no oil grades. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    vin_fuel: {
+        parameters: {
+            query?: {
+                /** @description `us` or `ca`. Leave out for both. */
+                country?: string;
+                /** @description The model year, when the VIN's tenth character leaves two possible. */
+                year?: number;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description A 17-character VIN.
+                 * @example KM8K2CAB4PU001140
+                 */
+                vin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The ratings. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VinFuel"];
+                };
+            };
+            /** @description `invalid_vin`, or `validation_failed` for `country` or `year`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no fuel ratings, or none for the country asked for. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     vin_overview: {
         parameters: {
             query?: {
@@ -2659,6 +3295,53 @@ export interface operations {
                 };
             };
             /** @description `not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no recalls, or none for the country asked for. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    vin_specs: {
+        parameters: {
+            query?: {
+                /** @description The model year, when the VIN's tenth character leaves two possible. */
+                year?: number;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description A 17-character VIN.
+                 * @example KM8K2CAB4PU001140
+                 */
+                vin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The specifications. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VinSpecs"];
+                };
+            };
+            /** @description `invalid_vin`, or `validation_failed` for `year`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no specifications. */
             404: {
                 headers: {
                     [name: string]: unknown;

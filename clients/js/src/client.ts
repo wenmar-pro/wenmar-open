@@ -22,14 +22,23 @@ import type {
   SearchQuery,
   Submodel,
   SubmodelsQuery,
+  VehicleFluids,
+  VehicleFuel,
+  VehicleFuelQuery,
   VehicleInvestigations,
   VehicleInvestigationsQuery,
   VehicleRecalls,
   VehicleRecallsQuery,
   VehicleSafety,
+  VehicleSpecs,
   VinDecode,
+  VinFluids,
+  VinFuel,
+  VinFuelQuery,
   VinRecalls,
   VinRecallsQuery,
+  VinSpecs,
+  VinYearQuery,
   YearsQuery,
 } from "./types.js";
 
@@ -251,6 +260,50 @@ export class WenmarOpen {
   /** Recall campaigns, newest first, narrowed by what is given. */
   async searchRecalls(query: RecallSearchQuery = {}, options: RequestOptions = {}): Promise<RecallList> {
     return this.#request("GET", `/v1/recalls${queryString(query)}`, undefined, options);
+  }
+
+  /**
+   * Fuel consumption ratings of a model year, from EPA and Natural Resources
+   * Canada. Each rating says how far it was matched in `confidence`, and
+   * names a catalog engine only when the match settled one.
+   */
+  async fuel(id: string, query: VehicleFuelQuery = {}, options: RequestOptions = {}): Promise<VehicleFuel> {
+    const path = `/v1/vehicles/${segment("id", id)}/fuel${queryString(query)}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /**
+   * Fuel consumption ratings for the vehicle a VIN decodes to: narrowed to
+   * its engine when `engine_settled` is `true`, the model year's otherwise.
+   */
+  async vinFuel(vin: string, query: VinFuelQuery = {}, options: RequestOptions = {}): Promise<VinFuel> {
+    const path = `/v1/vin/${segment("vin", vin)}/fuel${queryString(query)}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /** Specifications of a model year from EPA's files, one entry per rating. */
+  async specs(id: string, options: RequestOptions = {}): Promise<VehicleSpecs> {
+    return this.#request("GET", `/v1/vehicles/${segment("id", id)}/specs`, undefined, options);
+  }
+
+  /** Specifications for the vehicle a VIN decodes to. */
+  async vinSpecs(vin: string, query: VinYearQuery = {}, options: RequestOptions = {}): Promise<VinSpecs> {
+    const path = `/v1/vin/${segment("vin", vin)}/specs${queryString(query)}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /**
+   * Fluids of a model year. Today the engine oil viscosity grade the maker
+   * certified each engine with, per EPA: not a reading of the owner's manual.
+   */
+  async fluids(id: string, options: RequestOptions = {}): Promise<VehicleFluids> {
+    return this.#request("GET", `/v1/vehicles/${segment("id", id)}/fluids`, undefined, options);
+  }
+
+  /** Fluids for the vehicle a VIN decodes to: one engine's when the decode settles it. */
+  async vinFluids(vin: string, query: VinYearQuery = {}, options: RequestOptions = {}): Promise<VinFluids> {
+    const path = `/v1/vin/${segment("vin", vin)}/fluids${queryString(query)}`;
+    return this.#request("GET", path, undefined, options);
   }
 
   /**
