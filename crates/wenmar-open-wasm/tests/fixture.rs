@@ -44,18 +44,18 @@ fn check(name: &str, fresh: &str) {
 
 #[test]
 fn the_fixtures_of_the_npm_package_are_up_to_date() {
-    let connection = common::data();
+    let (connection, shop) = (common::data(), common::shop());
     let mut engine = wenmar_open_wasm::Engine::new();
     // Every statement that is run, with its rows: a database for tests that
-    // have no SQLite.
+    // have no SQLite. A statement for the shop file keeps its `db` mark.
     let mut recorded: Vec<Value> = Vec::new();
     let mut record = |statements: &[Value]| {
         for statement in statements {
-            let answered = json!({
-                "sql": statement["sql"],
-                "params": statement["params"],
-                "rows": common::rows(&connection, statement),
-            });
+            let mut answered = statement.clone();
+            answered["rows"] = match statement.get("db") {
+                None => common::rows(&connection, statement),
+                Some(_) => common::rows(&shop, statement),
+            };
             if !recorded.contains(&answered) {
                 recorded.push(answered);
             }
@@ -71,10 +71,30 @@ fn the_fixtures_of_the_npm_package_are_up_to_date() {
             json!({ "name": name, "op": op, "args": args, "steps": run.steps, "answer": run.answer })
         })
         .collect();
-    let cases = json!({ "current_year": common::YEAR, "cases": cases, "recorded": recorded });
+    // The questions about recalls, asked once the shop file is open too.
+    let open_shop = common::run_with_shop(&mut engine, &connection, &shop, "open_shop", json!({}));
+    record(&open_shop.statements);
+    let shop_cases: Vec<Value> = common::shop_cases()
+        .into_iter()
+        .map(|(name, op, args)| {
+            let run = common::run_with_shop(&mut engine, &connection, &shop, op, args.clone());
+            record(&run.statements);
+            json!({ "name": name, "op": op, "args": args, "steps": run.steps, "answer": run.answer })
+        })
+        .collect();
+    let cases = json!({
+        "current_year": common::YEAR,
+        "cases": cases,
+        "shop_cases": shop_cases,
+        "recorded": recorded,
+    });
     check(
         "offline.sql",
         &common::fixture_sql(wenmar_open_wasm::SCHEMA_VERSION),
+    );
+    check(
+        "offline-shop.sql",
+        &common::shop_fixture_sql(wenmar_open_wasm::SHOP_SCHEMA_VERSION, "2026.09"),
     );
     check(
         "offline-cases.json",

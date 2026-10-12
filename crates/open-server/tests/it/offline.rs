@@ -233,3 +233,274 @@ async fn the_offline_engine_answers_every_question_as_the_api_does() {
         }
     }
 }
+
+/// [`ask`] with a shop file: a statement marked `"db": "shop"` is run on
+/// `shop`, and its rows are sent back with the same mark.
+fn ask_with_shop(
+    engine: &mut Engine,
+    connection: &Connection,
+    shop: &Connection,
+    op: &str,
+    args: &Value,
+) -> Value {
+    let current_year = open_server::api::vin::current_year();
+    let mut answers: Vec<Value> = Vec::new();
+    for _ in 0..32 {
+        let request =
+            json!({ "op": op, "args": args, "current_year": current_year, "answers": answers });
+        let answer: Value = serde_json::from_str(&engine.call(&request.to_string())).unwrap();
+        let Some(need) = answer.get("need").and_then(Value::as_array) else {
+            return answer;
+        };
+        for statement in need {
+            let mut answered = statement.clone();
+            answered["rows"] = match statement.get("db").and_then(Value::as_str) {
+                None => rows(connection, statement),
+                Some("shop") => rows(shop, statement),
+                Some(other) => panic!("a statement for a database called {other}"),
+            };
+            answers.push(answered);
+        }
+    }
+    panic!("{op} did not finish");
+}
+
+/// The questions about recalls: the API's address, then the engine's
+/// operation and arguments.
+fn recall_questions() -> Vec<(&'static str, &'static str, Value)> {
+    vec![
+        (
+            "/v1/vehicles/2023_hyundai_kona/recalls",
+            "recalls_vehicle",
+            json!({ "id": "2023_hyundai_kona" }),
+        ),
+        (
+            "/v1/vehicles/2023_hyundai_kona_se/recalls?country=ca",
+            "recalls_vehicle",
+            json!({ "id": "2023_hyundai_kona_se", "country": "ca" }),
+        ),
+        (
+            "/v1/vehicles/2019_chevrolet_silverado/recalls?country=US",
+            "recalls_vehicle",
+            json!({ "id": "2019_chevrolet_silverado", "country": "US" }),
+        ),
+        (
+            "/v1/vehicles/2019_honda_civic/recalls",
+            "recalls_vehicle",
+            json!({ "id": "2019_honda_civic" }),
+        ),
+        (
+            "/v1/vehicles/2019_honda_nothing/recalls",
+            "recalls_vehicle",
+            json!({ "id": "2019_honda_nothing" }),
+        ),
+        (
+            "/v1/vehicles/2023_hyundai_kona/recalls?country=mx",
+            "recalls_vehicle",
+            json!({ "id": "2023_hyundai_kona", "country": "mx" }),
+        ),
+        (
+            "/v1/vin/KM8K2CAB4PU001140/recalls",
+            "recalls_vin",
+            json!({ "vin": common::KONA }),
+        ),
+        (
+            "/v1/vin/km8k2-cab4pu001140/recalls?year=2023&country=us",
+            "recalls_vin",
+            json!({ "vin": "km8k2-cab4pu001140", "year": 2023, "country": "us" }),
+        ),
+        (
+            "/v1/vin/KM8K2CAB0PU001140/recalls",
+            "recalls_vin",
+            json!({ "vin": common::KONA_BAD_CHECK }),
+        ),
+        (
+            "/v1/vin/1M8PDMPA9SP000001/recalls",
+            "recalls_vin",
+            json!({ "vin": common::COACH }),
+        ),
+        (
+            "/v1/vin/1A9100AA851881001/recalls",
+            "recalls_vin",
+            json!({ "vin": common::TRAILER }),
+        ),
+        (
+            "/v1/vin/ZZZK2CAB4PU001140/recalls",
+            "recalls_vin",
+            json!({ "vin": common::UNKNOWN }),
+        ),
+        (
+            "/v1/vin/KM8K2CAB4PUO01140/recalls",
+            "recalls_vin",
+            json!({ "vin": "KM8K2CAB4PUO01140" }),
+        ),
+        (
+            "/v1/vin/KM8K2CAB4PU001140/recalls?year=1900",
+            "recalls_vin",
+            json!({ "vin": common::KONA, "year": 1900 }),
+        ),
+        (
+            "/v1/recalls/nhtsa/19V888000",
+            "recall",
+            json!({ "source": "nhtsa", "campaign": "19V888000" }),
+        ),
+        (
+            "/v1/recalls/nhtsa/23v123000",
+            "recall",
+            json!({ "source": "nhtsa", "campaign": "23v123000" }),
+        ),
+        (
+            "/v1/recalls/tc/2023101",
+            "recall",
+            json!({ "source": "tc", "campaign": "2023101" }),
+        ),
+        (
+            "/v1/recalls/nhtsa/68V023000",
+            "recall",
+            json!({ "source": "nhtsa", "campaign": "68V023000" }),
+        ),
+        (
+            "/v1/recalls/nhtsa/19V600000",
+            "recall",
+            json!({ "source": "nhtsa", "campaign": "19V600000" }),
+        ),
+        (
+            "/v1/recalls/nhtsa/00V000000",
+            "recall",
+            json!({ "source": "nhtsa", "campaign": "00V000000" }),
+        ),
+        (
+            "/v1/recalls/epa/19V888000",
+            "recall",
+            json!({ "source": "epa", "campaign": "19V888000" }),
+        ),
+        ("/v1/recalls", "recalls_search", json!({})),
+        (
+            "/v1/recalls?limit=2",
+            "recalls_search",
+            json!({ "limit": 2 }),
+        ),
+        (
+            "/v1/recalls?limit=4&cursor=2022-11-20_2",
+            "recalls_search",
+            json!({ "limit": 4, "cursor": "2022-11-20_2" }),
+        ),
+        (
+            "/v1/recalls?make=hyundai&year=2023",
+            "recalls_search",
+            json!({ "make": "hyundai", "year": 2023 }),
+        ),
+        (
+            "/v1/recalls?make=chevy&model=silverado&country=ca",
+            "recalls_search",
+            json!({ "make": "chevy", "model": "silverado", "country": "ca" }),
+        ),
+        (
+            "/v1/recalls?q=wiring%20harness&component=electrical",
+            "recalls_search",
+            json!({ "q": "wiring harness", "component": "electrical" }),
+        ),
+        (
+            "/v1/recalls?make=delorean",
+            "recalls_search",
+            json!({ "make": "delorean" }),
+        ),
+        (
+            "/v1/recalls?model=kona",
+            "recalls_search",
+            json!({ "model": "kona" }),
+        ),
+        (
+            "/v1/recalls?cursor=nonsense",
+            "recalls_search",
+            json!({ "cursor": "nonsense" }),
+        ),
+        (
+            "/v1/recalls?limit=0",
+            "recalls_search",
+            json!({ "limit": 0 }),
+        ),
+        ("/v1/meta", "meta", json!({})),
+    ]
+}
+
+/// The one thing the files cannot say: the maker's own lookup is compiled
+/// into the server. It is set aside before two answers are compared.
+fn without_maker(mut answer: Value) -> Value {
+    if let Some(lookup) = answer.get_mut("lookup").and_then(Value::as_object_mut) {
+        lookup.insert("maker".to_owned(), Value::Null);
+    }
+    answer
+}
+
+#[tokio::test]
+async fn the_offline_engine_answers_recall_questions_as_the_api_does() {
+    // The API says its pages are where the engine says they are.
+    let app = common::recalls_app_at(wenmar_shopdata::answer::SITE).await;
+    // The same rows the application was opened over, in two files.
+    let fixture = common::data_file();
+    common::add_shop_file(
+        &fixture,
+        wenmar_shopdata::schema::SCHEMA_VERSION,
+        "2026.09",
+        common::RECALL_DATASETS,
+        &common::recall_rows(),
+    );
+    let connection = Connection::open(fixture.path()).unwrap();
+    let shop = Connection::open(fixture.shop_path()).unwrap();
+    let mut engine = Engine::new();
+    let opened = ask(&mut engine, &connection, "open", &json!({}));
+    assert!(opened.get("ok").is_some(), "{opened}");
+    let opened = ask_with_shop(&mut engine, &connection, &shop, "open_shop", &json!({}));
+    assert!(opened.get("ok").is_some(), "{opened}");
+
+    for (path, op, args) in &recall_questions() {
+        let (status, served) = app.json(path).await;
+        let answer = ask_with_shop(&mut engine, &connection, &shop, op, args);
+        if status == StatusCode::OK {
+            assert_eq!(answer["ok"], without_maker(served.clone()), "{path}");
+            if *op != "meta" {
+                // Never more than "may apply", and always where to check.
+                assert_eq!(answer["ok"]["may_apply"], true, "{path}");
+                assert_eq!(answer["ok"]["lookup"]["nhtsa"], served["lookup"]["nhtsa"]);
+                assert_eq!(answer["ok"]["lookup"]["tc"], served["lookup"]["tc"]);
+            }
+        } else {
+            assert_eq!(json!({ "error": answer["error"] }), served, "{path}");
+            let code = answer["error"]["code"].as_str().unwrap();
+            let expected = match code {
+                "not_found" => StatusCode::NOT_FOUND,
+                _ => StatusCode::BAD_REQUEST,
+            };
+            assert_eq!(status, expected, "{path}");
+        }
+    }
+}
+
+#[tokio::test]
+async fn with_no_shop_file_the_engine_and_the_api_refuse_recall_questions_alike() {
+    let app = common::app().await;
+    let fixture = common::data_file();
+    let connection = Connection::open(fixture.path()).unwrap();
+    let mut engine = Engine::new();
+    let opened = ask(&mut engine, &connection, "open", &json!({}));
+    assert!(opened.get("ok").is_some(), "{opened}");
+    for (path, op, args) in &recall_questions() {
+        let (status, served) = app.json(path).await;
+        let answer = ask(&mut engine, &connection, op, args);
+        if *op == "meta" {
+            assert_eq!(answer["ok"], served, "{path}");
+            continue;
+        }
+        // 400 for a country that is not one; 404 `not_found` for a publisher
+        // that is not one; and otherwise 404 naming the dataset that is
+        // missing, whatever else is wrong with the question.
+        assert_eq!(json!({ "error": answer["error"] }), served, "{path}");
+        let code = answer["error"]["code"].as_str().unwrap();
+        let expected = match code {
+            "dataset_unavailable" | "not_found" => StatusCode::NOT_FOUND,
+            _ => StatusCode::BAD_REQUEST,
+        };
+        assert_eq!(status, expected, "{path}");
+    }
+}

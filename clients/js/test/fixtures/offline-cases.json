@@ -2302,6 +2302,1255 @@
       ],
       "rows": [],
       "sql": "\nSELECT id, slug, name, year_from, year_to FROM catalog_model\nWHERE make_id = ?1 AND slug = ?2"
+    },
+    {
+      "db": "shop",
+      "params": [],
+      "rows": [
+        [
+          "schema_version",
+          "1"
+        ],
+        [
+          "data_version",
+          "2026.10.12"
+        ],
+        [
+          "catalog_data_version",
+          "2026.09"
+        ],
+        [
+          "built_at",
+          "2026-10-12 06:00:00"
+        ],
+        [
+          "datasets",
+          "{\"recalls_us\":{\"as_of\":\"2026-10-11\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"recalls_ca\":{\"as_of\":\"2026-10-06\",\"rows\":1,\"licence\":\"ogl-canada\",\"attribution\":\"Contains information licensed under the Open Government Licence - Canada.\"}}"
+        ]
+      ],
+      "sql": "SELECT key, value FROM meta"
+    },
+    {
+      "params": [
+        498,
+        "kona"
+      ],
+      "rows": [
+        [
+          900,
+          "kona",
+          "Kona",
+          2022,
+          2023
+        ]
+      ],
+      "sql": "\nSELECT id, slug, name, year_from, year_to FROM catalog_model\nWHERE make_id = ?1 AND slug = ?2"
+    },
+    {
+      "params": [
+        498,
+        "kona",
+        2023
+      ],
+      "rows": [
+        [
+          900,
+          1
+        ]
+      ],
+      "sql": "\nSELECT md.id, v.light\nFROM catalog_model md\nJOIN catalog_vehicle v ON v.model_id = md.id\nWHERE md.make_id = ?1 AND md.slug = ?2 AND v.year = ?3"
+    },
+    {
+      "db": "shop",
+      "params": [
+        498,
+        900,
+        2023,
+        "nhtsa",
+        "tc"
+      ],
+      "rows": [
+        [
+          3,
+          "nhtsa",
+          "24V456000",
+          "2024-05-10",
+          "Hyundai Motor America",
+          "SERVICE BRAKES, HYDRAULIC",
+          "The brake control unit may fail.",
+          "257",
+          800,
+          1,
+          0,
+          null,
+          "base",
+          "KONA ELECTRIC",
+          null,
+          null
+        ],
+        [
+          4,
+          "tc",
+          "2023101",
+          "2023-03-10",
+          null,
+          "Electrical",
+          "Issue: a wiring harness may overheat.",
+          "240",
+          410,
+          null,
+          null,
+          "Safety Mfr",
+          "exact",
+          "KONA",
+          null,
+          null
+        ],
+        [
+          2,
+          "nhtsa",
+          "23V123000",
+          "2023-03-02",
+          "Hyundai Motor America",
+          "ELECTRICAL SYSTEM:WIRING",
+          "A wiring harness may overheat.",
+          "240",
+          5000,
+          0,
+          1,
+          null,
+          "exact",
+          "KONA",
+          "2022-09-01",
+          "2023-01-31"
+        ]
+      ],
+      "sql": "\nSELECT r.id, r.source, r.campaign, r.report_date, r.manufacturer, r.component, COALESCE(r.summary_en, r.notes_en), r.mfr_campaign, r.units, r.do_not_drive, r.park_outside, r.notification,\n       v.\"match\", v.model_text, v.built_from, v.built_to\nFROM recall_vehicle v\nJOIN recall r ON r.id = v.recall_id\nWHERE v.make_id = ?1 AND v.model_id = ?2 AND v.year = ?3 AND r.source IN (?4, ?5)\nORDER BY r.report_date DESC, r.id DESC, v.model_text"
+    },
+    {
+      "db": "shop",
+      "params": [
+        498,
+        900,
+        2023,
+        "tc",
+        "tc"
+      ],
+      "rows": [
+        [
+          4,
+          "tc",
+          "2023101",
+          "2023-03-10",
+          null,
+          "Electrical",
+          "Issue: a wiring harness may overheat.",
+          "240",
+          410,
+          null,
+          null,
+          "Safety Mfr",
+          "exact",
+          "KONA",
+          null,
+          null
+        ]
+      ],
+      "sql": "\nSELECT r.id, r.source, r.campaign, r.report_date, r.manufacturer, r.component, COALESCE(r.summary_en, r.notes_en), r.mfr_campaign, r.units, r.do_not_drive, r.park_outside, r.notification,\n       v.\"match\", v.model_text, v.built_from, v.built_to\nFROM recall_vehicle v\nJOIN recall r ON r.id = v.recall_id\nWHERE v.make_id = ?1 AND v.model_id = ?2 AND v.year = ?3 AND r.source IN (?4, ?5)\nORDER BY r.report_date DESC, r.id DESC, v.model_text"
+    },
+    {
+      "params": [
+        474,
+        "civic",
+        2019
+      ],
+      "rows": [
+        [
+          1863,
+          1
+        ]
+      ],
+      "sql": "\nSELECT md.id, v.light\nFROM catalog_model md\nJOIN catalog_vehicle v ON v.model_id = md.id\nWHERE md.make_id = ?1 AND md.slug = ?2 AND v.year = ?3"
+    },
+    {
+      "db": "shop",
+      "params": [
+        474,
+        1863,
+        2019,
+        "nhtsa",
+        "tc"
+      ],
+      "rows": [],
+      "sql": "\nSELECT r.id, r.source, r.campaign, r.report_date, r.manufacturer, r.component, COALESCE(r.summary_en, r.notes_en), r.mfr_campaign, r.units, r.do_not_drive, r.park_outside, r.notification,\n       v.\"match\", v.model_text, v.built_from, v.built_to\nFROM recall_vehicle v\nJOIN recall r ON r.id = v.recall_id\nWHERE v.make_id = ?1 AND v.model_id = ?2 AND v.year = ?3 AND r.source IN (?4, ?5)\nORDER BY r.report_date DESC, r.id DESC, v.model_text"
+    },
+    {
+      "db": "shop",
+      "params": [
+        "nhtsa",
+        "19V888000"
+      ],
+      "rows": [
+        [
+          1,
+          "nhtsa",
+          "19V888000",
+          "2019-12-12",
+          "General Motors LLC",
+          "ELECTRICAL SYSTEM:12V/24V/48V BATTERY:CABLES",
+          "The battery cable nut may be loose.",
+          "N192273510",
+          350371,
+          0,
+          0,
+          null,
+          "2020-03-09",
+          "A fire may start.",
+          "Dealers will tighten the nut.",
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "sql": "\nSELECT r.id, r.source, r.campaign, r.report_date, r.manufacturer, r.component, COALESCE(r.summary_en, r.notes_en), r.mfr_campaign, r.units, r.do_not_drive, r.park_outside, r.notification,\n       r.owner_notified, r.consequence_en, r.remedy_en, CASE WHEN r.summary_en IS NULL THEN NULL ELSE r.notes_en END, r.part_number, r.component_fr, r.notification_fr, r.summary_fr\nFROM recall r\nWHERE r.source = ?1 AND r.campaign = ?2"
+    },
+    {
+      "db": "shop",
+      "params": [
+        1
+      ],
+      "rows": [
+        [
+          2019,
+          467,
+          1850,
+          "CHEVROLET",
+          "SILVERADO 1500",
+          "base",
+          "2018-07-11",
+          "2019-11-22"
+        ],
+        [
+          2019,
+          null,
+          null,
+          "GMC",
+          "SIERRA 1500",
+          null,
+          null,
+          null
+        ]
+      ],
+      "sql": "\nSELECT year, make_id, model_id, make_text, model_text, \"match\", built_from, built_to\nFROM recall_vehicle\nWHERE recall_id = ?1\nORDER BY make_text, model_text, year, model_id"
+    },
+    {
+      "params": [],
+      "rows": [
+        [
+          1850,
+          "chevrolet",
+          "silverado",
+          1
+        ]
+      ],
+      "sql": "SELECT md.id, mk.slug, md.slug, md.light FROM catalog_model md JOIN catalog_make mk ON mk.id = md.make_id WHERE md.id IN (1850)"
+    },
+    {
+      "db": "shop",
+      "params": [
+        "tc",
+        "2023101"
+      ],
+      "rows": [
+        [
+          4,
+          "tc",
+          "2023101",
+          "2023-03-10",
+          null,
+          "Electrical",
+          "Issue: a wiring harness may overheat.",
+          "240",
+          410,
+          null,
+          null,
+          "Safety Mfr",
+          null,
+          null,
+          null,
+          null,
+          null,
+          "Circuit electrique",
+          "Securite - fabricant",
+          "Un faisceau peut surchauffer."
+        ]
+      ],
+      "sql": "\nSELECT r.id, r.source, r.campaign, r.report_date, r.manufacturer, r.component, COALESCE(r.summary_en, r.notes_en), r.mfr_campaign, r.units, r.do_not_drive, r.park_outside, r.notification,\n       r.owner_notified, r.consequence_en, r.remedy_en, CASE WHEN r.summary_en IS NULL THEN NULL ELSE r.notes_en END, r.part_number, r.component_fr, r.notification_fr, r.summary_fr\nFROM recall r\nWHERE r.source = ?1 AND r.campaign = ?2"
+    },
+    {
+      "db": "shop",
+      "params": [
+        4
+      ],
+      "rows": [
+        [
+          2023,
+          498,
+          900,
+          "HYUNDAI",
+          "KONA",
+          "exact",
+          null,
+          null
+        ]
+      ],
+      "sql": "\nSELECT year, make_id, model_id, make_text, model_text, \"match\", built_from, built_to\nFROM recall_vehicle\nWHERE recall_id = ?1\nORDER BY make_text, model_text, year, model_id"
+    },
+    {
+      "params": [],
+      "rows": [
+        [
+          900,
+          "hyundai",
+          "kona",
+          1
+        ]
+      ],
+      "sql": "SELECT md.id, mk.slug, md.slug, md.light FROM catalog_model md JOIN catalog_make mk ON mk.id = md.make_id WHERE md.id IN (900)"
+    },
+    {
+      "db": "shop",
+      "params": [
+        "nhtsa",
+        "00V000000"
+      ],
+      "rows": [],
+      "sql": "\nSELECT r.id, r.source, r.campaign, r.report_date, r.manufacturer, r.component, COALESCE(r.summary_en, r.notes_en), r.mfr_campaign, r.units, r.do_not_drive, r.park_outside, r.notification,\n       r.owner_notified, r.consequence_en, r.remedy_en, CASE WHEN r.summary_en IS NULL THEN NULL ELSE r.notes_en END, r.part_number, r.component_fr, r.notification_fr, r.summary_fr\nFROM recall r\nWHERE r.source = ?1 AND r.campaign = ?2"
+    },
+    {
+      "db": "shop",
+      "params": [
+        "nhtsa",
+        "tc",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        4
+      ],
+      "rows": [
+        [
+          3,
+          "nhtsa",
+          "24V456000",
+          "2024-05-10",
+          "Hyundai Motor America",
+          "SERVICE BRAKES, HYDRAULIC",
+          "The brake control unit may fail.",
+          "257",
+          800,
+          1,
+          0,
+          null
+        ],
+        [
+          4,
+          "tc",
+          "2023101",
+          "2023-03-10",
+          null,
+          "Electrical",
+          "Issue: a wiring harness may overheat.",
+          "240",
+          410,
+          null,
+          null,
+          "Safety Mfr"
+        ],
+        [
+          2,
+          "nhtsa",
+          "23V123000",
+          "2023-03-02",
+          "Hyundai Motor America",
+          "ELECTRICAL SYSTEM:WIRING",
+          "A wiring harness may overheat.",
+          "240",
+          5000,
+          0,
+          1,
+          null
+        ],
+        [
+          1,
+          "nhtsa",
+          "19V888000",
+          "2019-12-12",
+          "General Motors LLC",
+          "ELECTRICAL SYSTEM:12V/24V/48V BATTERY:CABLES",
+          "The battery cable nut may be loose.",
+          "N192273510",
+          350371,
+          0,
+          0,
+          null
+        ]
+      ],
+      "sql": "\nSELECT r.id, r.source, r.campaign, r.report_date, r.manufacturer, r.component, COALESCE(r.summary_en, r.notes_en), r.mfr_campaign, r.units, r.do_not_drive, r.park_outside, r.notification\nFROM recall r\nWHERE +r.source IN (?1, ?2)\n  AND (?3 IS NULL OR r.component LIKE ?3 ESCAPE '\\')\n  AND (?4 IS NULL\n       OR r.campaign LIKE ?4 ESCAPE '\\'\n       OR r.mfr_campaign LIKE ?4 ESCAPE '\\'\n       OR r.manufacturer LIKE ?4 ESCAPE '\\'\n       OR r.component LIKE ?4 ESCAPE '\\'\n       OR r.summary_en LIKE ?4 ESCAPE '\\'\n       OR r.consequence_en LIKE ?4 ESCAPE '\\'\n       OR r.remedy_en LIKE ?4 ESCAPE '\\'\n       OR r.notes_en LIKE ?4 ESCAPE '\\'\n       OR EXISTS (SELECT 1 FROM recall_vehicle t\n                  WHERE t.recall_id = r.id\n                    AND (t.make_text LIKE ?4 ESCAPE '\\' OR t.model_text LIKE ?4 ESCAPE '\\')))\n  AND (?5 IS NULL OR r.report_date >= ?5)\n  AND ((?6 IS NULL AND ?7 IS NULL AND ?8 IS NULL)\n       OR EXISTS (SELECT 1 FROM recall_vehicle v\n                  WHERE v.recall_id = r.id\n                    AND (?6 IS NULL OR v.make_id = ?6)\n                    AND (?7 IS NULL OR v.model_id = ?7)\n                    AND (?8 IS NULL OR v.year = ?8)))\n  AND (?9 IS NULL\n       OR r.report_date < ?9\n       OR (r.report_date = ?9 AND r.id < ?10))\nORDER BY r.report_date DESC, r.id DESC\nLIMIT ?11"
+    },
+    {
+      "db": "shop",
+      "params": [
+        "nhtsa",
+        "tc",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "2023-03-02",
+        2,
+        4
+      ],
+      "rows": [
+        [
+          1,
+          "nhtsa",
+          "19V888000",
+          "2019-12-12",
+          "General Motors LLC",
+          "ELECTRICAL SYSTEM:12V/24V/48V BATTERY:CABLES",
+          "The battery cable nut may be loose.",
+          "N192273510",
+          350371,
+          0,
+          0,
+          null
+        ]
+      ],
+      "sql": "\nSELECT r.id, r.source, r.campaign, r.report_date, r.manufacturer, r.component, COALESCE(r.summary_en, r.notes_en), r.mfr_campaign, r.units, r.do_not_drive, r.park_outside, r.notification\nFROM recall r\nWHERE +r.source IN (?1, ?2)\n  AND (?3 IS NULL OR r.component LIKE ?3 ESCAPE '\\')\n  AND (?4 IS NULL\n       OR r.campaign LIKE ?4 ESCAPE '\\'\n       OR r.mfr_campaign LIKE ?4 ESCAPE '\\'\n       OR r.manufacturer LIKE ?4 ESCAPE '\\'\n       OR r.component LIKE ?4 ESCAPE '\\'\n       OR r.summary_en LIKE ?4 ESCAPE '\\'\n       OR r.consequence_en LIKE ?4 ESCAPE '\\'\n       OR r.remedy_en LIKE ?4 ESCAPE '\\'\n       OR r.notes_en LIKE ?4 ESCAPE '\\'\n       OR EXISTS (SELECT 1 FROM recall_vehicle t\n                  WHERE t.recall_id = r.id\n                    AND (t.make_text LIKE ?4 ESCAPE '\\' OR t.model_text LIKE ?4 ESCAPE '\\')))\n  AND (?5 IS NULL OR r.report_date >= ?5)\n  AND ((?6 IS NULL AND ?7 IS NULL AND ?8 IS NULL)\n       OR EXISTS (SELECT 1 FROM recall_vehicle v\n                  WHERE v.recall_id = r.id\n                    AND (?6 IS NULL OR v.make_id = ?6)\n                    AND (?7 IS NULL OR v.model_id = ?7)\n                    AND (?8 IS NULL OR v.year = ?8)))\n  AND (?9 IS NULL\n       OR r.report_date < ?9\n       OR (r.report_date = ?9 AND r.id < ?10))\nORDER BY r.report_date DESC, r.id DESC\nLIMIT ?11"
+    },
+    {
+      "db": "shop",
+      "params": [
+        "nhtsa",
+        "tc",
+        null,
+        "%wiring harness%",
+        null,
+        498,
+        null,
+        2023,
+        null,
+        null,
+        26
+      ],
+      "rows": [
+        [
+          4,
+          "tc",
+          "2023101",
+          "2023-03-10",
+          null,
+          "Electrical",
+          "Issue: a wiring harness may overheat.",
+          "240",
+          410,
+          null,
+          null,
+          "Safety Mfr"
+        ],
+        [
+          2,
+          "nhtsa",
+          "23V123000",
+          "2023-03-02",
+          "Hyundai Motor America",
+          "ELECTRICAL SYSTEM:WIRING",
+          "A wiring harness may overheat.",
+          "240",
+          5000,
+          0,
+          1,
+          null
+        ]
+      ],
+      "sql": "\nSELECT r.id, r.source, r.campaign, r.report_date, r.manufacturer, r.component, COALESCE(r.summary_en, r.notes_en), r.mfr_campaign, r.units, r.do_not_drive, r.park_outside, r.notification\nFROM recall r\nWHERE +r.source IN (?1, ?2)\n  AND (?3 IS NULL OR r.component LIKE ?3 ESCAPE '\\')\n  AND (?4 IS NULL\n       OR r.campaign LIKE ?4 ESCAPE '\\'\n       OR r.mfr_campaign LIKE ?4 ESCAPE '\\'\n       OR r.manufacturer LIKE ?4 ESCAPE '\\'\n       OR r.component LIKE ?4 ESCAPE '\\'\n       OR r.summary_en LIKE ?4 ESCAPE '\\'\n       OR r.consequence_en LIKE ?4 ESCAPE '\\'\n       OR r.remedy_en LIKE ?4 ESCAPE '\\'\n       OR r.notes_en LIKE ?4 ESCAPE '\\'\n       OR EXISTS (SELECT 1 FROM recall_vehicle t\n                  WHERE t.recall_id = r.id\n                    AND (t.make_text LIKE ?4 ESCAPE '\\' OR t.model_text LIKE ?4 ESCAPE '\\')))\n  AND (?5 IS NULL OR r.report_date >= ?5)\n  AND ((?6 IS NULL AND ?7 IS NULL AND ?8 IS NULL)\n       OR EXISTS (SELECT 1 FROM recall_vehicle v\n                  WHERE v.recall_id = r.id\n                    AND (?6 IS NULL OR v.make_id = ?6)\n                    AND (?7 IS NULL OR v.model_id = ?7)\n                    AND (?8 IS NULL OR v.year = ?8)))\n  AND (?9 IS NULL\n       OR r.report_date < ?9\n       OR (r.report_date = ?9 AND r.id < ?10))\nORDER BY r.report_date DESC, r.id DESC\nLIMIT ?11"
+    }
+  ],
+  "shop_cases": [
+    {
+      "answer": {
+        "ok": {
+          "as_of": {
+            "ca": "2026-10-06",
+            "us": "2026-10-11"
+          },
+          "attribution": [
+            "Contains information licensed under the Open Government Licence - Canada."
+          ],
+          "lookup": {
+            "maker": null,
+            "nhtsa": "https://www.nhtsa.gov/recalls",
+            "tc": "https://wwwapps.tc.gc.ca/Saf-Sec-Sur/7/VRDB-BDRV/search-recherche/menu.aspx?lang=eng"
+          },
+          "may_apply": true,
+          "recalls": [
+            {
+              "built_from": null,
+              "built_to": null,
+              "campaign": "24V456000",
+              "component": "SERVICE BRAKES, HYDRAULIC",
+              "country": "us",
+              "date": "2024-05-10",
+              "do_not_drive": true,
+              "manufacturer": "Hyundai Motor America",
+              "match": "base",
+              "mfr_campaign": "257",
+              "models": [
+                "KONA ELECTRIC"
+              ],
+              "notification": null,
+              "park_outside": false,
+              "source": "nhtsa",
+              "summary": "The brake control unit may fail.",
+              "units": 800,
+              "url": "https://open.wenmarpro.com/recalls/nhtsa/24V456000"
+            },
+            {
+              "built_from": null,
+              "built_to": null,
+              "campaign": "2023101",
+              "component": "Electrical",
+              "country": "ca",
+              "date": "2023-03-10",
+              "do_not_drive": null,
+              "manufacturer": null,
+              "match": "exact",
+              "mfr_campaign": "240",
+              "models": [
+                "KONA"
+              ],
+              "notification": "Safety Mfr",
+              "park_outside": null,
+              "source": "tc",
+              "summary": "Issue: a wiring harness may overheat.",
+              "units": 410,
+              "url": "https://open.wenmarpro.com/recalls/tc/2023101"
+            },
+            {
+              "built_from": "2022-09-01",
+              "built_to": "2023-01-31",
+              "campaign": "23V123000",
+              "component": "ELECTRICAL SYSTEM:WIRING",
+              "country": "us",
+              "date": "2023-03-02",
+              "do_not_drive": false,
+              "manufacturer": "Hyundai Motor America",
+              "match": "exact",
+              "mfr_campaign": "240",
+              "models": [
+                "KONA"
+              ],
+              "notification": null,
+              "park_outside": true,
+              "source": "nhtsa",
+              "summary": "A wiring harness may overheat.",
+              "units": 5000,
+              "url": "https://open.wenmarpro.com/recalls/nhtsa/23V123000"
+            }
+          ],
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          }
+        }
+      },
+      "args": {
+        "id": "2023_hyundai_kona"
+      },
+      "name": "recalls of a model year",
+      "op": "recalls_vehicle",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": {
+            "ca": "2026-10-06",
+            "us": "2026-10-11"
+          },
+          "attribution": [
+            "Contains information licensed under the Open Government Licence - Canada."
+          ],
+          "lookup": {
+            "maker": null,
+            "nhtsa": "https://www.nhtsa.gov/recalls",
+            "tc": "https://wwwapps.tc.gc.ca/Saf-Sec-Sur/7/VRDB-BDRV/search-recherche/menu.aspx?lang=eng"
+          },
+          "may_apply": true,
+          "recalls": [
+            {
+              "built_from": null,
+              "built_to": null,
+              "campaign": "2023101",
+              "component": "Electrical",
+              "country": "ca",
+              "date": "2023-03-10",
+              "do_not_drive": null,
+              "manufacturer": null,
+              "match": "exact",
+              "mfr_campaign": "240",
+              "models": [
+                "KONA"
+              ],
+              "notification": "Safety Mfr",
+              "park_outside": null,
+              "source": "tc",
+              "summary": "Issue: a wiring harness may overheat.",
+              "units": 410,
+              "url": "https://open.wenmarpro.com/recalls/tc/2023101"
+            }
+          ],
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          }
+        }
+      },
+      "args": {
+        "country": "ca",
+        "id": "2023_hyundai_kona_se"
+      },
+      "name": "recalls of a model year, one country",
+      "op": "recalls_vehicle",
+      "steps": 5
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": {
+            "ca": "2026-10-06",
+            "us": "2026-10-11"
+          },
+          "attribution": [
+            "Contains information licensed under the Open Government Licence - Canada."
+          ],
+          "lookup": {
+            "maker": null,
+            "nhtsa": "https://www.nhtsa.gov/recalls",
+            "tc": "https://wwwapps.tc.gc.ca/Saf-Sec-Sur/7/VRDB-BDRV/search-recherche/menu.aspx?lang=eng"
+          },
+          "may_apply": true,
+          "recalls": [],
+          "vehicle": {
+            "id": "2019_honda_civic",
+            "make": "Honda",
+            "model": "Civic",
+            "year": 2019
+          }
+        }
+      },
+      "args": {
+        "id": "2019_honda_civic"
+      },
+      "name": "recalls of a model year, none",
+      "op": "recalls_vehicle",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "not_found",
+          "details": {},
+          "message": "No vehicle has that id."
+        }
+      },
+      "args": {
+        "id": "2019_honda_nothing"
+      },
+      "name": "recalls of a model year, unknown vehicle",
+      "op": "recalls_vehicle",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "validation_failed",
+          "details": {
+            "field": "country"
+          },
+          "message": "country must be us or ca"
+        }
+      },
+      "args": {
+        "country": "mx",
+        "id": "2023_hyundai_kona"
+      },
+      "name": "recalls of a model year, bad country",
+      "op": "recalls_vehicle",
+      "steps": 0
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": {
+            "ca": "2026-10-06",
+            "us": "2026-10-11"
+          },
+          "attribution": [
+            "Contains information licensed under the Open Government Licence - Canada."
+          ],
+          "decode": {
+            "make": "Hyundai",
+            "model": "Kona",
+            "trim": "SE",
+            "valid": true,
+            "vin": "KM8K2CAB4PU001140",
+            "year": 2023
+          },
+          "lookup": {
+            "maker": null,
+            "nhtsa": "https://www.nhtsa.gov/recalls",
+            "tc": "https://wwwapps.tc.gc.ca/Saf-Sec-Sur/7/VRDB-BDRV/search-recherche/menu.aspx?lang=eng"
+          },
+          "may_apply": true,
+          "recalls": [
+            {
+              "built_from": null,
+              "built_to": null,
+              "campaign": "24V456000",
+              "component": "SERVICE BRAKES, HYDRAULIC",
+              "country": "us",
+              "date": "2024-05-10",
+              "do_not_drive": true,
+              "manufacturer": "Hyundai Motor America",
+              "match": "base",
+              "mfr_campaign": "257",
+              "models": [
+                "KONA ELECTRIC"
+              ],
+              "notification": null,
+              "park_outside": false,
+              "source": "nhtsa",
+              "summary": "The brake control unit may fail.",
+              "units": 800,
+              "url": "https://open.wenmarpro.com/recalls/nhtsa/24V456000"
+            },
+            {
+              "built_from": null,
+              "built_to": null,
+              "campaign": "2023101",
+              "component": "Electrical",
+              "country": "ca",
+              "date": "2023-03-10",
+              "do_not_drive": null,
+              "manufacturer": null,
+              "match": "exact",
+              "mfr_campaign": "240",
+              "models": [
+                "KONA"
+              ],
+              "notification": "Safety Mfr",
+              "park_outside": null,
+              "source": "tc",
+              "summary": "Issue: a wiring harness may overheat.",
+              "units": 410,
+              "url": "https://open.wenmarpro.com/recalls/tc/2023101"
+            },
+            {
+              "built_from": "2022-09-01",
+              "built_to": "2023-01-31",
+              "campaign": "23V123000",
+              "component": "ELECTRICAL SYSTEM:WIRING",
+              "country": "us",
+              "date": "2023-03-02",
+              "do_not_drive": false,
+              "manufacturer": "Hyundai Motor America",
+              "match": "exact",
+              "mfr_campaign": "240",
+              "models": [
+                "KONA"
+              ],
+              "notification": null,
+              "park_outside": true,
+              "source": "nhtsa",
+              "summary": "A wiring harness may overheat.",
+              "units": 5000,
+              "url": "https://open.wenmarpro.com/recalls/nhtsa/23V123000"
+            }
+          ],
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          },
+          "warnings": []
+        }
+      },
+      "args": {
+        "vin": "KM8K2CAB4PU001140"
+      },
+      "name": "recalls of a VIN",
+      "op": "recalls_vin",
+      "steps": 8
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": {
+            "ca": "2026-10-06",
+            "us": "2026-10-11"
+          },
+          "attribution": [
+            "Contains information licensed under the Open Government Licence - Canada."
+          ],
+          "decode": {
+            "make": "MCI",
+            "model": "D-Series",
+            "trim": null,
+            "valid": true,
+            "vin": "1M8PDMPA1MP000001",
+            "year": 2021
+          },
+          "lookup": {
+            "maker": null,
+            "nhtsa": "https://www.nhtsa.gov/recalls",
+            "tc": "https://wwwapps.tc.gc.ca/Saf-Sec-Sur/7/VRDB-BDRV/search-recherche/menu.aspx?lang=eng"
+          },
+          "may_apply": true,
+          "recalls": [],
+          "vehicle": null,
+          "warnings": [
+            {
+              "code": "no_catalog_vehicle",
+              "message": "This VIN does not decode to a year, make and model in the catalog, so no recalls are listed for it. Check the VIN with the official lookups."
+            }
+          ]
+        }
+      },
+      "args": {
+        "vin": "1M8PDMPA1MP000001"
+      },
+      "name": "recalls of a VIN, no catalog vehicle",
+      "op": "recalls_vin",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "invalid_vin",
+          "details": {
+            "invalid_characters": [
+              {
+                "character": "O",
+                "position": 12
+              }
+            ],
+            "suggestions": [
+              "KM8K2CAB4PU001140"
+            ]
+          },
+          "message": "a VIN uses only digits and letters other than I, O and Q"
+        }
+      },
+      "args": {
+        "vin": "KM8K2CAB4PUO01140"
+      },
+      "name": "recalls of a VIN, illegal character",
+      "op": "recalls_vin",
+      "steps": 0
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-10-11",
+          "attribution": [],
+          "campaign": "19V888000",
+          "component": "ELECTRICAL SYSTEM:12V/24V/48V BATTERY:CABLES",
+          "consequence": "A fire may start.",
+          "country": "us",
+          "date": "2019-12-12",
+          "do_not_drive": false,
+          "french": null,
+          "lookup": {
+            "maker": null,
+            "nhtsa": "https://www.nhtsa.gov/recalls",
+            "tc": "https://wwwapps.tc.gc.ca/Saf-Sec-Sur/7/VRDB-BDRV/search-recherche/menu.aspx?lang=eng"
+          },
+          "manufacturer": "General Motors LLC",
+          "may_apply": true,
+          "mfr_campaign": "N192273510",
+          "notes": null,
+          "notification": null,
+          "owner_notified": "2020-03-09",
+          "park_outside": false,
+          "part_number": null,
+          "remedy": "Dealers will tighten the nut.",
+          "source": "nhtsa",
+          "summary": "The battery cable nut may be loose.",
+          "units": 350371,
+          "url": "https://open.wenmarpro.com/recalls/nhtsa/19V888000",
+          "vehicles": [
+            {
+              "built_from": "2018-07-11",
+              "built_to": "2019-11-22",
+              "make": "CHEVROLET",
+              "match": "base",
+              "model": "SILVERADO 1500",
+              "vehicle_id": "2019_chevrolet_silverado",
+              "year": 2019
+            },
+            {
+              "built_from": null,
+              "built_to": null,
+              "make": "GMC",
+              "match": null,
+              "model": "SIERRA 1500",
+              "vehicle_id": null,
+              "year": 2019
+            }
+          ]
+        }
+      },
+      "args": {
+        "campaign": "19V888000",
+        "source": "nhtsa"
+      },
+      "name": "recall campaign",
+      "op": "recall",
+      "steps": 3
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-10-06",
+          "attribution": [
+            "Contains information licensed under the Open Government Licence - Canada."
+          ],
+          "campaign": "2023101",
+          "component": "Electrical",
+          "consequence": null,
+          "country": "ca",
+          "date": "2023-03-10",
+          "do_not_drive": null,
+          "french": {
+            "component": "Circuit electrique",
+            "notification": "Securite - fabricant",
+            "summary": "Un faisceau peut surchauffer."
+          },
+          "lookup": {
+            "maker": null,
+            "nhtsa": "https://www.nhtsa.gov/recalls",
+            "tc": "https://wwwapps.tc.gc.ca/Saf-Sec-Sur/7/VRDB-BDRV/search-recherche/menu.aspx?lang=eng"
+          },
+          "manufacturer": null,
+          "may_apply": true,
+          "mfr_campaign": "240",
+          "notes": null,
+          "notification": "Safety Mfr",
+          "owner_notified": null,
+          "park_outside": null,
+          "part_number": null,
+          "remedy": null,
+          "source": "tc",
+          "summary": "Issue: a wiring harness may overheat.",
+          "units": 410,
+          "url": "https://open.wenmarpro.com/recalls/tc/2023101",
+          "vehicles": [
+            {
+              "built_from": null,
+              "built_to": null,
+              "make": "HYUNDAI",
+              "match": "exact",
+              "model": "KONA",
+              "vehicle_id": "2023_hyundai_kona",
+              "year": 2023
+            }
+          ]
+        }
+      },
+      "args": {
+        "campaign": "2023101",
+        "source": "tc"
+      },
+      "name": "recall campaign, Canadian",
+      "op": "recall",
+      "steps": 3
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "not_found",
+          "details": {},
+          "message": "No recall campaign has that number."
+        }
+      },
+      "args": {
+        "campaign": "00V000000",
+        "source": "nhtsa"
+      },
+      "name": "recall campaign, unknown",
+      "op": "recall",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": {
+            "ca": "2026-10-06",
+            "us": "2026-10-11"
+          },
+          "attribution": [
+            "Contains information licensed under the Open Government Licence - Canada."
+          ],
+          "lookup": {
+            "maker": null,
+            "nhtsa": "https://www.nhtsa.gov/recalls",
+            "tc": "https://wwwapps.tc.gc.ca/Saf-Sec-Sur/7/VRDB-BDRV/search-recherche/menu.aspx?lang=eng"
+          },
+          "may_apply": true,
+          "next_cursor": "2023-03-02_2",
+          "recalls": [
+            {
+              "built_from": null,
+              "built_to": null,
+              "campaign": "24V456000",
+              "component": "SERVICE BRAKES, HYDRAULIC",
+              "country": "us",
+              "date": "2024-05-10",
+              "do_not_drive": true,
+              "manufacturer": "Hyundai Motor America",
+              "match": null,
+              "mfr_campaign": "257",
+              "models": [],
+              "notification": null,
+              "park_outside": false,
+              "source": "nhtsa",
+              "summary": "The brake control unit may fail.",
+              "units": 800,
+              "url": "https://open.wenmarpro.com/recalls/nhtsa/24V456000"
+            },
+            {
+              "built_from": null,
+              "built_to": null,
+              "campaign": "2023101",
+              "component": "Electrical",
+              "country": "ca",
+              "date": "2023-03-10",
+              "do_not_drive": null,
+              "manufacturer": null,
+              "match": null,
+              "mfr_campaign": "240",
+              "models": [],
+              "notification": "Safety Mfr",
+              "park_outside": null,
+              "source": "tc",
+              "summary": "Issue: a wiring harness may overheat.",
+              "units": 410,
+              "url": "https://open.wenmarpro.com/recalls/tc/2023101"
+            },
+            {
+              "built_from": null,
+              "built_to": null,
+              "campaign": "23V123000",
+              "component": "ELECTRICAL SYSTEM:WIRING",
+              "country": "us",
+              "date": "2023-03-02",
+              "do_not_drive": false,
+              "manufacturer": "Hyundai Motor America",
+              "match": null,
+              "mfr_campaign": "240",
+              "models": [],
+              "notification": null,
+              "park_outside": true,
+              "source": "nhtsa",
+              "summary": "A wiring harness may overheat.",
+              "units": 5000,
+              "url": "https://open.wenmarpro.com/recalls/nhtsa/23V123000"
+            }
+          ]
+        }
+      },
+      "args": {
+        "limit": 3
+      },
+      "name": "recall list",
+      "op": "recalls_search",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": {
+            "ca": "2026-10-06",
+            "us": "2026-10-11"
+          },
+          "attribution": [
+            "Contains information licensed under the Open Government Licence - Canada."
+          ],
+          "lookup": {
+            "maker": null,
+            "nhtsa": "https://www.nhtsa.gov/recalls",
+            "tc": "https://wwwapps.tc.gc.ca/Saf-Sec-Sur/7/VRDB-BDRV/search-recherche/menu.aspx?lang=eng"
+          },
+          "may_apply": true,
+          "next_cursor": null,
+          "recalls": [
+            {
+              "built_from": null,
+              "built_to": null,
+              "campaign": "19V888000",
+              "component": "ELECTRICAL SYSTEM:12V/24V/48V BATTERY:CABLES",
+              "country": "us",
+              "date": "2019-12-12",
+              "do_not_drive": false,
+              "manufacturer": "General Motors LLC",
+              "match": null,
+              "mfr_campaign": "N192273510",
+              "models": [],
+              "notification": null,
+              "park_outside": false,
+              "source": "nhtsa",
+              "summary": "The battery cable nut may be loose.",
+              "units": 350371,
+              "url": "https://open.wenmarpro.com/recalls/nhtsa/19V888000"
+            }
+          ]
+        }
+      },
+      "args": {
+        "cursor": "2023-03-02_2",
+        "limit": 3
+      },
+      "name": "recall list, next page",
+      "op": "recalls_search",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": {
+            "ca": "2026-10-06",
+            "us": "2026-10-11"
+          },
+          "attribution": [
+            "Contains information licensed under the Open Government Licence - Canada."
+          ],
+          "lookup": {
+            "maker": null,
+            "nhtsa": "https://www.nhtsa.gov/recalls",
+            "tc": "https://wwwapps.tc.gc.ca/Saf-Sec-Sur/7/VRDB-BDRV/search-recherche/menu.aspx?lang=eng"
+          },
+          "may_apply": true,
+          "next_cursor": null,
+          "recalls": [
+            {
+              "built_from": null,
+              "built_to": null,
+              "campaign": "2023101",
+              "component": "Electrical",
+              "country": "ca",
+              "date": "2023-03-10",
+              "do_not_drive": null,
+              "manufacturer": null,
+              "match": null,
+              "mfr_campaign": "240",
+              "models": [],
+              "notification": "Safety Mfr",
+              "park_outside": null,
+              "source": "tc",
+              "summary": "Issue: a wiring harness may overheat.",
+              "units": 410,
+              "url": "https://open.wenmarpro.com/recalls/tc/2023101"
+            },
+            {
+              "built_from": null,
+              "built_to": null,
+              "campaign": "23V123000",
+              "component": "ELECTRICAL SYSTEM:WIRING",
+              "country": "us",
+              "date": "2023-03-02",
+              "do_not_drive": false,
+              "manufacturer": "Hyundai Motor America",
+              "match": null,
+              "mfr_campaign": "240",
+              "models": [],
+              "notification": null,
+              "park_outside": true,
+              "source": "nhtsa",
+              "summary": "A wiring harness may overheat.",
+              "units": 5000,
+              "url": "https://open.wenmarpro.com/recalls/nhtsa/23V123000"
+            }
+          ]
+        }
+      },
+      "args": {
+        "make": "hyundai",
+        "q": "wiring harness",
+        "year": 2023
+      },
+      "name": "recall list, narrowed",
+      "op": "recalls_search",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "validation_failed",
+          "details": {
+            "field": "make"
+          },
+          "message": "model needs make"
+        }
+      },
+      "args": {
+        "model": "kona"
+      },
+      "name": "recall list, model without make",
+      "op": "recalls_search",
+      "steps": 0
+    },
+    {
+      "answer": {
+        "ok": {
+          "built_at": "2026-10-01 04:25:57",
+          "data_version": "2026.09",
+          "datasets": {
+            "recalls_ca": {
+              "as_of": "2026-10-06",
+              "attribution": "Contains information licensed under the Open Government Licence - Canada.",
+              "licence": "ogl-canada",
+              "rows": 1
+            },
+            "recalls_us": {
+              "as_of": "2026-10-11",
+              "attribution": "",
+              "licence": "public-domain",
+              "rows": 3
+            }
+          },
+          "server_version": "0.2.0",
+          "vpic_release": "vPICList_lite_2026_09"
+        }
+      },
+      "args": {},
+      "name": "meta, with the shop file",
+      "op": "meta",
+      "steps": 0
     }
   ]
 }
