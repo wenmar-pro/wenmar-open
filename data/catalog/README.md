@@ -75,6 +75,41 @@ cargo run --release -p open-data -- catalog-parity --data data/build/wenmar-open
 
 Recording makes 144 requests to NHTSA's API, one a second. Read every difference before committing a new baseline.
 
+## Links to the makers' own pages
+
+A make in `makes.yaml` can carry links to the maker's own pages, and the maker's telephone line for customers. The make page and each model-year page of that make show them, and so do their Markdown versions and `GET /v1/makes/{make}`. The server compiles them in at build time (`crates/open-server/links_build.rs`); the data file does not hold them. A link that is not as described below stops `cargo build -p open-server`, and says which make and why.
+
+A person opens each maker's site and records what they find, in pull requests of at most ten makes each.
+
+### The record
+
+```yaml
+  - name: Honda
+    links_checked: "2026-10-12"
+    recall_lookup_url: https://...
+    manual_url: https://...
+    maintenance_url: https://...
+    service_info_url: https://...
+    parts_url: https://...
+    customer_line: "1-800-..."
+```
+
+Leave a field out when the maker has no such page. Never guess an address and never copy one from another site's list.
+
+### Checklist for each make
+
+- [ ] You opened every address yourself, today, in a browser, and it showed the page the field names.
+- [ ] Each address is on the maker's own domain (or its service-information or parts domain), starts with `https://`, and has no tracking parameters.
+- [ ] Each address is a page that lists or looks things up, not one PDF and not one model's page.
+- [ ] `manual_url` and `maintenance_url` can be read without signing in. If the maker shows them only after a sign-in or a VIN, record the page that asks, and say so in the pull request.
+- [ ] `service_info_url` is the maker's own site for repairers. Say in the pull request whether it sells short-term access; do not write prices in the file.
+- [ ] `recall_lookup_url` is the maker's own VIN lookup, not NHTSA's.
+- [ ] Where the maker has a United States and a Canadian site, you recorded the United States one.
+- [ ] `customer_line` is printed on the maker's own contact page, and is in quotes.
+- [ ] `links_checked` is today's date in quotes.
+- [ ] `bin/check` passes, and you looked at `/makes/<make>` and one of its model-year pages with `mise run serve`.
+- [ ] The pull request names, for each make, the page each address was found from. It is approved under the curated-data rule in `CONTRIBUTING.md`.
+
 ## Changing the lists
 
 A change to `makes.yaml`, `names.yaml` or `presets.yaml` takes effect at the next build. Renaming a submodel in `names.yaml` changes its id. The data file keeps each replaced spelling in `catalog_rename`, so a VIN whose decode still carries vPIC's spelling (`Si/Si HPT`) selects the submodel under its new name (`Si`).

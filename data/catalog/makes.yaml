@@ -4,6 +4,18 @@
 # name     How the make is shown. It is matched to vPIC's make without regard
 #          to case or punctuation, so "Rivian" finds vPIC's "RIVIAN".
 # aliases  Other things people type for this make.
+#
+# Links to the maker's own pages. All optional. Found and opened by a person;
+# see "Links to the makers' own pages" in README.md beside this file. The
+# server's build checks them and stops on a mistake.
+# links_checked      The day every link below was last opened, in quotes:
+#                    "2026-10-12". Required when any link is given.
+# recall_lookup_url  Where an owner types a VIN to see open recalls.
+# manual_url         The page that lists owner's manuals.
+# maintenance_url    The page that gives maintenance schedules.
+# service_info_url   The maker's service information site for repairers.
+# parts_url          The maker's parts catalogue.
+# customer_line      The maker's telephone line for customers, in quotes.
 makes:
   - name: Toyota
     aliases: [yota]
