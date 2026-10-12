@@ -56,7 +56,16 @@ fn recall_text(base: &str) -> (String, String, String) {
 /// where one address may make `limit` requests a minute. `recalls` says
 /// whether the server holds recall campaigns: what is said of them is left
 /// out of a server that would answer every recall route with 404.
-pub fn text(base: &str, data_version: &str, limit: u32, recalls: bool) -> String {
+/// `ratings` says whether it holds NHTSA's crash test ratings, and the
+/// address of those is left out in the same way.
+pub fn text(base: &str, data_version: &str, limit: u32, recalls: bool, ratings: bool) -> String {
+    let rating_api = if ratings {
+        format!(
+            "- [NHTSA's crash test ratings for a model year]({base}/v1/vehicles/2019_honda_civic/safety): `GET /v1/vehicles/{{id}}/safety`\n"
+        )
+    } else {
+        String::new()
+    };
     let (recall_prose, recall_api, recall_pages) = if recalls {
         recall_text(base)
     } else {
@@ -93,7 +102,7 @@ To decode a VIN, fetch `{base}/v1/vin/` followed by the VIN, and read the JSON. 
 
 Responses are plain JSON with no wrapper. Errors are `{{ \"error\": {{ \"code\", \"message\", \"details\" }} }}`. One address may make {limit} requests a minute; over that the answer is 429 with `Retry-After`. Fields and endpoints are only ever added.
 
-An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenmar_vin` (actions `decode`, `batch`, `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`) and `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`, `recent`). `wenmar_recalls` lists recalls by year, make and model and never looks a VIN up: confirm by VIN with the manufacturer.
+An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenmar_vin` (actions `decode`, `batch`, `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`, `safety`) and `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`, `recent`). `wenmar_recalls` lists recalls by year, make and model and never looks a VIN up: confirm by VIN with the manufacturer.
 
 The calculators under `{base}/tools` are web pages with forms, for people. An agent does the arithmetic itself: the Markdown version of each calculator states its formula and one worked example.
 
@@ -114,7 +123,7 @@ The calculators under `{base}/tools` are web pages with forms, for people. An ag
 - [Everything held for one model year]({base}/v1/vehicles/2019_honda_civic/overview): `GET /v1/vehicles/{{id}}/overview`
 - [Everything held for the vehicle a VIN decodes to]({base}/v1/vin/KM8K2CAB4PU001140/overview): `GET /v1/vin/{{vin}}/overview`
 - [Every model year of one model]({base}/v1/models/honda/civic): `GET /v1/models/{{make}}/{{model}}`
-{recall_api}- [Data version]({base}/v1/meta): `GET /v1/meta`
+{rating_api}{recall_api}- [Data version]({base}/v1/meta): `GET /v1/meta`
 
 ## Docs
 
@@ -197,12 +206,18 @@ pub fn holds_recalls(state: &AppState) -> bool {
     crate::api::recalls::recall_shop(state, None).is_ok()
 }
 
+/// Whether this server holds NHTSA's crash test ratings.
+pub fn holds_ratings(state: &AppState) -> bool {
+    state.dataset(wenmar_shopdata::Dataset::Ratings).is_ok()
+}
+
 pub async fn llms_txt(State(state): State<AppState>) -> Response {
     plain(text(
         &state.config().base_url,
         &state.db().meta().data_version,
         state.config().requests_per_minute,
         holds_recalls(&state),
+        holds_ratings(&state),
     ))
 }
 

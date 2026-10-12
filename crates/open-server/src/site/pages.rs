@@ -186,6 +186,26 @@ pub fn docs(state: &AppState) -> Doc {
             .unwrap_or(doc.sections.len());
         doc.sections.insert(before_errors, recalls);
     }
+    // Said only by a server that holds the ratings: without them the
+    // address below answers 404.
+    if crate::llms::holds_ratings(state) {
+        let ratings = with_code(
+            section(
+                "Crash test ratings",
+                &[
+                    "NHTSA's crash test ratings for a model year, from its New Car Assessment Program. NHTSA rates a vehicle by body style and drive, so the answer often has several ratings and their stars can differ: each says which vehicle it is for, in NHTSA's words, and none is picked for you. A rating with no stars is a vehicle NHTSA lists and has not tested.",
+                    "as_of is the day NHTSA's file was current. The same answer is the safety member of the overview of a vehicle. A server run without the ratings answers this address with 404 and the code dataset_unavailable.",
+                ],
+            ),
+            format!("curl {base}/v1/vehicles/2019_honda_civic/safety"),
+        );
+        let before_errors = doc
+            .sections
+            .iter()
+            .position(|section| section.heading == "Errors")
+            .unwrap_or(doc.sections.len());
+        doc.sections.insert(before_errors, ratings);
+    }
     doc
 }
 

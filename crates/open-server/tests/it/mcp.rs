@@ -1028,3 +1028,63 @@ async fn a_server_with_no_shop_file_still_answers_the_overview_actions() {
         "The recalls_us dataset is not available."
     );
 }
+
+#[tokio::test]
+async fn the_safety_action_gives_what_the_api_gives() {
+    let app = common::ratings_app().await;
+    for id in [
+        "2023_hyundai_kona",
+        "2023_hyundai_kona_se",
+        "2022_hyundai_kona",
+        "2019_ford_f-150",
+        "2019_honda_civic",
+    ] {
+        let result = call(
+            &app,
+            "wenmar_vehicles",
+            json!({ "action": "safety", "id": id }),
+        )
+        .await;
+        assert_eq!(result["isError"], false, "{id}");
+        let (status, served) = app.json(&format!("/v1/vehicles/{id}/safety")).await;
+        assert_eq!(status, StatusCode::OK, "{id}");
+        assert_eq!(text(&result), served, "{id}");
+        assert_eq!(result["structuredContent"], served, "{id}");
+    }
+    // What is wrong fails as the route does.
+    for (arguments, code) in [
+        (json!({ "action": "safety" }), "validation_failed"),
+        (
+            json!({ "action": "safety", "id": "2023_hyundai_nothing" }),
+            "not_found",
+        ),
+    ] {
+        let result = call(&app, "wenmar_vehicles", arguments.clone()).await;
+        assert_eq!(result["isError"], true, "{arguments}");
+        assert_eq!(
+            result["structuredContent"]["error"]["code"], code,
+            "{arguments}"
+        );
+    }
+    // A server without the ratings: with no shop file at all, and with the
+    // recalls alone. The tool's result is the API's own error.
+    for app in [common::app().await, common::recalls_app().await] {
+        let result = call(
+            &app,
+            "wenmar_vehicles",
+            json!({ "action": "safety", "id": "2023_hyundai_kona" }),
+        )
+        .await;
+        assert_eq!(result["isError"], true);
+        assert_eq!(
+            result["structuredContent"],
+            json!({
+                "error": {
+                    "code": "dataset_unavailable",
+                    "message": "The ratings dataset is not available.",
+                    "details": { "dataset": "ratings" }
+                }
+            })
+        );
+    }
+}

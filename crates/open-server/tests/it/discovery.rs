@@ -619,3 +619,48 @@ async fn the_docs_page_gives_the_overview_addresses_and_llms_txt_the_tools_actio
     assert!(text.contains("`entry`, `overview`, `model_years`"));
     assert!(text.contains("`campaign`, `search`, `recent`)"));
 }
+
+#[tokio::test]
+async fn a_server_with_the_crash_test_ratings_says_so_where_a_model_looks() {
+    let app = common::ratings_app().await;
+    let text = body_text(app.get("/llms.txt").await).await;
+    let address = "/v1/vehicles/2019_honda_civic/safety";
+    assert!(
+        text.contains(&format!(
+            "](https://open.example{address}): `GET /v1/vehicles/{{id}}/safety`"
+        )),
+        "{text}"
+    );
+    // The address listed answers, on this very server.
+    assert_eq!(app.get(address).await.status(), StatusCode::OK);
+    assert!(text.contains("`safety`) and `wenmar_recalls`"), "{text}");
+    // The ratings add a line, not a heading.
+    let sections = text.lines().filter(|line| line.starts_with("## ")).count();
+    assert_eq!(sections, 6);
+
+    let (_, docs) = page(&app, "/docs").await;
+    assert!(
+        docs.contains(r#"<h2 id="crash-test-ratings">Crash test ratings</h2>"#),
+        "{docs}"
+    );
+    assert!(docs.contains("curl https://open.example/v1/vehicles/2019_honda_civic/safety"));
+    // The section sits with the other routes, above the errors.
+    assert!(
+        docs.find(r#"<h2 id="crash-test-ratings">"#).unwrap()
+            < docs.find(r#"<h2 id="errors">"#).unwrap()
+    );
+    let full = body_text(app.get("/llms-full.txt").await).await;
+    assert!(full.contains("### Crash test ratings"), "{full}");
+
+    // A server without the ratings names the tool's action, which answers
+    // with an error a model can read, and gives no address.
+    for app in [common::app().await, common::recalls_app().await] {
+        let text = body_text(app.get("/llms.txt").await).await;
+        assert!(!text.contains("/safety"), "{text}");
+        assert!(text.contains("`safety`) and `wenmar_recalls`"), "{text}");
+        let (_, docs) = page(&app, "/docs").await;
+        assert!(!docs.contains(r#"<h2 id="crash-test-ratings">"#));
+        let full = body_text(app.get("/llms-full.txt").await).await;
+        assert!(!full.contains("### Crash test ratings"));
+    }
+}

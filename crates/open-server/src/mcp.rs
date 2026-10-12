@@ -141,6 +141,13 @@ async fn vehicles_tool(state: &AppState, action: &str, given: &Value) -> Result<
             };
             to_value(vehicles::entry_op(state, id).await?)
         }
+        "safety" => {
+            let lookup: Lookup = arguments(given)?;
+            let Some(id) = lookup.id else {
+                return Err(ApiError::validation("id is required for action=safety"));
+            };
+            to_value(crate::api::safety::vehicle_safety_op(state, id).await?)
+        }
         "overview" => {
             let lookup: Lookup = arguments(given)?;
             let Some(id) = lookup.id else {
@@ -158,7 +165,7 @@ async fn vehicles_tool(state: &AppState, action: &str, given: &Value) -> Result<
             to_value(overview::model_years_op(state, make, model).await?)
         }
         _ => Err(ApiError::validation(
-            "action must be years, makes, models, submodels, engines, search, entry, overview or model_years",
+            "action must be years, makes, models, submodels, engines, search, entry, overview, model_years or safety",
         )),
     }
 }
