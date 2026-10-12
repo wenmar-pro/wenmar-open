@@ -1,0 +1,13 @@
+{% if let Some(guides) = vin_guides -%}
+<h2 id="vin-guides">The manufacturer's VIN guide filed with NHTSA</h2>
+<p>{{ guides.what }}</p>
+<table class="prose">
+<caption>Newest filings</caption>
+<tbody>
+{% for line in guides.lines -%}
+<tr><th scope="row">{{ line.date }}</th><td><a href="{{ line.url }}">{{ line.manufacturer }}{% if !line.years.is_empty() %}, {{ line.years }}{% endif %}</a> <span class="note">Part 565 letter <span class="mono">{{ line.name }}</span>, on NHTSA's site</span></td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">{% if guides.total > guides.lines.len() %}The newest {{ guides.lines.len() }} of {{ guides.total }} filings are shown. {% endif %}The list is NHTSA's, as of {{ guides.as_of }}.</p>
+{% endif -%}

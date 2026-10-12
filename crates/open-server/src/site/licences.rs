@@ -90,6 +90,13 @@ pub const LICENCES: &[Licence] = &[
         licence_id: "public-domain",
         attribution: "None required. This site credits NHTSA.",
     },
+    Licence {
+        dataset: "Index of the VIN guides manufacturers file under 49 CFR Part 565",
+        source: "NHTSA vPIC, the GetParts list of manufacturer filings, https://vpic.nhtsa.dot.gov/api/",
+        licence: "Public domain (United States government work) for the index. The letters it links to belong to the manufacturers and are not copied.",
+        licence_id: "public-domain",
+        attribution: "None required. This site credits NHTSA and links only to its copies.",
+    },
 ];
 
 /// The row as `NOTICE.md` and the Markdown page write it.

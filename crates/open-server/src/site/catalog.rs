@@ -202,6 +202,8 @@ pub async fn makes_md(
 
 /// One make, with its models in one model year.
 pub struct MakeView {
+    /// `catalog_make.id`.
+    pub id: i64,
     pub slug: String,
     pub name: String,
     /// The year shown: the one asked for, or the newest the make has.
@@ -278,6 +280,7 @@ fn load_make(
         .collect();
     let (codes, codes_cut) = cut(found, MOST_CODES);
     Ok(Found::View(MakeView {
+        id: make.id,
         slug: make.slug.clone(),
         name: make.name.clone(),
         year,
@@ -296,6 +299,9 @@ struct MakePage {
     page: Page,
     view: MakeView,
     links: Option<links::LinkList>,
+    /// The manufacturers' Part 565 letters. `None` on a server that holds
+    /// no list of them, and for a make none reaches.
+    vin_guides: Option<site::vin_guides::Guides>,
 }
 
 fn make_markdown(view: &MakeView) -> String {
@@ -375,11 +381,15 @@ pub async fn make(
     };
     let path = format!("/makes/{}", view.slug);
     let links = links::for_make(&view.name).map(|found| found.list(&view.name));
+    let vin_guides = site::vin_guides::guides(&state, site::vin_guides::Of::Make(view.id)).await;
     if format == Format::Markdown {
         let canonical = format!("{}{path}", state.config().base_url);
         let mut text = make_markdown(&view);
         if let Some(list) = &links {
             text.push_str(&links::markdown(list));
+        }
+        if let Some(guides) = &vin_guides {
+            text.push_str(&site::vin_guides::markdown(guides));
         }
         return markdown::response(text, &canonical);
     }
@@ -428,7 +438,15 @@ pub async fn make(
         (false, _) => page,
     };
     let indexed = page.index;
-    let mut response = site::html(StatusCode::OK, &MakePage { page, view, links });
+    let mut response = site::html(
+        StatusCode::OK,
+        &MakePage {
+            page,
+            view,
+            links,
+            vin_guides,
+        },
+    );
     if !indexed {
         site::unindexed(&mut response);
     }

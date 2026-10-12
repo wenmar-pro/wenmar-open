@@ -26,6 +26,7 @@ Every dataset Wenmar Open serves, where it comes from, and what its licence asks
 | Vehicle defect investigations, United States | NHTSA investigations flat file, https://static.nhtsa.gov/odi/ffdd/inv/ | Public domain (United States government work) | None required. This site credits NHTSA. |
 | Recall remedy progress, United States | NHTSA recall quarterly and annual report flat files, https://static.nhtsa.gov/odi/ffdd/rcl/ | Public domain (United States government work) | None required. This site credits NHTSA. |
 | Crash test ratings, United States | NHTSA New Car Assessment Program, Safercar data file, https://static.nhtsa.gov/nhtsa/downloads/Safercar/Safercar_data.csv | Public domain (United States government work) | None required. This site credits NHTSA. |
+| Index of the VIN guides manufacturers file under 49 CFR Part 565 | NHTSA vPIC, the GetParts list of manufacturer filings, https://vpic.nhtsa.dot.gov/api/ | Public domain (United States government work) for the index. The letters it links to belong to the manufacturers and are not copied. | None required. This site credits NHTSA and links only to its copies. |
 <!-- Shop-data plans add one row per dataset above this line, and the same row in crates/open-server/src/site/licences.rs. -->
 
 ## Fonts

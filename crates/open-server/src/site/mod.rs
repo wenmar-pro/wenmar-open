@@ -23,6 +23,7 @@ pub mod seo;
 pub mod tokens;
 pub mod tools;
 pub mod vin;
+pub mod vin_guides;
 pub mod wmi;
 
 use askama::Template;

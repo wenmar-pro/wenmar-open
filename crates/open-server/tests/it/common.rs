@@ -733,6 +733,54 @@ pub async fn ratings_and_recalls_app() -> TestApp {
     .await
 }
 
+// ----- VIN guides -----
+
+/// The `datasets` value of the VIN guide fixture.
+pub const VIN_GUIDE_DATASETS: &str =
+    r#"{"vin_guides":{"as_of":"2026-10-12","rows":16,"licence":"public-domain","attribution":""}}"#;
+
+/// Sixteen filings against the small data file. The columns are those of
+/// `wenmar_shopdata::schema::VIN_GUIDES`, in order. Manufacturer 1 is
+/// Hyundai Motor Co, the manufacturer of code `KM8`, with twelve filings,
+/// and manufacturer 4 also builds Hyundais, with one. Manufacturer 2 is
+/// the trailer maker of code `1A9881`. Manufacturer 3 has a name that is
+/// HTML and builds the make whose name is HTML. Filing 15 has an address
+/// that is not NHTSA's copy of a filing, and must never be linked. The
+/// document ids in the addresses are made up.
+pub const VIN_GUIDE_INSERTS: &str = r#"
+INSERT INTO vin_guide VALUES
+  (1, '01-22-N11B-2001', 1, 'HYUNDAI MOTOR CO', '565', '1990-02-01', NULL, NULL, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000001'),
+  (2, 'ORG20002', 1, 'HYUNDAI MOTOR CO', '565', '2022-01-10', 2023, 2023, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000002'),
+  (3, 'ORG20003', 1, 'HYUNDAI MOTOR CO', '565', '2022-02-10', 2023, 2023, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000003'),
+  (4, 'ORG20004', 1, 'HYUNDAI MOTOR CO', '565', '2022-03-10', 2023, 2023, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000004'),
+  (5, 'ORG20005', 1, 'HYUNDAI MOTOR CO', '565', '2022-04-10', 2023, 2023, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000005'),
+  (6, 'ORG20006', 1, 'HYUNDAI MOTOR CO', '565', '2022-05-10', 2023, 2023, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000006'),
+  (7, 'ORG20007', 1, 'HYUNDAI MOTOR CO', '565', '2023-01-10', 2024, 2024, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000007'),
+  (8, 'ORG20008', 1, 'HYUNDAI MOTOR CO', '565', '2023-02-10', 2024, 2024, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000008'),
+  (9, 'ORG20009', 1, 'HYUNDAI MOTOR CO', '565', '2024-01-10', 2025, 2025, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000009'),
+  (10, 'ORG20010', 1, 'HYUNDAI MOTOR CO', '565', '2025-01-10', 2026, 2026, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000010'),
+  (11, 'ORG20011', 1, 'HYUNDAI MOTOR CO', '565', '2026-01-10', 2026, 2028, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000011'),
+  (12, 'ORG20012', 1, 'HYUNDAI MOTOR CO', '565', '2026-06-01', 2027, NULL, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000012'),
+  (13, 'ORG20013', 4, 'HYUNDAI MOTOR MANUFACTURING ALABAMA LLC (HMMA)', '565', '2026-03-03', 2027, 2027, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000013'),
+  (14, 'ORG20014', 2, 'RANGER TRAILER WORKS', '565', '2019-05-05', NULL, 2020, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000014'),
+  (15, 'ORG20015', 2, 'RANGER TRAILER WORKS', '565', '2020-05-05', NULL, NULL, 'https://example.com/"><script>alert(1)</script>'),
+  (16, '<b>Bold</b>', 3, 'B&B <script>alert(1)</script>', '565', '2019-08-01', NULL, NULL, 'https://vpic.nhtsa.dot.gov/mid/home/displayfile/00000000-0000-4000-8000-000000000016');
+INSERT INTO vin_guide_wmi VALUES ('KM8', 1), ('1A9881', 2);
+INSERT INTO vin_guide_make VALUES (498, 1), (498, 4), (5000, 2), (6000, 3);
+"#;
+
+/// The VIN guide tables and [`VIN_GUIDE_INSERTS`], as `rows` for
+/// [`app_with_shop`].
+pub fn vin_guide_rows() -> String {
+    format!("{}{VIN_GUIDE_INSERTS}", wenmar_shopdata::schema::VIN_GUIDES)
+}
+
+/// The application over the small data file and a shop file holding the
+/// VIN guide list.
+pub async fn vin_guides_app() -> TestApp {
+    app_with_shop(VIN_GUIDE_DATASETS, &vin_guide_rows()).await
+}
+
 // ----- helpers for the pages -----
 
 /// `GET`s a page and reads its body as text.

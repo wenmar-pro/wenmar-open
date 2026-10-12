@@ -49,6 +49,7 @@ mod site_seo;
 mod site_tire_size;
 mod site_tools;
 mod site_vin;
+mod site_vin_guides;
 mod site_wire_gauge;
 mod site_wmi;
 mod vin_rows;

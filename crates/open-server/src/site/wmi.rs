@@ -122,6 +122,9 @@ struct WmiPage {
     first: String,
     /// Positions 12 to 14, for a six-character code.
     rest: Option<String>,
+    /// The manufacturer's Part 565 letters. `None` on a server that holds
+    /// no list of them, and for a code none reaches.
+    vin_guides: Option<site::vin_guides::Guides>,
 }
 
 fn wmi_markdown(view: &WmiView) -> String {
@@ -183,9 +186,15 @@ pub async fn wmi(
         Err(error) => return site::failed(&state, &ApiError::from(error)),
     };
     let path = format!("/wmi/{code}");
+    let vin_guides =
+        site::vin_guides::guides(&state, site::vin_guides::Of::Wmi(code.clone())).await;
     if format == Format::Markdown {
         let canonical = format!("{}{path}", state.config().base_url);
-        return markdown::response(wmi_markdown(&view), &canonical);
+        let mut text = wmi_markdown(&view);
+        if let Some(guides) = &vin_guides {
+            text.push_str(&site::vin_guides::markdown(guides));
+        }
+        return markdown::response(text, &canonical);
     }
     let years = years(&view);
     let first = code.get(..3).unwrap_or(&code).to_owned();
@@ -245,6 +254,7 @@ pub async fn wmi(
             years,
             first,
             rest,
+            vin_guides,
         },
     )
 }
