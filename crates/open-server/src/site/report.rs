@@ -18,6 +18,8 @@ pub struct ReportLinks {
     pub issue: String,
     /// A `mailto:` address, filled in. `None` when no address is set.
     pub mail: Option<String>,
+    /// The form on this site, filled in. `None` when no token is set.
+    pub form: Option<String>,
 }
 
 /// Text made safe for a query string and for `mailto:`: every byte that is
@@ -58,7 +60,14 @@ pub fn links_to(config: &Config, page: &str, vehicle: &str) -> ReportLinks {
         );
         format!("mailto:{email}?subject={}&body={}", encode(&title), encode(&body))
     });
-    ReportLinks { issue, mail }
+    let form = config.github_token.as_ref().map(|_| {
+        format!(
+            "/feedback?page={}&vehicle={}",
+            encode(page),
+            encode(vehicle)
+        )
+    });
+    ReportLinks { issue, mail, form }
 }
 
 /// The links for the page at `path` on this site.

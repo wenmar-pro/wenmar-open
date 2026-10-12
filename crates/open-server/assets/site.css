@@ -51,6 +51,9 @@ form.vin button{min-height:56px;font-size:var(--section)}
 .status{color:var(--secondary);font-size:var(--small)}
 form.calc{gap:12px;margin-bottom:24px}
 form.calc input{font-family:inherit;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+textarea{font:inherit;color:inherit;width:100%;min-height:120px;border-radius:var(--radius);padding:8px 12px;background:var(--surface);border:1px solid var(--control)}
+form.feedback input{font-family:inherit;letter-spacing:0;text-transform:none}
+.trap{position:absolute;left:-999px}
 input[aria-invalid]{border-color:var(--warn-text);box-shadow:0 0 0 1px var(--warn-text)}
 .field .warning{margin:4px 0 0}
 .tier{display:grid;grid-template-columns:1em repeat(3,minmax(0,1fr));gap:0 8px;align-items:end}

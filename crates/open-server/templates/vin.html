@@ -33,7 +33,7 @@
 {% endif -%}
 <li><a href="/guides/how-to-read-a-vin">How to read a VIN</a></li>
 <li><a href="/">Decode another VIN</a></li>
-<li><a href="{{ report.issue }}">Report an error on this page</a></li>
+<li><a href="{% if let Some(form) = report.form %}{{ form }}{% else %}{{ report.issue }}{% endif %}">Report an error on this page</a></li>
 {% if let Some(mail) = report.mail -%}
 <li><a href="{{ mail }}">Report an error by email</a></li>
 {% endif -%}

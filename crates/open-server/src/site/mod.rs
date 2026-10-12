@@ -443,6 +443,7 @@ pub fn router() -> Router<AppState> {
         .route("/vin", get(home::vin_form))
         .route("/pick", get(home::pick))
         .route("/vin/{vin}", get(vin::result))
+        .route("/feedback", get(feedback::show).post(feedback::send))
         .route("/makes", get(catalog::makes))
         .route("/makes.md", get(catalog::makes_md))
         .route("/makes/{make}", get(catalog::make))

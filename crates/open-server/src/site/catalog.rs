@@ -662,7 +662,7 @@ fn model_year_markdown(view: &ModelYearView, report: &report::ReportLinks) -> St
     ));
     text.push_str(&format!(
         "\n[Report an error on this page]({})\n",
-        report.issue
+        report.form.as_ref().unwrap_or(&report.issue)
     ));
     if let Some(mail) = &report.mail {
         text.push_str(&format!("[Report an error by email]({mail})\n"));

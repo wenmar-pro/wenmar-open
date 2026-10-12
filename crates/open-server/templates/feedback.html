@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Report an error</h1>
+{% if let Some(error) = error -%}
+<p class="warning">{{ error }}</p>
+{% endif -%}
+{% if form_on -%}
+<p>Say what a page shows wrong. A person reads every report. Nothing changes by itself.</p>
+<p class="note">What you write is posted as a public issue on GitHub. Leave out names, licence plates and addresses, and give no more of a VIN than its first 11 characters.</p>
+<form class="feedback" action="/feedback" method="post">
+<label for="page">Page address</label>
+<input id="page" name="page" type="text" maxlength="300" autocomplete="off" value="{{ fields.page }}">
+<label for="vehicle">Vehicle</label>
+<input id="vehicle" name="vehicle" type="text" maxlength="300" autocomplete="off" value="{{ fields.vehicle }}">
+<label for="wrong">What is wrong</label>
+<textarea id="wrong" name="wrong" rows="5" maxlength="2000" required>{{ fields.wrong }}</textarea>
+<label for="correct">What it should be, and how you know</label>
+<textarea id="correct" name="correct" rows="5" maxlength="2000">{{ fields.correct }}</textarea>
+<div class="trap" aria-hidden="true">
+<label for="website">Leave this empty</label>
+<input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+</div>
+<button class="primary" type="submit">Send the report</button>
+</form>
+{% else -%}
+<p>Reports are taken on GitHub{% if report.mail.is_some() %} or by email{% endif %}. A person reads every one.</p>
+{% endif -%}
+<ul class="plain links">
+<li><a href="{{ report.issue }}">Report it on GitHub</a></li>
+{% if let Some(mail) = report.mail -%}
+<li><a href="{{ mail }}">Report it by email</a></li>
+{% endif -%}
+</ul>
+{% endblock %}

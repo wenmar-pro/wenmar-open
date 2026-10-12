@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Thank you</h1>
+<p>The report was sent. A person will read it.</p>
+{% if let Some(issue) = issue -%}
+<ul class="plain links">
+<li><a href="{{ issue }}">See the report on GitHub</a></li>
+</ul>
+{% endif -%}
+<p class="more"><a href="/">Back to the start</a></p>
+{% endblock %}
