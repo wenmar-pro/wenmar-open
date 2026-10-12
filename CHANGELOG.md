@@ -11,6 +11,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 ### Internal
 
 - A VIN decode already carried the rim diameter front and rear (`wheel_size_front`, `wheel_size_rear`, vPIC elements 119 and 120) and the tire-pressure monitor type (`safety.tpms`, element 168). Tests now hold them on the result page, in the API and in the command-line output, `safety.tpms` has a description in the OpenAPI document, and `docs/integrating.md` maps NHTSA's names to them.
+- New crate `wenmar-shopdata` (not published): reads the `meta` and `datasets` of a shop file, the second data file that will hold recalls and other datasets. It refuses a shop file of another schema version or one matched against a different core data file. Nothing uses it yet.
 
 ## [0.2.0] - 2026-10-10
 
