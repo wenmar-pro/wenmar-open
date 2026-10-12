@@ -10,6 +10,7 @@
 //! its form fields with the `parse` functions, calls one function for the
 //! calculation, and shows the values of the result with their `Display`.
 
+pub mod battery_soc;
 pub mod chart;
 mod decimal;
 pub mod gross_profit;
