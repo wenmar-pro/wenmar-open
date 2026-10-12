@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use clap::{Args, Parser, Subcommand};
 
 use crate::request::{
-    Action, BulletinAction, BulletinLookup, Lookup, RecallAction, RecallLookup, Request,
+    Action, BulletinAction, BulletinLookup, Lookup, RecallAction, RecallLookup, Request, Topic,
 };
 use crate::setup::Agent;
 
@@ -185,6 +185,53 @@ pub enum VinCommand {
         #[arg(long)]
         year: Option<u16>,
     },
+    /// Fuel consumption ratings for the model year a VIN decodes to.
+    ///
+    /// From EPA and Natural Resources Canada. When the decode settles the
+    /// engine, only the ratings matched to that engine are listed.
+    /// Offline, they come from the shop data file (see `wenmar-open data
+    /// pull --shop`).
+    Fuel {
+        /// The 17-character VIN.
+        vin: String,
+        /// Use this model year instead of the one worked out from the VIN.
+        #[arg(long)]
+        year: Option<u16>,
+        /// us (EPA) or ca (Natural Resources Canada). The default is both.
+        #[arg(long, value_name = "COUNTRY")]
+        country: Option<String>,
+    },
+    /// Specifications from EPA's files for the model year a VIN decodes to.
+    Specs {
+        /// The 17-character VIN.
+        vin: String,
+        /// Use this model year instead of the one worked out from the VIN.
+        #[arg(long)]
+        year: Option<u16>,
+    },
+    /// Fluids for the model year a VIN decodes to.
+    ///
+    /// The engine oil grade EPA records, and the records a person read
+    /// from the maker's own documents, each with its source and the day
+    /// it was checked. Nothing is estimated.
+    Fluids {
+        /// The 17-character VIN.
+        vin: String,
+        /// Use this model year instead of the one worked out from the VIN.
+        #[arg(long)]
+        year: Option<u16>,
+    },
+    /// Original-equipment tire fitments of the model year a VIN decodes to.
+    ///
+    /// Every size on record: a VIN does not say which wheels a vehicle was
+    /// built with.
+    Tires {
+        /// The 17-character VIN.
+        vin: String,
+        /// Use this model year instead of the one worked out from the VIN.
+        #[arg(long)]
+        year: Option<u16>,
+    },
 }
 
 /// `--scope`, for the commands that take one.
@@ -301,6 +348,41 @@ pub enum VehiclesCommand {
     /// What owners reported to NHTSA about a model year, as counts by component. Reports, not verified defects.
     Complaints {
         /// The vehicle id, such as 2016_honda_civic.
+        id: String,
+    },
+    /// Fuel consumption ratings of a model year.
+    ///
+    /// From EPA and Natural Resources Canada, in L/100 km and miles per US
+    /// gallon. Each says how far it was matched: to the model year, to
+    /// one engine, or to an engine and a trim. Offline, they come from the
+    /// shop data file (see `wenmar-open data pull --shop`).
+    Fuel {
+        /// The vehicle id, such as 2018_ford_f-150.
+        id: String,
+        /// us (EPA) or ca (Natural Resources Canada). The default is both.
+        #[arg(long, value_name = "COUNTRY")]
+        country: Option<String>,
+    },
+    /// Specifications of a model year from EPA's files.
+    Specs {
+        /// The vehicle id, such as 2018_ford_f-150.
+        id: String,
+    },
+    /// Fluids of a model year.
+    ///
+    /// The engine oil grade EPA records for each engine, and the records
+    /// a person read from the maker's own documents, each with its source
+    /// and the day it was checked. An empty list means nobody has
+    /// recorded it: nothing is estimated.
+    Fluids {
+        /// The vehicle id, such as 2018_ford_f-150.
+        id: String,
+    },
+    /// Original-equipment tire fitments of a model year.
+    ///
+    /// Every size on record, with the trims it covers. None is picked.
+    Tires {
+        /// The vehicle id, such as 2018_ford_f-150.
         id: String,
     },
     /// Everything held for one model year, in one answer.
@@ -619,11 +701,37 @@ impl RecallsCommand {
     }
 }
 
+fn vin_facts(topic: Topic, vin: String, year: Option<u16>) -> Request {
+    Request::VinFacts {
+        topic,
+        vin,
+        year,
+        country: None,
+    }
+}
+
+fn vehicle_facts(topic: Topic, id: String) -> Request {
+    Request::VehicleFacts {
+        topic,
+        id,
+        country: None,
+    }
+}
+
 impl VinCommand {
     pub fn request(self) -> Request {
         match self {
             VinCommand::Decode { vin, year } => Request::VinDecode { vin, year },
             VinCommand::Overview { vin, year } => Request::VinOverview { vin, year },
+            VinCommand::Fuel { vin, year, country } => Request::VinFacts {
+                topic: Topic::Fuel,
+                vin,
+                year,
+                country,
+            },
+            VinCommand::Specs { vin, year } => vin_facts(Topic::Specs, vin, year),
+            VinCommand::Fluids { vin, year } => vin_facts(Topic::Fluids, vin, year),
+            VinCommand::Tires { vin, year } => vin_facts(Topic::Tires, vin, year),
         }
     }
 }
@@ -719,6 +827,16 @@ impl VehiclesCommand {
                     ..Lookup::default()
                 },
             ),
+            VehiclesCommand::Fuel { id, country } => {
+                return Request::VehicleFacts {
+                    topic: Topic::Fuel,
+                    id,
+                    country,
+                };
+            }
+            VehiclesCommand::Specs { id } => return vehicle_facts(Topic::Specs, id),
+            VehiclesCommand::Fluids { id } => return vehicle_facts(Topic::Fluids, id),
+            VehiclesCommand::Tires { id } => return vehicle_facts(Topic::Tires, id),
             VehiclesCommand::Safety { id } => (
                 Action::Safety,
                 Lookup {
@@ -1015,6 +1133,67 @@ mod tests {
         };
         assert_eq!(action, Action::Safety);
         assert_eq!(lookup.id.as_deref(), Some("2018_ford_f-150"));
+    }
+
+    #[test]
+    fn fuel_specs_fluids_and_tires_are_commands_of_vehicles_and_of_vin() {
+        for topic in Topic::ALL {
+            let cli =
+                Cli::try_parse_from(["wenmar-open", "vehicles", topic.name(), "2018_ford_f-150"])
+                    .unwrap();
+            let Some(Command::Vehicles { command }) = cli.command else {
+                panic!("a vehicles command");
+            };
+            assert_eq!(
+                command.request(),
+                Request::VehicleFacts {
+                    topic,
+                    id: "2018_ford_f-150".to_owned(),
+                    country: None,
+                }
+            );
+            let cli = Cli::try_parse_from([
+                "wenmar-open",
+                "vin",
+                topic.name(),
+                "KM8K2CAB4PU001140",
+                "--year",
+                "2023",
+            ])
+            .unwrap();
+            let Some(Command::Vin { command }) = cli.command else {
+                panic!("a vin command");
+            };
+            assert_eq!(
+                command.request(),
+                Request::VinFacts {
+                    topic,
+                    vin: "KM8K2CAB4PU001140".to_owned(),
+                    year: Some(2023),
+                    country: None,
+                }
+            );
+        }
+        // Only fuel takes a country.
+        let cli = Cli::try_parse_from([
+            "wenmar-open",
+            "vehicles",
+            "fuel",
+            "2018_ford_f-150",
+            "--country",
+            "ca",
+        ])
+        .unwrap();
+        let Some(Command::Vehicles { command }) = cli.command else {
+            panic!("a vehicles command");
+        };
+        assert!(
+            matches!(command.request(), Request::VehicleFacts { topic: Topic::Fuel, country: Some(country), .. } if country == "ca")
+        );
+        assert!(
+            Cli::try_parse_from(["wenmar-open", "vehicles", "tires", "x", "--country", "ca"])
+                .is_err()
+        );
     }
 
     #[test]

@@ -7,7 +7,7 @@
 
 use serde_json::Value;
 
-use crate::request::{Action, BulletinAction, RecallAction, Request};
+use crate::request::{Action, BulletinAction, RecallAction, Request, Topic};
 
 /// A value with every control character replaced, so that data cannot move
 /// the cursor, change colours or ring the bell.
@@ -1054,12 +1054,198 @@ pub fn pulled_shop(value: &Value) -> String {
     format!("Shop {}", pulled(value).replacen("Data", "data", 1))
 }
 
+/// The engine an entry is for: its label, or what says there is none.
+fn engine_of(entry: &Value, none: &str) -> String {
+    field(&entry["engine"], "label").unwrap_or_else(|| none.to_owned())
+}
+
+/// Fuel ratings, specifications, fluids or tire fitments, as text: the
+/// model year, then one line for each entry with where it comes from.
+/// Nothing is picked and nothing is left out.
+fn facts(topic: Topic, value: &Value) -> String {
+    let vehicle = &value["vehicle"];
+    let mut text = if vehicle.is_object() {
+        format!(
+            "{} {} {}\n",
+            cell(vehicle, "year"),
+            cell(vehicle, "make"),
+            cell(vehicle, "model")
+        )
+    } else {
+        "This VIN does not decode to a year, make and model in the catalog.\n".to_owned()
+    };
+    if value["engine_settled"] == true {
+        text.push_str(&format!(
+            "Narrowed to the decoded engine: {}\n",
+            engine_of(value, "")
+        ));
+    }
+    let list = |key: &str| value[key].as_array().map(Vec::as_slice).unwrap_or_default();
+    let mut lines: Vec<String> = Vec::new();
+    match topic {
+        Topic::Fuel => {
+            for rating in list("ratings") {
+                let figures = match (
+                    field(&rating["l_100km"], "combined"),
+                    field(&rating["mpg"], "combined"),
+                    field(rating, "kwh_100km"),
+                ) {
+                    (Some(litres), Some(mpg), _) => {
+                        format!("{litres} L/100 km ({mpg} MPG) combined")
+                    }
+                    (Some(litres), None, _) => format!("{litres} L/100 km combined"),
+                    (None, _, Some(kwh)) => format!("{kwh} kWh/100 km"),
+                    _ => "no figure".to_owned(),
+                };
+                lines.push(format!(
+                    "{} {}: {figures}, {}. Engine: {}",
+                    cell(rating, "source").to_uppercase(),
+                    cell(rating, "described_as"),
+                    cell(rating, "fuel_grade"),
+                    engine_of(rating, "not matched to an engine")
+                ));
+            }
+        }
+        Topic::Specs => {
+            for spec in list("specs") {
+                let parts: Vec<String> = ["transmission", "drive", "fuel_grade", "size_class"]
+                    .iter()
+                    .filter_map(|key| field(spec, key))
+                    .collect();
+                lines.push(format!(
+                    "{}: {}. Engine: {}",
+                    cell(spec, "described_as"),
+                    parts.join(", "),
+                    engine_of(spec, "not matched to an engine")
+                ));
+            }
+        }
+        Topic::Fluids => {
+            for oil in list("engine_oil") {
+                let grades: Vec<&str> = oil["grades"]
+                    .as_array()
+                    .into_iter()
+                    .flatten()
+                    .filter_map(Value::as_str)
+                    .collect();
+                lines.push(format!(
+                    "Engine oil, {}: {} (per {})",
+                    engine_of(oil, "not matched to an engine"),
+                    grades.join(" or "),
+                    cell(oil, "source")
+                ));
+            }
+            for (name, key) in [
+                ("Engine oil", "engine_oil_checked"),
+                ("Transmission fluid", "transmission"),
+                ("Coolant", "coolant"),
+                ("A/C refrigerant", "refrigerant"),
+                ("Brake fluid", "brake"),
+            ] {
+                for record in list(key) {
+                    let mut parts: Vec<String> = ["grade", "specification"]
+                        .iter()
+                        .filter_map(|key| field(record, key))
+                        .collect();
+                    if let (Some(litres), Some(quarts)) =
+                        (field(record, "capacity_l"), field(record, "capacity_qt"))
+                    {
+                        parts.push(format!("{litres} L ({quarts} US qt)"));
+                    }
+                    if let (Some(grams), Some(ounces)) =
+                        (field(record, "charge_g"), field(record, "charge_oz"))
+                    {
+                        parts.push(format!("{grams} g ({ounces} oz)"));
+                    }
+                    let what: Vec<String> = [
+                        field(&record["engine"], "label"),
+                        field(record, "applies_to"),
+                    ]
+                    .into_iter()
+                    .flatten()
+                    .collect();
+                    lines.push(format!(
+                        "{name}{}: {} (source: {}, checked {})",
+                        if what.is_empty() {
+                            String::new()
+                        } else {
+                            format!(", {}", what.join(", "))
+                        },
+                        parts.join(", "),
+                        one_line(&cell(record, "source")),
+                        cell(record, "checked")
+                    ));
+                }
+            }
+        }
+        Topic::Tires => {
+            for tire in list("fitments") {
+                let trims: Vec<&str> = tire["trims"]
+                    .as_array()
+                    .into_iter()
+                    .flatten()
+                    .filter_map(Value::as_str)
+                    .collect();
+                let mut parts = vec![match field(tire, "size_rear") {
+                    Some(rear) => format!("{} front, {rear} rear", cell(tire, "size")),
+                    None => cell(tire, "size"),
+                }];
+                if !trims.is_empty() {
+                    parts.push(format!("trims {}", trims.join(", ")));
+                }
+                if let (Some(front), Some(rear)) = (
+                    field(&tire["pressure_kpa"], "front"),
+                    field(&tire["pressure_kpa"], "rear"),
+                ) {
+                    parts.push(format!("{front} kPa front, {rear} kPa rear, cold"));
+                }
+                if let Some(torque) = field(tire, "lug_torque_nm") {
+                    parts.push(format!("wheel nuts {torque} N·m"));
+                }
+                lines.push(format!(
+                    "{} (source: {}, checked {})",
+                    parts.join("; "),
+                    one_line(&cell(tire, "source")),
+                    cell(tire, "checked")
+                ));
+            }
+        }
+    }
+    if lines.is_empty() {
+        text.push_str(match topic {
+            Topic::Fuel => "No fuel rating is on file.\n",
+            Topic::Specs => "No specification is on file.\n",
+            Topic::Fluids => {
+                "No fluid is on file. Nothing is estimated: check the owner's manual.\n"
+            }
+            Topic::Tires => "No tire fitment is on record. Read the door placard.\n",
+        });
+    }
+    for line in lines {
+        text.push_str(&format!("- {line}\n"));
+    }
+    if topic == Topic::Tires && !list("fitments").is_empty() {
+        text.push_str(
+            "Every size on record is listed. The door placard says which a vehicle has.\n",
+        );
+    }
+    for line in value["attribution"].as_array().into_iter().flatten() {
+        if let Some(line) = line.as_str() {
+            text.push_str(&format!("{line}\n"));
+        }
+    }
+    text
+}
+
 /// The answer to a request, as text.
 pub fn text(request: &Request, value: &Value) -> String {
     let action = match request {
         Request::VinDecode { .. } => return decode(value),
         Request::VinBatch { .. } => return batch(value),
         Request::VinOverview { .. } => return overview(value),
+        Request::VehicleFacts { topic, .. } | Request::VinFacts { topic, .. } => {
+            return facts(*topic, value);
+        }
         Request::Recalls { action, .. } => return recalls(*action, value),
         Request::Bulletins { action, .. } => return bulletins(*action, value),
         Request::Vehicles { action, .. } => *action,

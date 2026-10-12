@@ -290,10 +290,10 @@ async fn the_tool_answers_recall_questions_as_the_api_does_from_files_and_over_h
 
 /// The blocks of an overview that the hosted API fills where its server
 /// holds their data, and that the files do not give yet: from files they
-/// are `null` whatever the shop file holds. `specs`, `fuel` and `fluids`
-/// wait for the plan that brings the fuel data to the files. `bulletins`
-/// is hosted only by design: the offline shop file does not hold them.
-const HOSTED_ONLY: [&str; 4] = ["specs", "fuel", "fluids", "bulletins"];
+/// are `null` whatever the shop file holds. `specs`, `fuel`, `fluids` and
+/// `tires` are given from files now. `bulletins` is hosted only by design:
+/// the offline shop file does not hold them.
+const HOSTED_ONLY: [&str; 1] = ["bulletins"];
 
 /// An answer of the API as the files give it. What is set aside before
 /// two answers are compared, and why:
@@ -857,4 +857,192 @@ async fn the_tool_gives_an_overview_its_crash_test_ratings_as_the_api_does() {
 
     let _ = stop.send(());
     let _ = serving.await;
+}
+
+/// The files the tool reads, in a directory of their own: the small data
+/// file with `core_rows` added, and a shop file when `shop` is given.
+fn files_for(core_rows: &str, shop: Option<(&str, &str)>) -> tempfile::TempDir {
+    let fixture = common::data_file();
+    let connection = rusqlite::Connection::open(fixture.path()).unwrap();
+    connection.execute_batch(core_rows).unwrap();
+    connection.close().unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    std::fs::copy(fixture.path(), directory.path().join(DATA_FILE)).unwrap();
+    if let Some((datasets, rows)) = shop {
+        common::add_shop_file(
+            &fixture,
+            wenmar_shopdata::schema::SCHEMA_VERSION,
+            "2026.09",
+            datasets,
+            rows,
+        );
+        std::fs::copy(fixture.shop_path(), directory.path().join(SHOP_FILE)).unwrap();
+    }
+    directory
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn the_tool_answers_fuel_specs_fluids_and_tires_as_the_api_does_from_files_and_over_http() {
+    let hand = format!("{}{}", common::fuel_rows(), common::hand_rows());
+    // Three servers, and the files that go with each: everything, the
+    // recalls alone, and no shop file.
+    for held in ["everything", "recalls", "nothing"] {
+        let shop: Option<(&str, String)> = match held {
+            "everything" => Some((common::HAND_DATASETS, hand.clone())),
+            "recalls" => Some((common::RECALL_DATASETS, common::recall_rows())),
+            _ => None,
+        };
+        let app = match &shop {
+            Some((datasets, rows)) => {
+                common::app_with_rows_and_shop(common::TESTMAKE_ROWS, datasets, rows).await
+            }
+            None => common::app_with_rows(common::TESTMAKE_ROWS).await,
+        };
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address: SocketAddr = listener.local_addr().unwrap();
+        let (stop, stopped) = oneshot::channel::<()>();
+        let serving = tokio::spawn(serve(
+            listener,
+            app.router.clone(),
+            async move {
+                let _ = stopped.await;
+            },
+            Limits::default(),
+        ));
+        let api = format!("http://{address}");
+        let directory = files_for(
+            common::TESTMAKE_ROWS,
+            shop.as_ref()
+                .map(|(datasets, rows)| (*datasets, rows.as_str())),
+        );
+
+        // Each question as a path of the API and as the tool's arguments.
+        let mut questions: Vec<(String, Vec<String>)> = Vec::new();
+        let words = |text: &str| text.split(' ').map(str::to_owned).collect::<Vec<_>>();
+        for topic in ["fuel", "specs", "fluids", "tires"] {
+            for id in [
+                "2023_hyundai_kona",
+                "2023_hyundai_kona_se",
+                "2001_testmake_sampler",
+                "2019_honda_civic",
+                "2019_ford_f-150",
+                "2019_honda_nothing",
+            ] {
+                questions.push((
+                    format!("/v1/vehicles/{id}/{topic}"),
+                    words(&format!("vehicles {topic} {id}")),
+                ));
+            }
+            for vin in [common::KONA, common::COACH] {
+                questions.push((
+                    format!("/v1/vin/{vin}/{topic}"),
+                    words(&format!("vin {topic} {vin}")),
+                ));
+            }
+            questions.push((
+                format!("/v1/vin/{}/{topic}?year=2022", common::KONA),
+                words(&format!("vin {topic} {} --year 2022", common::KONA)),
+            ));
+        }
+        for country in ["us", "ca"] {
+            questions.push((
+                format!("/v1/vehicles/2023_hyundai_kona/fuel?country={country}"),
+                words(&format!(
+                    "vehicles fuel 2023_hyundai_kona --country {country}"
+                )),
+            ));
+            questions.push((
+                format!("/v1/vin/{}/fuel?country={country}", common::KONA),
+                words(&format!("vin fuel {} --country {country}", common::KONA)),
+            ));
+        }
+
+        let mut answered = 0;
+        for (path, args) in questions {
+            let (status, served) = app.json(&path).await;
+            let ask = |source: &'static str| {
+                let directory = directory.path().to_path_buf();
+                let api = api.clone();
+                let mut args = args.clone();
+                args.push(source.to_owned());
+                tokio::task::spawn_blocking(move || {
+                    let args: Vec<&str> = args.iter().map(String::as_str).collect();
+                    tool(&directory, &api, &args)
+                })
+            };
+            let (local_code, local) = ask("--offline").await.unwrap();
+            let (remote_code, remote) = ask("--online").await.unwrap();
+            if status == StatusCode::OK {
+                assert_eq!(held, "everything", "{path}");
+                assert_eq!((local_code, remote_code), (0, 0), "{path}: {local}");
+                // Nothing is set aside: these answers have no address of
+                // this site and no link of a maker's.
+                assert_eq!(remote, served, "{path}");
+                assert_eq!(local, served, "{path}");
+                answered += 1;
+            } else {
+                assert_eq!(local_code, remote_code, "{path} {held}: {local} {remote}");
+                assert_ne!(local_code, 0, "{path}");
+                for told in [&local, &remote] {
+                    assert_eq!(told["error"]["code"], served["error"]["code"], "{path}");
+                    assert_eq!(
+                        told["error"]["message"], served["error"]["message"],
+                        "{path} {held}"
+                    );
+                }
+                if held != "everything" {
+                    assert_eq!(served["error"]["code"], "dataset_unavailable", "{path}");
+                }
+            }
+        }
+        // With everything held, all but the ids that name no vehicle answer.
+        if held == "everything" {
+            assert_eq!(answered, 36);
+        }
+
+        // The overview's four blocks, from files and over HTTP, whole.
+        if held == "everything" {
+            for (path, args) in [
+                (
+                    "/v1/vehicles/2001_testmake_sampler/overview".to_owned(),
+                    "vehicles overview 2001_testmake_sampler".to_owned(),
+                ),
+                (
+                    "/v1/vehicles/2023_hyundai_kona/overview".to_owned(),
+                    "vehicles overview 2023_hyundai_kona".to_owned(),
+                ),
+                (
+                    format!("/v1/vin/{}/overview", common::KONA),
+                    format!("vin overview {}", common::KONA),
+                ),
+                (
+                    format!("/v1/vin/{}/overview", common::COACH),
+                    format!("vin overview {}", common::COACH),
+                ),
+            ] {
+                let (status, served) = app.json(&path).await;
+                assert_eq!(status, StatusCode::OK, "{path}");
+                let directory = directory.path().to_path_buf();
+                let api = api.clone();
+                let (code, local) = tokio::task::spawn_blocking(move || {
+                    let mut args: Vec<&str> = args.split(' ').collect();
+                    args.push("--offline");
+                    tool(&directory, &api, &args)
+                })
+                .await
+                .unwrap();
+                assert_eq!(code, 0, "{path}: {local}");
+                for block in ["fuel", "specs", "fluids", "tires", "attribution"] {
+                    assert_eq!(local[block], served[block], "{path} {block}");
+                }
+                if served["vehicle"].is_object() {
+                    assert!(local["fluids"].is_object(), "{path}");
+                    assert!(local["tires"].is_array(), "{path}");
+                }
+            }
+        }
+
+        let _ = stop.send(());
+        let _ = serving.await;
+    }
 }

@@ -237,6 +237,50 @@ pub struct BulletinLookup {
     pub cursor: Option<String>,
 }
 
+/// What is asked about a model year, or about the model year a VIN decodes
+/// to: one of the four answers of `/v1/vehicles/{id}/…` and `/v1/vin/{vin}/…`
+/// that the shop file holds beside the recalls.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Topic {
+    /// Fuel consumption ratings, from EPA and Natural Resources Canada.
+    Fuel,
+    /// Specifications from EPA's files.
+    Specs,
+    /// The engine oil grade EPA records, and the fluids read by hand.
+    Fluids,
+    /// Original-equipment tire fitments, read by hand.
+    Tires,
+}
+
+impl Topic {
+    pub const ALL: [Topic; 4] = [Topic::Fuel, Topic::Specs, Topic::Fluids, Topic::Tires];
+
+    /// The name of the action in the two tools, of the command, and of the
+    /// last part of the API's path.
+    pub fn name(self) -> &'static str {
+        match self {
+            Topic::Fuel => "fuel",
+            Topic::Specs => "specs",
+            Topic::Fluids => "fluids",
+            Topic::Tires => "tires",
+        }
+    }
+
+    pub fn parse(name: &str) -> Option<Topic> {
+        Topic::ALL.into_iter().find(|topic| topic.name() == name)
+    }
+
+    /// The list every answer about the topic has, empty or not.
+    pub fn list(self) -> &'static str {
+        match self {
+            Topic::Fuel => "ratings",
+            Topic::Specs => "specs",
+            Topic::Fluids => "engine_oil",
+            Topic::Tires => "fitments",
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Request {
     VinDecode {
@@ -251,6 +295,20 @@ pub enum Request {
     VinOverview {
         vin: String,
         year: Option<u16>,
+    },
+    /// Fuel ratings, specifications, fluids or tire fitments of a model
+    /// year, by its vehicle id. `country` is for fuel only.
+    VehicleFacts {
+        topic: Topic,
+        id: String,
+        country: Option<String>,
+    },
+    /// The same for the model year a VIN decodes to.
+    VinFacts {
+        topic: Topic,
+        vin: String,
+        year: Option<u16>,
+        country: Option<String>,
     },
     Vehicles {
         action: Action,
@@ -340,6 +398,15 @@ fn country(value: Option<&String>) -> Result<Option<String>, CliError> {
         None => Ok(None),
         Some(text) if text == "us" || text == "ca" => Ok(Some(text)),
         Some(_) => Err(CliError::validation("country", "country must be us or ca")),
+    }
+}
+
+/// `country` of a question about `topic`: checked for fuel, and dropped
+/// for the others, which have no such choice.
+fn fuel_country(topic: Topic, value: Option<&String>) -> Result<Option<String>, CliError> {
+    match topic {
+        Topic::Fuel => country(value),
+        _ => Ok(None),
     }
 }
 
@@ -525,6 +592,29 @@ impl Request {
                 let vin = well_formed(&vin)?.as_str().to_owned();
                 Ok(Request::VinOverview { vin, year })
             }
+            Request::VehicleFacts { topic, id, country } => {
+                let id = required("id", Some(&id))?.unwrap_or_default();
+                Ok(Request::VehicleFacts {
+                    topic,
+                    id,
+                    country: fuel_country(topic, country.as_ref())?,
+                })
+            }
+            Request::VinFacts {
+                topic,
+                vin,
+                year,
+                country,
+            } => {
+                vin_year(year, current_year)?;
+                let vin = well_formed(&vin)?.as_str().to_owned();
+                Ok(Request::VinFacts {
+                    topic,
+                    vin,
+                    year,
+                    country: fuel_country(topic, country.as_ref())?,
+                })
+            }
             Request::Recalls { action, lookup } => Ok(Request::Recalls {
                 action,
                 lookup: checked_recalls(action, lookup, current_year)?,
@@ -644,9 +734,23 @@ impl Request {
                         "vin is required for action=overview",
                     )),
                 },
+                "fuel" | "specs" | "fluids" | "tires" => {
+                    match (Topic::parse(action), text(arguments, "vin")?) {
+                        (Some(topic), Some(vin)) => Ok(Request::VinFacts {
+                            topic,
+                            vin,
+                            year,
+                            country: text(arguments, "country")?,
+                        }),
+                        _ => Err(CliError::validation(
+                            "vin",
+                            format!("vin is required for action={action}"),
+                        )),
+                    }
+                }
                 _ => Err(CliError::validation(
                     "action",
-                    "action must be decode, batch or overview",
+                    "action must be decode, batch, overview, fuel, specs, fluids or tires",
                 )),
             };
         }
@@ -702,10 +806,23 @@ impl Request {
                 },
             });
         }
+        if let Some(topic) = Topic::parse(action) {
+            return match text(arguments, "id")? {
+                Some(id) => Ok(Request::VehicleFacts {
+                    topic,
+                    id,
+                    country: text(arguments, "country")?,
+                }),
+                None => Err(CliError::validation(
+                    "id",
+                    format!("id is required for action={action}"),
+                )),
+            };
+        }
         let Some(action) = Action::parse(action) else {
             return Err(CliError::validation(
                 "action",
-                "action must be years, makes, models, submodels, engines, search, entry, overview, model_years, safety or complaints",
+                "action must be years, makes, models, submodels, engines, search, entry, overview, model_years, safety, complaints, fuel, specs, fluids or tires",
             ));
         };
         Ok(Request::Vehicles {
@@ -1403,6 +1520,68 @@ mod tests {
         );
         let error = Request::from_tool("wenmar_vin", &json!({ "action": "overview" })).unwrap_err();
         assert_eq!(error.details["field"], "vin");
+    }
+
+    #[test]
+    fn fuel_specs_fluids_and_tires_are_checked_and_read_from_a_tool_call() {
+        for topic in Topic::ALL {
+            assert_eq!(Topic::parse(topic.name()), Some(topic));
+            // By vehicle id.
+            let asked = Request::from_tool(
+                "wenmar_vehicles",
+                &json!({ "action": topic.name(), "id": " 2018_ford_f-150 ", "country": "CA" }),
+            )
+            .unwrap();
+            assert_eq!(
+                asked.checked(2026).unwrap(),
+                Request::VehicleFacts {
+                    topic,
+                    id: "2018_ford_f-150".to_owned(),
+                    // Only a fuel question has a country.
+                    country: (topic == Topic::Fuel).then(|| "ca".to_owned()),
+                }
+            );
+            let error = Request::from_tool("wenmar_vehicles", &json!({ "action": topic.name() }))
+                .unwrap_err();
+            assert_eq!(error.code, "validation_failed");
+            assert_eq!(error.details["field"], "id");
+            // By VIN.
+            let asked = Request::from_tool(
+                "wenmar_vin",
+                &json!({ "action": topic.name(), "vin": "km8k2cab4pu001140", "year": 2023 }),
+            )
+            .unwrap();
+            assert_eq!(
+                asked.checked(2026).unwrap(),
+                Request::VinFacts {
+                    topic,
+                    vin: "KM8K2CAB4PU001140".to_owned(),
+                    year: Some(2023),
+                    country: None,
+                }
+            );
+            let error =
+                Request::from_tool("wenmar_vin", &json!({ "action": topic.name() })).unwrap_err();
+            assert_eq!(error.details["field"], "vin");
+            let malformed = Request::VinFacts {
+                topic,
+                vin: "NOTAVIN".to_owned(),
+                year: None,
+                country: None,
+            };
+            assert_eq!(malformed.checked(2026).unwrap_err().code, "invalid_vin");
+        }
+        // A country that is neither is refused for fuel, with the API's words.
+        let error = Request::VehicleFacts {
+            topic: Topic::Fuel,
+            id: "2018_ford_f-150".to_owned(),
+            country: Some("mx".to_owned()),
+        }
+        .checked(2026)
+        .unwrap_err();
+        assert_eq!(error.message, "country must be us or ca");
+        assert_eq!(error.details["field"], "country");
+        assert_eq!(Topic::Fluids.list(), "engine_oil");
     }
 
     #[test]

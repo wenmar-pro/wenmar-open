@@ -7,7 +7,7 @@ use wenmar_vehicles::VehicleId;
 
 use crate::error::{BAD_RESPONSE, CliError, NETWORK, NOT_FOUND, USAGE};
 use crate::request::{
-    Action, BulletinAction, BulletinLookup, Lookup, RecallAction, RecallLookup, Request,
+    Action, BulletinAction, BulletinLookup, Lookup, RecallAction, RecallLookup, Request, Topic,
     current_year,
 };
 
@@ -176,9 +176,47 @@ impl Remote {
                 // `vin` is well formed, so it is safe in a path.
                 self.overview(&format!("/v1/vin/{vin}/overview"), &query)
             }
+            Request::VehicleFacts { topic, id, country } => {
+                // Only text that has the form of an id is put in a path.
+                if VehicleId::parse(id).is_none() {
+                    return Err(CliError::new(NOT_FOUND, "No vehicle has that id."));
+                }
+                let query: Vec<(&str, String)> = country
+                    .iter()
+                    .map(|country| ("country", country.clone()))
+                    .collect();
+                self.facts(
+                    *topic,
+                    &format!("/v1/vehicles/{id}/{}", topic.name()),
+                    &query,
+                )
+            }
+            Request::VinFacts {
+                topic,
+                vin,
+                year,
+                country,
+            } => {
+                let mut query: Vec<(&str, String)> =
+                    year.iter().map(|year| ("year", year.to_string())).collect();
+                query.extend(country.iter().map(|country| ("country", country.clone())));
+                // `vin` is well formed, so it is safe in a path.
+                self.facts(*topic, &format!("/v1/vin/{vin}/{}", topic.name()), &query)
+            }
             Request::Vehicles { action, lookup } => self.vehicles(*action, lookup),
             Request::Recalls { action, lookup } => self.recalls(*action, lookup),
             Request::Bulletins { action, lookup } => self.bulletins(*action, lookup),
+        }
+    }
+
+    /// Fuel, specifications, fluids or tire fitments. Every answer has the
+    /// topic's list, empty or not: one without it did not come from the API.
+    fn facts(&self, topic: Topic, path: &str, query: &[(&str, String)]) -> Result<Value, CliError> {
+        let answer = self.get(path, query)?;
+        if answer.get(topic.list()).is_some_and(Value::is_array) {
+            Ok(answer)
+        } else {
+            Err(self.not_the_api(200))
         }
     }
 

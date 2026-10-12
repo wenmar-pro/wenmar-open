@@ -17,7 +17,7 @@ use crate::data::{self, ShopStatus, Status};
 use crate::env::SHOP_FILE;
 use crate::error::{CliError, DATA_INVALID, DATASET_UNAVAILABLE, NO_DATA, NOT_FOUND};
 use crate::request::{
-    Action, Lookup, MOST, RecallAction, RecallLookup, Request, SEARCH_DEFAULT, current_year,
+    Action, Lookup, MOST, RecallAction, RecallLookup, Request, SEARCH_DEFAULT, Topic, current_year,
 };
 
 /// What to do about a data file that cannot be used.
@@ -309,11 +309,67 @@ impl Local {
                         .map_err(answer_error)?,
                 )
             }
+            Request::VehicleFacts { topic, id, country } => {
+                let answers = self.facts(*topic, country.as_deref())?;
+                let country = country.as_deref();
+                match topic {
+                    Topic::Fuel => answers.vehicle_fuel(id, country),
+                    Topic::Specs => answers.vehicle_specs(id),
+                    Topic::Fluids => answers.vehicle_fluids(id),
+                    Topic::Tires => answers.vehicle_tires(id),
+                }
+                .map_err(answer_error)
+            }
+            Request::VinFacts {
+                topic,
+                vin,
+                year,
+                country,
+            } => {
+                // The data is looked for first, then the VIN is decoded, as
+                // in the API.
+                let answers = self.facts(*topic, country.as_deref())?;
+                let country = country.as_deref();
+                answers
+                    .require(topic.name(), country)
+                    .map_err(answer_error)?;
+                let decode = self.decode(vin, *year)?;
+                match topic {
+                    Topic::Fuel => answers.vin_fuel(&decode, country),
+                    Topic::Specs => answers.vin_specs(&decode),
+                    Topic::Fluids => answers.vin_fluids(&decode),
+                    Topic::Tires => answers.vin_tires(&decode),
+                }
+                .map_err(answer_error)
+            }
             Request::Vehicles { action, lookup } => self.vehicles(*action, lookup),
             Request::Recalls { action, lookup } => self.recalls(*action, lookup),
             // The files do not hold bulletins: the hosted API answers them.
             Request::Bulletins { .. } => Err(dataset_unavailable(Dataset::Bulletins)),
         }
+    }
+
+    /// What fuel, specifications, fluids and tire fitments are answered
+    /// from: the shop file beside the data file. Without one, the error
+    /// names the dataset the hosted API would name.
+    fn facts(
+        &self,
+        topic: Topic,
+        country: Option<&str>,
+    ) -> Result<Answers<'_, ShopSource, SqliteSource>, CliError> {
+        let Some(shop) = &self.shop else {
+            return Err(if self.shop_status.installed {
+                shop_unusable(&self.shop_status)
+            } else {
+                dataset_unavailable(answer::facts::dataset_for(topic.name(), country))
+            });
+        };
+        Ok(Answers {
+            shop,
+            catalog: &self.catalog,
+            core: &self.core,
+            base: SITE,
+        })
     }
 
     fn decode(&self, vin: &str, year: Option<u16>) -> Result<Value, CliError> {

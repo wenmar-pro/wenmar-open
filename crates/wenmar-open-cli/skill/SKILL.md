@@ -66,7 +66,32 @@ wenmar-open vehicles entry 2019_honda_civic_si
 - An unknown make or model gives an empty list, not an error.
 - A vehicle id such as `2019_honda_civic_si` stays the same between data releases for as long as the names do, so it can be stored.
 
+## Fuel, specifications, fluids and tires
+
+```bash
+wenmar-open vehicles fuel 2018_ford_f-150
+wenmar-open vehicles fuel 2018_ford_f-150 --country ca
+wenmar-open vehicles specs 2018_ford_f-150
+wenmar-open vehicles fluids 2018_ford_f-150
+wenmar-open vehicles tires 2018_ford_f-150
+wenmar-open vin fuel KM8K2CAB4PU001140
+wenmar-open vin specs KM8K2CAB4PU001140
+wenmar-open vin fluids KM8K2CAB4PU001140 --jq '.engine_oil_checked[] | [.grade, .specification, .capacity_l, .source]'
+wenmar-open vin tires KM8K2CAB4PU001140
+```
+
+What is held about a model year beside its recalls and its crash test ratings.
+
+- `fuel`: `ratings` from EPA (`us`) and Natural Resources Canada (`ca`), each with `l_100km` and `mpg` (miles per US gallon). `confidence` says how far a rating was matched: `model`, `engine` or `submodel`. `engine` is the catalog engine only when the match settled one; never present a `model` rating as that of one engine.
+- `specs`: one entry per EPA rating, with transmission, drive, recommended fuel and more.
+- `fluids`: `engine_oil` is the viscosity grade the maker certified the engine with, as EPA records it. It is not from the owner's manual. `engine_oil_checked`, `transmission`, `coolant`, `refrigerant` and `brake` are records a person read from the maker's own documents: say the `source` and the day `checked` with any of them. An empty list means nobody has recorded it. Never estimate a capacity or a specification, and never carry one over from another engine or model year.
+- `tires`: `fitments` lists every original-equipment size on record with the `trims` it covers. Report every one; do not pick one. The door placard of the vehicle says which it has.
+- By VIN, `fuel`, `specs` and `fluids` hold only what is for the decoded engine when `engine_settled` is `true`. `tires` are never narrowed.
+
+Offline, all four are in the shop data file. Without it the error is `dataset_unavailable` and `details.hint` is `Run: wenmar-open data pull --shop`.
+
 ## Crash test ratings
+
 
 ```bash
 wenmar-open vehicles safety 2018_ford_f-150
@@ -139,7 +164,7 @@ wenmar-open recalls recent --since 2026-09-01 --make ford --country ca
 ```
 
 - `vehicles overview` and `vin overview` give `vehicle`, `decode` (what the VIN decoded to in brief; `null` when asked by vehicle id), `recalls`, `links` and `attribution`. `recalls` has `count` (`us` and `ca`), `do_not_drive`, `park_outside`, the three `newest` campaigns, `as_of`, `lookup` and `"may_apply": true`. It counts the campaigns that may apply to the year, make and model, and is never a statement about one VIN. The whole list is `recalls vehicle`.
-- A block with no data is `null`. `safety` is what `vehicles safety` gives, where the crash test ratings are held, online and offline. `specs`, `fuel` and `fluids` are filled by the hosted API where its server holds them; from local files they are `null` for now. `bulletins` is filled by the hosted API where its server holds bulletins, and is `null` offline. `tires` and `labor` are `null` everywhere today. Offline, `recalls` is `null` when there is no shop data file. That is not an error.
+- A block with no data is `null`. `safety` is what `vehicles safety` gives, where the crash test ratings are held, online and offline. `specs`, `fuel`, `fluids` and `tires` are what the commands of those names give, where the data is held, online and offline. `bulletins` is filled by the hosted API where its server holds bulletins, and is `null` offline. `labor` is `null` everywhere today. Offline, `recalls` is `null` when there is no shop data file. That is not an error.
 - A VIN that decodes to no vehicle in the catalog gives `"vehicle": null`, every block `null` and a warning with the code `no_catalog_vehicle`.
 - `vehicles model-years` lists every model year of one model, newest first, each with its vehicle id and `recalls`, the number of campaigns that may apply (`null` when no recalls are held).
 - `recalls recent` lists the campaigns reported on or after `--since`, a day written like `2026-09-01`, newest first, each with `vehicles`, the vehicles it lists (at most 200; `vehicles_listed` is how many there are in all). Compare `vehicles[].vehicle_id` with your own list. `--make`, `--country`, `--limit` and `--cursor` are as in `recalls search`. Offline it needs the shop data file.
@@ -172,6 +197,6 @@ Online, one address may make 600 requests a minute. Over that the error is `rate
 wenmar-open mcp
 ```
 
-This runs an MCP server on standard input and output with four tools: `wenmar_vin` (actions `decode`, `batch` and `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years` and `safety`), `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search` and `recent`) and `wenmar_bulletins` (actions `vehicle`, `vin`, `get` and `search`). The results are the same JSON as the commands above. `wenmar-open setup claude` and `wenmar-open setup codex` print the command that registers it.
+This runs an MCP server on standard input and output with four tools: `wenmar_vin` (actions `decode`, `batch`, `overview`, `fuel`, `specs`, `fluids` and `tires`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`, `safety`, `fuel`, `specs`, `fluids` and `tires`), `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search` and `recent`) and `wenmar_bulletins` (actions `vehicle`, `vin`, `get` and `search`). The results are the same JSON as the commands above. `wenmar-open setup claude` and `wenmar-open setup codex` print the command that registers it.
 
 <!-- wenmar-open-skill: managed. Written by `wenmar-open setup`; the next setup replaces it. -->
