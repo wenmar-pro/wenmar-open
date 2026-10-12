@@ -1249,3 +1249,180 @@ async fn the_offline_engine_answers_code_questions_as_the_api_does() {
         assert_eq!(answered, if held == "nothing" { 0 } else { 9 }, "{held}");
     }
 }
+
+/// The questions about jobs and labour: the API's address, then the
+/// engine's operation and its arguments.
+fn labor_questions() -> Vec<(String, &'static str, Value)> {
+    let kona = common::KONA;
+    vec![
+        ("/v1/jobs".to_owned(), "jobs", json!({})),
+        (
+            "/v1/jobs/test-job-a".to_owned(),
+            "job",
+            json!({ "job": "test-job-a" }),
+        ),
+        (
+            "/v1/jobs/test-job-b".to_owned(),
+            "job",
+            json!({ "job": "test-job-b" }),
+        ),
+        (
+            "/v1/jobs/test-job-z".to_owned(),
+            "job",
+            json!({ "job": "test-job-z" }),
+        ),
+        (
+            "/v1/jobs/Not%20A%20Job".to_owned(),
+            "job",
+            json!({ "job": "Not A Job" }),
+        ),
+        (
+            "/v1/vehicles/2023_hyundai_kona/labor".to_owned(),
+            "labor_vehicle",
+            json!({ "id": "2023_hyundai_kona" }),
+        ),
+        (
+            "/v1/vehicles/2023_hyundai_kona_se/labor/test-job-b".to_owned(),
+            "labor_vehicle",
+            json!({ "id": "2023_hyundai_kona_se", "job": "test-job-b" }),
+        ),
+        (
+            "/v1/vehicles/2023_hyundai_kona/labor/test-job-c".to_owned(),
+            "labor_vehicle",
+            json!({ "id": "2023_hyundai_kona", "job": "test-job-c" }),
+        ),
+        (
+            "/v1/vehicles/2022_hyundai_kona/labor".to_owned(),
+            "labor_vehicle",
+            json!({ "id": "2022_hyundai_kona" }),
+        ),
+        (
+            "/v1/vehicles/2019_honda_civic/labor".to_owned(),
+            "labor_vehicle",
+            json!({ "id": "2019_honda_civic" }),
+        ),
+        (
+            "/v1/vehicles/2023_hyundai_kona/labor/test-job-z".to_owned(),
+            "labor_vehicle",
+            json!({ "id": "2023_hyundai_kona", "job": "test-job-z" }),
+        ),
+        (
+            "/v1/vehicles/2019_honda_nothing/labor".to_owned(),
+            "labor_vehicle",
+            json!({ "id": "2019_honda_nothing" }),
+        ),
+        (
+            format!("/v1/vin/{kona}/labor"),
+            "labor_vin",
+            json!({ "vin": kona }),
+        ),
+        (
+            format!("/v1/vin/{kona}/labor/test-job-a?year=2023"),
+            "labor_vin",
+            json!({ "vin": kona, "job": "test-job-a", "year": 2023 }),
+        ),
+        (
+            format!("/v1/vin/{kona}/labor/test-job-z"),
+            "labor_vin",
+            json!({ "vin": kona, "job": "test-job-z" }),
+        ),
+        (
+            format!("/v1/vin/{}/labor", common::TRAILER),
+            "labor_vin",
+            json!({ "vin": common::TRAILER }),
+        ),
+        (
+            "/v1/vehicles/2023_hyundai_kona/overview".to_owned(),
+            "overview_vehicle",
+            json!({ "id": "2023_hyundai_kona" }),
+        ),
+    ]
+}
+
+#[tokio::test]
+async fn the_offline_engine_answers_labor_questions_as_the_api_does() {
+    let site = wenmar_shopdata::answer::SITE;
+    // Three servers, and the files that go with each: jobs and estimates,
+    // the job list alone, and no shop file.
+    for held in ["labor", "jobs", "nothing"] {
+        let files = match held {
+            "labor" => Some((common::LABOR_DATASETS, common::labor_rows())),
+            "jobs" => Some((common::JOB_DATASETS, common::job_rows())),
+            _ => None,
+        };
+        let app = match held {
+            "labor" => common::labor_app_at(site).await,
+            _ => {
+                let fixture = common::data_file();
+                if let Some((datasets, rows)) = &files {
+                    common::add_shop_file(
+                        &fixture,
+                        wenmar_shopdata::schema::SCHEMA_VERSION,
+                        "2026.09",
+                        datasets,
+                        rows,
+                    );
+                }
+                let shop = files.as_ref().map(|_| fixture.shop_path());
+                common::app_over(fixture, |config| {
+                    config.shop_data = shop;
+                    config.base_url = site.to_owned();
+                })
+                .await
+            }
+        };
+        let fixture = common::data_file();
+        let (datasets, rows) = files
+            .clone()
+            .unwrap_or((common::RECALL_DATASETS, String::new()));
+        common::add_shop_file(
+            &fixture,
+            wenmar_shopdata::schema::SCHEMA_VERSION,
+            "2026.09",
+            datasets,
+            &rows,
+        );
+        let connection = Connection::open(fixture.path()).unwrap();
+        let shop = Connection::open(fixture.shop_path()).unwrap();
+        let mut engine = Engine::new();
+        let opened = ask(&mut engine, &connection, "open", &json!({}));
+        assert!(opened.get("ok").is_some(), "{opened}");
+        if files.is_some() {
+            let opened = ask_with_shop(&mut engine, &connection, &shop, "open_shop", &json!({}));
+            assert!(opened.get("ok").is_some(), "{opened}");
+        }
+        let mut answered = 0;
+        for (path, op, args) in &labor_questions() {
+            let (status, served) = app.json(path).await;
+            let answer = if files.is_some() {
+                ask_with_shop(&mut engine, &connection, &shop, op, args)
+            } else {
+                ask(&mut engine, &connection, op, args)
+            };
+            if status == StatusCode::OK {
+                answered += 1;
+                if *op == "overview_vehicle" {
+                    // The rest of an overview is held elsewhere; here,
+                    // its labour block and the credit that goes with it.
+                    assert_eq!(answer["ok"]["labor"], served["labor"], "{path} {held}");
+                    assert_eq!(
+                        answer["ok"]["attribution"], served["attribution"],
+                        "{path} {held}"
+                    );
+                    assert_eq!(served["labor"].is_object(), held == "labor", "{path}");
+                } else {
+                    // Nothing is set aside: the files give every field.
+                    assert_eq!(answer["ok"], served, "{path} {held}");
+                }
+            } else {
+                assert_eq!(json!({ "error": answer["error"] }), served, "{path} {held}");
+            }
+        }
+        let expected = match held {
+            "labor" => 12,
+            "jobs" => 4,
+            _ => 1,
+        };
+        assert_eq!(answered, expected, "{held}");
+    }
+}

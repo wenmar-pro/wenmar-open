@@ -475,3 +475,50 @@ pub fn vehicle_code(answers: &RecallAnswers, args: &Value) -> Result<Value, OpEr
     let code = text(args, "code")?.unwrap_or_default();
     json(answers.vehicle_code(&id, &code)?)
 }
+
+// ----- jobs and labour estimates -----
+
+/// What a job or labour operation gets when no shop file has been opened.
+pub fn no_labor(op: &str) -> OpError {
+    let dataset = match op {
+        "jobs" | "job" => Dataset::Jobs,
+        _ => Dataset::Labor,
+    };
+    AnswerError::Shop(ShopError::DatasetUnavailable(dataset)).into()
+}
+
+/// `{}`: the job list.
+pub fn jobs(answers: &RecallAnswers) -> Result<Value, OpError> {
+    json(answers.jobs()?)
+}
+
+/// `{ "job" }`: one job, with its class-scope figures where they are held.
+pub fn job(answers: &RecallAnswers, args: &Value) -> Result<Value, OpError> {
+    let id = text(args, "job")?.unwrap_or_default();
+    json(answers.job(&id)?)
+}
+
+/// `{ "id", "job"? }`: the labour estimates of a model year, or of one
+/// job of it.
+pub fn labor_vehicle(answers: &RecallAnswers, args: &Value) -> Result<Value, OpError> {
+    let id = text(args, "id")?.unwrap_or_default();
+    let job = text(args, "job")?;
+    json(answers.vehicle_labor(&id, job.as_deref())?)
+}
+
+/// `{ "vin", "year"?, "job"? }`: the labour estimates of the vehicle a
+/// VIN decodes to. The estimates are looked for first, as the API does
+/// it, so that the same error comes first.
+pub fn labor_vin(
+    answers: &RecallAnswers,
+    args: &Value,
+    current_year: u16,
+) -> Result<Value, OpError> {
+    answers
+        .shop
+        .require(Dataset::Labor)
+        .map_err(AnswerError::Shop)?;
+    let job = text(args, "job")?;
+    let decoded = decode(answers.catalog, answers.core, args, current_year)?;
+    json(answers.vin_labor(&decoded, job.as_deref())?)
+}

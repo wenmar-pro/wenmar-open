@@ -1275,6 +1275,33 @@ impl<'a, S: Source, C: Source> Overviews<'a, S, C> {
             Some(found) => self.complaints_block(found)?,
             None => None,
         };
+        // The labour estimates of the model year, as on the server: no
+        // engine is asked for, and a file without them answers `null`.
+        let estimated = self
+            .shop
+            .filter(|shop| shop.require(Dataset::Labor).is_ok());
+        let labor = match (found, estimated) {
+            (Some(found), Some(shop)) => {
+                let answers = Answers {
+                    shop,
+                    catalog: self.catalog,
+                    core: self.core,
+                    base: self.base,
+                };
+                match answers.labor_of(found, None, None)? {
+                    Some(answer) => {
+                        for line in &answer.attribution {
+                            if !attribution.contains(line) {
+                                attribution.push(line.clone());
+                            }
+                        }
+                        serde_json::to_value(answer).ok()
+                    }
+                    None => None,
+                }
+            }
+            _ => None,
+        };
         Ok(Overview {
             vehicle: found.map(|found| found.vehicle.clone()),
             decode,
@@ -1284,7 +1311,7 @@ impl<'a, S: Source, C: Source> Overviews<'a, S, C> {
             tires: blocks.tires,
             recalls,
             safety,
-            labor: None,
+            labor,
             bulletins: None,
             complaints,
             links: Links {
@@ -1575,6 +1602,355 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
             return Err(AnswerError::NotFound("No vehicle has that id."));
         };
         self.complaints_of(&found)
+    }
+}
+
+// ----- jobs and labour estimates -----
+
+/// `not_found` for an id that is not in the job list.
+pub const NO_JOB: &str = "No job has that id.";
+
+/// What a VIN's labour answer says when the VIN names no model year.
+pub const NO_LABOR_VEHICLE: &str = "This VIN does not decode to a year, make and model in the catalog, so no labour estimates are listed for it.";
+
+/// A repair job in a list.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct JobLink {
+    pub id: String,
+    pub name: String,
+    pub system: String,
+    /// The job's page on the hosted site.
+    pub url: String,
+}
+
+/// The job list, as `GET /v1/jobs` gives it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct JobList {
+    pub as_of: Option<String>,
+    pub jobs: Vec<JobLink>,
+    pub attribution: Vec<String>,
+}
+
+/// Hours, as numbers of hours.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct LaborHours {
+    pub low: f64,
+    pub typical: f64,
+    pub high: f64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct LaborYears {
+    pub from: u16,
+    pub to: u16,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct LaborSample {
+    pub jobs: i64,
+    pub shops: i64,
+}
+
+/// One labour estimate.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct LaborFigure {
+    pub job: String,
+    pub name: String,
+    pub hours: LaborHours,
+    pub basis: String,
+    pub scope: String,
+    pub class: Option<String>,
+    pub class_name: Option<String>,
+    pub years: Option<LaborYears>,
+    pub engine: Option<String>,
+    pub sample: Option<LaborSample>,
+    pub notes: Option<String>,
+    pub updated: String,
+    pub url: String,
+}
+
+/// One job, as `GET /v1/jobs/{job}` gives it.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct JobDetail {
+    pub id: String,
+    pub name: String,
+    pub system: String,
+    pub system_name: String,
+    pub components: Vec<crate::jobs::JobComponent>,
+    pub includes: Vec<String>,
+    pub excludes: Vec<String>,
+    pub related: Vec<JobLink>,
+    pub estimates: Option<Vec<LaborFigure>>,
+    pub url: String,
+    pub note: String,
+    pub attribution: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct LaborClass {
+    pub id: String,
+    pub name: String,
+    pub source: String,
+}
+
+/// Labour estimates for one model year, as
+/// `GET /v1/vehicles/{id}/labor` gives them.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct VehicleLabor {
+    pub vehicle: Vehicle,
+    pub engine: Option<String>,
+    pub class: Option<LaborClass>,
+    pub as_of: Option<String>,
+    pub estimates: Vec<LaborFigure>,
+    pub note: String,
+    pub attribution: Vec<String>,
+}
+
+/// Labour estimates for the vehicle a VIN decodes to.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct VinLabor {
+    pub decode: Decode,
+    pub vehicle: Option<Vehicle>,
+    pub engine: Option<String>,
+    pub class: Option<LaborClass>,
+    pub as_of: Option<String>,
+    pub estimates: Vec<LaborFigure>,
+    pub note: String,
+    pub attribution: Vec<String>,
+    pub warnings: Vec<Json>,
+}
+
+/// The engine a vehicle id names, as an id form.
+pub fn engine_of(id: &str) -> Option<String> {
+    VehicleId::parse(id.trim()).and_then(|parsed| parsed.engine)
+}
+
+impl<S: Source, C: Source> Answers<'_, S, C> {
+    /// The credit line of the labour dataset.
+    fn labor_credit(&self) -> Vec<String> {
+        self.shop
+            .datasets()
+            .get(Dataset::Labor)
+            .map(|entry| entry.attribution.clone())
+            .filter(|credit| !credit.is_empty())
+            .into_iter()
+            .collect()
+    }
+
+    fn job_link(&self, job: crate::jobs::JobSummary) -> JobLink {
+        JobLink {
+            url: format!("{}/jobs/{}", self.base, job.id),
+            id: job.id,
+            name: job.name,
+            system: job.system,
+        }
+    }
+
+    fn labor_figure(&self, found: crate::labor::LaborEstimate) -> LaborFigure {
+        let hours = |hundredths: i64| hundredths as f64 / 100.0;
+        LaborFigure {
+            url: format!("{}/jobs/{}", self.base, found.job_id),
+            job: found.job_id,
+            name: found.job_name,
+            hours: LaborHours {
+                low: hours(found.hours_low),
+                typical: hours(found.hours_typical),
+                high: hours(found.hours_high),
+            },
+            basis: found.basis,
+            scope: found.scope,
+            class_name: found
+                .class
+                .as_deref()
+                .and_then(crate::labor::class_name)
+                .map(str::to_owned),
+            class: found.class,
+            years: match (found.year_from, found.year_to) {
+                (Some(from), Some(to)) => Some(LaborYears { from, to }),
+                _ => None,
+            },
+            engine: found.engine,
+            sample: match (found.sample_jobs, found.sample_shops) {
+                (Some(jobs), Some(shops)) => Some(LaborSample { jobs, shops }),
+                _ => None,
+            },
+            notes: found.notes,
+            updated: found.updated,
+        }
+    }
+
+    /// `GET /v1/jobs`.
+    pub fn jobs(&self) -> Result<JobList, AnswerError> {
+        let jobs = self.shop.jobs()?;
+        Ok(JobList {
+            as_of: self.shop.jobs_as_of().map(str::to_owned),
+            jobs: jobs.into_iter().map(|job| self.job_link(job)).collect(),
+            attribution: Vec::new(),
+        })
+    }
+
+    /// `GET /v1/jobs/{job}`.
+    pub fn job(&self, id: &str) -> Result<JobDetail, AnswerError> {
+        self.shop.require(Dataset::Jobs)?;
+        if !is_slug(id) {
+            return Err(AnswerError::NotFound(NO_JOB));
+        }
+        let Some(job) = self.shop.job(id)? else {
+            return Err(AnswerError::NotFound(NO_JOB));
+        };
+        let held = self.shop.require(Dataset::Labor).is_ok();
+        let estimates = if held {
+            Some(
+                self.shop
+                    .class_estimates_for_job(&job.id)?
+                    .into_iter()
+                    .map(|found| self.labor_figure(found))
+                    .collect(),
+            )
+        } else {
+            None
+        };
+        Ok(JobDetail {
+            url: format!("{}/jobs/{}", self.base, job.id),
+            id: job.id,
+            name: job.name,
+            system: job.system,
+            system_name: job.system_name,
+            components: job.components,
+            includes: job.includes,
+            excludes: job.excludes,
+            related: job
+                .related
+                .into_iter()
+                .map(|other| self.job_link(other))
+                .collect(),
+            estimates,
+            note: crate::labor::NOTE.to_owned(),
+            attribution: if held {
+                self.labor_credit()
+            } else {
+                Vec::new()
+            },
+        })
+    }
+
+    /// The labour estimates of one model year. The shop file must hold
+    /// them. `Ok(None)` when `job` is given and is not in the job list.
+    fn labor_of(
+        &self,
+        found: &ModelYear,
+        engine: Option<&str>,
+        job: Option<&str>,
+    ) -> Result<Option<VehicleLabor>, AnswerError> {
+        if let Some(job) = job
+            && (!is_slug(job) || self.shop.job(job)?.is_none())
+        {
+            return Ok(None);
+        }
+        let class = self
+            .shop
+            .vehicle_class(found.model_id, found.vehicle.year)?;
+        let estimates =
+            self.shop
+                .labor_for_vehicle(found.model_id, found.vehicle.year, engine, job)?;
+        Ok(Some(VehicleLabor {
+            vehicle: found.vehicle.clone(),
+            engine: engine.map(str::to_owned),
+            class: class.map(|(id, source)| LaborClass {
+                name: crate::labor::class_name(&id)
+                    .unwrap_or(id.as_str())
+                    .to_owned(),
+                id,
+                source,
+            }),
+            as_of: self.shop.labor_as_of().map(str::to_owned),
+            estimates: estimates
+                .into_iter()
+                .map(|found| self.labor_figure(found))
+                .collect(),
+            note: crate::labor::NOTE.to_owned(),
+            attribution: self.labor_credit(),
+        }))
+    }
+
+    /// `GET /v1/vehicles/{id}/labor` and, with `job`, `/labor/{job}`.
+    pub fn vehicle_labor(&self, id: &str, job: Option<&str>) -> Result<VehicleLabor, AnswerError> {
+        self.shop.require(Dataset::Labor)?;
+        let Some(found) = self.model_year(id)? else {
+            return Err(AnswerError::NotFound("No vehicle has that id."));
+        };
+        let engine = engine_of(id);
+        self.labor_of(&found, engine.as_deref(), job)?
+            .ok_or(AnswerError::NotFound(NO_JOB))
+    }
+
+    /// `GET /v1/vin/{vin}/labor` and, with `job`, `/labor/{job}`. `decode`
+    /// is the JSON of the decode, as `GET /v1/vin/{vin}` gives it. The
+    /// caller looks for the dataset before it decodes, as the API does.
+    pub fn vin_labor(&self, decode: &Json, job: Option<&str>) -> Result<VinLabor, AnswerError> {
+        self.shop.require(Dataset::Labor)?;
+        let text = |key: &str| decode.get(key).and_then(Json::as_str).map(str::to_owned);
+        let summary = Decode {
+            vin: text("vin").unwrap_or_default(),
+            valid: decode.get("valid").and_then(Json::as_bool).unwrap_or(false),
+            year: decode
+                .get("year")
+                .and_then(Json::as_u64)
+                .and_then(|year| u16::try_from(year).ok()),
+            make: text("make"),
+            model: text("model"),
+            trim: text("trim"),
+        };
+        let mut warnings = decode
+            .get("warnings")
+            .and_then(Json::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let vehicle_id = decode
+            .get("catalog")
+            .and_then(|catalog| catalog.get("vehicle_id"))
+            .and_then(Json::as_str);
+        let found = match vehicle_id {
+            Some(id) => self.model_year(id)?,
+            None => None,
+        };
+        let Some(found) = found else {
+            if let Some(job) = job
+                && (!is_slug(job) || self.shop.job(job)?.is_none())
+            {
+                return Err(AnswerError::NotFound(NO_JOB));
+            }
+            warnings.push(serde_json::json!({
+                "code": "no_catalog_vehicle",
+                "message": NO_LABOR_VEHICLE,
+            }));
+            return Ok(VinLabor {
+                decode: summary,
+                vehicle: None,
+                engine: None,
+                class: None,
+                as_of: self.shop.labor_as_of().map(str::to_owned),
+                estimates: Vec::new(),
+                note: crate::labor::NOTE.to_owned(),
+                attribution: self.labor_credit(),
+                warnings,
+            });
+        };
+        let engine = vehicle_id.and_then(engine_of);
+        let Some(answer) = self.labor_of(&found, engine.as_deref(), job)? else {
+            return Err(AnswerError::NotFound(NO_JOB));
+        };
+        Ok(VinLabor {
+            decode: summary,
+            vehicle: Some(answer.vehicle),
+            engine: answer.engine,
+            class: answer.class,
+            as_of: answer.as_of,
+            estimates: answer.estimates,
+            note: answer.note,
+            attribution: answer.attribution,
+            warnings,
+        })
     }
 }
 
