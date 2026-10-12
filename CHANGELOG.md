@@ -47,6 +47,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - API: the overview of a vehicle (`GET /v1/vehicles/{id}/overview` and `GET /v1/vin/{vin}/overview`) has a `safety` block: the answer of `GET /v1/vehicles/{id}/safety`, or `null` on a server without the ratings.
 - Website, on a server that holds the ratings: the model-year page and its Markdown version have a section "Crash test ratings", one row for each rating, with a link to NHTSA. Without the ratings the page is unchanged.
 - `wenmar-open` (npm): `safety(id)` on the hosted client, with the types `VehicleSafety` and `SafetyRating`.
+- Data: `open-data fetch nhtsa-vin-guides` downloads NHTSA's list of the letters manufacturers file under 49 CFR Part 565 to explain how their VINs are built, from vPIC's `GetParts`, one range of dates at a time and never keeping an answer that may be cut short. `open-data build-shop --nhtsa-vin-guides` puts the list in the shop file as the dataset `vin_guides`: who filed, when, for which model years, and the address of NHTSA's copy, matched through the manufacturer's name to the manufacturer codes and the makes of the catalog. The letters themselves are the manufacturers' documents and are never downloaded or stored.
 
 ### Internal
 
