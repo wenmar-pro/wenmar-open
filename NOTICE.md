@@ -27,6 +27,10 @@ Every dataset Wenmar Open serves, where it comes from, and what its licence asks
 | Recall remedy progress, United States | NHTSA recall quarterly and annual report flat files, https://static.nhtsa.gov/odi/ffdd/rcl/ | Public domain (United States government work) | None required. This site credits NHTSA. |
 | Crash test ratings, United States | NHTSA New Car Assessment Program, Safercar data file, https://static.nhtsa.gov/nhtsa/downloads/Safercar/Safercar_data.csv | Public domain (United States government work) | None required. This site credits NHTSA. |
 | Index of the VIN guides manufacturers file under 49 CFR Part 565 | NHTSA vPIC, the GetParts list of manufacturer filings, https://vpic.nhtsa.dot.gov/api/ | Public domain (United States government work) for the index. The letters it links to belong to the manufacturers and are not copied. | None required. This site credits NHTSA and links only to its copies. |
+| Fuel consumption ratings, United States | EPA fuel economy data, https://www.fueleconomy.gov/feg/download.shtml | Public domain (United States government work) | None required. This site credits EPA. |
+| Fuel consumption ratings, Canada | Natural Resources Canada, Fuel consumption ratings, https://open.canada.ca/data/en/dataset/98f1a129-f628-4ce4-b24d-6f16bf24dd64 | Open Government Licence – Canada | Contains information licensed under the Open Government Licence – Canada. |
+| Vehicle specifications and emission standards | EPA fuel economy data, emissions file and Fuel Economy Guide files, https://www.fueleconomy.gov/feg/download.shtml | Public domain (United States government work) | None required. This site credits EPA. |
+| Engine oil viscosity grade, as certified for fuel economy | EPA Fuel Economy Guide files, https://www.fueleconomy.gov/feg/download.shtml | Public domain (United States government work) | None required. This site credits EPA. |
 <!-- Shop-data plans add one row per dataset above this line, and the same row in crates/open-server/src/site/licences.rs. -->
 
 ## Fonts

@@ -97,6 +97,34 @@ pub const LICENCES: &[Licence] = &[
         licence_id: "public-domain",
         attribution: "None required. This site credits NHTSA and links only to its copies.",
     },
+    Licence {
+        dataset: "Fuel consumption ratings, United States",
+        source: "EPA fuel economy data, https://www.fueleconomy.gov/feg/download.shtml",
+        licence: "Public domain (United States government work)",
+        licence_id: "public-domain",
+        attribution: "None required. This site credits EPA.",
+    },
+    Licence {
+        dataset: "Fuel consumption ratings, Canada",
+        source: "Natural Resources Canada, Fuel consumption ratings, https://open.canada.ca/data/en/dataset/98f1a129-f628-4ce4-b24d-6f16bf24dd64",
+        licence: "Open Government Licence – Canada",
+        licence_id: "ogl-canada",
+        attribution: "Contains information licensed under the Open Government Licence – Canada.",
+    },
+    Licence {
+        dataset: "Vehicle specifications and emission standards",
+        source: "EPA fuel economy data, emissions file and Fuel Economy Guide files, https://www.fueleconomy.gov/feg/download.shtml",
+        licence: "Public domain (United States government work)",
+        licence_id: "public-domain",
+        attribution: "None required. This site credits EPA.",
+    },
+    Licence {
+        dataset: "Engine oil viscosity grade, as certified for fuel economy",
+        source: "EPA Fuel Economy Guide files, https://www.fueleconomy.gov/feg/download.shtml",
+        licence: "Public domain (United States government work)",
+        licence_id: "public-domain",
+        attribution: "None required. This site credits EPA.",
+    },
 ];
 
 /// The row as `NOTICE.md` and the Markdown page write it.
