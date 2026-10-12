@@ -4,6 +4,7 @@
 mod api_fuel;
 mod api_investigations;
 mod api_overview;
+mod api_parts_card;
 mod api_recalls;
 mod api_safety;
 mod api_vehicles;

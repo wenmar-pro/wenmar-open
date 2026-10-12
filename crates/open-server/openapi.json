@@ -1755,6 +1755,71 @@
         }
       }
     },
+    "/v1/vin/{vin}/parts-card": {
+      "get": {
+        "tags": [
+          "VIN"
+        ],
+        "summary": "The parts-ordering card for a VIN.",
+        "description": "What a parts counter asks for, one line each, and where each line came\nfrom: the decode, the catalog engine when the decode settles it, the\nemission standard when EPA's file was matched to that engine, and the\nbuild dates a recall campaign names for the model year. A build-date\nline is the range a campaign covers, not this vehicle's build date.\n`text` is the card as plain text, ready to paste. Works without shop\ndata: the lines that need it are then left off.",
+        "operationId": "parts_card",
+        "parameters": [
+          {
+            "name": "vin",
+            "in": "path",
+            "description": "A 17-character VIN.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "KM8K2CAB4PU001140"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "The model year, when the VIN's tenth character leaves two possible.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The card.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartsCard"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`invalid_vin`, or `validation_failed` for `year`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no manufacturer is registered for the first three characters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vin/{vin}/recalls": {
       "get": {
         "tags": [
@@ -3182,6 +3247,84 @@
             "type": "string",
             "description": "The model year's recall page on this site.",
             "example": "https://open.wenmarpro.com/makes/ford/f-150/2018/recalls"
+          }
+        }
+      },
+      "PartsCard": {
+        "type": "object",
+        "description": "What a parts counter asks for about one vehicle.",
+        "required": [
+          "vin",
+          "engine_settled",
+          "lines",
+          "text",
+          "attribution",
+          "warnings"
+        ],
+        "properties": {
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "engine_settled": {
+            "type": "boolean",
+            "description": "Whether the decode settled one catalog engine. The catalog engine\nand emission standard lines are there only when it did."
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartsCardLine"
+            }
+          },
+          "text": {
+            "type": "string",
+            "description": "The lines as plain text, one `Label: value` each."
+          },
+          "vehicle": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecallVehicle",
+                "description": "Null when the VIN decodes to no vehicle in the catalog."
+              }
+            ]
+          },
+          "vin": {
+            "type": "string"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            }
+          }
+        }
+      },
+      "PartsCardLine": {
+        "type": "object",
+        "description": "One line of a parts-ordering card.",
+        "required": [
+          "label",
+          "value",
+          "source"
+        ],
+        "properties": {
+          "label": {
+            "type": "string",
+            "example": "Engine"
+          },
+          "source": {
+            "type": "string",
+            "description": "Where the line came from.",
+            "example": "VIN decode (NHTSA vPIC)"
+          },
+          "value": {
+            "type": "string",
+            "example": "2.0L"
           }
         }
       },

@@ -62,6 +62,7 @@ fn the_description_lists_every_route_and_no_others() {
             "/v1/vin/{vin}/fluids",
             "/v1/vin/{vin}/fuel",
             "/v1/vin/{vin}/overview",
+            "/v1/vin/{vin}/parts-card",
             "/v1/vin/{vin}/recalls",
             "/v1/vin/{vin}/specs",
         ]
@@ -102,6 +103,7 @@ fn the_description_lists_every_route_and_no_others() {
         "VehicleFluids",
         "VinFluids",
         "EngineOil",
+        "PartsCard",
     ] {
         assert!(schemas.contains_key(name), "no schema for {name}");
     }

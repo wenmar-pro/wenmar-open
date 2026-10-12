@@ -1435,3 +1435,31 @@ pub struct VinFluids {
     pub attribution: Vec<String>,
     pub warnings: Vec<Warning>,
 }
+
+/// One line of a parts-ordering card.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct PartsCardLine {
+    #[schema(example = "Engine")]
+    pub label: String,
+    #[schema(example = "2.0L")]
+    pub value: String,
+    /// Where the line came from.
+    #[schema(example = "VIN decode (NHTSA vPIC)")]
+    pub source: String,
+}
+
+/// What a parts counter asks for about one vehicle.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct PartsCard {
+    pub vin: String,
+    /// Null when the VIN decodes to no vehicle in the catalog.
+    pub vehicle: Option<RecallVehicle>,
+    /// Whether the decode settled one catalog engine. The catalog engine
+    /// and emission standard lines are there only when it did.
+    pub engine_settled: bool,
+    pub lines: Vec<PartsCardLine>,
+    /// The lines as plain text, one `Label: value` each.
+    pub text: String,
+    pub attribution: Vec<String>,
+    pub warnings: Vec<Warning>,
+}
