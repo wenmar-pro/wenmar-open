@@ -114,6 +114,7 @@ async fn llms_full_txt_is_the_pages_themselves() {
         "/tools/tire-size.md",
         "/tools/refrigerant-pt.md",
         "/tools/battery-state-of-charge.md",
+        "/tools/wire-gauge.md",
         "/data.md",
         "/about.md",
     ] {

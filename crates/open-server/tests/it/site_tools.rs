@@ -721,6 +721,24 @@ async fn the_calculators_are_reached_from_the_home_page_the_sitemap_and_llms_txt
     {
         assert!(all.contains(line), "missing: {line}");
     }
+    // The wire gauge calculator is in each of the same places.
+    assert!(home.contains(
+        r#"<li><a href="/tools/wire-gauge">Wire gauge calculator for 12 V and 24 V</a></li>"#
+    ));
+    assert!(sitemap.contains("<loc>https://open.example/tools/wire-gauge</loc>"));
+    assert!(!sitemap.contains("wire-gauge?"));
+    assert!(text.contains(
+        "- [Wire gauge calculator for 12 V and 24 V](https://open.example/tools/wire-gauge.md): Works out the voltage drop of each wire gauge"
+    ));
+    let (_, wire_gauge) = page(&app, "/tools/wire-gauge.md").await;
+    let (_, all) = page(&app, "/llms-full.txt").await;
+    assert!(all.contains("\n## Wire gauge calculator for 12 V and 24 V\n"));
+    for line in wire_gauge
+        .lines()
+        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+    {
+        assert!(all.contains(line), "missing: {line}");
+    }
     // llms-full.txt holds the calculator's Markdown, line for line.
     let (_, full) = page(&app, "/llms-full.txt").await;
     assert!(full.contains("\n## Parts markup matrix calculator\n"));

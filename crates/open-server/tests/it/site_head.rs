@@ -256,6 +256,10 @@ async fn titles_and_descriptions_are_for_what_people_search_and_are_unique() {
             "Canadian invoice tax and tire fee calculator - Wenmar Open",
         ),
         (
+            "/tools/wire-gauge",
+            "Wire gauge calculator for 12 V and 24 V - Wenmar Open",
+        ),
+        (
             "/tools/tire-size",
             "Tire size comparison calculator - Wenmar Open",
         ),

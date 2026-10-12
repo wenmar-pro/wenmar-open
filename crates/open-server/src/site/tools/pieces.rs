@@ -288,6 +288,15 @@ mod tests {
                 include_str!("battery_soc/result.rs"),
             ),
             ("battery_soc/doc.rs", include_str!("battery_soc/doc.rs")),
+            (
+                "wire_gauge.html",
+                include_str!("../../../templates/wire_gauge.html"),
+            ),
+            ("wire_gauge/mod.rs", include_str!("wire_gauge/mod.rs")),
+            ("wire_gauge/data.rs", include_str!("wire_gauge/data.rs")),
+            ("wire_gauge/form.rs", include_str!("wire_gauge/form.rs")),
+            ("wire_gauge/result.rs", include_str!("wire_gauge/result.rs")),
+            ("wire_gauge/doc.rs", include_str!("wire_gauge/doc.rs")),
         ];
         for (name, text) in files {
             let code = text.split("#[cfg(test)]").next().unwrap();
