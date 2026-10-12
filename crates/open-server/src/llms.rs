@@ -52,13 +52,43 @@ fn recall_text(base: &str) -> (String, String, String) {
     (prose, api, pages)
 }
 
+/// What `/llms.txt` says about manufacturer bulletins, on a server that
+/// holds them: a paragraph of prose, the lines of `## API` and the lines of
+/// `## Reference pages`. A bulletin lists model years and is not a recall.
+fn bulletin_text(base: &str) -> (String, String, String) {
+    let prose = format!(
+        "Manufacturer service bulletins, warranty extensions and over-the-air updates that NHTSA publishes are listed by model year: fetch `{base}/v1/vehicles/` followed by a vehicle id and `/bulletins`, or `{base}/v1/vin/` followed by a VIN and `/bulletins`. Each has NHTSA's summary and `document`, the address NHTSA's copy of the manufacturer's document is expected at. Narrow a list with `type`, `component`, `code` (a trouble code), `topic` and `q`. A bulletin is not a recall.\n\n"
+    );
+    let api = format!(
+        "- [Bulletins that list a model year]({base}/v1/vehicles/2019_honda_civic/bulletins): `GET /v1/vehicles/{{id}}/bulletins?type=&component=&code=&topic=&q=`
+- [Bulletins that list the model year a VIN decodes to]({base}/v1/vin/KM8K2CAB4PU001140/bulletins): `GET /v1/vin/{{vin}}/bulletins?year=`
+- [One bulletin, with every vehicle it lists]({base}/v1/bulletins/11000006): `GET /v1/bulletins/{{nhtsa_id}}`
+- [Bulletins, listed and searched]({base}/v1/bulletins?make=ford&q=water%20pump): `GET /v1/bulletins?make=&model=&year=&type=&q=&limit=&cursor=`
+"
+    );
+    let pages = format!(
+        "- [Service bulletins by vehicle]({base}/bulletins): the list of bulletins, by make and model
+- [Service bulletins for a model year, such as the 2019 Honda Civic]({base}/makes/honda/civic/2019/bulletins.md): `/makes/{{make}}/{{model}}/{{year}}/bulletins.md`
+"
+    );
+    (prose, api, pages)
+}
+
 /// The text of `/llms.txt` for a server at `base` serving `data_version`,
 /// where one address may make `limit` requests a minute. `recalls` says
 /// whether the server holds recall campaigns: what is said of them is left
 /// out of a server that would answer every recall route with 404.
 /// `ratings` says whether it holds NHTSA's crash test ratings, and the
-/// address of those is left out in the same way.
-pub fn text(base: &str, data_version: &str, limit: u32, recalls: bool, ratings: bool) -> String {
+/// address of those is left out in the same way. `bulletins` says the same
+/// of the manufacturer's bulletins.
+pub fn text(
+    base: &str,
+    data_version: &str,
+    limit: u32,
+    recalls: bool,
+    ratings: bool,
+    bulletins: bool,
+) -> String {
     let rating_api = if ratings {
         format!(
             "- [NHTSA's crash test ratings for a model year]({base}/v1/vehicles/2019_honda_civic/safety): `GET /v1/vehicles/{{id}}/safety`\n"
@@ -68,6 +98,11 @@ pub fn text(base: &str, data_version: &str, limit: u32, recalls: bool, ratings: 
     };
     let (recall_prose, recall_api, recall_pages) = if recalls {
         recall_text(base)
+    } else {
+        Default::default()
+    };
+    let (bulletin_prose, bulletin_api, bulletin_pages) = if bulletins {
+        bulletin_text(base)
     } else {
         Default::default()
     };
@@ -102,11 +137,11 @@ To decode a VIN, fetch `{base}/v1/vin/` followed by the VIN, and read the JSON. 
 
 Responses are plain JSON with no wrapper. Errors are `{{ \"error\": {{ \"code\", \"message\", \"details\" }} }}`. One address may make {limit} requests a minute; over that the answer is 429 with `Retry-After`. Fields and endpoints are only ever added.
 
-An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenmar_vin` (actions `decode`, `batch`, `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`, `safety`) and `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`, `recent`). `wenmar_recalls` lists recalls by year, make and model and never looks a VIN up: confirm by VIN with the manufacturer.
+An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenmar_vin` (actions `decode`, `batch`, `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`, `safety`) and `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`, `recent`) and `wenmar_bulletins` (actions `vehicle`, `vin`, `get`, `search`). `wenmar_recalls` lists recalls by year, make and model and never looks a VIN up: confirm by VIN with the manufacturer. `wenmar_bulletins` lists the manufacturer's bulletins by model year, and a bulletin is not a recall.
 
 The calculators under `{base}/tools` are web pages with forms, for people. An agent does the arithmetic itself: the Markdown version of each calculator states its formula and one worked example.
 
-{recall_prose}Vehicle ids such as `2019_honda_civic_si` are built from the year and the names, and stay the same between data releases for as long as the names do. Every reference page has a Markdown version at the same address with `.md` added. The data is what manufacturers reported to NHTSA. It can be incomplete, especially for vehicles never sold in the United States.
+{recall_prose}{bulletin_prose}Vehicle ids such as `2019_honda_civic_si` are built from the year and the names, and stay the same between data releases for as long as the names do. Every reference page has a Markdown version at the same address with `.md` added. The data is what manufacturers reported to NHTSA. It can be incomplete, especially for vehicles never sold in the United States.
 
 ## API
 
@@ -123,7 +158,7 @@ The calculators under `{base}/tools` are web pages with forms, for people. An ag
 - [Everything held for one model year]({base}/v1/vehicles/2019_honda_civic/overview): `GET /v1/vehicles/{{id}}/overview`
 - [Everything held for the vehicle a VIN decodes to]({base}/v1/vin/KM8K2CAB4PU001140/overview): `GET /v1/vin/{{vin}}/overview`
 - [Every model year of one model]({base}/v1/models/honda/civic): `GET /v1/models/{{make}}/{{model}}`
-{rating_api}{recall_api}- [Data version]({base}/v1/meta): `GET /v1/meta`
+{rating_api}{recall_api}{bulletin_api}- [Data version]({base}/v1/meta): `GET /v1/meta`
 
 ## Docs
 
@@ -145,7 +180,7 @@ The calculators under `{base}/tools` are web pages with forms, for people. An ag
 - [One make, such as Honda]({base}/makes/honda.md): `/makes/{{make}}.md`
 - [One model year, such as the 2019 Honda Civic]({base}/makes/honda/civic/2019.md): `/makes/{{make}}/{{model}}/{{year}}.md`
 - [One manufacturer code, such as KM8]({base}/wmi/KM8.md): `/wmi/{{code}}.md`
-{recall_pages}
+{recall_pages}{bulletin_pages}
 ## Optional
 
 - [About the data]({base}/data.md): the data version, its source and how to download it
@@ -206,6 +241,11 @@ pub fn holds_recalls(state: &AppState) -> bool {
     crate::api::recalls::recall_shop(state, None).is_ok()
 }
 
+/// Whether this server holds the manufacturers' bulletins.
+pub fn holds_bulletins(state: &AppState) -> bool {
+    state.dataset(wenmar_shopdata::Dataset::Bulletins).is_ok()
+}
+
 /// Whether this server holds NHTSA's crash test ratings.
 pub fn holds_ratings(state: &AppState) -> bool {
     state.dataset(wenmar_shopdata::Dataset::Ratings).is_ok()
@@ -218,6 +258,7 @@ pub async fn llms_txt(State(state): State<AppState>) -> Response {
         state.config().requests_per_minute,
         holds_recalls(&state),
         holds_ratings(&state),
+        holds_bulletins(&state),
     ))
 }
 

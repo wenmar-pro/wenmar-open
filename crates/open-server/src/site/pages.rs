@@ -137,7 +137,7 @@ pub fn docs(state: &AppState) -> Doc {
                 with_code(
                     section(
                         "MCP server",
-                        &["The same lookups are tools on a Model Context Protocol server: wenmar_vin, wenmar_vehicles and wenmar_recalls. A recall that wenmar_recalls lists may apply to a vehicle of that year, make and model; only the manufacturer can confirm it for one VIN. The server speaks Streamable HTTP and needs no key. Add this address as a remote server or a custom connector:"],
+                        &["The same lookups are tools on a Model Context Protocol server: wenmar_vin, wenmar_vehicles, wenmar_recalls and wenmar_bulletins. A recall that wenmar_recalls lists may apply to a vehicle of that year, make and model; only the manufacturer can confirm it for one VIN. A bulletin that wenmar_bulletins lists is for a model year and is not a recall. The server speaks Streamable HTTP and needs no key. Add this address as a remote server or a custom connector:"],
                     ),
                     format!("{base}/mcp"),
                 ),

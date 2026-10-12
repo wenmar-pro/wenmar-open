@@ -561,6 +561,23 @@ async fn a_server_with_recalls_says_so_where_a_model_looks() {
 }
 
 #[tokio::test]
+async fn a_server_with_bulletins_says_so_where_a_model_looks() {
+    let app = common::bulletins_app().await;
+    let text = body_text(app.get("/llms.txt").await).await;
+    assert!(text.contains("/v1/bulletins/11000006"), "{text}");
+    assert!(text.contains("A bulletin is not a recall"), "{text}");
+    assert!(text.contains("`wenmar_bulletins`"), "{text}");
+    // A server without bulletins names no bulletin address, though the tool
+    // is there: it answers with the error a model can read.
+    for app in [common::app().await, common::recalls_app().await] {
+        let text = body_text(app.get("/llms.txt").await).await;
+        assert!(!text.contains("/bulletins"), "{text}");
+        assert!(!text.contains("A bulletin is not a recall"), "{text}");
+        assert!(text.contains("`wenmar_bulletins`"), "{text}");
+    }
+}
+
+#[tokio::test]
 async fn a_server_without_recalls_lists_no_recall_address() {
     let app = common::app().await;
     let text = body_text(app.get("/llms.txt").await).await;
