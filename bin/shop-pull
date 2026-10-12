@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Fetch the shop data release the server image will be built around.
+# Thin wrapper over `mise run shop-pull`.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec mise run shop-pull "$@"

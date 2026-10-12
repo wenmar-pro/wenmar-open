@@ -77,3 +77,7 @@ jobs:
       - name: Test the shop data package's scripts
         working-directory: clients/data-shop
         run: node --test test/data-shop.test.mjs
+
+      - name: Test the shop release scripts
+        working-directory: ${{ github.workspace }}
+        run: node --test scripts/shop-release.test.mjs
