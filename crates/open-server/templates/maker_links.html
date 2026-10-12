@@ -1,0 +1,14 @@
+{% if let Some(list) = links -%}
+<h2 id="maker">From {{ list.make }}</h2>
+{% if !list.items.is_empty() -%}
+<ul class="plain links">
+{% for item in list.items -%}
+<li><a href="{{ item.1 }}">{{ item.0 }}</a></li>
+{% endfor -%}
+</ul>
+{% endif -%}
+{% if let Some(line) = list.customer_line -%}
+<p>{{ list.make }} customer line: {{ line }}</p>
+{% endif -%}
+<p class="note">These lead to the maker's own site, which this site does not run. Checked {{ list.checked }}.</p>
+{% endif -%}

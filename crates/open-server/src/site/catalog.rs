@@ -15,7 +15,7 @@ use crate::api::types::{Entry, Make, Model};
 use crate::db::Worker;
 use crate::error::ApiError;
 use crate::site::markdown::{self, Format, escape};
-use crate::site::{self, Page, jsonld, report, seo};
+use crate::site::{self, Page, jsonld, links, report, seo};
 use crate::state::AppState;
 
 /// Most makes or models listed on one page, and most trims on a model year.
@@ -295,6 +295,7 @@ fn load_make(
 struct MakePage {
     page: Page,
     view: MakeView,
+    links: Option<links::LinkList>,
 }
 
 fn make_markdown(view: &MakeView) -> String {
@@ -373,9 +374,14 @@ pub async fn make(
         Found::Elsewhere(_) | Found::Nothing => return site::not_found(&state),
     };
     let path = format!("/makes/{}", view.slug);
+    let links = links::for_make(&view.name).map(|found| found.list(&view.name));
     if format == Format::Markdown {
         let canonical = format!("{}{path}", state.config().base_url);
-        return markdown::response(make_markdown(&view), &canonical);
+        let mut text = make_markdown(&view);
+        if let Some(list) = &links {
+            text.push_str(&links::markdown(list));
+        }
+        return markdown::response(text, &canonical);
     }
     let name = &view.name;
     let models = match (view.years.last(), view.years.first()) {
@@ -422,7 +428,7 @@ pub async fn make(
         (false, _) => page,
     };
     let indexed = page.index;
-    let mut response = site::html(StatusCode::OK, &MakePage { page, view });
+    let mut response = site::html(StatusCode::OK, &MakePage { page, view, links });
     if !indexed {
         site::unindexed(&mut response);
     }
@@ -574,6 +580,7 @@ struct ModelYearPage {
     view: ModelYearView,
     name: String,
     report: report::ReportLinks,
+    links: Option<links::LinkList>,
 }
 
 fn model_year_markdown(view: &ModelYearView, report: &report::ReportLinks) -> String {
@@ -753,9 +760,14 @@ pub async fn model_year(
         view.entry.year, view.entry.make, view.entry.model
     );
     let report = report::links(state.config(), &path, &name);
+    let links = links::for_make(&view.entry.make).map(|found| found.list(&view.entry.make));
     if format == Format::Markdown {
         let canonical = format!("{}{path}", state.config().base_url);
-        return markdown::response(model_year_markdown(&view, &report), &canonical);
+        let mut text = model_year_markdown(&view, &report);
+        if let Some(list) = &links {
+            text.push_str(&links::markdown(list));
+        }
+        return markdown::response(text, &canonical);
     }
     let page = Page::new(
         &state,
@@ -799,6 +811,7 @@ pub async fn model_year(
             view,
             name,
             report,
+            links,
         },
     )
 }

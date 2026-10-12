@@ -21,6 +21,7 @@
 {% endfor -%}
 </ul>
 </nav>
+{% include "maker_links.html" %}
 <h2>{{ view.name }} VIN decoder</h2>
 {% include "vin_form.html" %}
 {% if !view.codes.is_empty() -%}

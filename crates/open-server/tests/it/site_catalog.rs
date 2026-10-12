@@ -557,3 +557,45 @@ async fn a_model_year_page_offers_a_report_in_both_forms() {
         );
     }
 }
+
+#[tokio::test]
+async fn a_makers_links_are_shown_exactly_where_some_are_recorded() {
+    use open_server::site::links;
+    let app = common::app().await;
+    for (name, pages) in [
+        ("Honda", ["/makes/honda", "/makes/honda/civic/2019"]),
+        ("Ford", ["/makes/ford", "/makes/ford/f-150/2019"]),
+        ("Hyundai", ["/makes/hyundai", "/makes/hyundai/kona/2023"]),
+        (
+            "Ranger Trailers",
+            [
+                "/makes/ranger-trailers",
+                "/makes/ranger-trailers/tilt-deck/2019",
+            ],
+        ),
+    ] {
+        let recorded = links::for_make(name).map(|found| found.list(name));
+        for path in pages {
+            let (status, html) = page(&app, path).await;
+            assert_eq!(status, StatusCode::OK, "{path}");
+            assert_basics(&html, path);
+            assert_eq!(
+                html.contains(r#"<h2 id="maker">"#),
+                recorded.is_some(),
+                "{path}"
+            );
+            let text = markdown(&app, &format!("{path}.md")).await;
+            assert_eq!(text.contains("\n## From "), recorded.is_some(), "{path}.md");
+            let Some(list) = &recorded else { continue };
+            assert!(
+                html.contains(&format!("Checked {}.", list.checked)),
+                "{path}"
+            );
+            assert!(text.ends_with(&links::markdown(list)), "{path}.md:\n{text}");
+            for (_, address) in &list.items {
+                let href = format!(r#"<a href="{}">"#, address.replace('&', "&#38;"));
+                assert!(html.contains(&href), "{path}: {address}");
+            }
+        }
+    }
+}
