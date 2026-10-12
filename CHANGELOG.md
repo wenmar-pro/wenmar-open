@@ -14,6 +14,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Website: the VIN result page and every model-year page (and its Markdown version) link to a GitHub issue form already filled in with the page and the vehicle. A VIN page fills in only the first 11 characters of the VIN. With `OPEN_FEEDBACK_EMAIL` set, an email link is shown beside it. `OPEN_GITHUB_REPO` names the repository.
 - Website: `/data` and `/data.md` list every dataset served with its source, its licence and the attribution it requires. `NOTICE.md` holds the same table, and a test keeps the two the same.
 - `CONTRIBUTING.md`: rules for hand-written data. Where a record may not come from, the `source` and `checked` it must carry, what a pull request must show, and who approves it.
+- The tire size comparison calculator, at `/tools/tire-size`: the sidewall, diameter, circumference and revolutions per kilometre of two metric sizes, the difference between them and the speedometer error. Its arithmetic is in `shop-math`, in whole hundredths of a millimetre.
 
 ### Internal
 
