@@ -68,6 +68,13 @@ pub const LICENCES: &[Licence] = &[
         licence_id: "ogl-canada",
         attribution: "Contains information licensed under the Open Government Licence – Canada.",
     },
+    Licence {
+        dataset: "Vehicle defect investigations, United States",
+        source: "NHTSA investigations flat file, https://static.nhtsa.gov/odi/ffdd/inv/",
+        licence: "Public domain (United States government work)",
+        licence_id: "public-domain",
+        attribution: "None required. This site credits NHTSA.",
+    },
 ];
 
 /// The row as `NOTICE.md` and the Markdown page write it.
