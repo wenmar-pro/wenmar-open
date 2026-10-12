@@ -36,6 +36,15 @@ pub struct DecodeQuery {
     pub year: Option<u16>,
 }
 
+#[derive(Debug, Default, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
+pub struct BatchQuery {
+    /// `recalls` adds to each decode the number of recall campaigns that
+    /// may apply to the model year it reaches. Left out: nothing is added.
+    #[param(example = "recalls")]
+    pub include: Option<String>,
+}
+
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct BatchRequest {
     /// At most 50 VINs.
@@ -152,22 +161,32 @@ pub async fn decode(
 ///
 /// The answer is an array in the order asked. Each item is a decode, or the
 /// error object a single request for that VIN would have returned.
+///
+/// With `?include=recalls`, each decode that reaches a model year of the
+/// catalog also carries `recalls`: how many campaigns may apply to that
+/// model year. It is a count for the year, make and model, never a lookup
+/// by VIN.
 #[utoipa::path(
     post,
     path = "/vin/batch",
     tag = "VIN",
+    params(BatchQuery),
     request_body = BatchRequest,
     responses(
         (status = 200, description = "One item per VIN, in order.", body = Vec<BatchItem>),
-        (status = 400, description = "`validation_failed`: the body is not `{ \"vins\": [...] }` or lists more than 50.", body = ErrorBody),
+        (status = 400, description = "`validation_failed`: the body is not `{ \"vins\": [...] }` or lists more than 50, or `include` is not `recalls`.", body = ErrorBody),
+        (status = 404, description = "`dataset_unavailable`: `include=recalls` was asked of a server that holds no recalls.", body = ErrorBody),
         (status = 413, description = "`payload_too_large`.", body = ErrorBody),
         (status = 429, description = "`rate_limited`.", body = ErrorBody)
     )
 )]
 pub async fn batch(
     State(state): State<AppState>,
+    query: Result<Query<BatchQuery>, QueryRejection>,
     body: Result<Json<BatchRequest>, JsonRejection>,
 ) -> Result<Json<Vec<BatchItem>>, ApiError> {
+    let Query(query) = query.map_err(bad_query)?;
+    let with_recalls = crate::api::overview::include_recalls(query.include.as_deref())?;
     let Json(request) = body.map_err(bad_body)?;
     if request.vins.len() > MOST_VINS {
         return Err(ApiError::Validation {
@@ -175,7 +194,10 @@ pub async fn batch(
             details: json!({ "field": "vins", "max": MOST_VINS, "received": request.vins.len() }),
         });
     }
-    let decoded = decode_many(&state, request.vins, None).await?;
+    let mut decoded = decode_many(&state, request.vins, None).await?;
+    if with_recalls {
+        crate::api::overview::add_recall_counts(&state, &mut decoded).await?;
+    }
     Ok(Json(
         decoded
             .into_iter()

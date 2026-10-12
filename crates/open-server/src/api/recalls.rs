@@ -285,7 +285,8 @@ pub fn campaign_url(base: &str, source: &str, campaign: &str) -> String {
     format!("{base}/recalls/{source}/{campaign}")
 }
 
-fn listed(base: &str, recall: shopdata::RecallSummary) -> Recall {
+/// A campaign as a list that is not about one model year gives it.
+pub fn listed(base: &str, recall: shopdata::RecallSummary) -> Recall {
     Recall {
         url: campaign_url(base, &recall.source, &recall.campaign),
         source: recall.source,
