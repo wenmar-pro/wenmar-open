@@ -2405,6 +2405,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "ureq",
+ "wenmar-shopdata",
  "wenmar-vehicles",
  "wenmar-vin",
 ]

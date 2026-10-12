@@ -5,17 +5,41 @@ use std::path::Path;
 
 use serde::Serialize;
 use serde_json::Value;
+use wenmar_shopdata::{Dataset, ShopError};
 use wenmar_vehicles::sqlite::SqliteSource;
 use wenmar_vehicles::{Catalog, Scope};
 use wenmar_vin::sqlite::SqliteData;
 use wenmar_vin::{DecodeError, DecodeOptions, Decoder};
 
 use crate::data::{self, Status};
-use crate::error::{CliError, DATA_INVALID, NO_DATA, NOT_FOUND};
-use crate::request::{Action, Lookup, MOST, Request, SEARCH_DEFAULT, current_year};
+use crate::error::{CliError, DATA_INVALID, DATASET_UNAVAILABLE, NO_DATA, NOT_FOUND};
+use crate::request::{Action, Lookup, MOST, RecallLookup, Request, SEARCH_DEFAULT, current_year};
 
 /// What to do about a data file that cannot be used.
 pub const PULL_HINT: &str = "Run `wenmar-open data pull` to download the current data file.";
+
+/// What to do when the recalls are not here.
+pub const SHOP_PULL_HINT: &str = "Run: wenmar-open data pull --shop";
+
+/// The error for a dataset the local files do not hold: the API's own
+/// `dataset_unavailable`, with what to run to get the data.
+pub fn dataset_unavailable(dataset: Dataset) -> CliError {
+    CliError::new(
+        DATASET_UNAVAILABLE,
+        ShopError::DatasetUnavailable(dataset).to_string(),
+    )
+    .with_details(serde_json::json!({ "dataset": dataset.id() }))
+    .with_hint(SHOP_PULL_HINT)
+}
+
+/// The recall dataset a question needs first: the country asked for, or
+/// the United States' when none is, as the API names it.
+pub fn recall_dataset(lookup: &RecallLookup) -> Dataset {
+    match (lookup.country.as_deref(), lookup.source.as_deref()) {
+        (Some("ca"), _) | (_, Some("tc")) => Dataset::RecallsCa,
+        _ => Dataset::RecallsUs,
+    }
+}
 
 /// An open data file.
 pub struct Local {
@@ -95,6 +119,9 @@ impl Local {
                 Ok(Value::Array(items))
             }
             Request::Vehicles { action, lookup } => self.vehicles(*action, lookup),
+            // The data file holds no recalls. They are in the shop file,
+            // which this build does not read yet.
+            Request::Recalls { lookup, .. } => Err(dataset_unavailable(recall_dataset(lookup))),
         }
     }
 

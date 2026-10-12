@@ -14,6 +14,9 @@ pub const INVALID_VIN: &str = "invalid_vin";
 pub const VALIDATION_FAILED: &str = "validation_failed";
 pub const NOT_FOUND: &str = "not_found";
 pub const RATE_LIMITED: &str = "rate_limited";
+/// A dataset, such as recalls, that the server or the local files do not
+/// hold.
+pub const DATASET_UNAVAILABLE: &str = "dataset_unavailable";
 pub const INTERNAL_ERROR: &str = "internal_error";
 
 /// Codes only this tool has.
@@ -103,7 +106,7 @@ impl CliError {
             INTERNAL_ERROR | "unavailable" | "method_not_allowed" | "payload_too_large"
             | BAD_RESPONSE => 6,
             NETWORK => 10,
-            NO_DATA | DATA_INVALID => 11,
+            NO_DATA | DATA_INVALID | DATASET_UNAVAILABLE => 11,
             _ => 1,
         }
     }
@@ -160,6 +163,7 @@ mod tests {
             (NETWORK, 10),
             (NO_DATA, 11),
             (DATA_INVALID, 11),
+            (DATASET_UNAVAILABLE, 11),
             (IO, 1),
             (DOWNLOAD_FAILED, 1),
             (JQ_ERROR, 1),

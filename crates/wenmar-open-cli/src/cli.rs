@@ -67,8 +67,8 @@ pub enum Command {
     },
     /// Run an MCP server on standard input and output, for AI agents.
     ///
-    /// It offers two tools, wenmar_vin and wenmar_vehicles, the same as the
-    /// hosted server at /mcp.
+    /// It offers three tools, wenmar_vin, wenmar_vehicles and wenmar_recalls,
+    /// the same as the hosted server at /mcp.
     Mcp,
     /// Set up a coding agent to use this tool.
     ///

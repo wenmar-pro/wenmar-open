@@ -12,7 +12,7 @@ use serde_json::{Value, json};
 use wenmar_vehicles::Scope;
 use wenmar_vin::{Vin, VinError, suggest};
 
-use crate::error::{CliError, INVALID_VIN, VALIDATION_FAILED};
+use crate::error::{CliError, INVALID_VIN, NOT_FOUND, VALIDATION_FAILED};
 
 /// Most VINs in one batch.
 pub const MOST_VINS: usize = 50;
@@ -29,6 +29,14 @@ pub const SEARCH_MOST: usize = 50;
 pub const LONGEST_TEXT: usize = 200;
 /// The first model year a 17-character VIN can have.
 const FIRST_VIN_YEAR: u16 = 1980;
+/// Recall campaigns in a list when `limit` is not given, and the most it
+/// may be.
+pub const RECALLS_DEFAULT: usize = 25;
+pub const RECALLS_MOST: usize = 100;
+/// Longest recall campaign number read.
+pub const LONGEST_CAMPAIGN: usize = 20;
+/// What the API says of a campaign it does not have.
+pub const NO_CAMPAIGN: &str = "No recall campaign has that number.";
 
 /// A step of the vehicle catalog.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -87,6 +95,62 @@ pub struct Lookup {
     pub limit: Option<usize>,
 }
 
+/// A question about recalls.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecallAction {
+    /// The recalls that may apply to a model year, by its vehicle id.
+    Vehicle,
+    /// The same, for the model year a VIN decodes to.
+    Vin,
+    /// One campaign with every vehicle it lists.
+    Campaign,
+    /// Campaigns, newest first, narrowed by what is given.
+    Search,
+}
+
+impl RecallAction {
+    pub const ALL: [RecallAction; 4] = [
+        RecallAction::Vehicle,
+        RecallAction::Vin,
+        RecallAction::Campaign,
+        RecallAction::Search,
+    ];
+
+    /// The name of the action in the `wenmar_recalls` tool.
+    pub fn name(self) -> &'static str {
+        match self {
+            RecallAction::Vehicle => "vehicle",
+            RecallAction::Vin => "vin",
+            RecallAction::Campaign => "campaign",
+            RecallAction::Search => "search",
+        }
+    }
+
+    fn parse(name: &str) -> Option<RecallAction> {
+        RecallAction::ALL
+            .into_iter()
+            .find(|action| action.name() == name)
+    }
+}
+
+/// What a recall question may carry. Which fields matter depends on the
+/// [`RecallAction`].
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct RecallLookup {
+    pub id: Option<String>,
+    pub vin: Option<String>,
+    pub year: Option<u16>,
+    pub source: Option<String>,
+    pub campaign: Option<String>,
+    pub make: Option<String>,
+    pub model: Option<String>,
+    pub component: Option<String>,
+    pub query: Option<String>,
+    pub country: Option<String>,
+    pub limit: Option<usize>,
+    pub cursor: Option<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Request {
     VinDecode {
@@ -100,6 +164,10 @@ pub enum Request {
     Vehicles {
         action: Action,
         lookup: Lookup,
+    },
+    Recalls {
+        action: RecallAction,
+        lookup: RecallLookup,
     },
 }
 
@@ -170,6 +238,86 @@ fn vin_year(year: Option<u16>, current_year: u16) -> Result<(), CliError> {
     }
 }
 
+/// `country`: `us` or `ca` in either case, or nothing for both.
+fn country(value: Option<&String>) -> Result<Option<String>, CliError> {
+    match present(value).map(|text| text.to_ascii_lowercase()) {
+        None => Ok(None),
+        Some(text) if text == "us" || text == "ca" => Ok(Some(text)),
+        Some(_) => Err(CliError::validation("country", "country must be us or ca")),
+    }
+}
+
+/// A recall question with the API's rules applied.
+fn checked_recalls(
+    action: RecallAction,
+    lookup: RecallLookup,
+    current_year: u16,
+) -> Result<RecallLookup, CliError> {
+    let country = country(lookup.country.as_ref())?;
+    Ok(match action {
+        RecallAction::Vehicle => RecallLookup {
+            id: required("id", lookup.id.as_ref())?,
+            country,
+            ..RecallLookup::default()
+        },
+        RecallAction::Vin => {
+            let Some(vin) = lookup.vin.as_ref() else {
+                return Err(CliError::validation("vin", "vin is required"));
+            };
+            vin_year(lookup.year, current_year)?;
+            RecallLookup {
+                vin: Some(well_formed(vin)?.as_str().to_owned()),
+                year: lookup.year,
+                country,
+                ..RecallLookup::default()
+            }
+        }
+        RecallAction::Campaign => {
+            let source = required("source", lookup.source.as_ref())?;
+            let campaign = required("campaign", lookup.campaign.as_ref())?;
+            // The API answers 404 for a publisher it does not know and for
+            // a number that is not letters and digits. Neither is ever put
+            // in an address.
+            let known = matches!(source.as_deref(), Some("nhtsa" | "tc"));
+            let sound = campaign.as_deref().is_some_and(|number| {
+                number.len() <= LONGEST_CAMPAIGN
+                    && number.bytes().all(|byte| byte.is_ascii_alphanumeric())
+            });
+            if !known || !sound {
+                return Err(CliError::new(NOT_FOUND, NO_CAMPAIGN));
+            }
+            RecallLookup {
+                source,
+                campaign,
+                ..RecallLookup::default()
+            }
+        }
+        RecallAction::Search => {
+            let make = present(lookup.make.as_ref());
+            let model = present(lookup.model.as_ref());
+            if model.is_some() && make.is_none() {
+                return Err(CliError::validation("make", "model needs make"));
+            }
+            RecallLookup {
+                make,
+                model,
+                year: lookup.year,
+                component: present(lookup.component.as_ref()),
+                query: present(lookup.query.as_ref()),
+                country,
+                limit: Some(
+                    lookup
+                        .limit
+                        .unwrap_or(RECALLS_DEFAULT)
+                        .clamp(1, RECALLS_MOST),
+                ),
+                cursor: present(lookup.cursor.as_ref()),
+                ..RecallLookup::default()
+            }
+        }
+    })
+}
+
 impl Request {
     /// The request with the API's rules applied: required fields present,
     /// text cut to length, limits within bounds. Fields the action does not
@@ -194,6 +342,10 @@ impl Request {
                 vin_year(year, current_year)?;
                 Ok(Request::VinBatch { vins, year })
             }
+            Request::Recalls { action, lookup } => Ok(Request::Recalls {
+                action,
+                lookup: checked_recalls(action, lookup, current_year)?,
+            }),
             Request::Vehicles { action, lookup } => {
                 let term = present(lookup.term.as_ref());
                 let lists = |limit: Option<usize>| Some(limit.unwrap_or(MOST).clamp(1, MOST));
@@ -256,7 +408,7 @@ impl Request {
     }
 
     /// Reads an MCP tool call. `arguments` must be an object; the caller
-    /// has checked that, and that the tool is one of the two.
+    /// has checked that, and that the tool is one of `open_mcp::TOOL_NAMES`.
     pub fn from_tool(tool: &str, arguments: &Value) -> Result<Request, CliError> {
         let action = match arguments.get("action") {
             Some(Value::String(action)) => action.as_str(),
@@ -296,6 +448,31 @@ impl Request {
                     "action must be decode or batch",
                 )),
             };
+        }
+        if tool == "wenmar_recalls" {
+            let Some(action) = RecallAction::parse(action) else {
+                return Err(CliError::validation(
+                    "action",
+                    "action must be vehicle, vin, campaign or search",
+                ));
+            };
+            return Ok(Request::Recalls {
+                action,
+                lookup: RecallLookup {
+                    id: text(arguments, "id")?,
+                    vin: text(arguments, "vin")?,
+                    year: number(arguments, "year")?,
+                    source: text(arguments, "source")?,
+                    campaign: text(arguments, "campaign")?,
+                    make: text(arguments, "make")?,
+                    model: text(arguments, "model")?,
+                    component: text(arguments, "component")?,
+                    query: text(arguments, "query")?,
+                    country: text(arguments, "country")?,
+                    limit: number(arguments, "limit")?,
+                    cursor: text(arguments, "cursor")?,
+                },
+            });
         }
         let Some(action) = Action::parse(action) else {
             return Err(CliError::validation(
@@ -607,6 +784,196 @@ mod tests {
                 }
             )
         );
+    }
+
+    fn recalls(action: RecallAction, lookup: RecallLookup) -> Request {
+        Request::Recalls { action, lookup }
+    }
+
+    #[test]
+    fn a_recall_question_is_checked_as_the_api_checks_it() {
+        // A vehicle id is required; the country is lowered.
+        let Request::Recalls { lookup, .. } = recalls(
+            RecallAction::Vehicle,
+            RecallLookup {
+                id: text(" 2023_hyundai_kona "),
+                country: text("CA"),
+                make: text("dropped"),
+                ..RecallLookup::default()
+            },
+        )
+        .checked(2026)
+        .unwrap() else {
+            panic!("a recall request stays one");
+        };
+        assert_eq!(
+            lookup,
+            RecallLookup {
+                id: text("2023_hyundai_kona"),
+                country: text("ca"),
+                ..RecallLookup::default()
+            }
+        );
+
+        // A VIN is normalized, and a malformed one gets the API's error.
+        let Request::Recalls { lookup, .. } = recalls(
+            RecallAction::Vin,
+            RecallLookup {
+                vin: text("km8-k2cab4 pu001140"),
+                year: Some(2023),
+                ..RecallLookup::default()
+            },
+        )
+        .checked(2026)
+        .unwrap() else {
+            panic!("a recall request stays one");
+        };
+        assert_eq!(lookup.vin.as_deref(), Some("KM8K2CAB4PU001140"));
+        assert_eq!(lookup.year, Some(2023));
+        let error = recalls(
+            RecallAction::Vin,
+            RecallLookup {
+                vin: text("nope"),
+                ..RecallLookup::default()
+            },
+        )
+        .checked(2026)
+        .unwrap_err();
+        assert_eq!(error.code, "invalid_vin");
+
+        // A list has the API's default and its ceiling.
+        let limit = |given: Option<usize>| {
+            let Request::Recalls { lookup, .. } = recalls(
+                RecallAction::Search,
+                RecallLookup {
+                    limit: given,
+                    ..RecallLookup::default()
+                },
+            )
+            .checked(2026)
+            .unwrap() else {
+                panic!("a recall request stays one");
+            };
+            lookup.limit
+        };
+        assert_eq!(limit(None), Some(25));
+        assert_eq!(limit(Some(0)), Some(1));
+        assert_eq!(limit(Some(101)), Some(100));
+    }
+
+    #[test]
+    fn a_recall_question_that_is_wrong_is_refused_before_anything_is_read() {
+        let cases = [
+            (RecallAction::Vehicle, RecallLookup::default(), "id"),
+            (RecallAction::Vin, RecallLookup::default(), "vin"),
+            (RecallAction::Campaign, RecallLookup::default(), "source"),
+            (
+                RecallAction::Campaign,
+                RecallLookup {
+                    source: text("nhtsa"),
+                    ..RecallLookup::default()
+                },
+                "campaign",
+            ),
+            (
+                RecallAction::Search,
+                RecallLookup {
+                    model: text("kona"),
+                    ..RecallLookup::default()
+                },
+                "make",
+            ),
+            (
+                RecallAction::Search,
+                RecallLookup {
+                    country: text("mx"),
+                    ..RecallLookup::default()
+                },
+                "country",
+            ),
+            (
+                RecallAction::Vin,
+                RecallLookup {
+                    vin: text("KM8K2CAB4PU001140"),
+                    year: Some(1979),
+                    ..RecallLookup::default()
+                },
+                "year",
+            ),
+        ];
+        for (action, lookup, field) in cases {
+            let error = recalls(action, lookup).checked(2026).unwrap_err();
+            assert_eq!(error.code, "validation_failed", "{action:?}");
+            assert_eq!(error.details["field"], field, "{action:?}");
+        }
+        // A publisher the API does not know, and a number that could not be
+        // a campaign's, are what the API answers 404 for.
+        for (source, campaign) in [
+            ("epa", "19V888000"),
+            ("nhtsa", "19V/888"),
+            ("nhtsa", "../../etc"),
+            ("tc", "123456789012345678901"),
+        ] {
+            let error = recalls(
+                RecallAction::Campaign,
+                RecallLookup {
+                    source: text(source),
+                    campaign: text(campaign),
+                    ..RecallLookup::default()
+                },
+            )
+            .checked(2026)
+            .unwrap_err();
+            assert_eq!(error.code, "not_found", "{source} {campaign}");
+            assert_eq!(error.message, "No recall campaign has that number.");
+        }
+    }
+
+    #[test]
+    fn a_recalls_tool_call_is_read_into_a_request() {
+        assert_eq!(
+            Request::from_tool(
+                "wenmar_recalls",
+                &json!({ "action": "search", "make": "ford", "year": "2018", "query": "tailgate", "limit": 5, "cursor": "2019-12-12_41" })
+            )
+            .unwrap(),
+            recalls(
+                RecallAction::Search,
+                RecallLookup {
+                    make: text("ford"),
+                    year: Some(2018),
+                    query: text("tailgate"),
+                    limit: Some(5),
+                    cursor: text("2019-12-12_41"),
+                    ..RecallLookup::default()
+                }
+            )
+        );
+        assert_eq!(
+            Request::from_tool(
+                "wenmar_recalls",
+                &json!({ "action": "campaign", "source": "tc", "campaign": "2023101" })
+            )
+            .unwrap(),
+            recalls(
+                RecallAction::Campaign,
+                RecallLookup {
+                    source: text("tc"),
+                    campaign: text("2023101"),
+                    ..RecallLookup::default()
+                }
+            )
+        );
+        for (arguments, field) in [
+            (json!({ "action": "recall" }), "action"),
+            (json!({}), "action"),
+            (json!({ "action": "vehicle", "id": 7 }), "id"),
+            (json!({ "action": "search", "limit": "many" }), "limit"),
+        ] {
+            let error = Request::from_tool("wenmar_recalls", &arguments).unwrap_err();
+            assert_eq!(error.code, "validation_failed", "{arguments}");
+            assert_eq!(error.details["field"], field, "{arguments}");
+        }
     }
 
     #[test]

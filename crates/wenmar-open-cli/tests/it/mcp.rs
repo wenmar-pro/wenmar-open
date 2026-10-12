@@ -2,7 +2,7 @@ use serde_json::{Value, json};
 use wenmar_open_cli::env::Env;
 
 use crate::common::{self, KONA};
-use crate::server::{self, Reply};
+use crate::server::{self, Reply, Seen};
 
 /// Sends each message on its own line and returns the answers, in order.
 fn session(env: &Env, args: &[&str], messages: &[Value]) -> Vec<Value> {
@@ -72,8 +72,8 @@ fn a_client_can_initialize_and_list_the_tools() {
         .iter()
         .map(|tool| tool["name"].as_str().unwrap())
         .collect();
-    // The same two tools as the hosted endpoint, from the same definition.
-    assert_eq!(names, ["wenmar_vin", "wenmar_vehicles"]);
+    // The same tools as the hosted endpoint, from the same definition.
+    assert_eq!(names, ["wenmar_vin", "wenmar_vehicles", "wenmar_recalls"]);
     assert_eq!(answers[1]["result"]["tools"], open_mcp::tools());
     assert_eq!(answers[2]["result"], json!({}));
 }
@@ -376,4 +376,196 @@ fn forced_offline_with_no_data_file_the_server_does_not_start() {
     assert_eq!(run.code, 11);
     assert_eq!(run.stdout, "");
     assert_eq!(run.error()["error"]["code"], "no_data");
+}
+
+fn recall_api(request: &Seen) -> Reply {
+    let (path, _) = request
+        .target
+        .split_once('?')
+        .unwrap_or((&request.target, ""));
+    let answer = |name: &str| {
+        json!({
+            "may_apply": true,
+            "route": name,
+            "recalls": [],
+            "lookup": { "nhtsa": "https://www.nhtsa.gov/recalls", "tc": "https://tc.example", "maker": null }
+        })
+    };
+    match path {
+        "/v1/vehicles/2023_hyundai_kona/recalls" => Reply::json(200, &answer("vehicle")),
+        "/v1/vin/KM8K2CAB4PU001140/recalls" => Reply::json(200, &answer("vin")),
+        "/v1/recalls/nhtsa/19V888000" => Reply::json(200, &answer("campaign")),
+        "/v1/recalls" => Reply::json(200, &answer("search")),
+        "/v1/recalls/tc/2023101" => Reply::json(
+            404,
+            &json!({ "error": { "code": "dataset_unavailable", "message": "The recalls_ca dataset is not available.", "details": { "dataset": "recalls_ca" } } }),
+        ),
+        // Something that is not the API's recall answer.
+        "/v1/vehicles/2019_honda_civic/recalls" => Reply::json(200, &json!({ "recalls": [] })),
+        _ => Reply::json(
+            404,
+            &json!({ "error": { "code": "not_found", "message": "There is nothing at this address.", "details": {} } }),
+        ),
+    }
+}
+
+#[test]
+fn the_recalls_tool_asks_the_api_at_the_recall_routes() {
+    let server = server::serve(recall_api);
+    let fixture = common::empty_dir();
+    let env = Env {
+        api: Some(server.url().to_owned()),
+        ..common::env(&fixture)
+    };
+    let answers = session(
+        &env,
+        &["mcp"],
+        &[
+            call(
+                1,
+                "wenmar_recalls",
+                json!({ "action": "vehicle", "id": "2023_hyundai_kona", "country": "CA" }),
+            ),
+            call(
+                2,
+                "wenmar_recalls",
+                json!({ "action": "vin", "vin": "km8k2-cab4pu001140", "year": 2023 }),
+            ),
+            call(
+                3,
+                "wenmar_recalls",
+                json!({ "action": "campaign", "source": "nhtsa", "campaign": "19V888000" }),
+            ),
+            call(
+                4,
+                "wenmar_recalls",
+                json!({ "action": "search", "make": "ford", "model": "f-150", "year": 2018, "component": "air bags", "query": "tail gate", "country": "us", "limit": 500, "cursor": "2019-12-12_41" }),
+            ),
+            call(5, "wenmar_recalls", json!({ "action": "search" })),
+            // The server holds no Canadian recalls: its error is the tool's.
+            call(
+                6,
+                "wenmar_recalls",
+                json!({ "action": "campaign", "source": "tc", "campaign": "2023101" }),
+            ),
+            // Refused here, and never sent.
+            call(
+                7,
+                "wenmar_recalls",
+                json!({ "action": "campaign", "source": "nhtsa", "campaign": "../../v1/meta" }),
+            ),
+            call(
+                8,
+                "wenmar_recalls",
+                json!({ "action": "vehicle", "id": "../meta" }),
+            ),
+            call(
+                9,
+                "wenmar_recalls",
+                json!({ "action": "vin", "vin": "nope" }),
+            ),
+            call(10, "wenmar_recalls", json!({ "action": "explode" })),
+            // An answer without may_apply did not come from the API.
+            call(
+                11,
+                "wenmar_recalls",
+                json!({ "action": "vehicle", "id": "2019_honda_civic" }),
+            ),
+        ],
+    );
+    for (index, route) in ["vehicle", "vin", "campaign", "search", "search"]
+        .iter()
+        .enumerate()
+    {
+        let result = &answers[index]["result"];
+        assert_eq!(result["isError"], false, "{route}");
+        assert_eq!(text(&answers[index])["route"], *route);
+        assert_eq!(text(&answers[index])["may_apply"], true);
+    }
+    assert_eq!(
+        server.targets(),
+        [
+            "/v1/vehicles/2023_hyundai_kona/recalls?country=ca",
+            "/v1/vin/KM8K2CAB4PU001140/recalls?year=2023",
+            "/v1/recalls/nhtsa/19V888000",
+            "/v1/recalls?make=ford&model=f-150&year=2018&component=air%20bags&q=tail%20gate&country=us&limit=100&cursor=2019-12-12_41",
+            "/v1/recalls?limit=25",
+            "/v1/recalls/tc/2023101",
+            "/v1/vehicles/2019_honda_civic/recalls"
+        ]
+    );
+    let codes: Vec<&str> = answers[5..]
+        .iter()
+        .map(|answer| {
+            assert_eq!(answer["result"]["isError"], true, "{answer}");
+            answer["result"]["structuredContent"]["error"]["code"]
+                .as_str()
+                .unwrap()
+        })
+        .collect();
+    assert_eq!(
+        codes,
+        [
+            "dataset_unavailable",
+            "not_found",
+            "not_found",
+            "invalid_vin",
+            "validation_failed",
+            "bad_response"
+        ]
+    );
+    assert_eq!(
+        answers[5]["result"]["structuredContent"]["error"]["message"],
+        "The recalls_ca dataset is not available."
+    );
+}
+
+#[test]
+fn with_only_the_data_file_the_recalls_tool_says_what_to_run() {
+    // The data file is here and holds no recalls: they are in a second
+    // file, which `data pull --shop` downloads.
+    let fixture = common::data_dir();
+    let answers = session(
+        &common::env(&fixture),
+        &["mcp"],
+        &[
+            call(
+                1,
+                "wenmar_recalls",
+                json!({ "action": "vehicle", "id": "2023_hyundai_kona" }),
+            ),
+            call(
+                2,
+                "wenmar_recalls",
+                json!({ "action": "search", "country": "ca" }),
+            ),
+            call(
+                3,
+                "wenmar_recalls",
+                json!({ "action": "campaign", "source": "tc", "campaign": "2023101" }),
+            ),
+            call(4, "wenmar_vin", json!({ "action": "decode", "vin": KONA })),
+        ],
+    );
+    assert_eq!(
+        answers[0]["result"]["structuredContent"],
+        json!({
+            "error": {
+                "code": "dataset_unavailable",
+                "message": "The recalls_us dataset is not available.",
+                "details": { "dataset": "recalls_us", "hint": "Run: wenmar-open data pull --shop" }
+            }
+        })
+    );
+    assert_eq!(answers[0]["result"]["isError"], true);
+    for index in [1, 2] {
+        let error = &answers[index]["result"]["structuredContent"]["error"];
+        assert_eq!(error["message"], "The recalls_ca dataset is not available.");
+        assert_eq!(
+            error["details"]["hint"],
+            "Run: wenmar-open data pull --shop"
+        );
+    }
+    // The other tools answer from the data file as before.
+    assert_eq!(answers[3]["result"]["structuredContent"]["model"], "Kona");
 }

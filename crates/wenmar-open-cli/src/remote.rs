@@ -6,7 +6,7 @@ use serde_json::{Value, json};
 use wenmar_vehicles::VehicleId;
 
 use crate::error::{BAD_RESPONSE, CliError, NETWORK, NOT_FOUND, USAGE};
-use crate::request::{Action, Lookup, Request, current_year};
+use crate::request::{Action, Lookup, RecallAction, RecallLookup, Request, current_year};
 
 /// The longest answer read from the API, in bytes.
 const LONGEST_ANSWER: u64 = 4 * 1024 * 1024;
@@ -153,6 +153,57 @@ impl Remote {
             Request::VinDecode { vin, year } => self.decode(vin, *year),
             Request::VinBatch { vins, year } => self.batch(vins, *year),
             Request::Vehicles { action, lookup } => self.vehicles(*action, lookup),
+            Request::Recalls { action, lookup } => self.recalls(*action, lookup),
+        }
+    }
+
+    /// The four recall routes. Whatever goes in the path has been checked
+    /// to be an id, a VIN, a publisher or a campaign number.
+    fn recalls(&self, action: RecallAction, lookup: &RecallLookup) -> Result<Value, CliError> {
+        let text = |field: &Option<String>| field.clone().unwrap_or_default();
+        let mut query: Vec<(&str, String)> = Vec::new();
+        let mut add = |name: &'static str, value: Option<String>| {
+            if let Some(value) = value {
+                query.push((name, value));
+            }
+        };
+        let path = match action {
+            RecallAction::Vehicle => {
+                let id = text(&lookup.id);
+                if VehicleId::parse(&id).is_none() {
+                    return Err(CliError::new(NOT_FOUND, "No vehicle has that id."));
+                }
+                add("country", lookup.country.clone());
+                format!("/v1/vehicles/{id}/recalls")
+            }
+            RecallAction::Vin => {
+                add("country", lookup.country.clone());
+                add("year", lookup.year.map(|year| year.to_string()));
+                format!("/v1/vin/{}/recalls", text(&lookup.vin))
+            }
+            RecallAction::Campaign => format!(
+                "/v1/recalls/{}/{}",
+                text(&lookup.source),
+                text(&lookup.campaign)
+            ),
+            RecallAction::Search => {
+                add("make", lookup.make.clone());
+                add("model", lookup.model.clone());
+                add("year", lookup.year.map(|year| year.to_string()));
+                add("component", lookup.component.clone());
+                add("q", lookup.query.clone());
+                add("country", lookup.country.clone());
+                add("limit", lookup.limit.map(|limit| limit.to_string()));
+                add("cursor", lookup.cursor.clone());
+                "/v1/recalls".to_owned()
+            }
+        };
+        let answer = self.get(&path, &query)?;
+        // Every recall answer says so.
+        if answer.get("may_apply") == Some(&Value::Bool(true)) {
+            Ok(answer)
+        } else {
+            Err(self.not_the_api(200))
         }
     }
 

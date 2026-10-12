@@ -1,7 +1,7 @@
 //! `wenmar-open mcp`: an MCP server on standard input and output.
 //!
 //! One JSON-RPC message per line in, one per line out, and nothing else on
-//! standard output. It offers the two tools of the hosted `/mcp` endpoint,
+//! standard output. It offers the tools of the hosted `/mcp` endpoint,
 //! defined once in the `open-mcp` crate, and answers them from the local
 //! data file or the hosted API like every other command.
 //!

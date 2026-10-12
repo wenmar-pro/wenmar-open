@@ -402,6 +402,11 @@ pub fn text(request: &Request, value: &Value) -> String {
     let action = match request {
         Request::VinDecode { .. } => return decode(value),
         Request::VinBatch { .. } => return batch(value),
+        // The commands that print recalls as text come with the `recalls`
+        // commands. Until then nothing asks for this as text.
+        Request::Recalls { .. } => {
+            return serde_json::to_string_pretty(value).unwrap_or_default() + "\n";
+        }
         Request::Vehicles { action, .. } => *action,
     };
     match action {
