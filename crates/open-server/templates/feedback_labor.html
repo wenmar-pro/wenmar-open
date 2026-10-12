@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Suggest a labour time</h1>
+{% if let Some(error) = error -%}
+<p class="warning">{{ error }}</p>
+{% endif -%}
+<p>Say how long a job takes on a vehicle, from work you have done, not from a labour guide. A person who does this work reads every suggestion. A suggestion changes no data by itself.</p>
+{% if form_on -%}
+<p class="note">What you write is posted as a public issue on GitHub. Leave out names, shop names, licence plates and addresses, and give no more of a VIN than its first 11 characters.</p>
+<form class="feedback" action="/feedback/labor" method="post">
+<label for="job">Job</label>
+<input id="job" name="job" type="text" maxlength="60" autocomplete="off" value="{{ fields.job }}" required>
+<p class="help">The job's id, such as brake-pads-front. <a href="/jobs">See the job list</a>.</p>
+<label for="vehicle">Vehicle</label>
+<input id="vehicle" name="vehicle" type="text" maxlength="300" autocomplete="off" value="{{ fields.vehicle }}" required>
+<label for="hours">Hours it takes</label>
+<input id="hours" name="hours" type="text" inputmode="decimal" maxlength="7" autocomplete="off" value="{{ fields.hours }}" required>
+<label for="role">What you do</label>
+<select id="role" name="role" required>
+<option value="">Choose one</option>
+{% for (id, name, chosen) in roles -%}
+<option value="{{ id }}"{% if chosen %} selected{% endif %}>{{ name }}</option>
+{% endfor -%}
+</select>
+<label for="notes">What makes it take that long, and how many times you have done it</label>
+<textarea id="notes" name="notes" rows="5" maxlength="2000">{{ fields.notes }}</textarea>
+<label for="page">Page address (optional)</label>
+<input id="page" name="page" type="text" maxlength="300" autocomplete="off" value="{{ fields.page }}">
+<div class="trap" aria-hidden="true">
+<label for="website">Leave this empty</label>
+<input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+</div>
+<button class="primary" type="submit">Send the suggestion</button>
+</form>
+{% else -%}
+<p>Suggestions are taken on GitHub{% if mail.is_some() %} or by email{% endif %}.</p>
+{% endif -%}
+<ul class="plain links">
+<li><a href="{{ issue }}">Suggest it on GitHub</a></li>
+{% if let Some(mail) = mail -%}
+<li><a href="{{ mail }}">Suggest it by email</a></li>
+{% endif -%}
+</ul>
+{% endblock %}

@@ -456,6 +456,10 @@ pub fn router() -> Router<AppState> {
         .route("/pick", get(home::pick))
         .route("/vin/{vin}", get(vin::result))
         .route("/feedback", get(feedback::show).post(feedback::send))
+        .route(
+            "/feedback/labor",
+            get(feedback::show_labor).post(feedback::send_labor),
+        )
         .route("/makes", get(catalog::makes))
         .route("/makes.md", get(catalog::makes_md))
         .route("/makes/{make}", get(catalog::make))

@@ -251,6 +251,278 @@ pub async fn send(State(state): State<AppState>, request: Request) -> Response {
     }
 }
 
+// ----- suggest a labour time -----
+
+/// What a person who suggests a labour time may say they do: the value
+/// the form sends, and the words shown.
+pub const ROLES: [(&str, &str); 4] = [
+    ("technician", "Technician"),
+    ("service-advisor", "Service advisor"),
+    ("shop-owner", "Shop owner or manager"),
+    ("other", "Other"),
+];
+
+/// The labels a labour time suggestion is filed with.
+pub const LABOR_LABELS: [&str; 2] = ["data", "labour-time"];
+
+/// Most characters in a job id.
+pub const LONGEST_JOB: usize = 60;
+
+/// What the labour form holds. `website` is the same trap as in
+/// [`Fields`].
+#[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize)]
+#[serde(default)]
+pub struct LaborFields {
+    pub job: String,
+    pub vehicle: String,
+    pub hours: String,
+    pub role: String,
+    pub notes: String,
+    pub page: String,
+    pub website: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum CheckedLabor {
+    /// Tidy, and fit to send.
+    Send(LaborFields),
+    /// The trap was filled. Thank the sender and file nothing.
+    Trap,
+    /// What the visitor must change.
+    Refused(&'static str),
+}
+
+/// Checks a suggestion's shape. Whether the job is one of the list is
+/// asked of the shop file afterwards, where there is one.
+pub fn check_labor(fields: &LaborFields) -> CheckedLabor {
+    if !fields.website.trim().is_empty() {
+        return CheckedLabor::Trap;
+    }
+    let tidy = LaborFields {
+        job: one_line(&fields.job).to_ascii_lowercase(),
+        vehicle: one_line(&fields.vehicle),
+        hours: one_line(&fields.hours),
+        role: one_line(&fields.role),
+        notes: fields.notes.trim().to_owned(),
+        page: one_line(&fields.page),
+        website: String::new(),
+    };
+    if !wenmar_vehicles::text::is_slug(&tidy.job) || tidy.job.len() > LONGEST_JOB {
+        return CheckedLabor::Refused(
+            "Say which job: its id from the job list, such as brake-pads-front.",
+        );
+    }
+    if tidy.vehicle.is_empty() {
+        return CheckedLabor::Refused(
+            "Say which vehicle: the year, the make and the model, and the engine if it matters.",
+        );
+    }
+    let hours = shop_math::Hours::parse(&tidy.hours)
+        .ok()
+        .map(shop_math::Hours::hundredths);
+    if !hours.is_some_and(|hundredths| (1..=99_999).contains(&hundredths)) {
+        return CheckedLabor::Refused(
+            "Give the hours as a number, such as 1.5, from 0.01 to 999.99.",
+        );
+    }
+    if !ROLES.iter().any(|(id, _)| *id == tidy.role) {
+        return CheckedLabor::Refused("Say what you do: choose one of the four.");
+    }
+    let long = |text: &str, most: usize| text.chars().count() > most;
+    if long(&tidy.vehicle, LONGEST_LINE)
+        || long(&tidy.page, LONGEST_LINE)
+        || long(&tidy.notes, LONGEST_TEXT)
+    {
+        return CheckedLabor::Refused(
+            "That is too long. The note holds 2,000 characters and the vehicle 300.",
+        );
+    }
+    CheckedLabor::Send(tidy)
+}
+
+/// The title of a suggestion's issue.
+fn labor_title(fields: &LaborFields) -> String {
+    format!("Labour time suggestion: {}, {}", fields.job, fields.vehicle)
+}
+
+/// The issue for a checked suggestion. `base` is this site's public
+/// address.
+pub fn labor_issue(base: &str, fields: &LaborFields) -> Issue {
+    let role = ROLES
+        .iter()
+        .find(|(id, _)| *id == fields.role)
+        .map_or("Other", |(_, name)| *name);
+    Issue {
+        title: quiet(&labor_title(fields)),
+        body: format!(
+            "### Job\n\n{}\n\n### Vehicle\n\n{}\n\n### Hours suggested\n\n{}\n\n### Who is suggesting\n\n{role}\n\n### Notes\n\n{}\n\n### Page address\n\n{}\n\n_Sent through the form at {base}/feedback/labor. A suggestion changes no data: a person who does the work reads it, and an estimate changes only by a reviewed pull request to data/labor/._\n",
+            quiet(&fields.job),
+            quiet(&fields.vehicle),
+            quiet(&fields.hours),
+            or_none(&fields.notes),
+            or_none(&fields.page)
+        ),
+    }
+}
+
+#[derive(Template)]
+#[template(path = "feedback_labor.html")]
+struct LaborPage {
+    page: Page,
+    fields: LaborFields,
+    /// Value, words, and whether it is the one chosen.
+    roles: Vec<(&'static str, &'static str, bool)>,
+    /// Whether a token is set, so the form can be sent.
+    form_on: bool,
+    error: Option<&'static str>,
+    /// GitHub's new-issue page, filled in.
+    issue: String,
+    mail: Option<String>,
+}
+
+fn labor_page(
+    state: &AppState,
+    status: StatusCode,
+    fields: LaborFields,
+    error: Option<&'static str>,
+) -> Response {
+    let config = state.config();
+    let title = labor_title(&fields);
+    let body = format!(
+        "Job: {}\r\nVehicle: {}\r\nHours: {}\r\nWhat I do: \r\n\r\nWhat makes it take that long, and how many times I have done it:\r\n",
+        fields.job, fields.vehicle, fields.hours
+    );
+    let issue = format!(
+        "https://github.com/{}/issues/new?labels=labour-time&title={}&body={}",
+        config.github_repo,
+        report::encode(&title),
+        report::encode(&body)
+    );
+    let mail = config.feedback_email.as_ref().map(|email| {
+        format!(
+            "mailto:{email}?subject={}&body={}",
+            report::encode(&title),
+            report::encode(&body)
+        )
+    });
+    let page = Page::new(
+        state,
+        "Suggest a labour time - Wenmar Open",
+        "Suggest how long a repair job takes on a vehicle, from work you have done.",
+    )
+    .without_vehicle_data();
+    let mut response = site::html(
+        status,
+        &LaborPage {
+            page,
+            roles: ROLES
+                .iter()
+                .map(|(id, name)| (*id, *name, fields.role == *id))
+                .collect(),
+            fields,
+            form_on: config.github_token.is_some(),
+            error,
+            issue,
+            mail,
+        },
+    );
+    site::unindexed(&mut response);
+    response
+        .headers_mut()
+        .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    response
+}
+
+/// `GET /feedback/labor`: the form, filled in from the query string.
+pub async fn show_labor(
+    State(state): State<AppState>,
+    query: Result<Query<LaborFields>, QueryRejection>,
+) -> Response {
+    let Query(mut fields) = query.unwrap_or_default();
+    fields.website.clear();
+    for (text, most) in [
+        (&mut fields.job, LONGEST_JOB),
+        (&mut fields.vehicle, LONGEST_LINE),
+        (&mut fields.hours, 7),
+        (&mut fields.role, 20),
+        (&mut fields.notes, LONGEST_TEXT),
+        (&mut fields.page, LONGEST_LINE),
+    ] {
+        *text = text.chars().take(most).collect();
+    }
+    labor_page(&state, StatusCode::OK, fields, None)
+}
+
+/// `POST /feedback/labor`: files the suggestion as an issue. It writes
+/// nothing else anywhere.
+pub async fn send_labor(State(state): State<AppState>, request: Request) -> Response {
+    let peer = request
+        .extensions()
+        .get::<ConnectInfo<SocketAddr>>()
+        .map(|info| info.0.ip());
+    let address = limit::client_ip(request.headers(), peer, state.config().trusted_proxies);
+    let Ok(Form(fields)) = Form::<LaborFields>::from_request(request, &state).await else {
+        return labor_page(
+            &state,
+            StatusCode::BAD_REQUEST,
+            LaborFields::default(),
+            Some("The form could not be read. Fill it in again."),
+        );
+    };
+    let Some(token) = state.config().github_token.clone() else {
+        return labor_page(&state, StatusCode::OK, fields, None);
+    };
+    let tidy = match check_labor(&fields) {
+        CheckedLabor::Trap => return sent(&state, None),
+        CheckedLabor::Refused(why) => {
+            return labor_page(&state, StatusCode::BAD_REQUEST, fields, Some(why));
+        }
+        CheckedLabor::Send(tidy) => tidy,
+    };
+    // Where the job list is held, the job must be one of it.
+    if let Ok(shop) = state.dataset(wenmar_shopdata::Dataset::Jobs) {
+        let job = tidy.job.clone();
+        let known = shop
+            .run(move |reader| reader.job(&job).map(|found| found.is_some()))
+            .await;
+        if !matches!(known, Ok(Ok(true))) {
+            return labor_page(
+                &state,
+                StatusCode::BAD_REQUEST,
+                fields,
+                Some("That is not a job of the list. Use an id from the job list."),
+            );
+        }
+    }
+    let now = Instant::now();
+    let everyone = IpAddr::from([0, 0, 0, 0]);
+    let allowed = state
+        .feedback_each()
+        .check(address, now)
+        .and_then(|()| state.feedback_all().check(everyone, now));
+    if let Err(retry_after) = allowed {
+        tracing::warn!(%address, "over the limit on reports");
+        return ApiError::RateLimited { retry_after }.into_response();
+    }
+    let issue = labor_issue(&state.config().base_url, &tidy);
+    let (api, repo) = (
+        state.config().github_api.clone(),
+        state.config().github_repo.clone(),
+    );
+    let filed = tokio::task::spawn_blocking(move || {
+        github::file_with(&api, &repo, token.expose(), &issue, &LABOR_LABELS)
+    })
+    .await;
+    match filed {
+        Ok(Ok(page)) => sent(&state, Some(page)),
+        Ok(Err(error)) => {
+            tracing::warn!(?error, "a suggestion could not be filed");
+            labor_page(&state, StatusCode::BAD_GATEWAY, tidy, Some(NOT_SENT))
+        }
+        Err(_) => labor_page(&state, StatusCode::BAD_GATEWAY, tidy, Some(NOT_SENT)),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

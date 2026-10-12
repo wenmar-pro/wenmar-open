@@ -215,3 +215,152 @@ async fn the_fourth_report_in_a_minute_is_refused() {
     );
     assert_eq!(github.seen.lock().unwrap().len(), 3);
 }
+
+// ----- suggest a labour time -----
+
+async fn post_labor(app: &TestApp, body: &str) -> Response<Body> {
+    let request = Request::post("/feedback/labor")
+        .header("content-type", "application/x-www-form-urlencoded")
+        .body(Body::from(body.to_owned()))
+        .unwrap();
+    app.send(request).await
+}
+
+/// A made-up job and an impossible number of hours.
+const SUGGESTION: &str = "job=test-job-a&vehicle=2019+Honda+Civic&hours=98.5&role=technician&notes=Made-up+note&page=https%3A%2F%2Fopen.example%2Fjobs%2Ftest-job-a&website=";
+
+#[tokio::test]
+async fn the_labour_form_is_shown_filled_in_or_as_links_without_a_token() {
+    let github = stub(StatusCode::CREATED).await;
+    let app = app_over(&github).await;
+    let asked = "/feedback/labor?job=test-job-a&vehicle=2019%20Honda%20Civic";
+    let response = app.get(asked).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(header(&response, "x-robots-tag"), "noindex");
+    let html = body_text(response).await;
+    assert_basics(&html, "/feedback/labor");
+    assert!(html.contains("<h1>Suggest a labour time</h1>"));
+    assert!(html.contains(r#"<form class="feedback" action="/feedback/labor" method="post">"#));
+    assert!(html.contains(
+        r#"name="job" type="text" maxlength="60" autocomplete="off" value="test-job-a""#
+    ));
+    assert!(html.contains(r#"value="2019 Honda Civic""#));
+    for role in ["technician", "service-advisor", "shop-owner", "other"] {
+        assert!(
+            html.contains(&format!("<option value=\"{role}\"")),
+            "{role}"
+        );
+    }
+    assert!(html.contains("A suggestion changes no data by itself."));
+    assert!(html.contains("not from a labour guide"));
+    // Without a token: no form, and the two links.
+    let app = common::app().await;
+    let html = body_text(app.get(asked).await).await;
+    assert!(!html.contains("<form class=\"feedback\""));
+    assert!(
+        html.contains("https://github.com/wenmar-pro/wenmar-open/issues/new?labels=labour-time&"),
+        "{html}"
+    );
+    assert!(
+        html.contains("title=Labour%20time%20suggestion%3A%20test-job-a%2C%202019%20Honda%20Civic")
+    );
+}
+
+#[tokio::test]
+async fn a_suggestion_is_filed_as_a_labelled_issue_and_changes_nothing() {
+    let github = stub(StatusCode::CREATED).await;
+    let app = app_over(&github).await;
+    let response = post_labor(&app, SUGGESTION).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let html = body_text(response).await;
+    assert!(html.contains("<h1>Thank you</h1>"));
+    {
+        let seen = github.seen.lock().unwrap();
+        assert_eq!(seen.len(), 1);
+        let (path, authorization, body) = &seen[0];
+        assert_eq!(path, "/repos/wenmar-pro/wenmar-open/issues");
+        assert_eq!(authorization, "Bearer t0ken");
+        assert_eq!(
+            body["title"],
+            "Labour time suggestion: test-job-a, 2019 Honda Civic"
+        );
+        assert_eq!(body["labels"], json!(["data", "labour-time"]));
+        let text = body["body"].as_str().unwrap();
+        for part in [
+            "### Job\n\ntest-job-a\n",
+            "### Vehicle\n\n2019 Honda Civic\n",
+            "### Hours suggested\n\n98.5\n",
+            "### Who is suggesting\n\nTechnician\n",
+            "### Notes\n\nMade-up note\n",
+            "A suggestion changes no data",
+        ] {
+            assert!(text.contains(part), "{part}: {text}");
+        }
+    }
+    // The trap: thanked, and nothing more is sent.
+    let response = post_labor(&app, &SUGGESTION.replace("website=", "website=x")).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(github.seen.lock().unwrap().len(), 1);
+}
+
+#[tokio::test]
+async fn a_suggestion_that_does_not_hold_up_is_refused_and_kept() {
+    let github = stub(StatusCode::CREATED).await;
+    let app = app_over(&github).await;
+    for (from, to, why) in [
+        ("job=test-job-a", "job=", "Say which job"),
+        ("job=test-job-a", "job=Not+A+Job", "Say which job"),
+        ("vehicle=2019+Honda+Civic", "vehicle=", "Say which vehicle"),
+        ("hours=98.5", "hours=", "Give the hours as a number"),
+        ("hours=98.5", "hours=lots", "Give the hours as a number"),
+        ("hours=98.5", "hours=0", "Give the hours as a number"),
+        ("hours=98.5", "hours=1000", "Give the hours as a number"),
+        ("hours=98.5", "hours=1.234", "Give the hours as a number"),
+        ("role=technician", "role=", "Say what you do"),
+        ("role=technician", "role=wizard", "Say what you do"),
+    ] {
+        let response = post_labor(&app, &SUGGESTION.replace(from, to)).await;
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST, "{to}");
+        let html = body_text(response).await;
+        assert!(html.contains(why), "{to}: {html}");
+        // What was typed is still in the form.
+        assert!(html.contains("Made-up note"), "{to}");
+    }
+    assert!(github.seen.lock().unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn where_the_job_list_is_held_a_suggestion_must_name_a_job_of_it() {
+    let github = stub(StatusCode::CREATED).await;
+    let api = format!("http://{}", github.address);
+    let fixture = common::data_file();
+    common::add_shop_file(
+        &fixture,
+        wenmar_shopdata::schema::SCHEMA_VERSION,
+        "2026.09",
+        common::JOB_DATASETS,
+        &common::job_rows(),
+    );
+    let shop = fixture.shop_path();
+    let app = common::app_over(fixture, move |config| {
+        config.shop_data = Some(shop);
+        config.github_token = Some(Secret::new("t0ken"));
+        config.github_api = api;
+    })
+    .await;
+    let response = post_labor(
+        &app,
+        &SUGGESTION.replace("job=test-job-a", "job=test-job-z"),
+    )
+    .await;
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    assert!(
+        body_text(response)
+            .await
+            .contains("That is not a job of the list.")
+    );
+    assert!(github.seen.lock().unwrap().is_empty());
+    let response = post_labor(&app, SUGGESTION).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(github.seen.lock().unwrap().len(), 1);
+}
