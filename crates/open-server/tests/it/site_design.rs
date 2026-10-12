@@ -7,7 +7,7 @@ use axum::http::StatusCode;
 use crate::common::{self, assert_basics, assert_head, assert_targets, page};
 
 /// One page of every kind that exists at this point of the plan.
-const PAGES: [&str; 26] = [
+const PAGES: [&str; 29] = [
     "/",
     "/makes",
     "/makes/honda",
@@ -15,6 +15,9 @@ const PAGES: [&str; 26] = [
     "/makes/hyundai/kona/2023/recalls",
     "/recalls",
     "/recalls/nhtsa/24V456000",
+    "/makes/hyundai/kona/2023/bulletins",
+    "/bulletins",
+    "/bulletins/11000002",
     "/wmi/KM8",
     "/docs",
     "/data",
@@ -45,8 +48,9 @@ async fn stylesheet() -> String {
 
 #[tokio::test]
 async fn every_page_has_the_wordmark_and_what_a_shared_link_needs() {
-    // The recall pages exist only on a server that holds recalls.
-    let app = common::recalls_app().await;
+    // The recall pages exist only on a server that holds recalls, and the
+    // bulletin pages only on one that holds bulletins.
+    let app = common::bulletins_app().await;
     for path in PAGES {
         let (_, html) = page(&app, path).await;
         assert_head(&html, path);
