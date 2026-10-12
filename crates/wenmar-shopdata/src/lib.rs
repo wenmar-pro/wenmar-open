@@ -10,6 +10,7 @@ pub mod dataset;
 pub mod error;
 pub mod investigations;
 pub mod licence;
+pub mod recall_reports;
 pub mod recalls;
 pub mod schema;
 pub mod shop;

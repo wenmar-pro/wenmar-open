@@ -109,3 +109,29 @@ CREATE TABLE IF NOT EXISTS investigation_campaign (
 ) WITHOUT ROWID;
 CREATE INDEX IF NOT EXISTS investigation_campaign_investigation ON investigation_campaign (investigation_id);
 ";
+
+/// The newest report of remedy progress a manufacturer filed with NHTSA
+/// for each recall campaign: the `recall_reports` dataset.
+///
+/// One row for each NHTSA vehicle campaign that has a report. `campaign`
+/// is the campaign number as `recall.campaign` holds it for `source`
+/// `nhtsa`; it is text and not `recall.id`, so the dataset can be built
+/// and read without the recalls. `kind` is `quarterly` or `annual`. A
+/// period is a year and a quarter, such as `2026-2`: a quarterly report
+/// has the same one in `period_from` and `period_to`, an annual report
+/// covers four. The four counts are totals for the whole campaign as the
+/// manufacturer reported them at the end of the period.
+pub const RECALL_REPORTS: &str = "
+CREATE TABLE IF NOT EXISTS recall_report (
+    campaign      TEXT PRIMARY KEY,
+    kind          TEXT NOT NULL,
+    report_number INTEGER NOT NULL,
+    period_from   TEXT NOT NULL,
+    period_to     TEXT NOT NULL,
+    submitted     TEXT,
+    involved      INTEGER NOT NULL,
+    remedied      INTEGER NOT NULL,
+    unreachable   INTEGER NOT NULL,
+    removed       INTEGER NOT NULL
+);
+";
