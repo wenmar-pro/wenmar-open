@@ -46,33 +46,60 @@ pub fn vin_stem(vin: &str) -> &str {
 
 /// The links for a page at the full address `page`.
 pub fn links_to(config: &Config, page: &str, vehicle: &str) -> ReportLinks {
+    build(config, page, vehicle, None)
+}
+
+/// The links for the page at `path` on this site.
+pub fn links(config: &Config, path: &str, vehicle: &str) -> ReportLinks {
+    links_to(config, &format!("{}{path}", config.base_url), vehicle)
+}
+
+/// The links for one figure on the page at `path`: as [`links`], with the
+/// figure named. The issue form's `field` box is filled in, the email
+/// names the figure, and the form on this site starts "What is wrong"
+/// with it.
+pub fn field_links(config: &Config, path: &str, vehicle: &str, field: &str) -> ReportLinks {
+    build(
+        config,
+        &format!("{}{path}", config.base_url),
+        vehicle,
+        Some(field),
+    )
+}
+
+fn build(config: &Config, page: &str, vehicle: &str, field: Option<&str>) -> ReportLinks {
     let title = format!("Data correction: {vehicle}");
-    let issue = format!(
+    let mut issue = format!(
         "https://github.com/{}/issues/new?template={ISSUE_TEMPLATE}&title={}&page={}&vehicle={}",
         config.github_repo,
         encode(&title),
         encode(page),
         encode(vehicle)
     );
+    if let Some(field) = field {
+        issue.push_str(&format!("&field={}", encode(field)));
+    }
     let mail = config.feedback_email.as_ref().map(|email| {
+        let figure = field
+            .map(|field| format!("Figure: {field}\r\n"))
+            .unwrap_or_default();
         let body = format!(
-            "Page: {page}\r\nVehicle: {vehicle}\r\n\r\nWhat is wrong:\r\n\r\n\r\nWhat it should be, and how I know:\r\n"
+            "Page: {page}\r\nVehicle: {vehicle}\r\n{figure}\r\nWhat is wrong:\r\n\r\n\r\nWhat it should be, and how I know:\r\n"
         );
         format!("mailto:{email}?subject={}&body={}", encode(&title), encode(&body))
     });
     let form = config.github_token.as_ref().map(|_| {
-        format!(
+        let mut form = format!(
             "/feedback?page={}&vehicle={}",
             encode(page),
             encode(vehicle)
-        )
+        );
+        if let Some(field) = field {
+            form.push_str(&format!("&wrong={}", encode(&format!("{field}: "))));
+        }
+        form
     });
     ReportLinks { issue, mail, form }
-}
-
-/// The links for the page at `path` on this site.
-pub fn links(config: &Config, path: &str, vehicle: &str) -> ReportLinks {
-    links_to(config, &format!("{}{path}", config.base_url), vehicle)
 }
 
 #[cfg(test)]
@@ -125,6 +152,53 @@ mod tests {
         );
         assert!(mail.ends_with("how%20I%20know%3A%0D%0A"), "{mail}");
         assert!(!mail.contains([' ', '\n', '\r', '<', '+']), "{mail}");
+    }
+
+    #[test]
+    fn a_link_for_one_figure_names_the_figure() {
+        let plain = links(&config(None), "/makes/honda/civic/2019", "2019 Honda Civic");
+        let found = field_links(
+            &config(None),
+            "/makes/honda/civic/2019",
+            "2019 Honda Civic",
+            "Engine oil, 2.0L",
+        );
+        assert_eq!(
+            found.issue,
+            format!("{}&field=Engine%20oil%2C%202.0L", plain.issue)
+        );
+        assert_eq!((found.mail, found.form), (None, None));
+        let mail = field_links(
+            &config(Some("data@open.example")),
+            "/makes/honda/civic/2019",
+            "2019 Honda Civic",
+            "Engine oil, 2.0L",
+        )
+        .mail
+        .unwrap();
+        assert!(
+            mail.contains("Vehicle%3A%202019%20Honda%20Civic%0D%0AFigure%3A%20Engine%20oil%2C%202.0L%0D%0A%0D%0AWhat%20is%20wrong"),
+            "{mail}"
+        );
+        let with_token = Config::from_lookup(|name| match name {
+            "OPEN_DATA" => Some("d".to_owned()),
+            "OPEN_BASE_URL" => Some("https://open.example".to_owned()),
+            "OPEN_GITHUB_TOKEN" => Some("t".to_owned()),
+            _ => None,
+        })
+        .unwrap();
+        let form = field_links(
+            &with_token,
+            "/makes/honda/civic/2019",
+            "2019 Honda Civic",
+            "Engine oil, 2.0L",
+        )
+        .form
+        .unwrap();
+        assert_eq!(
+            form,
+            "/feedback?page=https%3A%2F%2Fopen.example%2Fmakes%2Fhonda%2Fcivic%2F2019&vehicle=2019%20Honda%20Civic&wrong=Engine%20oil%2C%202.0L%3A%20"
+        );
     }
 
     #[test]
