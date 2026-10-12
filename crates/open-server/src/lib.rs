@@ -33,6 +33,9 @@ mod rates_build;
 #[path = "../refrigerant_build.rs"]
 mod refrigerant_build;
 #[cfg(test)]
+#[path = "../rules_build.rs"]
+mod rules_build;
+#[cfg(test)]
 #[path = "../wire_build.rs"]
 mod wire_build;
 

@@ -5,4 +5,5 @@
 !data/rates/
 !data/reference/
 !data/catalog/
+!data/rules/
 !data/build/wenmar-open-*.sqlite3

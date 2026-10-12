@@ -1,0 +1,151 @@
+# What the law of each Canadian province and territory asks of a repair shop:
+# written estimates, authorisation, going over an estimate, the warranty a
+# repair carries, what an invoice must show, return of old parts, winter
+# tires, inspections and environmental fees.
+#
+# This is the one place a rule is written. The server's build reads it
+# (crates/open-server/rules_build.rs) and stops if it is not as described
+# here, so a mistake never reaches a visitor.
+#
+# Change a rule only from its source: the law itself, or the regulator's own
+# page, read in full. Then set `as_of` to the day it was read. The text of a
+# rule is our own words, never the law's or another website's. Check every
+# entry at least once a year.
+#
+# This file is not legal advice. The pages say so, and so does each rule's
+# link to the act it comes from.
+#
+# The schema
+#
+#   schema, country       1 and "CA".
+#   [source.<id>]         A page a rule was read from. `title` says whose
+#                         page it is and what it is; `url` is its address.
+#                         `archived` is there when the page could not be
+#                         read directly and the Internet Archive's copy of
+#                         that date (a year, a month or a day) was read.
+#   [[province]]          `code`, `name`, `as_of` (the day the entry was
+#                         last checked as a whole) and `confirmed`.
+#     confirmed           true only when the province has a rule, with a
+#                         source, for every one of the nine topics. A
+#                         province that is not confirmed shows no rule.
+#     missing             What is not yet known. Empty when confirmed. The
+#                         page shows it.
+#     notes               Optional. Sentences the page shows under "Not
+#                         legal advice".
+#     to_check            Optional. Weak points in the evidence, for whoever
+#                         checks the file next. Not shown.
+#   [[province.rule]]     One topic of one province.
+#     topic               One of: written_estimate, authorisation,
+#                         estimate_overrun, repair_warranty,
+#                         invoice_contents, old_parts, winter_tires,
+#                         inspection, environmental_fees. Each at most once
+#                         a province.
+#     applies             true when the province has a rule on the topic.
+#                         false when it is known to have none: a fact with
+#                         a source, not a gap.
+#     summary             One or more sentences, each on one line, in our
+#                         own words: what the shop must do. With
+#                         applies = false, one sentence that says there is
+#                         no such rule.
+#     law                 The act or regulation and the section, as the page
+#                         shows it after the word "Law:". Needed when
+#                         applies is true.
+#     as_of               The day this rule was read from its sources.
+#     effective           Optional. The day the rule took effect, when a
+#                         source gives it.
+#     sources             The ids of the pages that state the rule. At least
+#                         one.
+
+schema = 1
+country = "CA"
+
+[[province]]
+code = "BC"
+name = "British Columbia"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["No rule has been read for British Columbia yet."]
+
+[[province]]
+code = "AB"
+name = "Alberta"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["No rule has been read for Alberta yet."]
+
+[[province]]
+code = "SK"
+name = "Saskatchewan"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["No rule has been read for Saskatchewan yet."]
+
+[[province]]
+code = "MB"
+name = "Manitoba"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["No rule has been read for Manitoba yet."]
+
+[[province]]
+code = "ON"
+name = "Ontario"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["No rule has been read for Ontario yet."]
+
+[[province]]
+code = "QC"
+name = "Quebec"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["No rule has been read for Quebec yet."]
+
+[[province]]
+code = "NB"
+name = "New Brunswick"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["No rule has been read for New Brunswick yet."]
+
+[[province]]
+code = "NS"
+name = "Nova Scotia"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["No rule has been read for Nova Scotia yet."]
+
+[[province]]
+code = "PE"
+name = "Prince Edward Island"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["No rule has been read for Prince Edward Island yet."]
+
+[[province]]
+code = "NL"
+name = "Newfoundland and Labrador"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["No rule has been read for Newfoundland and Labrador yet."]
+
+[[province]]
+code = "YT"
+name = "Yukon"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["No rule has been read for Yukon yet."]
+
+[[province]]
+code = "NT"
+name = "Northwest Territories"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["No rule has been read for Northwest Territories yet."]
+
+[[province]]
+code = "NU"
+name = "Nunavut"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["No rule has been read for Nunavut yet."]

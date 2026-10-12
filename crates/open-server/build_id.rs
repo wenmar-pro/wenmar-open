@@ -20,8 +20,9 @@ use std::path::Path;
 /// libraries it answers with, the rates of the Canadian invoice page with
 /// the code that reads them, the refrigerant chart's and the battery table's
 /// reference tables with the code that reads them, the makers' links in makes.yaml with the code
-/// that reads them, and the versions of everything else.
-pub const PARTS: [&str; 15] = [
+/// that reads them, the rules for repair shops with the code that reads them, and the versions
+/// of everything else.
+pub const PARTS: [&str; 17] = [
     "Cargo.toml",
     "assets",
     "links_build.rs",
@@ -29,6 +30,7 @@ pub const PARTS: [&str; 15] = [
     "refrigerant_build.rs",
     "battery_build.rs",
     "wire_build.rs",
+    "rules_build.rs",
     "src",
     "templates",
     "../wenmar-vehicles/src",
@@ -37,6 +39,7 @@ pub const PARTS: [&str; 15] = [
     "../../data/catalog/makes.yaml",
     "../../data/rates",
     "../../data/reference",
+    "../../data/rules",
 ];
 
 /// Every file at or under `path`, as its name from `root` and its contents.

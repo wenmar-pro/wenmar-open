@@ -1,6 +1,7 @@
 //! Works out the build id and hands it to the compiler as `OPEN_BUILD_ID`,
-//! and writes the rates of the Canadian invoice page out as Rust. See
-//! `build_id.rs` and `rates_build.rs` for what each is and why.
+//! and writes the rates of the Canadian invoice page and the rules for
+//! repair shops out as Rust. See `build_id.rs`, `rates_build.rs` and
+//! `rules_build.rs` for what each is and why.
 
 #[path = "battery_build.rs"]
 mod battery_build;
@@ -12,6 +13,8 @@ mod links_build;
 mod rates_build;
 #[path = "refrigerant_build.rs"]
 mod refrigerant_build;
+#[path = "rules_build.rs"]
+mod rules_build;
 #[path = "wire_build.rs"]
 mod wire_build;
 
@@ -74,5 +77,13 @@ fn main() -> io::Result<()> {
     let code = wire_build::generate(&toml)
         .map_err(|why| io::Error::other(format!("{}: {why}", wire.display())))?;
     fs::write(out.join(wire_build::OUT), code)?;
+
+    // The rules for repair shops, read and checked the same way.
+    let rules = root.join(rules_build::PATH);
+    let toml = fs::read_to_string(&rules)
+        .map_err(|error| io::Error::other(format!("{}: {error}", rules.display())))?;
+    let code = rules_build::generate(&toml)
+        .map_err(|why| io::Error::other(format!("{}: {why}", rules.display())))?;
+    fs::write(out.join(rules_build::OUT), code)?;
     Ok(())
 }

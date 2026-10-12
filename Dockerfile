@@ -20,6 +20,8 @@ COPY data/rates ./data/rates
 COPY data/reference ./data/reference
 # The makers' own links, which the server's build reads and checks.
 COPY data/catalog ./data/catalog
+# The rules for repair shops, which the server's build reads.
+COPY data/rules ./data/rules
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/app/target \
     cargo build --release --locked -p open-server \
