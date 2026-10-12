@@ -53,7 +53,8 @@ struct Opened {
 ///
 /// `open_shop`, after `open`, reads the shop file's `meta` and keeps what
 /// it says. Without it the recall operations answer `dataset_unavailable`,
-/// as a server with no shop file does.
+/// as a server with no shop file does, and the overview operations answer
+/// with their recall parts `null`.
 #[derive(Debug, Default)]
 pub struct Engine {
     replay: Replay,
@@ -240,7 +241,28 @@ impl Engine {
             "engines" => ops::engines(catalog, args),
             "search" => ops::search(catalog, args),
             "vehicle" => ops::vehicle(catalog, args),
-            "recalls_vehicle" | "recalls_vin" | "recall" | "recalls_search" => {
+            "overview_vehicle" | "overview_vin" | "model_years" => {
+                // These answer with no shop file opened: `shop` is then
+                // `None`, and nothing is asked of a second database.
+                let overviews = ops::OverviewAnswers {
+                    shop: self.shop.as_ref(),
+                    catalog,
+                    core: &self.replay,
+                    base: SITE,
+                };
+                match op {
+                    "overview_vehicle" => ops::overview_vehicle(&overviews, args),
+                    "overview_vin" => {
+                        let current_year = current_year
+                            .and_then(Value::as_u64)
+                            .and_then(|year| u16::try_from(year).ok())
+                            .ok_or_else(|| bad_request("current_year"))?;
+                        ops::overview_vin(&overviews, args, current_year)
+                    }
+                    _ => ops::model_years(&overviews, args),
+                }
+            }
+            "recalls_vehicle" | "recalls_vin" | "recall" | "recalls_search" | "recalls_recent" => {
                 let Some(shop) = &self.shop else {
                     return Err(ops::no_recalls(op, args));
                 };
@@ -260,6 +282,7 @@ impl Engine {
                         ops::recalls_vin(&answers, args, current_year)
                     }
                     "recall" => ops::recall(&answers, args),
+                    "recalls_recent" => ops::recalls_recent(&answers, args),
                     _ => ops::recalls_search(&answers, args),
                 }
             }

@@ -4,7 +4,7 @@
 use serde::Serialize;
 use serde_json::{Value, json};
 use wenmar_shopdata::ShopError;
-use wenmar_shopdata::answer::{self, AnswerError, Answers, Search};
+use wenmar_shopdata::answer::{self, AnswerError, Answers, Overviews, Recent, Search};
 use wenmar_shopdata::recalls::RecallSource;
 use wenmar_vehicles::{Catalog, Scope, vin_rows};
 use wenmar_vin::{DecodeOptions, Decoder, Vin};
@@ -287,4 +287,50 @@ pub fn recalls_search(answers: &RecallAnswers, args: &Value) -> Result<Value, Op
         cursor: text(args, "cursor")?,
     };
     json(answers.search(&query)?)
+}
+
+/// `{ "since", "country"?, "make"?, "limit"?, "cursor"? }`: the campaigns
+/// reported on or after a day, newest first, each with the vehicles it
+/// lists.
+pub fn recalls_recent(answers: &RecallAnswers, args: &Value) -> Result<Value, OpError> {
+    let query = Recent {
+        since: text(args, "since")?,
+        country: text(args, "country")?,
+        make: text(args, "make")?,
+        limit: whole(args, "limit")?.map(|limit| usize::try_from(limit).unwrap_or(usize::MAX)),
+        cursor: text(args, "cursor")?,
+    };
+    json(answers.recent(&query)?)
+}
+
+// ----- the overview -----
+
+/// The answers that need no shop file: the catalog and the data file, and
+/// the shop file when one has been opened. All are read through the rows
+/// the caller has sent.
+pub type OverviewAnswers<'a> = Overviews<'a, Replay, Replay>;
+
+/// `{ "id" }`: everything held for one model year.
+pub fn overview_vehicle(overviews: &OverviewAnswers, args: &Value) -> Result<Value, OpError> {
+    let id = text(args, "id")?.unwrap_or_default();
+    json(overviews.vehicle(&id)?)
+}
+
+/// `{ "vin", "year"? }`: everything held for the model year a VIN decodes
+/// to. The VIN is decoded first, as the API does it, so that a VIN that
+/// cannot be decoded fails as a decode does.
+pub fn overview_vin(
+    overviews: &OverviewAnswers,
+    args: &Value,
+    current_year: u16,
+) -> Result<Value, OpError> {
+    let decoded = decode(overviews.catalog, overviews.core, args, current_year)?;
+    json(overviews.vin(&decoded)?)
+}
+
+/// `{ "make", "model" }`: every model year of one model, newest first.
+pub fn model_years(overviews: &OverviewAnswers, args: &Value) -> Result<Value, OpError> {
+    let make = text(args, "make")?.unwrap_or_default();
+    let model = text(args, "model")?.unwrap_or_default();
+    json(overviews.model_years(&make, &model)?)
 }

@@ -347,6 +347,28 @@ pub fn cases() -> Vec<(&'static str, &'static str, Value)> {
             "vehicle",
             json!({ "id": "2019_honda_nothing" }),
         ),
+        // With no shop file opened an overview still answers: its recalls
+        // are null.
+        (
+            "overview, no shop file",
+            "overview_vehicle",
+            json!({ "id": "2023_hyundai_kona" }),
+        ),
+        (
+            "overview, unknown vehicle",
+            "overview_vehicle",
+            json!({ "id": "2019_honda_nothing" }),
+        ),
+        (
+            "overview of a VIN, no shop file",
+            "overview_vin",
+            json!({ "vin": KONA }),
+        ),
+        (
+            "model years, no shop file",
+            "model_years",
+            json!({ "make": "hyundai", "model": "kona" }),
+        ),
         ("meta", "meta", json!({})),
     ]
 }
@@ -515,5 +537,69 @@ pub fn shop_cases() -> Vec<(&'static str, &'static str, Value)> {
             json!({ "model": "kona" }),
         ),
         ("meta, with the shop file", "meta", json!({})),
+    ]
+}
+
+/// Questions about the overview of a vehicle, a model's years and the
+/// recent recalls, asked of the two fixtures with the shop file open.
+pub fn overview_cases() -> Vec<(&'static str, &'static str, Value)> {
+    vec![
+        (
+            "overview of a model year",
+            "overview_vehicle",
+            json!({ "id": "2023_hyundai_kona_se" }),
+        ),
+        (
+            "overview of a model year, no campaign",
+            "overview_vehicle",
+            json!({ "id": "2019_honda_civic" }),
+        ),
+        ("overview of a VIN", "overview_vin", json!({ "vin": KONA })),
+        (
+            "overview of a VIN, no catalog vehicle",
+            "overview_vin",
+            json!({ "vin": BUS_LATE }),
+        ),
+        (
+            "overview of a VIN, illegal character",
+            "overview_vin",
+            json!({ "vin": "KM8K2CAB4PUO01140" }),
+        ),
+        (
+            "model years",
+            "model_years",
+            json!({ "make": "hyundai", "model": "kona" }),
+        ),
+        (
+            "model years, by alias and another spelling",
+            "model_years",
+            json!({ "make": "chevy", "model": "Silverado" }),
+        ),
+        (
+            "model years, unknown model",
+            "model_years",
+            json!({ "make": "honda", "model": "nothing" }),
+        ),
+        (
+            "recent recalls",
+            "recalls_recent",
+            json!({ "since": "2023-03-05" }),
+        ),
+        (
+            "recent recalls, one make and one country",
+            "recalls_recent",
+            json!({ "since": "2019-01-01", "make": "chevy", "country": "us" }),
+        ),
+        (
+            "recent recalls, next page",
+            "recalls_recent",
+            json!({ "since": "2019-01-01", "limit": 2, "cursor": "2023-03-10_4" }),
+        ),
+        ("recent recalls, no day", "recalls_recent", json!({})),
+        (
+            "recent recalls, not a day",
+            "recalls_recent",
+            json!({ "since": "yesterday" }),
+        ),
     ]
 }

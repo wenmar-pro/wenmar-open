@@ -420,6 +420,52 @@ fn recall_questions() -> Vec<(&'static str, &'static str, Value)> {
             "recalls_search",
             json!({ "limit": 0 }),
         ),
+        (
+            "/v1/recalls/recent?since=2019-01-01",
+            "recalls_recent",
+            json!({ "since": "2019-01-01" }),
+        ),
+        (
+            "/v1/recalls/recent?since=2019-01-01&country=CA&make=chevy",
+            "recalls_recent",
+            json!({ "since": "2019-01-01", "country": "CA", "make": "chevy" }),
+        ),
+        (
+            "/v1/recalls/recent?since=2019-01-01&make=nobody",
+            "recalls_recent",
+            json!({ "since": "2019-01-01", "make": "nobody" }),
+        ),
+        (
+            "/v1/recalls/recent?since=1960-01-01&limit=2",
+            "recalls_recent",
+            json!({ "since": "1960-01-01", "limit": 2 }),
+        ),
+        (
+            "/v1/recalls/recent?since=1960-01-01&limit=2&cursor=2023-03-10_9",
+            "recalls_recent",
+            json!({ "since": "1960-01-01", "limit": 2, "cursor": "2023-03-10_9" }),
+        ),
+        (
+            "/v1/recalls/recent?since=2024-05-11",
+            "recalls_recent",
+            json!({ "since": "2024-05-11" }),
+        ),
+        ("/v1/recalls/recent", "recalls_recent", json!({})),
+        (
+            "/v1/recalls/recent?since=2026-9-1",
+            "recalls_recent",
+            json!({ "since": "2026-9-1" }),
+        ),
+        (
+            "/v1/recalls/recent?since=2019-01-01&country=mx",
+            "recalls_recent",
+            json!({ "since": "2019-01-01", "country": "mx" }),
+        ),
+        (
+            "/v1/recalls/recent?since=2019-01-01&cursor=nope",
+            "recalls_recent",
+            json!({ "since": "2019-01-01", "cursor": "nope" }),
+        ),
         ("/v1/meta", "meta", json!({})),
     ]
 }
@@ -502,5 +548,214 @@ async fn with_no_shop_file_the_engine_and_the_api_refuse_recall_questions_alike(
             _ => StatusCode::BAD_REQUEST,
         };
         assert_eq!(status, expected, "{path}");
+    }
+}
+
+/// The questions an overview answers with or without a shop file: the
+/// API's address, then the engine's operation and arguments.
+fn overview_questions() -> Vec<(&'static str, &'static str, Value)> {
+    vec![
+        (
+            "/v1/vehicles/2023_hyundai_kona/overview",
+            "overview_vehicle",
+            json!({ "id": "2023_hyundai_kona" }),
+        ),
+        (
+            "/v1/vehicles/2023_hyundai_kona_se/overview",
+            "overview_vehicle",
+            json!({ "id": "2023_hyundai_kona_se" }),
+        ),
+        (
+            "/v1/vehicles/2019_chevrolet_silverado/overview",
+            "overview_vehicle",
+            json!({ "id": "2019_chevrolet_silverado" }),
+        ),
+        (
+            "/v1/vehicles/2019_honda_civic/overview",
+            "overview_vehicle",
+            json!({ "id": "2019_honda_civic" }),
+        ),
+        (
+            "/v1/vehicles/2019_honda_nothing/overview",
+            "overview_vehicle",
+            json!({ "id": "2019_honda_nothing" }),
+        ),
+        (
+            "/v1/vin/KM8K2CAB4PU001140/overview",
+            "overview_vin",
+            json!({ "vin": common::KONA }),
+        ),
+        (
+            "/v1/vin/km8k2-cab4pu001140/overview?year=2023",
+            "overview_vin",
+            json!({ "vin": "km8k2-cab4pu001140", "year": 2023 }),
+        ),
+        (
+            "/v1/vin/KM8K2CAB0PU001140/overview",
+            "overview_vin",
+            json!({ "vin": common::KONA_BAD_CHECK }),
+        ),
+        (
+            "/v1/vin/1M8PDMPA9SP000001/overview",
+            "overview_vin",
+            json!({ "vin": common::COACH }),
+        ),
+        (
+            "/v1/vin/1A9100AA851881001/overview",
+            "overview_vin",
+            json!({ "vin": common::TRAILER }),
+        ),
+        (
+            "/v1/vin/ZZZK2CAB4PU001140/overview",
+            "overview_vin",
+            json!({ "vin": common::UNKNOWN }),
+        ),
+        (
+            "/v1/vin/KM8K2CAB4PUO01140/overview",
+            "overview_vin",
+            json!({ "vin": "KM8K2CAB4PUO01140" }),
+        ),
+        (
+            "/v1/vin/KM8K2CAB4PU001140/overview?year=1900",
+            "overview_vin",
+            json!({ "vin": common::KONA, "year": 1900 }),
+        ),
+        (
+            "/v1/models/hyundai/kona",
+            "model_years",
+            json!({ "make": "hyundai", "model": "kona" }),
+        ),
+        (
+            "/v1/models/chevy/Silverado",
+            "model_years",
+            json!({ "make": "chevy", "model": "Silverado" }),
+        ),
+        (
+            "/v1/models/ford/f150",
+            "model_years",
+            json!({ "make": "ford", "model": "f150" }),
+        ),
+        (
+            "/v1/models/honda/civic",
+            "model_years",
+            json!({ "make": "honda", "model": "civic" }),
+        ),
+        (
+            "/v1/models/honda/nothing",
+            "model_years",
+            json!({ "make": "honda", "model": "nothing" }),
+        ),
+        (
+            "/v1/models/nobody/civic",
+            "model_years",
+            json!({ "make": "nobody", "model": "civic" }),
+        ),
+    ]
+}
+
+/// The blocks of an overview that the hosted API fills where its server
+/// holds their data, and that the files do not give yet: from files they
+/// are `null` whatever the shop file holds. `specs`, `fuel` and `fluids`
+/// wait for the plan that brings the fuel data to the files, and `safety`
+/// for plan D3.
+const HOSTED_ONLY: [&str; 4] = ["specs", "fuel", "fluids", "safety"];
+
+/// An answer of the API as the files give it. What is set aside before
+/// two answers are compared, and why:
+///
+/// - `lookup.maker`, `recalls.lookup.maker` and `links.maker`: the makers'
+///   own lookup and links are compiled into the server from
+///   `data/catalog/makes.yaml` and are in neither file.
+/// - the blocks of [`HOSTED_ONLY`].
+///
+/// Nothing else is: every other field, the other `null` blocks among them,
+/// must be the same. The shop file of these tests holds recalls only, so
+/// `attribution` is compared whole. A test over a shop file that holds the
+/// data of a [`HOSTED_ONLY`] block must set that block's credit lines
+/// aside too.
+fn as_the_files_give_it(mut answer: Value) -> Value {
+    for place in ["/lookup/maker", "/recalls/lookup/maker", "/links/maker"] {
+        if let Some(maker) = answer.pointer_mut(place) {
+            *maker = Value::Null;
+        }
+    }
+    for block in HOSTED_ONLY {
+        if let Some(held) = answer.get_mut(block) {
+            *held = Value::Null;
+        }
+    }
+    answer
+}
+
+#[tokio::test]
+async fn the_offline_engine_answers_overview_questions_as_the_api_does() {
+    for with_shop in [true, false] {
+        // The API says its pages are where the engine says they are.
+        let app = if with_shop {
+            common::recalls_app_at(wenmar_shopdata::answer::SITE).await
+        } else {
+            common::app_with(|config| {
+                config.base_url = wenmar_shopdata::answer::SITE.to_owned();
+            })
+            .await
+        };
+        let fixture = common::data_file();
+        common::add_shop_file(
+            &fixture,
+            wenmar_shopdata::schema::SCHEMA_VERSION,
+            "2026.09",
+            common::RECALL_DATASETS,
+            &common::recall_rows(),
+        );
+        let connection = Connection::open(fixture.path()).unwrap();
+        let shop = Connection::open(fixture.shop_path()).unwrap();
+        let mut engine = Engine::new();
+        let opened = ask(&mut engine, &connection, "open", &json!({}));
+        assert!(opened.get("ok").is_some(), "{opened}");
+        if with_shop {
+            let opened = ask_with_shop(&mut engine, &connection, &shop, "open_shop", &json!({}));
+            assert!(opened.get("ok").is_some(), "{opened}");
+        }
+
+        for (path, op, args) in &overview_questions() {
+            let (status, served) = app.json(path).await;
+            // With no shop file opened the engine asks for none of its rows:
+            // `ask` would stop at a statement for a second database.
+            let answer = if with_shop {
+                ask_with_shop(&mut engine, &connection, &shop, op, args)
+            } else {
+                ask(&mut engine, &connection, op, args)
+            };
+            if status == StatusCode::OK {
+                assert_eq!(
+                    answer["ok"],
+                    as_the_files_give_it(served.clone()),
+                    "{path} {with_shop}"
+                );
+                if *op == "model_years" {
+                    assert_eq!(answer["ok"]["may_apply"], true, "{path}");
+                    assert_eq!(answer["ok"]["lookup"]["nhtsa"], served["lookup"]["nhtsa"]);
+                    assert_eq!(answer["ok"]["lookup"]["tc"], served["lookup"]["tc"]);
+                } else {
+                    // A recall block only with a shop file and a model year.
+                    assert_eq!(
+                        answer["ok"]["recalls"].is_object(),
+                        with_shop && served["vehicle"].is_object(),
+                        "{path}"
+                    );
+                    for block in HOSTED_ONLY {
+                        assert_eq!(answer["ok"][block], Value::Null, "{path} {block}");
+                    }
+                }
+            } else {
+                assert_eq!(json!({ "error": answer["error"] }), served, "{path}");
+                let code = answer["error"]["code"].as_str().unwrap();
+                let expected = match code {
+                    "not_found" => StatusCode::NOT_FOUND,
+                    _ => StatusCode::BAD_REQUEST,
+                };
+                assert_eq!(status, expected, "{path}");
+            }
+        }
     }
 }
