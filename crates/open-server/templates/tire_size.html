@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% import "tool.html" as piece %}
+{% block content %}
+{% call piece::opening(tool) %}
+<form class="calc" id="calc" action="{{ tool.path() }}#result" method="get">
+{% if example -%}
+<p class="note">The form is filled in with an example. Change the sizes and press the button.</p>
+{% endif -%}
+<p class="help">Write each size as it is on the sidewall, such as 275/65R18, P215/65R15 or LT285/70R17.</p>
+{% for f in form.fields() -%}
+<div class="field">
+<label for="{{ f.name }}">{{ f.label }}</label>
+<input id="{{ f.name }}" name="{{ f.name }}" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" value="{{ f.value }}"{% if f.error.is_some() %} aria-invalid="true" aria-describedby="{{ f.error_id() }}"{% endif %}>
+{% if let Some(error) = f.error -%}
+<p class="warning" id="{{ f.error_id() }}">{{ error }}</p>
+{% endif -%}
+</div>
+{% endfor -%}
+<div class="screen"><button class="primary" type="submit">Compare</button></div>
+</form>
+<h2 id="result">Result</h2>
+{% if let Some(shown) = shown -%}
+{% if example -%}
+<p class="note">This is the result of the example in the form.</p>
+{% endif -%}
+{% call piece::actions() %}
+{% call piece::table(shown.sizes) %}
+{% call piece::table(shown.difference) %}
+<p>{{ shown.speedometer }}</p>
+{% else -%}
+{% call piece::no_result(troubles) %}
+{% endif -%}
+<p class="note">{{ limits }}</p>
+{% call piece::how(how) %}
+{% call piece::closing(tool) %}
+{% endblock %}

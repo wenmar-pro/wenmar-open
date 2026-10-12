@@ -13,6 +13,7 @@ pub mod labor_rate;
 pub mod parts_matrix;
 pub mod pieces;
 pub mod target;
+pub mod tire_size;
 
 use axum::extract::rejection::{PathRejection, QueryRejection};
 use axum::extract::{Path, Query, State};
@@ -67,11 +68,12 @@ impl Tool {
 
 /// Every calculator that exists, in the order they are listed. A new one
 /// is added here and nowhere else.
-pub static TOOLS: [&Tool; 4] = [
+pub static TOOLS: [&Tool; 5] = [
     &parts_matrix::TOOL,
     &labor_rate::TOOL,
     &gross_profit::TOOL,
     &canada_invoice_tax::TOOL,
+    &tire_size::TOOL,
 ];
 
 /// How long a browser may keep a page worked out from a query string. It
