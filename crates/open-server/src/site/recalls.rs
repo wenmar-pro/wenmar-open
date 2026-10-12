@@ -167,6 +167,84 @@ fn markdown_footer(lookup: &RecallLookup, attribution: &[String]) -> String {
     text
 }
 
+// ----- a model year's recalls, in brief -----
+
+/// Campaigns shown where a page says of a model year's recalls in brief.
+const BRIEF: usize = 3;
+
+/// What another page says of a model year's recalls: how many may apply,
+/// the newest, the advisories, and where the whole list is.
+pub struct Brief {
+    /// `2023 Hyundai Kona`.
+    pub name: String,
+    /// The model year's recall page.
+    pub href: String,
+    /// `4 recall campaigns may apply`, or that none was found.
+    pub text: String,
+    /// The newest campaigns, at most three.
+    pub newest: Vec<Line>,
+    /// Every campaign with an advisory, whether or not it is among the
+    /// newest.
+    pub advisories: Vec<Line>,
+    /// When each country's data was current, in words.
+    pub us: String,
+    pub ca: String,
+    pub lookup: RecallLookup,
+}
+
+/// The recalls of the model year `vehicle_id` names, in brief.
+///
+/// `None` on a server that holds no recalls, for an id that names no model
+/// year, and when the recalls could not be read. The page that asked is
+/// then shown exactly as it is without recalls: they are an addition to
+/// it, never a reason for it to fail.
+pub async fn brief(state: &AppState, vehicle_id: &str) -> Option<Brief> {
+    let shop = recall_shop(state, None).ok()?;
+    let id = vehicle_id.to_owned();
+    let found = match state.db().run(move |worker| model_year(worker, &id)).await {
+        Ok(Ok(found)) => found?,
+        Ok(Err(error)) => {
+            tracing::warn!(%error, "recalls left off a page");
+            return None;
+        }
+        Err(error) => {
+            tracing::warn!(%error, "recalls left off a page");
+            return None;
+        }
+    };
+    // A failure here is logged where it is turned into an `ApiError`.
+    let answer = recalls_of(state, shop, &found, None).await.ok()?;
+    let total = answer.recalls.len();
+    let text = if total == 0 {
+        "None found that may apply. Check the VIN to be sure.".to_owned()
+    } else {
+        format!("{} may apply", seo::count(total, "recall campaign"))
+    };
+    let all: Vec<Line> = answer.recalls.iter().filter_map(line).collect();
+    let advisories: Vec<Line> = answer
+        .recalls
+        .iter()
+        .filter_map(line)
+        .filter(|line| !line.advisory.is_empty())
+        .collect();
+    Some(Brief {
+        name: format!(
+            "{} {} {}",
+            answer.vehicle.year, answer.vehicle.make, answer.vehicle.model
+        ),
+        href: format!(
+            "/makes/{}/{}/{}/recalls",
+            found.make_slug, found.model_slug, answer.vehicle.year
+        ),
+        text,
+        newest: all.into_iter().take(BRIEF).collect(),
+        advisories,
+        us: dated(answer.as_of.us.as_ref()),
+        ca: dated(answer.as_of.ca.as_ref()),
+        lookup: answer.lookup,
+    })
+}
+
 // ----- /recalls -----
 
 #[derive(Template)]

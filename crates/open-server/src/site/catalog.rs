@@ -581,6 +581,8 @@ struct ModelYearPage {
     name: String,
     report: report::ReportLinks,
     links: Option<links::LinkList>,
+    /// The line about recalls. `None` on a server that holds none.
+    recalls: Option<site::recalls::Brief>,
 }
 
 fn model_year_markdown(view: &ModelYearView, report: &report::ReportLinks) -> String {
@@ -761,11 +763,20 @@ pub async fn model_year(
     );
     let report = report::links(state.config(), &path, &name);
     let links = links::for_make(&view.entry.make).map(|found| found.list(&view.entry.make));
+    // On a server that holds recalls, a line about this model year's.
+    // Without them the page is as it always was.
+    let recalls = site::recalls::brief(&state, &view.entry.id).await;
     if format == Format::Markdown {
         let canonical = format!("{}{path}", state.config().base_url);
         let mut text = model_year_markdown(&view, &report);
         if let Some(list) = &links {
             text.push_str(&links::markdown(list));
+        }
+        if let Some(brief) = &recalls {
+            text.push_str(&format!(
+                "\n## Recalls\n\n[{}]({}.md)\n",
+                brief.text, brief.href
+            ));
         }
         return markdown::response(text, &canonical);
     }
@@ -812,6 +823,7 @@ pub async fn model_year(
             name,
             report,
             links,
+            recalls,
         },
     )
 }
