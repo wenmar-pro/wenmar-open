@@ -351,3 +351,76 @@ pub fn safety(answers: &RecallAnswers, args: &Value) -> Result<Value, OpError> {
     let id = text(args, "id")?.unwrap_or_default();
     json(answers.safety(&id)?)
 }
+
+// ----- fuel, specifications, fluids and tire fitments -----
+
+/// The four topics an operation name may start with.
+pub const TOPICS: [&str; 4] = ["fuel", "specs", "fluids", "tires"];
+
+/// The topic and whether the question is by VIN, for an operation such
+/// as `fuel_vehicle` or `tires_vin`. `None` for any other operation.
+pub fn topic_of(op: &str) -> Option<(&'static str, bool)> {
+    let (topic, by) = op.split_once('_')?;
+    let topic = TOPICS.into_iter().find(|known| *known == topic)?;
+    match by {
+        "vehicle" => Some((topic, false)),
+        "vin" => Some((topic, true)),
+        _ => None,
+    }
+}
+
+/// What a question about `topic` gets when no shop file has been opened:
+/// the API's own `dataset_unavailable`, naming what the hosted API names
+/// on a server without one. A `country` of a fuel question that is not
+/// `us` or `ca` is refused first, as the API refuses it.
+pub fn no_facts(topic: &str, args: &Value) -> OpError {
+    let country = match text(args, "country") {
+        Err(error) => return error,
+        Ok(country) => country,
+    };
+    if topic == "fuel"
+        && let Err(error) = answer::facts::fuel_country(country.as_deref())
+    {
+        return error.into();
+    }
+    AnswerError::Shop(ShopError::DatasetUnavailable(answer::facts::dataset_for(
+        topic,
+        country.as_deref(),
+    )))
+    .into()
+}
+
+/// `{ "id", "country"? }` for a model year, or `{ "vin", "year"?,
+/// "country"? }` for the model year a VIN decodes to: the fuel ratings,
+/// specifications, fluids or tire fitments, as the API gives them. By
+/// VIN, the data is looked for before the VIN is decoded, as in the API.
+pub fn facts(
+    answers: &RecallAnswers,
+    topic: &str,
+    by_vin: bool,
+    args: &Value,
+    current_year: Option<u16>,
+) -> Result<Value, OpError> {
+    let country = text(args, "country")?;
+    let country = country.as_deref();
+    if !by_vin {
+        let id = text(args, "id")?.unwrap_or_default();
+        return Ok(match topic {
+            "fuel" => answers.vehicle_fuel(&id, country),
+            "specs" => answers.vehicle_specs(&id),
+            "fluids" => answers.vehicle_fluids(&id),
+            _ => answers.vehicle_tires(&id),
+        }?);
+    }
+    answers.require(topic, country)?;
+    let current_year = current_year.ok_or_else(|| {
+        OpError::validation("current_year", "current_year must be a whole number")
+    })?;
+    let decoded = decode(answers.catalog, answers.core, args, current_year)?;
+    Ok(match topic {
+        "fuel" => answers.vin_fuel(&decoded, country),
+        "specs" => answers.vin_specs(&decoded),
+        "fluids" => answers.vin_fluids(&decoded),
+        _ => answers.vin_tires(&decoded),
+    }?)
+}

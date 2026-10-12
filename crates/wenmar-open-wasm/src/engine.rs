@@ -253,6 +253,25 @@ impl Engine {
                 };
                 ops::safety(&answers, args)
             }
+            _ if ops::topic_of(op).is_some() => {
+                let (topic, by_vin) = ops::topic_of(op).unwrap_or(("fuel", false));
+                let Some(shop) = &self.shop else {
+                    return Err(ops::no_facts(topic, args));
+                };
+                let answers = ops::RecallAnswers {
+                    shop,
+                    catalog,
+                    core: &self.replay,
+                    base: SITE,
+                };
+                let current_year = current_year
+                    .and_then(Value::as_u64)
+                    .and_then(|year| u16::try_from(year).ok());
+                if by_vin && current_year.is_none() {
+                    return Err(bad_request("current_year"));
+                }
+                ops::facts(&answers, topic, by_vin, args, current_year)
+            }
             "overview_vehicle" | "overview_vin" | "model_years" => {
                 // These answer with no shop file opened: `shop` is then
                 // `None`, and nothing is asked of a second database.

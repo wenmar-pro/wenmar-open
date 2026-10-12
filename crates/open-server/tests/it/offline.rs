@@ -655,14 +655,14 @@ fn overview_questions() -> Vec<(&'static str, &'static str, Value)> {
 
 /// The blocks of an overview that the hosted API fills where its server
 /// holds their data, and that the files do not give yet: from files they
-/// are `null` whatever the shop file holds. `specs`, `fuel` and `fluids`
-/// wait for the plan that brings the fuel data to the files. `bulletins`
-/// is hosted only by design: the offline shop file does not hold them.
-/// `complaints` is left out of the offline engine until the size budget is
-/// raised (plan H8): with the complaints op the engine's WebAssembly is
-/// 602,315 bytes against a budget of 600,000, and without it 595,435
-/// (measured 2026-10-12). Its overview block is `null` in the engine.
-const HOSTED_ONLY: [&str; 5] = ["specs", "fuel", "fluids", "bulletins", "complaints"];
+/// are `null` whatever the shop file holds. `specs`, `fuel`, `fluids` and
+/// `tires` are given from files now. `bulletins` is hosted only by design:
+/// the offline shop file does not hold them. `complaints` is left out of
+/// the offline engine until the size budget is raised (plan H8): with the
+/// complaints op the engine's WebAssembly is 602,315 bytes against a budget
+/// of 600,000, and without it 595,435 (measured 2026-10-12). Its overview
+/// block is `null` in the engine.
+const HOSTED_ONLY: [&str; 2] = ["bulletins", "complaints"];
 
 /// An answer of the API as the files give it. What is set aside before
 /// two answers are compared, and why:
@@ -890,4 +890,138 @@ async fn the_offline_engine_gives_an_overview_its_crash_test_ratings_as_the_api_
     let (_, safety) = app.json("/v1/vehicles/2023_hyundai_kona/safety").await;
     assert_eq!(overview["ok"]["safety"], safety);
     assert_eq!(safety["ratings"].as_array().unwrap().len(), 3);
+}
+
+#[tokio::test]
+async fn the_offline_engine_answers_fuel_specs_fluids_and_tires_as_the_api_does() {
+    let hand = format!("{}{}", common::fuel_rows(), common::hand_rows());
+    // Three servers, and the files that go with each: everything, the
+    // recalls alone, and no shop file.
+    for held in ["everything", "recalls", "nothing"] {
+        let files: Option<(&str, String)> = match held {
+            "everything" => Some((common::HAND_DATASETS, hand.clone())),
+            "recalls" => Some((common::RECALL_DATASETS, common::recall_rows())),
+            _ => None,
+        };
+        let app = match &files {
+            Some((datasets, rows)) => {
+                common::app_with_rows_and_shop(common::TESTMAKE_ROWS, datasets, rows).await
+            }
+            None => common::app_with_rows(common::TESTMAKE_ROWS).await,
+        };
+        let fixture = common::data_file();
+        let connection = Connection::open(fixture.path()).unwrap();
+        connection.execute_batch(common::TESTMAKE_ROWS).unwrap();
+        let (datasets, rows) = files
+            .clone()
+            .unwrap_or((common::RECALL_DATASETS, String::new()));
+        common::add_shop_file(
+            &fixture,
+            wenmar_shopdata::schema::SCHEMA_VERSION,
+            "2026.09",
+            datasets,
+            &rows,
+        );
+        let shop = Connection::open(fixture.shop_path()).unwrap();
+        let mut engine = Engine::new();
+        let opened = ask(&mut engine, &connection, "open", &json!({}));
+        assert!(opened.get("ok").is_some(), "{opened}");
+        if files.is_some() {
+            let opened = ask_with_shop(&mut engine, &connection, &shop, "open_shop", &json!({}));
+            assert!(opened.get("ok").is_some(), "{opened}");
+        }
+
+        // Each question as a path of the API, and as an operation.
+        let mut questions: Vec<(String, String, Value)> = Vec::new();
+        for topic in ["fuel", "specs", "fluids", "tires"] {
+            for id in [
+                "2023_hyundai_kona",
+                "2023_hyundai_kona_se",
+                "2001_testmake_sampler",
+                "2019_honda_civic",
+                "2019_ford_f-150",
+                "2019_honda_nothing",
+            ] {
+                questions.push((
+                    format!("/v1/vehicles/{id}/{topic}"),
+                    format!("{topic}_vehicle"),
+                    json!({ "id": id }),
+                ));
+            }
+            for vin in [common::KONA, common::COACH, common::KONA_BAD_CHECK] {
+                questions.push((
+                    format!("/v1/vin/{vin}/{topic}"),
+                    format!("{topic}_vin"),
+                    json!({ "vin": vin }),
+                ));
+            }
+            questions.push((
+                format!("/v1/vin/{}/{topic}?year=2022", common::KONA),
+                format!("{topic}_vin"),
+                json!({ "vin": common::KONA, "year": 2022 }),
+            ));
+        }
+        for country in ["us", "CA", "mx"] {
+            questions.push((
+                format!("/v1/vehicles/2023_hyundai_kona/fuel?country={country}"),
+                "fuel_vehicle".to_owned(),
+                json!({ "id": "2023_hyundai_kona", "country": country }),
+            ));
+            questions.push((
+                format!("/v1/vin/{}/fuel?country={country}", common::KONA),
+                "fuel_vin".to_owned(),
+                json!({ "vin": common::KONA, "country": country }),
+            ));
+        }
+
+        let mut answered = 0;
+        for (path, op, args) in questions {
+            let (status, served) = app.json(&path).await;
+            let answer = if files.is_some() {
+                ask_with_shop(&mut engine, &connection, &shop, &op, &args)
+            } else {
+                ask(&mut engine, &connection, &op, &args)
+            };
+            if status == StatusCode::OK {
+                assert_eq!(held, "everything", "{path}");
+                // Nothing is set aside: the files give every field.
+                assert_eq!(answer["ok"], served, "{path}");
+                answered += 1;
+            } else {
+                assert_eq!(json!({ "error": answer["error"] }), served, "{path} {held}");
+            }
+        }
+        if held == "everything" {
+            // All but the ids that name no vehicle and the country that is
+            // neither.
+            assert_eq!(answered, 40);
+
+            // The overview's blocks, whole.
+            for (path, op, args) in [
+                (
+                    "/v1/vehicles/2001_testmake_sampler/overview".to_owned(),
+                    "overview_vehicle",
+                    json!({ "id": "2001_testmake_sampler" }),
+                ),
+                (
+                    "/v1/vehicles/2023_hyundai_kona/overview".to_owned(),
+                    "overview_vehicle",
+                    json!({ "id": "2023_hyundai_kona" }),
+                ),
+                (
+                    format!("/v1/vin/{}/overview", common::KONA),
+                    "overview_vin",
+                    json!({ "vin": common::KONA }),
+                ),
+            ] {
+                let (status, served) = app.json(&path).await;
+                assert_eq!(status, StatusCode::OK, "{path}");
+                let answer = ask_with_shop(&mut engine, &connection, &shop, op, &args);
+                for block in ["fuel", "specs", "fluids", "tires", "attribution"] {
+                    assert_eq!(answer["ok"][block], served[block], "{path} {block}");
+                }
+                assert!(answer["ok"]["fluids"].is_object(), "{path}");
+            }
+        }
+    }
 }

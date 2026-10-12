@@ -2525,7 +2525,7 @@
         ],
         [
           "datasets",
-          "{\"recalls_us\":{\"as_of\":\"2026-10-11\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"recalls_ca\":{\"as_of\":\"2026-10-06\",\"rows\":1,\"licence\":\"ogl-canada\",\"attribution\":\"Contains information licensed under the Open Government Licence - Canada.\"},\"ratings\":{\"as_of\":\"2026-08-07\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"}}"
+          "{\"recalls_us\":{\"as_of\":\"2026-10-11\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"recalls_ca\":{\"as_of\":\"2026-10-06\",\"rows\":1,\"licence\":\"ogl-canada\",\"attribution\":\"Contains information licensed under the Open Government Licence - Canada.\"},\"ratings\":{\"as_of\":\"2026-08-07\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"fuel_us\":{\"as_of\":\"2026-09-29\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"fuel_ca\":{\"as_of\":\"2026-10-06\",\"rows\":1,\"licence\":\"ogl-canada\",\"attribution\":\"Contains information licensed under the Open Government Licence - Canada.\"},\"specs\":{\"as_of\":\"2026-09-29\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"oil_grade\":{\"as_of\":\"2026-09-29\",\"rows\":2,\"licence\":\"public-domain\",\"attribution\":\"\"},\"fluids\":{\"as_of\":\"2026-10-09\",\"rows\":3,\"licence\":\"mit\",\"attribution\":\"\"},\"tires\":{\"as_of\":\"2026-10-09\",\"rows\":1,\"licence\":\"mit\",\"attribution\":\"\"}}"
         ]
       ],
       "sql": "SELECT key, value FROM meta"
@@ -3085,6 +3085,604 @@
       ],
       "rows": [],
       "sql": "\nSELECT r.model_text, r.body_style, r.vehicle_type, r.drive, r.release, v.\"match\",\n       r.overall, r.frontal, r.frontal_driver, r.frontal_passenger,\n       r.side, r.side_driver, r.side_passenger, r.side_barrier, r.side_front_seat, r.side_rear_seat, r.side_pole,\n       r.rollover, r.rollover_risk_permille, r.rollover_tip, r.curb_weight_lb,\n       r.esc, r.fcw, r.fcw_evaluation, r.ldw, r.ldw_evaluation, r.cib, r.cib_evaluation, r.dbs, r.dbs_evaluation,\n       r.backup_camera, r.blind_spot_detection, r.head_side_airbag, r.torso_side_airbag, r.notes\nFROM rating_vehicle v\nJOIN rating r ON r.id = v.rating_id\nWHERE v.make_id = ?1 AND v.model_id = ?2 AND v.year = ?3\nORDER BY r.model_text, r.body_style, r.drive, r.release, r.id"
+    },
+    {
+      "params": [
+        498,
+        900,
+        2023
+      ],
+      "rows": [
+        [
+          8,
+          "2.0L",
+          "A"
+        ],
+        [
+          9,
+          "1.6L Turbo",
+          null
+        ]
+      ],
+      "sql": "\nSELECT e.id, e.label, e.vin8\nFROM catalog_vehicle v\nJOIN catalog_engine e ON e.detail_id = v.detail_id\nWHERE v.make_id = ?1 AND v.model_id = ?2 AND v.year = ?3\nORDER BY e.id"
+    },
+    {
+      "db": "shop",
+      "params": [
+        498,
+        900,
+        2023,
+        "epa",
+        "nrcan"
+      ],
+      "rows": [
+        [
+          "epa",
+          46004,
+          "base",
+          "model",
+          null,
+          null,
+          "Kona Electric",
+          null,
+          null,
+          null,
+          null,
+          null,
+          "Automatic (A1)",
+          "Front-Wheel Drive",
+          "Electricity",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          17.4,
+          415,
+          0
+        ],
+        [
+          "epa",
+          46003,
+          "base",
+          "engine",
+          9,
+          null,
+          "Kona N Line AWD",
+          "AWD",
+          null,
+          null,
+          1.6,
+          4,
+          "Automatic (AM7)",
+          "All-Wheel Drive",
+          "Regular Gasoline",
+          null,
+          8.7,
+          7.4,
+          8.1,
+          27,
+          32,
+          29,
+          null,
+          null,
+          190
+        ],
+        [
+          "epa",
+          46001,
+          "exact",
+          "engine",
+          8,
+          null,
+          "Kona FWD",
+          "FWD",
+          null,
+          null,
+          2.0,
+          4,
+          "Automatic (variable gear ratios)",
+          "Front-Wheel Drive",
+          "Regular Gasoline",
+          null,
+          7.8,
+          6.7,
+          7.4,
+          30,
+          35,
+          32,
+          null,
+          null,
+          172
+        ],
+        [
+          "nrcan",
+          null,
+          "exact",
+          "engine",
+          8,
+          null,
+          "Kona",
+          null,
+          null,
+          null,
+          2.0,
+          4,
+          "AV",
+          null,
+          "Regular Gasoline",
+          null,
+          7.9,
+          6.6,
+          7.3,
+          30,
+          36,
+          32,
+          null,
+          null,
+          171
+        ]
+      ],
+      "sql": "\nSELECT source, source_id, \"match\", confidence, engine_id, submodel_id, model_text,\n       drive_text, body_text, note_text, displacement_l, cylinders, transmission, drive,\n       fuel, fuel2, city_l_100km, highway_l_100km, combined_l_100km, city_mpg, highway_mpg,\n       combined_mpg, kwh_100km, range_km, co2_g_km\nFROM fuel_rating\nWHERE make_id = ?1 AND model_id = ?2 AND year = ?3 AND source IN (?4, ?5)\nORDER BY source, displacement_l, cylinders, model_text, transmission, fuel, id"
+    },
+    {
+      "params": [
+        474,
+        1863,
+        2019
+      ],
+      "rows": [
+        [
+          1,
+          "1.5L Turbo",
+          null
+        ],
+        [
+          2,
+          "2.0L",
+          null
+        ]
+      ],
+      "sql": "\nSELECT e.id, e.label, e.vin8\nFROM catalog_vehicle v\nJOIN catalog_engine e ON e.detail_id = v.detail_id\nWHERE v.make_id = ?1 AND v.model_id = ?2 AND v.year = ?3\nORDER BY e.id"
+    },
+    {
+      "db": "shop",
+      "params": [
+        474,
+        1863,
+        2019,
+        "epa",
+        "nrcan"
+      ],
+      "rows": [],
+      "sql": "\nSELECT source, source_id, \"match\", confidence, engine_id, submodel_id, model_text,\n       drive_text, body_text, note_text, displacement_l, cylinders, transmission, drive,\n       fuel, fuel2, city_l_100km, highway_l_100km, combined_l_100km, city_mpg, highway_mpg,\n       combined_mpg, kwh_100km, range_km, co2_g_km\nFROM fuel_rating\nWHERE make_id = ?1 AND model_id = ?2 AND year = ?3 AND source IN (?4, ?5)\nORDER BY source, displacement_l, cylinders, model_text, transmission, fuel, id"
+    },
+    {
+      "db": "shop",
+      "params": [
+        498,
+        900,
+        2023
+      ],
+      "rows": [
+        [
+          46004,
+          "model",
+          null,
+          null,
+          "Kona Electric",
+          "Automatic (A1)",
+          "Front-Wheel Drive",
+          "Electricity",
+          "Small Sport Utility Vehicle 2WD",
+          0,
+          0,
+          null,
+          "EV",
+          "150 kW AC 3-Phase",
+          94,
+          19,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "Lithium Ion",
+          400,
+          "150"
+        ],
+        [
+          46003,
+          "engine",
+          9,
+          null,
+          "Kona N Line AWD",
+          "Automatic (AM7)",
+          "All-Wheel Drive",
+          "Regular Gasoline",
+          "Small Sport Utility Vehicle 4WD",
+          1,
+          0,
+          1,
+          null,
+          null,
+          94,
+          19,
+          8,
+          "Automatic",
+          "Gasoline (Regular Unleaded Recommended)",
+          1,
+          "Half Engine Mode",
+          1,
+          0,
+          2,
+          2,
+          null,
+          null,
+          null
+        ],
+        [
+          46001,
+          "engine",
+          8,
+          null,
+          "Kona FWD",
+          "Automatic (variable gear ratios)",
+          "Front-Wheel Drive",
+          "Regular Gasoline",
+          "Small Sport Utility Vehicle 2WD",
+          0,
+          0,
+          1,
+          null,
+          null,
+          94,
+          19,
+          1,
+          "Continuously Variable",
+          "Gasoline (Regular Unleaded Recommended)",
+          0,
+          null,
+          1,
+          0,
+          2,
+          2,
+          null,
+          null,
+          null
+        ]
+      ],
+      "sql": "\nSELECT s.epa_id, f.confidence, f.engine_id, f.submodel_id, f.model_text, f.transmission,\n       f.drive, f.fuel, s.size_class, s.turbo, s.supercharger, s.start_stop,\n       s.electrification, s.ev_motor,\n       COALESCE(s.passenger_ft3_4door, s.passenger_ft3_2door, s.passenger_ft3_hatch),\n       COALESCE(s.luggage_ft3_4door, s.luggage_ft3_2door, s.luggage_ft3_hatch),\n       s.gears, s.transmission_type, s.fuel_usage, s.cylinder_deactivation,\n       s.cylinder_deactivation_name, s.variable_valve_timing, s.variable_valve_lift,\n       s.intake_valves, s.exhaust_valves, s.battery_type, s.battery_voltage, s.motor_kw\nFROM fuel_rating f\nJOIN vehicle_spec s ON s.epa_id = f.source_id\nWHERE f.make_id = ?1 AND f.model_id = ?2 AND f.year = ?3 AND f.source = 'epa'\nORDER BY f.displacement_l, f.cylinders, f.model_text, f.transmission, f.id"
+    },
+    {
+      "db": "shop",
+      "params": [
+        498,
+        900,
+        2023
+      ],
+      "rows": [
+        [
+          46001,
+          "engine",
+          8,
+          3,
+          "T3B30",
+          "Federal Tier 3 Bin 30",
+          7,
+          "PHYXV02.0AAA"
+        ]
+      ],
+      "sql": "\nSELECT e.epa_id, f.confidence, f.engine_id, e.sales_area, e.standard, e.standard_text,\n       e.smog_score, e.engine_family\nFROM fuel_rating f\nJOIN emission_standard e ON e.epa_id = f.source_id\nWHERE f.make_id = ?1 AND f.model_id = ?2 AND f.year = ?3 AND f.source = 'epa'\nORDER BY e.epa_id, e.sales_area, e.standard, e.engine_family"
+    },
+    {
+      "db": "shop",
+      "params": [
+        474,
+        1863,
+        2019
+      ],
+      "rows": [],
+      "sql": "\nSELECT s.epa_id, f.confidence, f.engine_id, f.submodel_id, f.model_text, f.transmission,\n       f.drive, f.fuel, s.size_class, s.turbo, s.supercharger, s.start_stop,\n       s.electrification, s.ev_motor,\n       COALESCE(s.passenger_ft3_4door, s.passenger_ft3_2door, s.passenger_ft3_hatch),\n       COALESCE(s.luggage_ft3_4door, s.luggage_ft3_2door, s.luggage_ft3_hatch),\n       s.gears, s.transmission_type, s.fuel_usage, s.cylinder_deactivation,\n       s.cylinder_deactivation_name, s.variable_valve_timing, s.variable_valve_lift,\n       s.intake_valves, s.exhaust_valves, s.battery_type, s.battery_voltage, s.motor_kw\nFROM fuel_rating f\nJOIN vehicle_spec s ON s.epa_id = f.source_id\nWHERE f.make_id = ?1 AND f.model_id = ?2 AND f.year = ?3 AND f.source = 'epa'\nORDER BY f.displacement_l, f.cylinders, f.model_text, f.transmission, f.id"
+    },
+    {
+      "db": "shop",
+      "params": [
+        474,
+        1863,
+        2019
+      ],
+      "rows": [],
+      "sql": "\nSELECT e.epa_id, f.confidence, f.engine_id, e.sales_area, e.standard, e.standard_text,\n       e.smog_score, e.engine_family\nFROM fuel_rating f\nJOIN emission_standard e ON e.epa_id = f.source_id\nWHERE f.make_id = ?1 AND f.model_id = ?2 AND f.year = ?3 AND f.source = 'epa'\nORDER BY e.epa_id, e.sales_area, e.standard, e.engine_family"
+    },
+    {
+      "db": "shop",
+      "params": [
+        498,
+        900,
+        2023
+      ],
+      "rows": [
+        [
+          8,
+          2.0,
+          4,
+          "0W-99",
+          "0W-99"
+        ],
+        [
+          9,
+          1.6,
+          4,
+          "5W-99, 0W-98",
+          "5W-99/0W-98"
+        ]
+      ],
+      "sql": "\nSELECT f.engine_id, f.displacement_l, f.cylinders, o.grades, o.grade_text\nFROM fuel_rating f\nJOIN oil_grade o ON o.epa_id = f.source_id\nWHERE f.make_id = ?1 AND f.model_id = ?2 AND f.year = ?3 AND f.source = 'epa'\nORDER BY f.engine_id IS NULL, f.engine_id, f.displacement_l, f.cylinders, o.grades, o.grade_text"
+    },
+    {
+      "db": "shop",
+      "params": [
+        498,
+        900,
+        2023
+      ],
+      "rows": [
+        [
+          "engine_oil",
+          8,
+          null,
+          "0W-99",
+          "TEST-SPEC-K",
+          77.7,
+          82.1,
+          "l",
+          1,
+          null,
+          null,
+          null,
+          null,
+          "Test manual K, page 1",
+          "2026-10-09",
+          "test-reviewer"
+        ],
+        [
+          "engine_oil",
+          9,
+          null,
+          null,
+          "TEST-SPEC-T",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "Test manual K, page 2",
+          "2026-10-09",
+          "test-reviewer"
+        ],
+        [
+          "brake",
+          null,
+          null,
+          null,
+          "TEST BRAKE 9",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "Test manual K, page 3",
+          "2026-10-09",
+          "test-reviewer"
+        ]
+      ],
+      "sql": "\nSELECT kind, engine_id, applies_to, grade, specification, capacity_l, capacity_qt,\n       capacity_unit, with_filter, charge_g, charge_oz, charge_unit, market, source,\n       checked, reviewer\nFROM fluid\nWHERE make_id = ?1 AND model_id = ?2 AND year = ?3\nORDER BY CASE kind WHEN 'engine_oil' THEN 0 WHEN 'transmission' THEN 1 WHEN 'coolant' THEN 2\n                   WHEN 'refrigerant' THEN 3 ELSE 4 END,\n         engine_id IS NULL, engine_id, applies_to, market, id"
+    },
+    {
+      "db": "shop",
+      "params": [
+        474,
+        1863,
+        2019
+      ],
+      "rows": [],
+      "sql": "\nSELECT f.engine_id, f.displacement_l, f.cylinders, o.grades, o.grade_text\nFROM fuel_rating f\nJOIN oil_grade o ON o.epa_id = f.source_id\nWHERE f.make_id = ?1 AND f.model_id = ?2 AND f.year = ?3 AND f.source = 'epa'\nORDER BY f.engine_id IS NULL, f.engine_id, f.displacement_l, f.cylinders, o.grades, o.grade_text"
+    },
+    {
+      "db": "shop",
+      "params": [
+        474,
+        1863,
+        2019
+      ],
+      "rows": [],
+      "sql": "\nSELECT kind, engine_id, applies_to, grade, specification, capacity_l, capacity_qt,\n       capacity_unit, with_filter, charge_g, charge_oz, charge_unit, market, source,\n       checked, reviewer\nFROM fluid\nWHERE make_id = ?1 AND model_id = ?2 AND year = ?3\nORDER BY CASE kind WHEN 'engine_oil' THEN 0 WHEN 'transmission' THEN 1 WHEN 'coolant' THEN 2\n                   WHEN 'refrigerant' THEN 3 ELSE 4 END,\n         engine_id IS NULL, engine_id, applies_to, market, id"
+    },
+    {
+      "db": "shop",
+      "params": [
+        498,
+        900,
+        2023
+      ],
+      "rows": [
+        [
+          "996/96R96",
+          null,
+          "[\"SE\"]",
+          990,
+          980,
+          144,
+          142,
+          "kpa",
+          null,
+          null,
+          null,
+          null,
+          null,
+          "Test door placard K",
+          "2026-10-09",
+          "test-reviewer"
+        ]
+      ],
+      "sql": "\nSELECT size, size_rear, trims, pressure_front_kpa, pressure_rear_kpa, pressure_front_psi,\n       pressure_rear_psi, pressure_unit, lug_torque_nm, lug_torque_lbft, lug_torque_unit,\n       bolt_pattern, market, source, checked, reviewer\nFROM tire_fitment\nWHERE make_id = ?1 AND model_id = ?2 AND year = ?3\nORDER BY id"
+    },
+    {
+      "db": "shop",
+      "params": [
+        474,
+        1863,
+        2019
+      ],
+      "rows": [],
+      "sql": "\nSELECT size, size_rear, trims, pressure_front_kpa, pressure_rear_kpa, pressure_front_psi,\n       pressure_rear_psi, pressure_unit, lug_torque_nm, lug_torque_lbft, lug_torque_unit,\n       bolt_pattern, market, source, checked, reviewer\nFROM tire_fitment\nWHERE make_id = ?1 AND model_id = ?2 AND year = ?3\nORDER BY id"
+    },
+    {
+      "db": "shop",
+      "params": [
+        498,
+        900,
+        2023,
+        "nrcan",
+        "nrcan"
+      ],
+      "rows": [
+        [
+          "nrcan",
+          null,
+          "exact",
+          "engine",
+          8,
+          null,
+          "Kona",
+          null,
+          null,
+          null,
+          2.0,
+          4,
+          "AV",
+          null,
+          "Regular Gasoline",
+          null,
+          7.9,
+          6.6,
+          7.3,
+          30,
+          36,
+          32,
+          null,
+          null,
+          171
+        ]
+      ],
+      "sql": "\nSELECT source, source_id, \"match\", confidence, engine_id, submodel_id, model_text,\n       drive_text, body_text, note_text, displacement_l, cylinders, transmission, drive,\n       fuel, fuel2, city_l_100km, highway_l_100km, combined_l_100km, city_mpg, highway_mpg,\n       combined_mpg, kwh_100km, range_km, co2_g_km\nFROM fuel_rating\nWHERE make_id = ?1 AND model_id = ?2 AND year = ?3 AND source IN (?4, ?5)\nORDER BY source, displacement_l, cylinders, model_text, transmission, fuel, id"
+    },
+    {
+      "db": "shop",
+      "params": [
+        498,
+        900,
+        2023,
+        "epa",
+        "epa"
+      ],
+      "rows": [
+        [
+          "epa",
+          46004,
+          "base",
+          "model",
+          null,
+          null,
+          "Kona Electric",
+          null,
+          null,
+          null,
+          null,
+          null,
+          "Automatic (A1)",
+          "Front-Wheel Drive",
+          "Electricity",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          17.4,
+          415,
+          0
+        ],
+        [
+          "epa",
+          46003,
+          "base",
+          "engine",
+          9,
+          null,
+          "Kona N Line AWD",
+          "AWD",
+          null,
+          null,
+          1.6,
+          4,
+          "Automatic (AM7)",
+          "All-Wheel Drive",
+          "Regular Gasoline",
+          null,
+          8.7,
+          7.4,
+          8.1,
+          27,
+          32,
+          29,
+          null,
+          null,
+          190
+        ],
+        [
+          "epa",
+          46001,
+          "exact",
+          "engine",
+          8,
+          null,
+          "Kona FWD",
+          "FWD",
+          null,
+          null,
+          2.0,
+          4,
+          "Automatic (variable gear ratios)",
+          "Front-Wheel Drive",
+          "Regular Gasoline",
+          null,
+          7.8,
+          6.7,
+          7.4,
+          30,
+          35,
+          32,
+          null,
+          null,
+          172
+        ]
+      ],
+      "sql": "\nSELECT source, source_id, \"match\", confidence, engine_id, submodel_id, model_text,\n       drive_text, body_text, note_text, displacement_l, cylinders, transmission, drive,\n       fuel, fuel2, city_l_100km, highway_l_100km, combined_l_100km, city_mpg, highway_mpg,\n       combined_mpg, kwh_100km, range_km, co2_g_km\nFROM fuel_rating\nWHERE make_id = ?1 AND model_id = ?2 AND year = ?3 AND source IN (?4, ?5)\nORDER BY source, displacement_l, cylinders, model_text, transmission, fuel, id"
     },
     {
       "db": "shop",
@@ -4155,6 +4753,30 @@
           "built_at": "2026-10-01 04:25:57",
           "data_version": "2026.09",
           "datasets": {
+            "fluids": {
+              "as_of": "2026-10-09",
+              "attribution": "",
+              "licence": "mit",
+              "rows": 3
+            },
+            "fuel_ca": {
+              "as_of": "2026-10-06",
+              "attribution": "Contains information licensed under the Open Government Licence - Canada.",
+              "licence": "ogl-canada",
+              "rows": 1
+            },
+            "fuel_us": {
+              "as_of": "2026-09-29",
+              "attribution": "",
+              "licence": "public-domain",
+              "rows": 3
+            },
+            "oil_grade": {
+              "as_of": "2026-09-29",
+              "attribution": "",
+              "licence": "public-domain",
+              "rows": 2
+            },
             "ratings": {
               "as_of": "2026-08-07",
               "attribution": "",
@@ -4172,6 +4794,18 @@
               "attribution": "",
               "licence": "public-domain",
               "rows": 3
+            },
+            "specs": {
+              "as_of": "2026-09-29",
+              "attribution": "",
+              "licence": "public-domain",
+              "rows": 3
+            },
+            "tires": {
+              "as_of": "2026-10-09",
+              "attribution": "",
+              "licence": "mit",
+              "rows": 1
             }
           },
           "server_version": "0.2.0",
@@ -4536,14 +5170,1473 @@
     {
       "answer": {
         "ok": {
+          "as_of": {
+            "ca": "2026-10-06",
+            "us": "2026-09-29"
+          },
+          "attribution": [
+            "Contains information licensed under the Open Government Licence - Canada."
+          ],
+          "ratings": [
+            {
+              "co2_g_km": 0,
+              "confidence": "model",
+              "country": "us",
+              "cylinders": null,
+              "described_as": "Kona Electric",
+              "displacement_l": null,
+              "drive": "Front-Wheel Drive",
+              "engine": null,
+              "fuel_grade": "Electricity",
+              "kwh_100km": 17.4,
+              "l_100km": null,
+              "match": "base",
+              "mpg": null,
+              "range_km": 415,
+              "range_mi": 258,
+              "second_fuel": null,
+              "source": "epa",
+              "source_id": "46004",
+              "transmission": "Automatic (A1)"
+            },
+            {
+              "co2_g_km": 190,
+              "confidence": "engine",
+              "country": "us",
+              "cylinders": 4,
+              "described_as": "Kona N Line AWD",
+              "displacement_l": 1.6,
+              "drive": "All-Wheel Drive",
+              "engine": {
+                "id": "1-6l-turbo",
+                "label": "1.6L Turbo",
+                "vin8": null
+              },
+              "fuel_grade": "Regular Gasoline",
+              "kwh_100km": null,
+              "l_100km": {
+                "city": 8.7,
+                "combined": 8.1,
+                "highway": 7.4
+              },
+              "match": "base",
+              "mpg": {
+                "city": 27,
+                "combined": 29,
+                "highway": 32
+              },
+              "range_km": null,
+              "range_mi": null,
+              "second_fuel": null,
+              "source": "epa",
+              "source_id": "46003",
+              "transmission": "Automatic (AM7)"
+            },
+            {
+              "co2_g_km": 172,
+              "confidence": "engine",
+              "country": "us",
+              "cylinders": 4,
+              "described_as": "Kona FWD",
+              "displacement_l": 2.0,
+              "drive": "Front-Wheel Drive",
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "fuel_grade": "Regular Gasoline",
+              "kwh_100km": null,
+              "l_100km": {
+                "city": 7.8,
+                "combined": 7.4,
+                "highway": 6.7
+              },
+              "match": "exact",
+              "mpg": {
+                "city": 30,
+                "combined": 32,
+                "highway": 35
+              },
+              "range_km": null,
+              "range_mi": null,
+              "second_fuel": null,
+              "source": "epa",
+              "source_id": "46001",
+              "transmission": "Automatic (variable gear ratios)"
+            },
+            {
+              "co2_g_km": 171,
+              "confidence": "engine",
+              "country": "ca",
+              "cylinders": 4,
+              "described_as": "Kona",
+              "displacement_l": 2.0,
+              "drive": null,
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "fuel_grade": "Regular Gasoline",
+              "kwh_100km": null,
+              "l_100km": {
+                "city": 7.9,
+                "combined": 7.3,
+                "highway": 6.6
+              },
+              "match": "exact",
+              "mpg": {
+                "city": 30,
+                "combined": 32,
+                "highway": 36
+              },
+              "range_km": null,
+              "range_mi": null,
+              "second_fuel": null,
+              "source": "nrcan",
+              "source_id": null,
+              "transmission": "AV"
+            }
+          ],
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          }
+        }
+      },
+      "args": {
+        "id": "2023_hyundai_kona"
+      },
+      "name": "fuel of a model year",
+      "op": "fuel_vehicle",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": {
+            "ca": "2026-10-06",
+            "us": "2026-09-29"
+          },
+          "attribution": [
+            "Contains information licensed under the Open Government Licence - Canada."
+          ],
+          "ratings": [],
+          "vehicle": {
+            "id": "2019_honda_civic",
+            "make": "Honda",
+            "model": "Civic",
+            "year": 2019
+          }
+        }
+      },
+      "args": {
+        "id": "2019_honda_civic"
+      },
+      "name": "fuel, none on file",
+      "op": "fuel_vehicle",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "not_found",
+          "details": {},
+          "message": "No vehicle has that id."
+        }
+      },
+      "args": {
+        "id": "2019_honda_nothing"
+      },
+      "name": "fuel, unknown vehicle",
+      "op": "fuel_vehicle",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": {
+            "ca": "2026-10-06",
+            "us": "2026-09-29"
+          },
+          "attribution": [
+            "Contains information licensed under the Open Government Licence - Canada."
+          ],
+          "decode": {
+            "make": "Hyundai",
+            "model": "Kona",
+            "trim": "SE",
+            "valid": true,
+            "vin": "KM8K2CAB4PU001140",
+            "year": 2023
+          },
+          "engine": {
+            "id": "2-0l",
+            "label": "2.0L",
+            "vin8": "A"
+          },
+          "engine_settled": true,
+          "ratings": [
+            {
+              "co2_g_km": 172,
+              "confidence": "engine",
+              "country": "us",
+              "cylinders": 4,
+              "described_as": "Kona FWD",
+              "displacement_l": 2.0,
+              "drive": "Front-Wheel Drive",
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "fuel_grade": "Regular Gasoline",
+              "kwh_100km": null,
+              "l_100km": {
+                "city": 7.8,
+                "combined": 7.4,
+                "highway": 6.7
+              },
+              "match": "exact",
+              "mpg": {
+                "city": 30,
+                "combined": 32,
+                "highway": 35
+              },
+              "range_km": null,
+              "range_mi": null,
+              "second_fuel": null,
+              "source": "epa",
+              "source_id": "46001",
+              "transmission": "Automatic (variable gear ratios)"
+            },
+            {
+              "co2_g_km": 171,
+              "confidence": "engine",
+              "country": "ca",
+              "cylinders": 4,
+              "described_as": "Kona",
+              "displacement_l": 2.0,
+              "drive": null,
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "fuel_grade": "Regular Gasoline",
+              "kwh_100km": null,
+              "l_100km": {
+                "city": 7.9,
+                "combined": 7.3,
+                "highway": 6.6
+              },
+              "match": "exact",
+              "mpg": {
+                "city": 30,
+                "combined": 32,
+                "highway": 36
+              },
+              "range_km": null,
+              "range_mi": null,
+              "second_fuel": null,
+              "source": "nrcan",
+              "source_id": null,
+              "transmission": "AV"
+            }
+          ],
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          },
+          "warnings": []
+        }
+      },
+      "args": {
+        "vin": "KM8K2CAB4PU001140"
+      },
+      "name": "fuel of a VIN",
+      "op": "fuel_vin",
+      "steps": 8
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": {
+            "ca": "2026-10-06",
+            "us": "2026-09-29"
+          },
+          "attribution": [
+            "Contains information licensed under the Open Government Licence - Canada."
+          ],
+          "decode": {
+            "make": "MCI",
+            "model": "D-Series",
+            "trim": null,
+            "valid": true,
+            "vin": "1M8PDMPA1MP000001",
+            "year": 2021
+          },
+          "engine": null,
+          "engine_settled": false,
+          "ratings": [],
+          "vehicle": null,
+          "warnings": [
+            {
+              "code": "no_catalog_vehicle",
+              "message": "This VIN does not decode to a year, make and model in the catalog, so no recalls are listed for it. Check the VIN with the official lookups."
+            }
+          ]
+        }
+      },
+      "args": {
+        "vin": "1M8PDMPA1MP000001"
+      },
+      "name": "fuel of a VIN that reaches no model year",
+      "op": "fuel_vin",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-09-29",
+          "attribution": [],
+          "specs": [
+            {
+              "battery_type": "Lithium Ion",
+              "battery_voltage": 400,
+              "confidence": "model",
+              "cylinder_deactivation": null,
+              "cylinder_deactivation_name": null,
+              "described_as": "Kona Electric",
+              "drive": "Front-Wheel Drive",
+              "electrification": "EV",
+              "emission_standards": [],
+              "engine": null,
+              "ev_motor": "150 kW AC 3-Phase",
+              "exhaust_valves": null,
+              "fuel_grade": "Electricity",
+              "fuel_usage": null,
+              "gears": null,
+              "intake_valves": null,
+              "luggage_volume_ft3": 19,
+              "luggage_volume_l": 538,
+              "motor_kw": "150",
+              "passenger_volume_ft3": 94,
+              "passenger_volume_l": 2662,
+              "size_class": "Small Sport Utility Vehicle 2WD",
+              "source": "epa",
+              "source_id": "46004",
+              "start_stop": null,
+              "supercharger": false,
+              "transmission": "Automatic (A1)",
+              "transmission_type": null,
+              "turbo": false,
+              "variable_valve_lift": null,
+              "variable_valve_timing": null
+            },
+            {
+              "battery_type": null,
+              "battery_voltage": null,
+              "confidence": "engine",
+              "cylinder_deactivation": true,
+              "cylinder_deactivation_name": "Half Engine Mode",
+              "described_as": "Kona N Line AWD",
+              "drive": "All-Wheel Drive",
+              "electrification": null,
+              "emission_standards": [],
+              "engine": {
+                "id": "1-6l-turbo",
+                "label": "1.6L Turbo",
+                "vin8": null
+              },
+              "ev_motor": null,
+              "exhaust_valves": 2,
+              "fuel_grade": "Regular Gasoline",
+              "fuel_usage": "Gasoline (Regular Unleaded Recommended)",
+              "gears": 8,
+              "intake_valves": 2,
+              "luggage_volume_ft3": 19,
+              "luggage_volume_l": 538,
+              "motor_kw": null,
+              "passenger_volume_ft3": 94,
+              "passenger_volume_l": 2662,
+              "size_class": "Small Sport Utility Vehicle 4WD",
+              "source": "epa",
+              "source_id": "46003",
+              "start_stop": true,
+              "supercharger": false,
+              "transmission": "Automatic (AM7)",
+              "transmission_type": "Automatic",
+              "turbo": true,
+              "variable_valve_lift": false,
+              "variable_valve_timing": true
+            },
+            {
+              "battery_type": null,
+              "battery_voltage": null,
+              "confidence": "engine",
+              "cylinder_deactivation": false,
+              "cylinder_deactivation_name": null,
+              "described_as": "Kona FWD",
+              "drive": "Front-Wheel Drive",
+              "electrification": null,
+              "emission_standards": [
+                {
+                  "engine_family": "PHYXV02.0AAA",
+                  "sales_area": 3,
+                  "smog_score": 7,
+                  "standard": "T3B30",
+                  "standard_text": "Federal Tier 3 Bin 30"
+                }
+              ],
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "ev_motor": null,
+              "exhaust_valves": 2,
+              "fuel_grade": "Regular Gasoline",
+              "fuel_usage": "Gasoline (Regular Unleaded Recommended)",
+              "gears": 1,
+              "intake_valves": 2,
+              "luggage_volume_ft3": 19,
+              "luggage_volume_l": 538,
+              "motor_kw": null,
+              "passenger_volume_ft3": 94,
+              "passenger_volume_l": 2662,
+              "size_class": "Small Sport Utility Vehicle 2WD",
+              "source": "epa",
+              "source_id": "46001",
+              "start_stop": true,
+              "supercharger": false,
+              "transmission": "Automatic (variable gear ratios)",
+              "transmission_type": "Continuously Variable",
+              "turbo": false,
+              "variable_valve_lift": false,
+              "variable_valve_timing": true
+            }
+          ],
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          }
+        }
+      },
+      "args": {
+        "id": "2023_hyundai_kona"
+      },
+      "name": "specifications of a model year",
+      "op": "specs_vehicle",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-09-29",
+          "attribution": [],
+          "specs": [],
+          "vehicle": {
+            "id": "2019_honda_civic",
+            "make": "Honda",
+            "model": "Civic",
+            "year": 2019
+          }
+        }
+      },
+      "args": {
+        "id": "2019_honda_civic"
+      },
+      "name": "specifications, none on file",
+      "op": "specs_vehicle",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "not_found",
+          "details": {},
+          "message": "No vehicle has that id."
+        }
+      },
+      "args": {
+        "id": "2019_honda_nothing"
+      },
+      "name": "specifications, unknown vehicle",
+      "op": "specs_vehicle",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-09-29",
+          "attribution": [],
+          "decode": {
+            "make": "Hyundai",
+            "model": "Kona",
+            "trim": "SE",
+            "valid": true,
+            "vin": "KM8K2CAB4PU001140",
+            "year": 2023
+          },
+          "engine": {
+            "id": "2-0l",
+            "label": "2.0L",
+            "vin8": "A"
+          },
+          "engine_settled": true,
+          "specs": [
+            {
+              "battery_type": null,
+              "battery_voltage": null,
+              "confidence": "engine",
+              "cylinder_deactivation": false,
+              "cylinder_deactivation_name": null,
+              "described_as": "Kona FWD",
+              "drive": "Front-Wheel Drive",
+              "electrification": null,
+              "emission_standards": [
+                {
+                  "engine_family": "PHYXV02.0AAA",
+                  "sales_area": 3,
+                  "smog_score": 7,
+                  "standard": "T3B30",
+                  "standard_text": "Federal Tier 3 Bin 30"
+                }
+              ],
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "ev_motor": null,
+              "exhaust_valves": 2,
+              "fuel_grade": "Regular Gasoline",
+              "fuel_usage": "Gasoline (Regular Unleaded Recommended)",
+              "gears": 1,
+              "intake_valves": 2,
+              "luggage_volume_ft3": 19,
+              "luggage_volume_l": 538,
+              "motor_kw": null,
+              "passenger_volume_ft3": 94,
+              "passenger_volume_l": 2662,
+              "size_class": "Small Sport Utility Vehicle 2WD",
+              "source": "epa",
+              "source_id": "46001",
+              "start_stop": true,
+              "supercharger": false,
+              "transmission": "Automatic (variable gear ratios)",
+              "transmission_type": "Continuously Variable",
+              "turbo": false,
+              "variable_valve_lift": false,
+              "variable_valve_timing": true
+            }
+          ],
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          },
+          "warnings": []
+        }
+      },
+      "args": {
+        "vin": "KM8K2CAB4PU001140"
+      },
+      "name": "specifications of a VIN",
+      "op": "specs_vin",
+      "steps": 8
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-09-29",
+          "attribution": [],
+          "decode": {
+            "make": "MCI",
+            "model": "D-Series",
+            "trim": null,
+            "valid": true,
+            "vin": "1M8PDMPA1MP000001",
+            "year": 2021
+          },
+          "engine": null,
+          "engine_settled": false,
+          "specs": [],
+          "vehicle": null,
+          "warnings": [
+            {
+              "code": "no_catalog_vehicle",
+              "message": "This VIN does not decode to a year, make and model in the catalog, so no recalls are listed for it. Check the VIN with the official lookups."
+            }
+          ]
+        }
+      },
+      "args": {
+        "vin": "1M8PDMPA1MP000001"
+      },
+      "name": "specifications of a VIN that reaches no model year",
+      "op": "specs_vin",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-09-29",
+          "attribution": [],
+          "brake": [
+            {
+              "applies_to": null,
+              "capacity_l": null,
+              "capacity_qt": null,
+              "capacity_written_in": null,
+              "charge_g": null,
+              "charge_oz": null,
+              "charge_written_in": null,
+              "checked": "2026-10-09",
+              "engine": null,
+              "grade": null,
+              "market": null,
+              "source": "Test manual K, page 3",
+              "specification": "TEST BRAKE 9",
+              "with_filter": null
+            }
+          ],
+          "checked_as_of": "2026-10-09",
+          "coolant": [],
+          "engine_oil": [
+            {
+              "as_written": [
+                "0W-99"
+              ],
+              "confidence": "engine",
+              "cylinders": 4,
+              "displacement_l": 2.0,
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "grades": [
+                "0W-99"
+              ],
+              "source": "EPA fuel economy certification"
+            },
+            {
+              "as_written": [
+                "5W-99/0W-98"
+              ],
+              "confidence": "engine",
+              "cylinders": 4,
+              "displacement_l": 1.6,
+              "engine": {
+                "id": "1-6l-turbo",
+                "label": "1.6L Turbo",
+                "vin8": null
+              },
+              "grades": [
+                "5W-99",
+                "0W-98"
+              ],
+              "source": "EPA fuel economy certification"
+            }
+          ],
+          "engine_oil_checked": [
+            {
+              "applies_to": null,
+              "capacity_l": 77.7,
+              "capacity_qt": 82.1,
+              "capacity_written_in": "l",
+              "charge_g": null,
+              "charge_oz": null,
+              "charge_written_in": null,
+              "checked": "2026-10-09",
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "grade": "0W-99",
+              "market": null,
+              "source": "Test manual K, page 1",
+              "specification": "TEST-SPEC-K",
+              "with_filter": true
+            },
+            {
+              "applies_to": null,
+              "capacity_l": null,
+              "capacity_qt": null,
+              "capacity_written_in": null,
+              "charge_g": null,
+              "charge_oz": null,
+              "charge_written_in": null,
+              "checked": "2026-10-09",
+              "engine": {
+                "id": "1-6l-turbo",
+                "label": "1.6L Turbo",
+                "vin8": null
+              },
+              "grade": null,
+              "market": null,
+              "source": "Test manual K, page 2",
+              "specification": "TEST-SPEC-T",
+              "with_filter": null
+            }
+          ],
+          "refrigerant": [],
+          "transmission": [],
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          }
+        }
+      },
+      "args": {
+        "id": "2023_hyundai_kona"
+      },
+      "name": "fluids of a model year",
+      "op": "fluids_vehicle",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-09-29",
+          "attribution": [],
+          "brake": [],
+          "checked_as_of": "2026-10-09",
+          "coolant": [],
+          "engine_oil": [],
+          "engine_oil_checked": [],
+          "refrigerant": [],
+          "transmission": [],
+          "vehicle": {
+            "id": "2019_honda_civic",
+            "make": "Honda",
+            "model": "Civic",
+            "year": 2019
+          }
+        }
+      },
+      "args": {
+        "id": "2019_honda_civic"
+      },
+      "name": "fluids, none on file",
+      "op": "fluids_vehicle",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "not_found",
+          "details": {},
+          "message": "No vehicle has that id."
+        }
+      },
+      "args": {
+        "id": "2019_honda_nothing"
+      },
+      "name": "fluids, unknown vehicle",
+      "op": "fluids_vehicle",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-09-29",
+          "attribution": [],
+          "brake": [
+            {
+              "applies_to": null,
+              "capacity_l": null,
+              "capacity_qt": null,
+              "capacity_written_in": null,
+              "charge_g": null,
+              "charge_oz": null,
+              "charge_written_in": null,
+              "checked": "2026-10-09",
+              "engine": null,
+              "grade": null,
+              "market": null,
+              "source": "Test manual K, page 3",
+              "specification": "TEST BRAKE 9",
+              "with_filter": null
+            }
+          ],
+          "checked_as_of": "2026-10-09",
+          "coolant": [],
+          "decode": {
+            "make": "Hyundai",
+            "model": "Kona",
+            "trim": "SE",
+            "valid": true,
+            "vin": "KM8K2CAB4PU001140",
+            "year": 2023
+          },
+          "engine": {
+            "id": "2-0l",
+            "label": "2.0L",
+            "vin8": "A"
+          },
+          "engine_oil": [
+            {
+              "as_written": [
+                "0W-99"
+              ],
+              "confidence": "engine",
+              "cylinders": 4,
+              "displacement_l": 2.0,
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "grades": [
+                "0W-99"
+              ],
+              "source": "EPA fuel economy certification"
+            }
+          ],
+          "engine_oil_checked": [
+            {
+              "applies_to": null,
+              "capacity_l": 77.7,
+              "capacity_qt": 82.1,
+              "capacity_written_in": "l",
+              "charge_g": null,
+              "charge_oz": null,
+              "charge_written_in": null,
+              "checked": "2026-10-09",
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "grade": "0W-99",
+              "market": null,
+              "source": "Test manual K, page 1",
+              "specification": "TEST-SPEC-K",
+              "with_filter": true
+            }
+          ],
+          "engine_settled": true,
+          "refrigerant": [],
+          "transmission": [],
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          },
+          "warnings": []
+        }
+      },
+      "args": {
+        "vin": "KM8K2CAB4PU001140"
+      },
+      "name": "fluids of a VIN",
+      "op": "fluids_vin",
+      "steps": 8
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-09-29",
+          "attribution": [],
+          "brake": [],
+          "checked_as_of": "2026-10-09",
+          "coolant": [],
+          "decode": {
+            "make": "MCI",
+            "model": "D-Series",
+            "trim": null,
+            "valid": true,
+            "vin": "1M8PDMPA1MP000001",
+            "year": 2021
+          },
+          "engine": null,
+          "engine_oil": [],
+          "engine_oil_checked": [],
+          "engine_settled": false,
+          "refrigerant": [],
+          "transmission": [],
+          "vehicle": null,
+          "warnings": [
+            {
+              "code": "no_catalog_vehicle",
+              "message": "This VIN does not decode to a year, make and model in the catalog, so no recalls are listed for it. Check the VIN with the official lookups."
+            }
+          ]
+        }
+      },
+      "args": {
+        "vin": "1M8PDMPA1MP000001"
+      },
+      "name": "fluids of a VIN that reaches no model year",
+      "op": "fluids_vin",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-10-09",
+          "attribution": [],
+          "fitments": [
+            {
+              "bolt_pattern": null,
+              "checked": "2026-10-09",
+              "lug_torque_lbft": null,
+              "lug_torque_nm": null,
+              "lug_torque_written_in": null,
+              "market": null,
+              "pressure_kpa": {
+                "front": 990,
+                "rear": 980
+              },
+              "pressure_psi": {
+                "front": 144,
+                "rear": 142
+              },
+              "pressure_written_in": "kpa",
+              "size": "996/96R96",
+              "size_rear": null,
+              "source": "Test door placard K",
+              "trims": [
+                "SE"
+              ]
+            }
+          ],
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          }
+        }
+      },
+      "args": {
+        "id": "2023_hyundai_kona"
+      },
+      "name": "tire fitments of a model year",
+      "op": "tires_vehicle",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-10-09",
+          "attribution": [],
+          "fitments": [],
+          "vehicle": {
+            "id": "2019_honda_civic",
+            "make": "Honda",
+            "model": "Civic",
+            "year": 2019
+          }
+        }
+      },
+      "args": {
+        "id": "2019_honda_civic"
+      },
+      "name": "tire fitments, none on file",
+      "op": "tires_vehicle",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "not_found",
+          "details": {},
+          "message": "No vehicle has that id."
+        }
+      },
+      "args": {
+        "id": "2019_honda_nothing"
+      },
+      "name": "tire fitments, unknown vehicle",
+      "op": "tires_vehicle",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-10-09",
+          "attribution": [],
+          "decode": {
+            "make": "Hyundai",
+            "model": "Kona",
+            "trim": "SE",
+            "valid": true,
+            "vin": "KM8K2CAB4PU001140",
+            "year": 2023
+          },
+          "fitments": [
+            {
+              "bolt_pattern": null,
+              "checked": "2026-10-09",
+              "lug_torque_lbft": null,
+              "lug_torque_nm": null,
+              "lug_torque_written_in": null,
+              "market": null,
+              "pressure_kpa": {
+                "front": 990,
+                "rear": 980
+              },
+              "pressure_psi": {
+                "front": 144,
+                "rear": 142
+              },
+              "pressure_written_in": "kpa",
+              "size": "996/96R96",
+              "size_rear": null,
+              "source": "Test door placard K",
+              "trims": [
+                "SE"
+              ]
+            }
+          ],
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          },
+          "warnings": []
+        }
+      },
+      "args": {
+        "vin": "KM8K2CAB4PU001140"
+      },
+      "name": "tire fitments of a VIN",
+      "op": "tires_vin",
+      "steps": 8
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-10-09",
+          "attribution": [],
+          "decode": {
+            "make": "MCI",
+            "model": "D-Series",
+            "trim": null,
+            "valid": true,
+            "vin": "1M8PDMPA1MP000001",
+            "year": 2021
+          },
+          "fitments": [],
+          "vehicle": null,
+          "warnings": [
+            {
+              "code": "no_catalog_vehicle",
+              "message": "This VIN does not decode to a year, make and model in the catalog, so no recalls are listed for it. Check the VIN with the official lookups."
+            }
+          ]
+        }
+      },
+      "args": {
+        "vin": "1M8PDMPA1MP000001"
+      },
+      "name": "tire fitments of a VIN that reaches no model year",
+      "op": "tires_vin",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": {
+            "ca": "2026-10-06",
+            "us": "2026-09-29"
+          },
+          "attribution": [
+            "Contains information licensed under the Open Government Licence - Canada."
+          ],
+          "ratings": [
+            {
+              "co2_g_km": 171,
+              "confidence": "engine",
+              "country": "ca",
+              "cylinders": 4,
+              "described_as": "Kona",
+              "displacement_l": 2.0,
+              "drive": null,
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "fuel_grade": "Regular Gasoline",
+              "kwh_100km": null,
+              "l_100km": {
+                "city": 7.9,
+                "combined": 7.3,
+                "highway": 6.6
+              },
+              "match": "exact",
+              "mpg": {
+                "city": 30,
+                "combined": 32,
+                "highway": 36
+              },
+              "range_km": null,
+              "range_mi": null,
+              "second_fuel": null,
+              "source": "nrcan",
+              "source_id": null,
+              "transmission": "AV"
+            }
+          ],
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          }
+        }
+      },
+      "args": {
+        "country": "ca",
+        "id": "2023_hyundai_kona"
+      },
+      "name": "fuel, one country",
+      "op": "fuel_vehicle",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": {
+            "ca": "2026-10-06",
+            "us": "2026-09-29"
+          },
+          "attribution": [],
+          "decode": {
+            "make": "Hyundai",
+            "model": "Kona",
+            "trim": "SE",
+            "valid": true,
+            "vin": "KM8K2CAB4PU001140",
+            "year": 2023
+          },
+          "engine": {
+            "id": "2-0l",
+            "label": "2.0L",
+            "vin8": "A"
+          },
+          "engine_settled": true,
+          "ratings": [
+            {
+              "co2_g_km": 172,
+              "confidence": "engine",
+              "country": "us",
+              "cylinders": 4,
+              "described_as": "Kona FWD",
+              "displacement_l": 2.0,
+              "drive": "Front-Wheel Drive",
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "fuel_grade": "Regular Gasoline",
+              "kwh_100km": null,
+              "l_100km": {
+                "city": 7.8,
+                "combined": 7.4,
+                "highway": 6.7
+              },
+              "match": "exact",
+              "mpg": {
+                "city": 30,
+                "combined": 32,
+                "highway": 35
+              },
+              "range_km": null,
+              "range_mi": null,
+              "second_fuel": null,
+              "source": "epa",
+              "source_id": "46001",
+              "transmission": "Automatic (variable gear ratios)"
+            }
+          ],
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          },
+          "warnings": []
+        }
+      },
+      "args": {
+        "country": "US",
+        "vin": "KM8K2CAB4PU001140"
+      },
+      "name": "fuel of a VIN, one country",
+      "op": "fuel_vin",
+      "steps": 8
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "validation_failed",
+          "details": {
+            "field": "country"
+          },
+          "message": "country must be us or ca"
+        }
+      },
+      "args": {
+        "country": "mx",
+        "id": "2023_hyundai_kona"
+      },
+      "name": "fuel, a country that is neither",
+      "op": "fuel_vehicle",
+      "steps": 0
+    },
+    {
+      "answer": {
+        "ok": {
           "attribution": [
             "Contains information licensed under the Open Government Licence - Canada."
           ],
           "bulletins": null,
           "complaints": null,
           "decode": null,
-          "fluids": null,
-          "fuel": null,
+          "fluids": {
+            "brake": [
+              {
+                "applies_to": null,
+                "capacity_l": null,
+                "capacity_qt": null,
+                "capacity_written_in": null,
+                "charge_g": null,
+                "charge_oz": null,
+                "charge_written_in": null,
+                "checked": "2026-10-09",
+                "engine": null,
+                "grade": null,
+                "market": null,
+                "source": "Test manual K, page 3",
+                "specification": "TEST BRAKE 9",
+                "with_filter": null
+              }
+            ],
+            "coolant": [],
+            "engine_oil": [
+              {
+                "as_written": [
+                  "0W-99"
+                ],
+                "confidence": "engine",
+                "cylinders": 4,
+                "displacement_l": 2.0,
+                "engine": {
+                  "id": "2-0l",
+                  "label": "2.0L",
+                  "vin8": "A"
+                },
+                "grades": [
+                  "0W-99"
+                ],
+                "source": "EPA fuel economy certification"
+              },
+              {
+                "as_written": [
+                  "5W-99/0W-98"
+                ],
+                "confidence": "engine",
+                "cylinders": 4,
+                "displacement_l": 1.6,
+                "engine": {
+                  "id": "1-6l-turbo",
+                  "label": "1.6L Turbo",
+                  "vin8": null
+                },
+                "grades": [
+                  "5W-99",
+                  "0W-98"
+                ],
+                "source": "EPA fuel economy certification"
+              }
+            ],
+            "engine_oil_checked": [
+              {
+                "applies_to": null,
+                "capacity_l": 77.7,
+                "capacity_qt": 82.1,
+                "capacity_written_in": "l",
+                "charge_g": null,
+                "charge_oz": null,
+                "charge_written_in": null,
+                "checked": "2026-10-09",
+                "engine": {
+                  "id": "2-0l",
+                  "label": "2.0L",
+                  "vin8": "A"
+                },
+                "grade": "0W-99",
+                "market": null,
+                "source": "Test manual K, page 1",
+                "specification": "TEST-SPEC-K",
+                "with_filter": true
+              },
+              {
+                "applies_to": null,
+                "capacity_l": null,
+                "capacity_qt": null,
+                "capacity_written_in": null,
+                "charge_g": null,
+                "charge_oz": null,
+                "charge_written_in": null,
+                "checked": "2026-10-09",
+                "engine": {
+                  "id": "1-6l-turbo",
+                  "label": "1.6L Turbo",
+                  "vin8": null
+                },
+                "grade": null,
+                "market": null,
+                "source": "Test manual K, page 2",
+                "specification": "TEST-SPEC-T",
+                "with_filter": null
+              }
+            ],
+            "refrigerant": [],
+            "transmission": []
+          },
+          "fuel": [
+            {
+              "co2_g_km": 0,
+              "confidence": "model",
+              "country": "us",
+              "cylinders": null,
+              "described_as": "Kona Electric",
+              "displacement_l": null,
+              "drive": "Front-Wheel Drive",
+              "engine": null,
+              "fuel_grade": "Electricity",
+              "kwh_100km": 17.4,
+              "l_100km": null,
+              "match": "base",
+              "mpg": null,
+              "range_km": 415,
+              "range_mi": 258,
+              "second_fuel": null,
+              "source": "epa",
+              "source_id": "46004",
+              "transmission": "Automatic (A1)"
+            },
+            {
+              "co2_g_km": 190,
+              "confidence": "engine",
+              "country": "us",
+              "cylinders": 4,
+              "described_as": "Kona N Line AWD",
+              "displacement_l": 1.6,
+              "drive": "All-Wheel Drive",
+              "engine": {
+                "id": "1-6l-turbo",
+                "label": "1.6L Turbo",
+                "vin8": null
+              },
+              "fuel_grade": "Regular Gasoline",
+              "kwh_100km": null,
+              "l_100km": {
+                "city": 8.7,
+                "combined": 8.1,
+                "highway": 7.4
+              },
+              "match": "base",
+              "mpg": {
+                "city": 27,
+                "combined": 29,
+                "highway": 32
+              },
+              "range_km": null,
+              "range_mi": null,
+              "second_fuel": null,
+              "source": "epa",
+              "source_id": "46003",
+              "transmission": "Automatic (AM7)"
+            },
+            {
+              "co2_g_km": 172,
+              "confidence": "engine",
+              "country": "us",
+              "cylinders": 4,
+              "described_as": "Kona FWD",
+              "displacement_l": 2.0,
+              "drive": "Front-Wheel Drive",
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "fuel_grade": "Regular Gasoline",
+              "kwh_100km": null,
+              "l_100km": {
+                "city": 7.8,
+                "combined": 7.4,
+                "highway": 6.7
+              },
+              "match": "exact",
+              "mpg": {
+                "city": 30,
+                "combined": 32,
+                "highway": 35
+              },
+              "range_km": null,
+              "range_mi": null,
+              "second_fuel": null,
+              "source": "epa",
+              "source_id": "46001",
+              "transmission": "Automatic (variable gear ratios)"
+            },
+            {
+              "co2_g_km": 171,
+              "confidence": "engine",
+              "country": "ca",
+              "cylinders": 4,
+              "described_as": "Kona",
+              "displacement_l": 2.0,
+              "drive": null,
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "fuel_grade": "Regular Gasoline",
+              "kwh_100km": null,
+              "l_100km": {
+                "city": 7.9,
+                "combined": 7.3,
+                "highway": 6.6
+              },
+              "match": "exact",
+              "mpg": {
+                "city": 30,
+                "combined": 32,
+                "highway": 36
+              },
+              "range_km": null,
+              "range_mi": null,
+              "second_fuel": null,
+              "source": "nrcan",
+              "source_id": null,
+              "transmission": "AV"
+            }
+          ],
           "labor": null,
           "links": {
             "maker": null,
@@ -4779,8 +6872,148 @@
               "year": 2023
             }
           },
-          "specs": null,
-          "tires": null,
+          "specs": [
+            {
+              "battery_type": "Lithium Ion",
+              "battery_voltage": 400,
+              "confidence": "model",
+              "cylinder_deactivation": null,
+              "cylinder_deactivation_name": null,
+              "described_as": "Kona Electric",
+              "drive": "Front-Wheel Drive",
+              "electrification": "EV",
+              "emission_standards": [],
+              "engine": null,
+              "ev_motor": "150 kW AC 3-Phase",
+              "exhaust_valves": null,
+              "fuel_grade": "Electricity",
+              "fuel_usage": null,
+              "gears": null,
+              "intake_valves": null,
+              "luggage_volume_ft3": 19,
+              "luggage_volume_l": 538,
+              "motor_kw": "150",
+              "passenger_volume_ft3": 94,
+              "passenger_volume_l": 2662,
+              "size_class": "Small Sport Utility Vehicle 2WD",
+              "source": "epa",
+              "source_id": "46004",
+              "start_stop": null,
+              "supercharger": false,
+              "transmission": "Automatic (A1)",
+              "transmission_type": null,
+              "turbo": false,
+              "variable_valve_lift": null,
+              "variable_valve_timing": null
+            },
+            {
+              "battery_type": null,
+              "battery_voltage": null,
+              "confidence": "engine",
+              "cylinder_deactivation": true,
+              "cylinder_deactivation_name": "Half Engine Mode",
+              "described_as": "Kona N Line AWD",
+              "drive": "All-Wheel Drive",
+              "electrification": null,
+              "emission_standards": [],
+              "engine": {
+                "id": "1-6l-turbo",
+                "label": "1.6L Turbo",
+                "vin8": null
+              },
+              "ev_motor": null,
+              "exhaust_valves": 2,
+              "fuel_grade": "Regular Gasoline",
+              "fuel_usage": "Gasoline (Regular Unleaded Recommended)",
+              "gears": 8,
+              "intake_valves": 2,
+              "luggage_volume_ft3": 19,
+              "luggage_volume_l": 538,
+              "motor_kw": null,
+              "passenger_volume_ft3": 94,
+              "passenger_volume_l": 2662,
+              "size_class": "Small Sport Utility Vehicle 4WD",
+              "source": "epa",
+              "source_id": "46003",
+              "start_stop": true,
+              "supercharger": false,
+              "transmission": "Automatic (AM7)",
+              "transmission_type": "Automatic",
+              "turbo": true,
+              "variable_valve_lift": false,
+              "variable_valve_timing": true
+            },
+            {
+              "battery_type": null,
+              "battery_voltage": null,
+              "confidence": "engine",
+              "cylinder_deactivation": false,
+              "cylinder_deactivation_name": null,
+              "described_as": "Kona FWD",
+              "drive": "Front-Wheel Drive",
+              "electrification": null,
+              "emission_standards": [
+                {
+                  "engine_family": "PHYXV02.0AAA",
+                  "sales_area": 3,
+                  "smog_score": 7,
+                  "standard": "T3B30",
+                  "standard_text": "Federal Tier 3 Bin 30"
+                }
+              ],
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "ev_motor": null,
+              "exhaust_valves": 2,
+              "fuel_grade": "Regular Gasoline",
+              "fuel_usage": "Gasoline (Regular Unleaded Recommended)",
+              "gears": 1,
+              "intake_valves": 2,
+              "luggage_volume_ft3": 19,
+              "luggage_volume_l": 538,
+              "motor_kw": null,
+              "passenger_volume_ft3": 94,
+              "passenger_volume_l": 2662,
+              "size_class": "Small Sport Utility Vehicle 2WD",
+              "source": "epa",
+              "source_id": "46001",
+              "start_stop": true,
+              "supercharger": false,
+              "transmission": "Automatic (variable gear ratios)",
+              "transmission_type": "Continuously Variable",
+              "turbo": false,
+              "variable_valve_lift": false,
+              "variable_valve_timing": true
+            }
+          ],
+          "tires": [
+            {
+              "bolt_pattern": null,
+              "checked": "2026-10-09",
+              "lug_torque_lbft": null,
+              "lug_torque_nm": null,
+              "lug_torque_written_in": null,
+              "market": null,
+              "pressure_kpa": {
+                "front": 990,
+                "rear": 980
+              },
+              "pressure_psi": {
+                "front": 144,
+                "rear": 142
+              },
+              "pressure_written_in": "kpa",
+              "size": "996/96R96",
+              "size_rear": null,
+              "source": "Test door placard K",
+              "trims": [
+                "SE"
+              ]
+            }
+          ],
           "vehicle": {
             "id": "2023_hyundai_kona",
             "make": "Hyundai",
@@ -4806,8 +7039,15 @@
           "bulletins": null,
           "complaints": null,
           "decode": null,
-          "fluids": null,
-          "fuel": null,
+          "fluids": {
+            "brake": [],
+            "coolant": [],
+            "engine_oil": [],
+            "engine_oil_checked": [],
+            "refrigerant": [],
+            "transmission": []
+          },
+          "fuel": [],
           "labor": null,
           "links": {
             "maker": null,
@@ -4846,8 +7086,8 @@
               "year": 2019
             }
           },
-          "specs": null,
-          "tires": null,
+          "specs": [],
+          "tires": [],
           "vehicle": {
             "id": "2019_honda_civic",
             "make": "Honda",
@@ -4883,8 +7123,138 @@
             "vin": "KM8K2CAB4PU001140",
             "year": 2023
           },
-          "fluids": null,
-          "fuel": null,
+          "fluids": {
+            "brake": [
+              {
+                "applies_to": null,
+                "capacity_l": null,
+                "capacity_qt": null,
+                "capacity_written_in": null,
+                "charge_g": null,
+                "charge_oz": null,
+                "charge_written_in": null,
+                "checked": "2026-10-09",
+                "engine": null,
+                "grade": null,
+                "market": null,
+                "source": "Test manual K, page 3",
+                "specification": "TEST BRAKE 9",
+                "with_filter": null
+              }
+            ],
+            "coolant": [],
+            "engine_oil": [
+              {
+                "as_written": [
+                  "0W-99"
+                ],
+                "confidence": "engine",
+                "cylinders": 4,
+                "displacement_l": 2.0,
+                "engine": {
+                  "id": "2-0l",
+                  "label": "2.0L",
+                  "vin8": "A"
+                },
+                "grades": [
+                  "0W-99"
+                ],
+                "source": "EPA fuel economy certification"
+              }
+            ],
+            "engine_oil_checked": [
+              {
+                "applies_to": null,
+                "capacity_l": 77.7,
+                "capacity_qt": 82.1,
+                "capacity_written_in": "l",
+                "charge_g": null,
+                "charge_oz": null,
+                "charge_written_in": null,
+                "checked": "2026-10-09",
+                "engine": {
+                  "id": "2-0l",
+                  "label": "2.0L",
+                  "vin8": "A"
+                },
+                "grade": "0W-99",
+                "market": null,
+                "source": "Test manual K, page 1",
+                "specification": "TEST-SPEC-K",
+                "with_filter": true
+              }
+            ],
+            "refrigerant": [],
+            "transmission": []
+          },
+          "fuel": [
+            {
+              "co2_g_km": 172,
+              "confidence": "engine",
+              "country": "us",
+              "cylinders": 4,
+              "described_as": "Kona FWD",
+              "displacement_l": 2.0,
+              "drive": "Front-Wheel Drive",
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "fuel_grade": "Regular Gasoline",
+              "kwh_100km": null,
+              "l_100km": {
+                "city": 7.8,
+                "combined": 7.4,
+                "highway": 6.7
+              },
+              "match": "exact",
+              "mpg": {
+                "city": 30,
+                "combined": 32,
+                "highway": 35
+              },
+              "range_km": null,
+              "range_mi": null,
+              "second_fuel": null,
+              "source": "epa",
+              "source_id": "46001",
+              "transmission": "Automatic (variable gear ratios)"
+            },
+            {
+              "co2_g_km": 171,
+              "confidence": "engine",
+              "country": "ca",
+              "cylinders": 4,
+              "described_as": "Kona",
+              "displacement_l": 2.0,
+              "drive": null,
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "fuel_grade": "Regular Gasoline",
+              "kwh_100km": null,
+              "l_100km": {
+                "city": 7.9,
+                "combined": 7.3,
+                "highway": 6.6
+              },
+              "match": "exact",
+              "mpg": {
+                "city": 30,
+                "combined": 32,
+                "highway": 36
+              },
+              "range_km": null,
+              "range_mi": null,
+              "second_fuel": null,
+              "source": "nrcan",
+              "source_id": null,
+              "transmission": "AV"
+            }
+          ],
           "labor": null,
           "links": {
             "maker": null,
@@ -5120,8 +7490,78 @@
               "year": 2023
             }
           },
-          "specs": null,
-          "tires": null,
+          "specs": [
+            {
+              "battery_type": null,
+              "battery_voltage": null,
+              "confidence": "engine",
+              "cylinder_deactivation": false,
+              "cylinder_deactivation_name": null,
+              "described_as": "Kona FWD",
+              "drive": "Front-Wheel Drive",
+              "electrification": null,
+              "emission_standards": [
+                {
+                  "engine_family": "PHYXV02.0AAA",
+                  "sales_area": 3,
+                  "smog_score": 7,
+                  "standard": "T3B30",
+                  "standard_text": "Federal Tier 3 Bin 30"
+                }
+              ],
+              "engine": {
+                "id": "2-0l",
+                "label": "2.0L",
+                "vin8": "A"
+              },
+              "ev_motor": null,
+              "exhaust_valves": 2,
+              "fuel_grade": "Regular Gasoline",
+              "fuel_usage": "Gasoline (Regular Unleaded Recommended)",
+              "gears": 1,
+              "intake_valves": 2,
+              "luggage_volume_ft3": 19,
+              "luggage_volume_l": 538,
+              "motor_kw": null,
+              "passenger_volume_ft3": 94,
+              "passenger_volume_l": 2662,
+              "size_class": "Small Sport Utility Vehicle 2WD",
+              "source": "epa",
+              "source_id": "46001",
+              "start_stop": true,
+              "supercharger": false,
+              "transmission": "Automatic (variable gear ratios)",
+              "transmission_type": "Continuously Variable",
+              "turbo": false,
+              "variable_valve_lift": false,
+              "variable_valve_timing": true
+            }
+          ],
+          "tires": [
+            {
+              "bolt_pattern": null,
+              "checked": "2026-10-09",
+              "lug_torque_lbft": null,
+              "lug_torque_nm": null,
+              "lug_torque_written_in": null,
+              "market": null,
+              "pressure_kpa": {
+                "front": 990,
+                "rear": 980
+              },
+              "pressure_psi": {
+                "front": 144,
+                "rear": 142
+              },
+              "pressure_written_in": "kpa",
+              "size": "996/96R96",
+              "size_rear": null,
+              "source": "Test door placard K",
+              "trims": [
+                "SE"
+              ]
+            }
+          ],
           "vehicle": {
             "id": "2023_hyundai_kona",
             "make": "Hyundai",

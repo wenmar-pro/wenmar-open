@@ -377,7 +377,7 @@ pub fn cases() -> Vec<(&'static str, &'static str, Value)> {
 
 /// The `datasets` value of the fixture shop file: the recalls of both
 /// countries.
-pub const SHOP_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":3,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."},"ratings":{"as_of":"2026-08-07","rows":3,"licence":"public-domain","attribution":""}}"#;
+pub const SHOP_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":3,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."},"ratings":{"as_of":"2026-08-07","rows":3,"licence":"public-domain","attribution":""},"fuel_us":{"as_of":"2026-09-29","rows":3,"licence":"public-domain","attribution":""},"fuel_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."},"specs":{"as_of":"2026-09-29","rows":3,"licence":"public-domain","attribution":""},"oil_grade":{"as_of":"2026-09-29","rows":2,"licence":"public-domain","attribution":""},"fluids":{"as_of":"2026-10-09","rows":3,"licence":"mit","attribution":""},"tires":{"as_of":"2026-10-09","rows":1,"licence":"mit","attribution":""}}"#;
 
 /// Four campaigns against the catalog above. The columns are those of
 /// `wenmar_shopdata::schema::RECALLS`, in order. The Kona of model year
@@ -405,15 +405,47 @@ INSERT INTO rating_vehicle VALUES
   (3, 2023, 498, 900, 'HYUNDAI', 'KONA ELECTRIC', 'base');
 ";
 
+/// Fuel ratings, specifications, an oil grade, hand-read fluids and a
+/// tire fitment for the Kona of model year 2023, whose catalog engines
+/// are 8 (`2.0L`, which [`KONA`] decodes to) and 9 (`1.6L Turbo`). The
+/// columns are those of `wenmar_shopdata::schema::FUEL`, `FLUIDS` and
+/// `TIRES`, in order. Every figure is made up for the tests, and the
+/// hand-read ones are impossible on purpose: none is a real one.
+const FACT_ROWS: &str = "
+INSERT INTO fuel_rating VALUES
+  (1, 'epa', 46001, 2023, 498, 900, 'Hyundai', 'Kona FWD', 'exact', 8, NULL, 'engine', 'FWD', NULL, NULL, 2.0, 4, 'Automatic (variable gear ratios)', 'Front-Wheel Drive', 'Regular Gasoline', NULL, 7.8, 6.7, 7.4, 30, 35, 32, NULL, NULL, 172),
+  (2, 'epa', 46003, 2023, 498, 900, 'Hyundai', 'Kona N Line AWD', 'base', 9, NULL, 'engine', 'AWD', NULL, NULL, 1.6, 4, 'Automatic (AM7)', 'All-Wheel Drive', 'Regular Gasoline', NULL, 8.7, 7.4, 8.1, 27, 32, 29, NULL, NULL, 190),
+  (3, 'epa', 46004, 2023, 498, 900, 'Hyundai', 'Kona Electric', 'base', NULL, NULL, 'model', NULL, NULL, NULL, NULL, NULL, 'Automatic (A1)', 'Front-Wheel Drive', 'Electricity', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 17.4, 415, 0),
+  (4, 'nrcan', NULL, 2023, 498, 900, 'Hyundai', 'Kona', 'exact', 8, NULL, 'engine', NULL, NULL, NULL, 2.0, 4, 'AV', NULL, 'Regular Gasoline', NULL, 7.9, 6.6, 7.3, 30, 36, 32, NULL, NULL, 171);
+INSERT INTO vehicle_spec VALUES
+  (46001, 'Small Sport Utility Vehicle 2WD', 0, 0, 1, NULL, NULL, NULL, NULL, 94, NULL, NULL, 19, NULL, 1, 'Continuously Variable', 'Gasoline (Regular Unleaded Recommended)', 0, NULL, 1, 0, 2, 2, NULL, NULL, NULL),
+  (46003, 'Small Sport Utility Vehicle 4WD', 1, 0, 1, NULL, NULL, NULL, NULL, 94, NULL, NULL, 19, NULL, 8, 'Automatic', 'Gasoline (Regular Unleaded Recommended)', 1, 'Half Engine Mode', 1, 0, 2, 2, NULL, NULL, NULL),
+  (46004, 'Small Sport Utility Vehicle 2WD', 0, 0, NULL, 'EV', '150 kW AC 3-Phase', NULL, NULL, 94, NULL, NULL, 19, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lithium Ion', 400, '150');
+INSERT INTO emission_standard VALUES
+  (46001, 3, 'T3B30', 'Federal Tier 3 Bin 30', 7, 'PHYXV02.0AAA');
+INSERT INTO oil_grade VALUES
+  (46001, '0W-99', '0W-99'),
+  (46003, '5W-99, 0W-98', '5W-99/0W-98');
+INSERT INTO fluid VALUES
+  (1, 498, 900, 2023, 'engine_oil', 8, NULL, '0W-99', 'TEST-SPEC-K', 77.7, 82.1, 'l', 1, NULL, NULL, NULL, NULL, 'Test manual K, page 1', '2026-10-09', 'test-reviewer'),
+  (2, 498, 900, 2023, 'engine_oil', 9, NULL, NULL, 'TEST-SPEC-T', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Test manual K, page 2', '2026-10-09', 'test-reviewer'),
+  (3, 498, 900, 2023, 'brake', NULL, NULL, NULL, 'TEST BRAKE 9', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Test manual K, page 3', '2026-10-09', 'test-reviewer');
+INSERT INTO tire_fitment VALUES
+  (1, 498, 900, 2023, '996/96R96', NULL, '[\"SE\"]', 990, 980, 144, 142, 'kpa', NULL, NULL, NULL, NULL, NULL, 'Test door placard K', '2026-10-09', 'test-reviewer');
+";
+
 /// The whole shop file as SQL, matched against the data file of version
 /// `catalog_data_version`. `clients/js` loads the same text into
 /// `node:sqlite`.
 pub fn shop_fixture_sql(schema_version: &str, catalog_data_version: &str) -> String {
     format!(
-        "{}\nINSERT INTO meta VALUES\n  ('schema_version', '{schema_version}'),\n  ('data_version', '2026.10.12'),\n  ('catalog_data_version', '{catalog_data_version}'),\n  ('built_at', '2026-10-12 06:00:00'),\n  ('datasets', '{SHOP_DATASETS}');\n{}\n{}\n{SHOP_ROWS}",
+        "{}\nINSERT INTO meta VALUES\n  ('schema_version', '{schema_version}'),\n  ('data_version', '2026.10.12'),\n  ('catalog_data_version', '{catalog_data_version}'),\n  ('built_at', '2026-10-12 06:00:00'),\n  ('datasets', '{SHOP_DATASETS}');\n{}\n{}\n{}\n{}\n{}\n{SHOP_ROWS}{FACT_ROWS}",
         wenmar_shopdata::schema::META.trim(),
         wenmar_shopdata::schema::RECALLS.trim(),
         wenmar_shopdata::schema::RATINGS.trim(),
+        wenmar_shopdata::schema::FUEL.trim(),
+        wenmar_shopdata::schema::FLUIDS.trim(),
+        wenmar_shopdata::schema::TIRES.trim(),
     )
 }
 
@@ -638,4 +670,80 @@ pub fn safety_cases() -> Vec<(&'static str, &'static str, Value)> {
             json!({ "id": "2019_honda_nothing" }),
         ),
     ]
+}
+
+/// Questions about fuel, specifications, fluids and tire fitments, asked
+/// of the two fixtures with the shop file open: each topic for a model
+/// year, for a model year with nothing, for an id that names no vehicle,
+/// and for a VIN.
+pub fn facts_cases() -> Vec<(&'static str, &'static str, Value)> {
+    let mut cases = Vec::new();
+    for (vehicle, vin, names) in [
+        (
+            "fuel_vehicle",
+            "fuel_vin",
+            [
+                "fuel of a model year",
+                "fuel, none on file",
+                "fuel, unknown vehicle",
+                "fuel of a VIN",
+                "fuel of a VIN that reaches no model year",
+            ],
+        ),
+        (
+            "specs_vehicle",
+            "specs_vin",
+            [
+                "specifications of a model year",
+                "specifications, none on file",
+                "specifications, unknown vehicle",
+                "specifications of a VIN",
+                "specifications of a VIN that reaches no model year",
+            ],
+        ),
+        (
+            "fluids_vehicle",
+            "fluids_vin",
+            [
+                "fluids of a model year",
+                "fluids, none on file",
+                "fluids, unknown vehicle",
+                "fluids of a VIN",
+                "fluids of a VIN that reaches no model year",
+            ],
+        ),
+        (
+            "tires_vehicle",
+            "tires_vin",
+            [
+                "tire fitments of a model year",
+                "tire fitments, none on file",
+                "tire fitments, unknown vehicle",
+                "tire fitments of a VIN",
+                "tire fitments of a VIN that reaches no model year",
+            ],
+        ),
+    ] {
+        cases.push((names[0], vehicle, json!({ "id": "2023_hyundai_kona" })));
+        cases.push((names[1], vehicle, json!({ "id": "2019_honda_civic" })));
+        cases.push((names[2], vehicle, json!({ "id": "2019_honda_nothing" })));
+        cases.push((names[3], vin, json!({ "vin": KONA })));
+        cases.push((names[4], vin, json!({ "vin": BUS_LATE })));
+    }
+    cases.push((
+        "fuel, one country",
+        "fuel_vehicle",
+        json!({ "id": "2023_hyundai_kona", "country": "ca" }),
+    ));
+    cases.push((
+        "fuel of a VIN, one country",
+        "fuel_vin",
+        json!({ "vin": KONA, "country": "US" }),
+    ));
+    cases.push((
+        "fuel, a country that is neither",
+        "fuel_vehicle",
+        json!({ "id": "2023_hyundai_kona", "country": "mx" }),
+    ));
+    cases
 }
