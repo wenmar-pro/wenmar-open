@@ -8,6 +8,7 @@ use axum::http::StatusCode;
 use axum::response::Response;
 
 use crate::site::jsonld;
+use crate::site::licences;
 use crate::site::markdown::{self, Doc, Format, Section, Table};
 use crate::site::{self, Page};
 use crate::state::AppState;
@@ -175,6 +176,15 @@ pub fn data(state: &AppState) -> Doc {
                     ],
                 ),
                 &[("NHTSA vPIC", "https://vpic.nhtsa.dot.gov/".to_owned())],
+            ),
+            with_table(
+                section(
+                    "Licences",
+                    &[
+                        "Every dataset this site serves, where it comes from, and what its licence asks of anyone who republishes it. The same table is in NOTICE.md in the repository.",
+                    ],
+                ),
+                licences::table(),
             ),
             with_links(
                 section(

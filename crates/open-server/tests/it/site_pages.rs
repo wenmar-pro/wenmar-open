@@ -120,3 +120,58 @@ async fn llms_txt_lists_the_markdown_pages_and_each_one_exists() {
     }
     assert!(checked >= 5, "{checked} Markdown links checked");
 }
+
+#[tokio::test]
+async fn the_data_page_lists_every_dataset_with_its_licence() {
+    use open_server::site::licences::{CAPTION, HEAD, LICENCES, markdown_row};
+    let app = common::app().await;
+    let (_, html) = page(&app, "/data").await;
+    assert_basics(&html, "/data");
+    assert!(
+        html.contains(r#"<h2 id="licences">Licences</h2>"#),
+        "{html}"
+    );
+    assert!(html.contains(&format!("<caption>{CAPTION}</caption>")));
+    for cell in HEAD {
+        assert!(
+            html.contains(&format!(r#"<th scope="col">{cell}</th>"#)),
+            "{cell}"
+        );
+    }
+    let text = markdown(&app, "/data.md").await;
+    assert!(text.contains("\n## Licences\n\n"), "{text}");
+    assert!(
+        text.contains(&format!(
+            "{CAPTION}:\n\n| {} |\n| --- | --- | --- | --- |\n",
+            HEAD.join(" | ")
+        )),
+        "{text}"
+    );
+    assert!(LICENCES.len() >= 3);
+    for licence in LICENCES {
+        let row = format!(
+            r#"<tr><th scope="row">{}</th><td>{}</td><td>{}</td><td>{}</td></tr>"#,
+            licence.dataset, licence.source, licence.licence, licence.attribution
+        );
+        assert!(html.contains(&row), "{}", licence.dataset);
+        assert!(
+            text.contains(&format!("{}\n", markdown_row(licence))),
+            "{}",
+            licence.dataset
+        );
+    }
+    // The licences come after where the data comes from and before the download.
+    let at = |id: &str| {
+        html.find(&format!(r#"<h2 id="{id}">"#))
+            .unwrap_or_else(|| panic!("no section {id}"))
+    };
+    assert!(at("where-it-comes-from") < at("licences") && at("licences") < at("download"));
+    // The one file with everything has it too.
+    let (_, full) = page(&app, "/llms-full.txt").await;
+    assert!(
+        LICENCES
+            .iter()
+            .all(|licence| full.contains(&markdown_row(licence))),
+        "{full}"
+    );
+}
