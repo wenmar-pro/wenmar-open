@@ -78,6 +78,8 @@ export type PartsCardLine = Schemas["PartsCardLine"];
 export type Overview = Schemas["Overview"];
 /** The recalls of a model year, in brief. */
 export type OverviewRecalls = Schemas["OverviewRecalls"];
+/** The bulletins of a model year, in brief. */
+export type OverviewBulletins = Schemas["OverviewBulletins"];
 /** How many recall campaigns list a model year, for each country. */
 export type RecallCount = Schemas["RecallCount"];
 /** Every model year of one model, newest first. */

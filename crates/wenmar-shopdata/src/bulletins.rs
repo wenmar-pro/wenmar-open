@@ -804,6 +804,29 @@ impl<S: Source> ShopData<S> {
             })
             .collect())
     }
+
+    /// How many bulletins list each model year of one model, newest year
+    /// first. Only years with a bulletin are given.
+    pub fn bulletin_counts_by_year(&self, model_id: i64) -> Result<Vec<(u16, u32)>, ShopError> {
+        self.require(Dataset::Bulletins)?;
+        Ok(self
+            .query(
+                "SELECT y.year, COUNT(DISTINCT v.bulletin_id)
+                 FROM bulletin_model m
+                 JOIN bulletin_vehicle v ON v.bulletin_model_id = m.id
+                 JOIN bulletin_year y ON y.year BETWEEN v.year_from AND v.year_to
+                 WHERE m.model_id = ?1
+                 GROUP BY y.year ORDER BY y.year DESC",
+                &[model_id.into()],
+            )?
+            .iter()
+            .filter_map(|row| {
+                let year = u16::try_from(row.first().and_then(Value::integer)?).ok()?;
+                let count = u32::try_from(row.get(1).and_then(Value::integer)?).ok()?;
+                Some((year, count))
+            })
+            .collect())
+    }
 }
 
 #[cfg(test)]

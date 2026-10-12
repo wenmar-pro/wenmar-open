@@ -644,6 +644,21 @@ fn the_sitemaps_can_list_every_bulletin_and_every_model_year_with_one() {
     assert!(shop.bulletin_models(2024).unwrap().is_empty());
 }
 
+#[test]
+fn a_models_bulletins_are_counted_by_model_year() {
+    let shop = held();
+    // The Kona: 11000001 lists 2022 and 2023; 2023 has five more.
+    assert_eq!(
+        shop.bulletin_counts_by_year(900).unwrap(),
+        [(2023, 6), (2022, 2)]
+    );
+    assert_eq!(
+        shop.bulletin_counts_by_year(1850).unwrap(),
+        [(2020, 1), (2019, 2)]
+    );
+    assert!(shop.bulletin_counts_by_year(1).unwrap().is_empty());
+}
+
 /// Run by hand against a real shop file:
 /// `SHOP_FILE=data/build/shop/wenmar-open-shop-2026.10.12.sqlite3 cargo test --release -p wenmar-shopdata --features sqlite --test bulletins the_real_file_answers_quickly -- --ignored --nocapture`
 #[test]

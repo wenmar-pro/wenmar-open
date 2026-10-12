@@ -44,6 +44,7 @@ export type {
   ModelYears,
   ModelsQuery,
   Overview,
+  OverviewBulletins,
   OverviewRecalls,
   PartsCard,
   PartsCardLine,

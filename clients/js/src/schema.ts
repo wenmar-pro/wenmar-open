@@ -1394,14 +1394,14 @@ export interface components {
          * @description Everything held for one model year, in one answer.
          *
          *     A block this server has no data for is `null`: `specs`, `fuel`,
-         *     `fluids`, `tires`, `labor` and `bulletins` are `null` in every answer
-         *     today, and each is filled when its data arrives. A client must accept
+         *     `fluids`, `tires` and `labor` are `null` in every answer today, and
+         *     each is filled when its data arrives. A client must accept
          *     an object there.
          */
         Overview: {
             /** @description The credit lines the data's licences ask for. */
             attribution: string[];
-            bulletins?: Record<string, unknown> | null;
+            bulletins?: null | components["schemas"]["OverviewBulletins"];
             decode?: null | components["schemas"]["OverviewDecode"];
             fluids?: Record<string, unknown> | null;
             fuel?: Record<string, unknown> | null;
@@ -1413,6 +1413,28 @@ export interface components {
             tires?: Record<string, unknown> | null;
             vehicle?: null | components["schemas"]["RecallVehicle"];
             warnings: components["schemas"]["Warning"][];
+        };
+        /** @description The bulletins of a model year, in brief, in an overview. */
+        OverviewBulletins: {
+            /** @description The day the bulletins were current. */
+            as_of?: string | null;
+            /**
+             * @description Every type with at least one, as `counts.by_type` of
+             *     `/v1/vehicles/{id}/bulletins`.
+             */
+            by_type: components["schemas"]["BulletinCount"][];
+            /**
+             * Format: int64
+             * @description Every manufacturer communication that lists the model year.
+             */
+            count: number;
+            /** @description The three newest, as `/v1/vehicles/{id}/bulletins` lists them. */
+            newest: components["schemas"]["Bulletin"][];
+            /**
+             * @description The model year's bulletin page on this site.
+             * @example https://open.wenmarpro.com/makes/ford/f-150/2018/bulletins
+             */
+            url: string;
         };
         /** @description What the VIN of an overview decoded to. */
         OverviewDecode: {

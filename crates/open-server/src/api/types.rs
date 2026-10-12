@@ -877,8 +877,8 @@ pub struct OverviewLinks {
 /// Everything held for one model year, in one answer.
 ///
 /// A block this server has no data for is `null`: `specs`, `fuel`,
-/// `fluids`, `tires`, `labor` and `bulletins` are `null` in every answer
-/// today, and each is filled when its data arrives. A client must accept
+/// `fluids`, `tires` and `labor` are `null` in every answer today, and
+/// each is filled when its data arrives. A client must accept
 /// an object there.
 #[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
 pub struct Overview {
@@ -906,8 +906,9 @@ pub struct Overview {
     pub safety: Option<serde_json::Value>,
     #[schema(value_type = Option<Object>)]
     pub labor: Option<serde_json::Value>,
-    #[schema(value_type = Option<Object>)]
-    pub bulletins: Option<serde_json::Value>,
+    /// The bulletins of the model year, in brief. `null` when this server
+    /// holds no bulletins, and when a VIN reaches no model year.
+    pub bulletins: Option<OverviewBulletins>,
     pub links: OverviewLinks,
     /// The credit lines the data's licences ask for.
     pub attribution: Vec<String>,
@@ -1547,6 +1548,23 @@ pub struct BulletinCounts {
     pub codes: Vec<BulletinCount>,
     /// `maintenance`, when a bulletin is about a schedule or an interval.
     pub topics: Vec<BulletinCount>,
+}
+
+/// The bulletins of a model year, in brief, in an overview.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct OverviewBulletins {
+    /// Every manufacturer communication that lists the model year.
+    pub count: u64,
+    /// Every type with at least one, as `counts.by_type` of
+    /// `/v1/vehicles/{id}/bulletins`.
+    pub by_type: Vec<BulletinCount>,
+    /// The day the bulletins were current.
+    pub as_of: Option<String>,
+    /// The three newest, as `/v1/vehicles/{id}/bulletins` lists them.
+    pub newest: Vec<Bulletin>,
+    /// The model year's bulletin page on this site.
+    #[schema(example = "https://open.wenmarpro.com/makes/ford/f-150/2018/bulletins")]
+    pub url: String,
 }
 
 /// Bulletins that list one model year.

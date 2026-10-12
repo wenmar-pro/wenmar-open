@@ -3881,7 +3881,7 @@
       },
       "Overview": {
         "type": "object",
-        "description": "Everything held for one model year, in one answer.\n\nA block this server has no data for is `null`: `specs`, `fuel`,\n`fluids`, `tires`, `labor` and `bulletins` are `null` in every answer\ntoday, and each is filled when its data arrives. A client must accept\nan object there.",
+        "description": "Everything held for one model year, in one answer.\n\nA block this server has no data for is `null`: `specs`, `fuel`,\n`fluids`, `tires` and `labor` are `null` in every answer today, and\neach is filled when its data arrives. A client must accept\nan object there.",
         "required": [
           "links",
           "attribution",
@@ -3896,9 +3896,14 @@
             "description": "The credit lines the data's licences ask for."
           },
           "bulletins": {
-            "type": [
-              "object",
-              "null"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/OverviewBulletins",
+                "description": "The bulletins of the model year, in brief. `null` when this server\nholds no bulletins, and when a VIN reaches no model year."
+              }
             ]
           },
           "decode": {
@@ -3983,6 +3988,50 @@
             "items": {
               "$ref": "#/components/schemas/Warning"
             }
+          }
+        }
+      },
+      "OverviewBulletins": {
+        "type": "object",
+        "description": "The bulletins of a model year, in brief, in an overview.",
+        "required": [
+          "count",
+          "by_type",
+          "newest",
+          "url"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The day the bulletins were current."
+          },
+          "by_type": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BulletinCount"
+            },
+            "description": "Every type with at least one, as `counts.by_type` of\n`/v1/vehicles/{id}/bulletins`."
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Every manufacturer communication that lists the model year.",
+            "minimum": 0
+          },
+          "newest": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bulletin"
+            },
+            "description": "The three newest, as `/v1/vehicles/{id}/bulletins` lists them."
+          },
+          "url": {
+            "type": "string",
+            "description": "The model year's bulletin page on this site.",
+            "example": "https://open.wenmarpro.com/makes/ford/f-150/2018/bulletins"
           }
         }
       },

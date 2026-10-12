@@ -26,9 +26,9 @@ use crate::api::recalls::{
     lookup, model_slugs, model_year, recall_shop, recalls_of,
 };
 use crate::api::types::{
-    MakeLinks, ModelYearSummary, ModelYears, NamedId, Overview, OverviewDecode, OverviewLinks,
-    OverviewRecalls, Recall, RecallAsOf, RecallCampaignVehicle, RecallCount, RecentRecall,
-    RecentRecalls, VinDecode, VinRecallCount, Warning,
+    MakeLinks, ModelYearSummary, ModelYears, NamedId, Overview, OverviewBulletins, OverviewDecode,
+    OverviewLinks, OverviewRecalls, Recall, RecallAsOf, RecallCampaignVehicle, RecallCount,
+    RecentRecall, RecentRecalls, VinDecode, VinRecallCount, Warning,
 };
 use crate::api::vin::{DecodeQuery, decode_many};
 use crate::api::{bad_query, blank_is_none};
@@ -108,6 +108,39 @@ pub async fn recall_block(
     )))
 }
 
+/// Bulletins shown in an overview.
+const NEWEST_BULLETINS: usize = 3;
+
+/// The bulletins block of a model year, and the credit its data asks for.
+/// `None` when this server holds no bulletins: that is not an error here.
+pub async fn bulletin_block(
+    state: &AppState,
+    found: &ModelYear,
+) -> Result<Option<(OverviewBulletins, Vec<String>)>, ApiError> {
+    let Ok(shop) = state.dataset(wenmar_shopdata::Dataset::Bulletins) else {
+        return Ok(None);
+    };
+    let asked = crate::api::bulletins::narrowed(crate::api::bulletins::BulletinFilter {
+        limit: Some(NEWEST_BULLETINS),
+        ..Default::default()
+    })?;
+    let answer = crate::api::bulletins::bulletins_of(state, shop, found, asked).await?;
+    let url = format!(
+        "{}/bulletins",
+        model_year_url(&state.config().base_url, found)
+    );
+    Ok(Some((
+        OverviewBulletins {
+            count: answer.counts.count,
+            by_type: answer.counts.by_type,
+            as_of: answer.as_of,
+            newest: answer.bulletins,
+            url,
+        },
+        answer.attribution,
+    )))
+}
+
 /// The overview of a model year, or of nothing when `found` is `None`.
 ///
 /// This is the one place a block is filled. A plan that brings a new
@@ -125,6 +158,21 @@ pub async fn overview_of(
             None => (None, Vec::new()),
         },
         None => (None, Vec::new()),
+    };
+    // The bulletins of the year, for a server that holds them.
+    let bulletins = match found {
+        Some(found) => match bulletin_block(state, found).await? {
+            Some((block, credit)) => {
+                for line in credit {
+                    if !attribution.contains(&line) {
+                        attribution.push(line);
+                    }
+                }
+                Some(block)
+            }
+            None => None,
+        },
+        None => None,
     };
     // Fuel, specifications and the engine oil grade, for a server that
     // holds them. A VIN whose decode settles the engine gets only what
@@ -176,7 +224,7 @@ pub async fn overview_of(
         recalls,
         safety,
         labor: None,
-        bulletins: None,
+        bulletins,
         links,
         attribution,
         warnings,
@@ -407,6 +455,17 @@ pub async fn model_years_op(
         }
         None => None,
     };
+    // The bulletins of each year, for a server that holds them.
+    let bulletin_counts = match state.dataset(wenmar_shopdata::Dataset::Bulletins) {
+        Ok(shop) => {
+            let model_id = found.model_id;
+            Some(
+                shop.run(move |reader| reader.bulletin_counts_by_year(model_id))
+                    .await??,
+            )
+        }
+        Err(_) => None,
+    };
     let held = shop.map(as_of);
     let base = &state.config().base_url;
     let years = found
@@ -431,7 +490,12 @@ pub async fn model_years_op(
                 id: format!("{year:04}_{}_{}", found.make.id, found.model.id),
                 year: *year,
                 recalls,
-                bulletins: None,
+                bulletins: bulletin_counts.as_ref().map(|counted| {
+                    counted
+                        .iter()
+                        .find(|(counted_year, _)| counted_year == year)
+                        .map_or(0, |(_, count)| *count)
+                }),
                 url: format!("{base}/makes/{}/{}/{year}", found.make.id, found.model.id),
             }
         })

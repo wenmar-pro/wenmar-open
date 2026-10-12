@@ -13,7 +13,7 @@ const TC_LOOKUP: &str =
 
 /// The blocks no dataset fills yet. A plan that fills one takes its name
 /// out of this list and adds a test of its own.
-const NOT_YET: [&str; 3] = ["tires", "labor", "bulletins"];
+const NOT_YET: [&str; 2] = ["tires", "labor"];
 
 async fn ok(app: &TestApp, path: &str) -> Value {
     let (status, body) = app.json(path).await;
@@ -565,5 +565,82 @@ async fn fuel_specs_and_fluids_are_filled_when_held_and_narrowed_by_a_settled_en
             "grades": ["0W-20"], "as_written": ["0W-20", "SAE 0W-20"],
             "source": "EPA fuel economy certification"
         }])
+    );
+}
+
+#[tokio::test]
+async fn the_overview_has_a_bulletins_block_on_a_server_that_holds_them() {
+    let app = common::bulletins_app().await;
+    let (status, body) = app.json("/v1/vehicles/2023_hyundai_kona/overview").await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let block = &body["bulletins"];
+    assert_eq!(block["count"], 6);
+    assert_eq!(block["as_of"], "2026-10-11");
+    assert_eq!(
+        block["by_type"],
+        json!([
+            { "id": "service_bulletin", "name": "Service bulletin", "count": 4 },
+            { "id": "warranty_extension", "name": "Warranty extension", "count": 1 },
+            { "id": "over_the_air", "name": "Over-the-air update", "count": 1 }
+        ])
+    );
+    assert_eq!(
+        block["url"],
+        "https://open.example/makes/hyundai/kona/2023/bulletins"
+    );
+    // The three newest, exactly as the bulletin route lists them.
+    let (_, list) = app
+        .json("/v1/vehicles/2023_hyundai_kona/bulletins?limit=3")
+        .await;
+    assert_eq!(block["newest"], list["bulletins"]);
+    assert_eq!(block["newest"].as_array().unwrap().len(), 3);
+    // The same block for the VIN that decodes to that model year.
+    let (_, by_vin) = app
+        .json(&format!("/v1/vin/{}/overview", common::KONA))
+        .await;
+    assert_eq!(by_vin["bulletins"], body["bulletins"]);
+    // The recalls block is still there beside it.
+    assert_eq!(body["recalls"]["may_apply"], true);
+    // A model year with none: a block with zero, not null.
+    let (_, none) = app.json("/v1/vehicles/2019_honda_civic/overview").await;
+    assert_eq!(none["bulletins"]["count"], 0);
+    assert_eq!(none["bulletins"]["newest"], json!([]));
+}
+
+#[tokio::test]
+async fn the_overview_has_no_bulletins_block_without_the_dataset() {
+    for app in [common::app().await, common::recalls_app().await] {
+        let (status, body) = app.json("/v1/vehicles/2023_hyundai_kona/overview").await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(body["bulletins"], Value::Null);
+    }
+}
+
+#[tokio::test]
+async fn each_model_year_of_a_model_has_its_bulletin_count() {
+    let app = common::bulletins_app().await;
+    let (status, body) = app.json("/v1/models/hyundai/kona").await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let count = |year: u64| {
+        body["years"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|entry| entry["year"] == year)
+            .map(|entry| entry["bulletins"].clone())
+    };
+    assert_eq!(count(2023), Some(json!(6)));
+    assert_eq!(count(2022), Some(json!(2)));
+    // A server without bulletins says null, not zero.
+    let (_, body) = common::recalls_app()
+        .await
+        .json("/v1/models/hyundai/kona")
+        .await;
+    assert!(
+        body["years"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|entry| entry["bulletins"].is_null())
     );
 }

@@ -291,8 +291,9 @@ async fn the_tool_answers_recall_questions_as_the_api_does_from_files_and_over_h
 /// The blocks of an overview that the hosted API fills where its server
 /// holds their data, and that the files do not give yet: from files they
 /// are `null` whatever the shop file holds. `specs`, `fuel` and `fluids`
-/// wait for the plan that brings the fuel data to the files.
-const HOSTED_ONLY: [&str; 3] = ["specs", "fuel", "fluids"];
+/// wait for the plan that brings the fuel data to the files. `bulletins`
+/// is hosted only by design: the offline shop file does not hold them.
+const HOSTED_ONLY: [&str; 4] = ["specs", "fuel", "fluids", "bulletins"];
 
 /// An answer of the API as the files give it. What is set aside before
 /// two answers are compared, and why:
@@ -300,7 +301,8 @@ const HOSTED_ONLY: [&str; 3] = ["specs", "fuel", "fluids"];
 /// - `lookup.maker`, `recalls.lookup.maker` and `links.maker`: the makers'
 ///   own lookup and links are compiled into the server from
 ///   `data/catalog/makes.yaml` and are in neither file.
-/// - the blocks of [`HOSTED_ONLY`].
+/// - the blocks of [`HOSTED_ONLY`], and each model year's `bulletins`
+///   count, which is hosted only for the same reason.
 ///
 /// Nothing else is: every other field, the other `null` blocks among them,
 /// must be the same. The shop file of these tests holds recalls only, so
@@ -316,6 +318,11 @@ fn as_the_files_give_it(mut answer: Value) -> Value {
     for block in HOSTED_ONLY {
         if let Some(held) = answer.get_mut(block) {
             *held = Value::Null;
+        }
+    }
+    if let Some(years) = answer.get_mut("years").and_then(Value::as_array_mut) {
+        for year in years {
+            year["bulletins"] = Value::Null;
         }
     }
     answer
