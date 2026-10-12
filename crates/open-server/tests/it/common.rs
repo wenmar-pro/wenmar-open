@@ -1460,3 +1460,22 @@ pub async fn codes_offline_app_at(base_url: &str) -> TestApp {
     })
     .await
 }
+
+/// [`codes_app`], saying its pages are at `base_url`.
+pub async fn codes_app_at(base_url: &str) -> TestApp {
+    let fixture = data_file();
+    add_shop_file(
+        &fixture,
+        wenmar_shopdata::schema::SCHEMA_VERSION,
+        "2026.09",
+        CODE_DATASETS,
+        &code_rows(),
+    );
+    let shop = fixture.shop_path();
+    let base_url = base_url.to_owned();
+    app_over(fixture, |config| {
+        config.shop_data = Some(shop);
+        config.base_url = base_url;
+    })
+    .await
+}

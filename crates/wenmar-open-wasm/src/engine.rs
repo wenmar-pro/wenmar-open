@@ -284,6 +284,22 @@ impl Engine {
                 }
                 ops::facts(&answers, topic, by_vin, args, current_year)
             }
+            "code" | "codes" | "vehicle_code" => {
+                let Some(shop) = &self.shop else {
+                    return Err(ops::no_codes());
+                };
+                let answers = ops::RecallAnswers {
+                    shop,
+                    catalog,
+                    core: &self.replay,
+                    base: SITE,
+                };
+                match op {
+                    "code" => ops::code(&answers, args),
+                    "codes" => ops::codes(&answers, args),
+                    _ => ops::vehicle_code(&answers, args),
+                }
+            }
             "overview_vehicle" | "overview_vin" | "model_years" => {
                 // These answer with no shop file opened: `shop` is then
                 // `None`, and nothing is asked of a second database.

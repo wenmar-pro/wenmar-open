@@ -3,7 +3,7 @@
 
 use serde::Serialize;
 use serde_json::{Value, json};
-use wenmar_shopdata::answer::{self, AnswerError, Answers, Overviews, Recent, Search};
+use wenmar_shopdata::answer::{self, AnswerError, Answers, CodeSearch, Overviews, Recent, Search};
 use wenmar_shopdata::recalls::RecallSource;
 use wenmar_shopdata::{Dataset, ShopError};
 use wenmar_vehicles::{Catalog, Scope, vin_rows};
@@ -439,4 +439,39 @@ pub fn facts(
         "fluids" => answers.vin_fluids(&decoded),
         _ => answers.vin_tires(&decoded),
     }?)
+}
+
+// ----- trouble codes -----
+
+/// What a code operation gets when no shop file has been opened: the
+/// API's own `dataset_unavailable`, naming the codes.
+pub fn no_codes() -> OpError {
+    AnswerError::Shop(ShopError::DatasetUnavailable(Dataset::Codes)).into()
+}
+
+/// `{ "code" }`: one generic trouble code as this project describes it.
+pub fn code(answers: &RecallAnswers, args: &Value) -> Result<Value, OpError> {
+    let code = text(args, "code")?.unwrap_or_default();
+    json(answers.code(&code)?)
+}
+
+/// `{ "q"?, "system"?, "limit"?, "cursor"? }`: the described codes, by
+/// code.
+pub fn codes(answers: &RecallAnswers, args: &Value) -> Result<Value, OpError> {
+    let search = CodeSearch {
+        q: text(args, "q")?,
+        system: text(args, "system")?,
+        limit: whole(args, "limit")?.map(|limit| usize::try_from(limit).unwrap_or(usize::MAX)),
+        cursor: text(args, "cursor")?,
+    };
+    json(answers.codes(&search)?)
+}
+
+/// `{ "id", "code" }`: a code on one model year, with the recalls about
+/// the same components. Its bulletin parts are always `null`: bulletins
+/// are on the hosted service only.
+pub fn vehicle_code(answers: &RecallAnswers, args: &Value) -> Result<Value, OpError> {
+    let id = text(args, "id")?.unwrap_or_default();
+    let code = text(args, "code")?.unwrap_or_default();
+    json(answers.vehicle_code(&id, &code)?)
 }

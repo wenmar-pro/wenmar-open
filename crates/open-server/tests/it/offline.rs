@@ -1095,3 +1095,157 @@ async fn the_offline_engine_gives_what_owners_report_as_the_api_does() {
         }
     }
 }
+
+/// The questions about trouble codes: the API's address, then the
+/// engine's operation and its arguments.
+fn code_questions() -> Vec<(&'static str, &'static str, Value)> {
+    vec![
+        ("/v1/codes/P0420", "code", json!({ "code": "p0420" })),
+        ("/v1/codes/U0001", "code", json!({ "code": "U0001:00" })),
+        ("/v1/codes/P1234", "code", json!({ "code": "P1234" })),
+        ("/v1/codes/P0001", "code", json!({ "code": "P0001" })),
+        ("/v1/codes/zebra", "code", json!({ "code": "zebra" })),
+        ("/v1/codes", "codes", json!({})),
+        (
+            "/v1/codes?system=powertrain&q=title&limit=1",
+            "codes",
+            json!({ "system": "powertrain", "q": "title", "limit": 1 }),
+        ),
+        (
+            "/v1/codes?cursor=P0300&limit=0",
+            "codes",
+            json!({ "cursor": "P0300", "limit": 0 }),
+        ),
+        (
+            "/v1/codes?system=engine",
+            "codes",
+            json!({ "system": "engine" }),
+        ),
+        (
+            "/v1/codes?cursor=zebra",
+            "codes",
+            json!({ "cursor": "zebra" }),
+        ),
+        (
+            "/v1/vehicles/2023_hyundai_kona/codes/P0420",
+            "vehicle_code",
+            json!({ "id": "2023_hyundai_kona", "code": "P0420" }),
+        ),
+        (
+            "/v1/vehicles/2023_hyundai_kona_se/codes/u0001",
+            "vehicle_code",
+            json!({ "id": "2023_hyundai_kona_se", "code": "u0001" }),
+        ),
+        (
+            "/v1/vehicles/2023_hyundai_kona/codes/C1234",
+            "vehicle_code",
+            json!({ "id": "2023_hyundai_kona", "code": "C1234" }),
+        ),
+        (
+            "/v1/vehicles/2019_chevrolet_silverado/codes/P0001",
+            "vehicle_code",
+            json!({ "id": "2019_chevrolet_silverado", "code": "P0001" }),
+        ),
+        (
+            "/v1/vehicles/2019_honda_nothing/codes/P0420",
+            "vehicle_code",
+            json!({ "id": "2019_honda_nothing", "code": "P0420" }),
+        ),
+        (
+            "/v1/vehicles/2023_hyundai_kona/codes/zebra",
+            "vehicle_code",
+            json!({ "id": "2023_hyundai_kona", "code": "zebra" }),
+        ),
+    ]
+}
+
+/// A code answer of the API as the files give it. Set aside: the maker's
+/// own recall lookup, which is compiled into the server, and the two
+/// bulletin parts, because bulletins are on the hosted service only.
+fn code_answer_as_the_files_give_it(mut answer: Value) -> Value {
+    for place in [
+        "/bulletins",
+        "/related/bulletins",
+        "/related/recalls/lookup/maker",
+    ] {
+        if let Some(held) = answer.pointer_mut(place) {
+            *held = Value::Null;
+        }
+    }
+    answer
+}
+
+#[tokio::test]
+async fn the_offline_engine_answers_code_questions_as_the_api_does() {
+    let site = wenmar_shopdata::answer::SITE;
+    // Three servers, and the files that go with each: the shop file as
+    // offline users have it, the full one with bulletins, and none.
+    for held in ["offline", "full", "nothing"] {
+        let files = match held {
+            "offline" => Some((common::CODE_DATASETS_OFFLINE, common::code_rows_offline())),
+            "full" => Some((common::CODE_DATASETS, common::code_rows())),
+            _ => None,
+        };
+        let app = match held {
+            "offline" => common::codes_offline_app_at(site).await,
+            "full" => common::codes_app_at(site).await,
+            _ => common::app_with(|config| config.base_url = site.to_owned()).await,
+        };
+        let fixture = common::data_file();
+        let (datasets, rows) = files
+            .clone()
+            .unwrap_or((common::RECALL_DATASETS, String::new()));
+        common::add_shop_file(
+            &fixture,
+            wenmar_shopdata::schema::SCHEMA_VERSION,
+            "2026.09",
+            datasets,
+            &rows,
+        );
+        let connection = Connection::open(fixture.path()).unwrap();
+        let shop = Connection::open(fixture.shop_path()).unwrap();
+        let mut engine = Engine::new();
+        let opened = ask(&mut engine, &connection, "open", &json!({}));
+        assert!(opened.get("ok").is_some(), "{opened}");
+        if files.is_some() {
+            let opened = ask_with_shop(&mut engine, &connection, &shop, "open_shop", &json!({}));
+            assert!(opened.get("ok").is_some(), "{opened}");
+        }
+        let mut answered = 0;
+        for (path, op, args) in &code_questions() {
+            let (status, served) = app.json(path).await;
+            let answer = if files.is_some() {
+                ask_with_shop(&mut engine, &connection, &shop, op, args)
+            } else {
+                ask(&mut engine, &connection, op, args)
+            };
+            if status == StatusCode::OK {
+                answered += 1;
+                assert_eq!(
+                    answer["ok"],
+                    code_answer_as_the_files_give_it(served.clone()),
+                    "{path} {held}"
+                );
+                if *op == "vehicle_code" {
+                    // From files the bulletin parts are never given.
+                    assert_eq!(answer["ok"]["bulletins"], Value::Null, "{path}");
+                    assert_eq!(answer["ok"]["related"]["bulletins"], Value::Null);
+                    assert_eq!(answer["ok"]["related"]["recalls"]["may_apply"], true);
+                    // On the offline file nothing but the maker's link
+                    // was set aside: the API gave the same nulls.
+                    if held == "offline" {
+                        assert_eq!(served["bulletins"], Value::Null, "{path}");
+                        assert_eq!(served["related"]["bulletins"], Value::Null, "{path}");
+                    }
+                }
+            } else {
+                assert_eq!(json!({ "error": answer["error"] }), served, "{path} {held}");
+                if held == "nothing" {
+                    assert_eq!(answer["error"]["code"], "dataset_unavailable", "{path}");
+                    assert_eq!(answer["error"]["details"]["dataset"], "codes", "{path}");
+                }
+            }
+        }
+        assert_eq!(answered, if held == "nothing" { 0 } else { 9 }, "{held}");
+    }
+}

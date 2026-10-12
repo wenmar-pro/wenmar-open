@@ -30,6 +30,11 @@ use serde_json::Value as Json;
 use wenmar_vehicles::text::{is_slug, normalize};
 use wenmar_vehicles::{Catalog, CatalogError, Scope, Source, Value, VehicleId};
 
+use crate::bulletins::{MOST_FOR_CODE, code_form};
+use crate::codes::{
+    BAD_CURSOR, BAD_SYSTEM, CodeComponent, CodeQuery, CodeRecord, CodeSummary, MOST_CODES_LISTED,
+    NOT_A_CODE, NOT_GENERIC, NOT_WRITTEN, VEHICLE_NOTE, is_generic, system_name,
+};
 use crate::complaints::{ComponentComplaints, NHTSA_COMPLAINTS, NOTE};
 use crate::dataset::Dataset;
 use crate::error::ShopError;
@@ -1570,6 +1575,266 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
             return Err(AnswerError::NotFound("No vehicle has that id."));
         };
         self.complaints_of(&found)
+    }
+}
+
+// ----- trouble codes -----
+
+/// A trouble code in a list.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct CodeLink {
+    pub code: String,
+    pub system: String,
+    pub title: String,
+    /// The code's page on the hosted site.
+    pub url: String,
+}
+
+/// One generic trouble code, as `GET /v1/codes/{code}` gives it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct Code {
+    pub code: String,
+    pub generic: bool,
+    pub system: String,
+    pub system_name: String,
+    pub title: String,
+    pub meaning: String,
+    pub common_causes: Vec<String>,
+    pub checks: Vec<String>,
+    pub components: Vec<CodeComponent>,
+    pub related: Vec<CodeLink>,
+    pub reviewer: String,
+    pub checked: String,
+    pub url: String,
+    pub note: String,
+    pub attribution: Vec<String>,
+}
+
+/// One page of the described codes, as `GET /v1/codes` gives it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct CodeList {
+    pub as_of: Option<String>,
+    pub codes: Vec<CodeLink>,
+    pub next_cursor: Option<String>,
+    pub note: String,
+    pub attribution: Vec<String>,
+}
+
+/// What a list of codes is narrowed by, as a caller writes it.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct CodeSearch {
+    pub q: Option<String>,
+    pub system: Option<String>,
+    pub limit: Option<usize>,
+    pub cursor: Option<String>,
+}
+
+/// The recalls of a model year about the components a code concerns.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct CodeRecalls {
+    pub may_apply: bool,
+    pub recalls: Vec<Recall>,
+    pub lookup: Lookup,
+}
+
+/// What else is held for the model year about a code's components.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct CodeRelated {
+    pub components: Vec<CodeComponent>,
+    /// Always `null` here: bulletins are on the hosted service only.
+    pub bulletins: Option<Json>,
+    /// `null` when the file holds no recalls.
+    pub recalls: Option<CodeRecalls>,
+}
+
+/// A trouble code on one model year, as
+/// `GET /v1/vehicles/{id}/codes/{code}` gives it without bulletins.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct VehicleCode {
+    pub vehicle: Vehicle,
+    pub code: String,
+    pub generic: bool,
+    pub description: Option<Code>,
+    /// Always `null` here: bulletins are on the hosted service only.
+    pub bulletins: Option<Json>,
+    pub related: CodeRelated,
+    pub url: String,
+    pub note: String,
+    pub attribution: Vec<String>,
+}
+
+impl<S: Source, C: Source> Answers<'_, S, C> {
+    /// The credit line of the codes dataset, when its licence asks for one.
+    fn code_credit(&self) -> Vec<String> {
+        self.shop
+            .datasets()
+            .get(Dataset::Codes)
+            .map(|entry| entry.attribution.clone())
+            .filter(|credit| !credit.is_empty())
+            .into_iter()
+            .collect()
+    }
+
+    fn code_link(&self, code: CodeSummary) -> CodeLink {
+        CodeLink {
+            url: format!("{}/codes/{}", self.base, code.code),
+            code: code.code,
+            system: code.system,
+            title: code.title,
+        }
+    }
+
+    fn described(&self, record: CodeRecord) -> Code {
+        Code {
+            url: format!("{}/codes/{}", self.base, record.code),
+            generic: true,
+            system_name: system_name(&record.system)
+                .unwrap_or(record.system.as_str())
+                .to_owned(),
+            code: record.code,
+            system: record.system,
+            title: record.title,
+            meaning: record.meaning,
+            common_causes: record.common_causes,
+            checks: record.checks,
+            components: record.components,
+            related: record
+                .related
+                .into_iter()
+                .map(|other| self.code_link(other))
+                .collect(),
+            reviewer: record.reviewer,
+            checked: record.checked,
+            note: crate::codes::NOTE.to_owned(),
+            attribution: self.code_credit(),
+        }
+    }
+
+    /// `GET /v1/codes/{code}`.
+    pub fn code(&self, code: &str) -> Result<Code, AnswerError> {
+        self.shop.require(Dataset::Codes)?;
+        let Some(code) = code_form(code) else {
+            return Err(AnswerError::NotFound(NOT_A_CODE));
+        };
+        if !is_generic(&code) {
+            return Err(AnswerError::NotFound(NOT_GENERIC));
+        }
+        match self.shop.code(&code)? {
+            Some(record) => Ok(self.described(record)),
+            None => Err(AnswerError::NotFound(NOT_WRITTEN)),
+        }
+    }
+
+    /// `GET /v1/codes`.
+    pub fn codes(&self, search: &CodeSearch) -> Result<CodeList, AnswerError> {
+        self.shop.require(Dataset::Codes)?;
+        let system = match given(search.system.as_ref()) {
+            None => None,
+            Some(text) => {
+                let text = text.to_ascii_lowercase();
+                if system_name(&text).is_none() {
+                    return Err(AnswerError::Validation {
+                        field: "system",
+                        message: BAD_SYSTEM,
+                    });
+                }
+                Some(text)
+            }
+        };
+        let after = match given(search.cursor.as_ref()) {
+            None => None,
+            Some(text) => Some(code_form(&text).ok_or(AnswerError::Validation {
+                field: "cursor",
+                message: BAD_CURSOR,
+            })?),
+        };
+        let page = self.shop.codes(&CodeQuery {
+            q: given(search.q.as_ref()),
+            system,
+            limit: search
+                .limit
+                .unwrap_or(crate::codes::LIST_DEFAULT)
+                .clamp(1, MOST_CODES_LISTED),
+            after,
+        })?;
+        Ok(CodeList {
+            as_of: self.shop.codes_as_of().map(str::to_owned),
+            codes: page
+                .codes
+                .into_iter()
+                .map(|code| self.code_link(code))
+                .collect(),
+            next_cursor: page.next,
+            note: crate::codes::NOTE.to_owned(),
+            attribution: self.code_credit(),
+        })
+    }
+
+    /// `GET /v1/vehicles/{id}/codes/{code}`, without its bulletin parts:
+    /// no bulletin is ever given from files. The file must hold the codes.
+    pub fn vehicle_code(&self, id: &str, code: &str) -> Result<VehicleCode, AnswerError> {
+        self.shop.require(Dataset::Codes)?;
+        let Some(code) = code_form(code) else {
+            return Err(AnswerError::NotFound(NOT_A_CODE));
+        };
+        let Some(found) = self.model_year(id)? else {
+            return Err(AnswerError::NotFound("No vehicle has that id."));
+        };
+        let generic = is_generic(&code);
+        let record = if generic {
+            self.shop.code(&code)?
+        } else {
+            None
+        };
+        let components: Vec<String> = record
+            .iter()
+            .flat_map(|record| record.components.iter().map(|part| part.id.clone()))
+            .collect();
+        let recalls = if self.shop.require_recalls(None).is_ok() {
+            let mut list = self.shop.recalls_about_for_vehicle(
+                found.make_id,
+                found.model_id,
+                found.vehicle.year,
+                &components,
+            )?;
+            list.truncate(MOST_FOR_CODE);
+            Some(CodeRecalls {
+                may_apply: true,
+                recalls: list
+                    .into_iter()
+                    .map(|recall| self.for_vehicle(recall))
+                    .collect(),
+                lookup: lookup(),
+            })
+        } else {
+            None
+        };
+        let mut attribution = self.code_credit();
+        if recalls.is_some() {
+            attribution.extend(self.attribution(None));
+        }
+        let description = record.map(|record| self.described(record));
+        Ok(VehicleCode {
+            url: format!(
+                "{}/makes/{}/{}/{}/codes/{code}",
+                self.base, found.make_slug, found.model_slug, found.vehicle.year
+            ),
+            vehicle: found.vehicle,
+            code,
+            generic,
+            bulletins: None,
+            related: CodeRelated {
+                components: description
+                    .as_ref()
+                    .map(|description| description.components.clone())
+                    .unwrap_or_default(),
+                bulletins: None,
+                recalls,
+            },
+            description,
+            note: VEHICLE_NOTE.to_owned(),
+            attribution,
+        })
     }
 }
 
