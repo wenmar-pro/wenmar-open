@@ -61,6 +61,7 @@ fn the_description_lists_every_route_and_no_others() {
             "/v1/vehicles/{id}/recalls",
             "/v1/vehicles/{id}/safety",
             "/v1/vehicles/{id}/specs",
+            "/v1/vehicles/{id}/tires",
             "/v1/vin/batch",
             "/v1/vin/{vin}",
             "/v1/vin/{vin}/bulletins",
@@ -70,6 +71,7 @@ fn the_description_lists_every_route_and_no_others() {
             "/v1/vin/{vin}/parts-card",
             "/v1/vin/{vin}/recalls",
             "/v1/vin/{vin}/specs",
+            "/v1/vin/{vin}/tires",
         ]
     );
     // `/health` is for the deploy proxy and is not part of the API.
@@ -108,6 +110,10 @@ fn the_description_lists_every_route_and_no_others() {
         "VehicleFluids",
         "VinFluids",
         "EngineOil",
+        "FluidRecord",
+        "VehicleTires",
+        "VinTires",
+        "TireFitment",
         "PartsCard",
         "VehicleBulletins",
         "VinBulletins",

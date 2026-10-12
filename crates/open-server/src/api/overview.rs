@@ -252,13 +252,26 @@ pub async fn overview_of(
         Some(found) => complaint_block(state, found).await?,
         None => None,
     };
+    // The tire fitments a person recorded: every one, never narrowed.
+    let tires = match (found, state.dataset(wenmar_shopdata::Dataset::Tires)) {
+        (Some(found), Ok(shop)) => {
+            let answer = crate::api::hand::tires_of(shop, found).await?;
+            for line in answer.attribution {
+                if !attribution.contains(&line) {
+                    attribution.push(line);
+                }
+            }
+            Some(serde_json::to_value(answer.fitments).map_err(ApiError::internal)?)
+        }
+        _ => None,
+    };
     Ok(Overview {
         vehicle: found.map(|found| found.vehicle.clone()),
         decode,
         specs,
         fuel,
         fluids,
-        tires: None,
+        tires,
         recalls,
         safety,
         labor: None,

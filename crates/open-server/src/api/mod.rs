@@ -3,6 +3,7 @@
 pub mod bulletins;
 pub mod complaints;
 pub mod fuel;
+pub mod hand;
 pub mod investigations;
 pub mod meta;
 pub mod overview;
@@ -82,6 +83,8 @@ pub fn router() -> (axum::Router<AppState>, utoipa::openapi::OpenApi) {
         .routes(routes!(fuel::vin_specs))
         .routes(routes!(fuel::vehicle_fluids))
         .routes(routes!(fuel::vin_fluids))
+        .routes(routes!(hand::vehicle_tires))
+        .routes(routes!(hand::vin_tires))
         .routes(routes!(parts_card::parts_card))
         .routes(routes!(vehicles::make))
         .routes(routes!(meta::meta));

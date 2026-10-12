@@ -1292,3 +1292,88 @@ pub fn fuel_rows() -> String {
 pub async fn fuel_app() -> TestApp {
     app_with_shop(FUEL_DATASETS, &fuel_rows()).await
 }
+
+/// A datasets JSON with the four fuel datasets and the two hand-kept ones.
+pub const HAND_DATASETS: &str = r#"{"fuel_us":{"as_of":"2026-09-29","rows":5,"licence":"public-domain","attribution":""},"fuel_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence – Canada."},"specs":{"as_of":"2026-09-29","rows":5,"licence":"public-domain","attribution":""},"oil_grade":{"as_of":"2026-09-29","rows":3,"licence":"public-domain","attribution":""},"fluids":{"as_of":"2026-10-12","rows":9,"licence":"mit","attribution":""},"tires":{"as_of":"2026-10-11","rows":3,"licence":"mit","attribution":""}}"#;
+
+/// The two hand-kept datasets alone: no fuel ratings and no oil grades.
+pub const HAND_DATASETS_ALONE: &str = r#"{"fluids":{"as_of":"2026-10-12","rows":9,"licence":"mit","attribution":""},"tires":{"as_of":"2026-10-11","rows":3,"licence":"mit","attribution":""}}"#;
+
+/// A make, a model and a model year that do not exist, added to the small
+/// data file for the hand-read records: the 2001 Testmake Sampler (make
+/// 7000, model 7001) with the engines `9.9L Test` (70001) and `8.8L Test
+/// Diesel` (70002).
+pub const TESTMAKE_ROWS: &str = "
+INSERT INTO catalog_make VALUES (7000, 'testmake', 'Testmake', 'testmake', NULL, 4, 1);
+INSERT INTO catalog_model VALUES (7001, 7000, 'sampler', 'Sampler', 'sampler', 2001, 2001, 4, 1);
+INSERT INTO catalog_detail VALUES (70, NULL, NULL, NULL);
+INSERT INTO catalog_vehicle VALUES (70, 2001, 7000, 7001, 4, 1, 70);
+INSERT INTO catalog_engine VALUES
+  (70001, 70, '9.9L Test', NULL, 'vpic'),
+  (70002, 70, '8.8L Test Diesel', NULL, 'vpic');
+";
+
+/// Hand-read records against the small data file's catalog with
+/// [`TESTMAKE_ROWS`]. The columns are those of
+/// `wenmar_shopdata::schema::FLUIDS` and `schema::TIRES`, in order. Every
+/// figure is impossible on purpose; none is a real one. The Testmake
+/// Sampler has every kind of record. The 2023 Kona, which [`KONA`] decodes
+/// to with the 2.0L engine (catalog engine 8), has an oil record on that
+/// engine, one on the 1.6L Turbo (engine 9), a brake fluid record for
+/// every engine and one tire fitment: it is here only because it is the
+/// one vehicle of the small data file a VIN decodes to.
+pub const HAND_INSERTS: &str = r#"
+INSERT INTO fluid VALUES
+  (1, 7000, 7001, 2001, 'engine_oil', 70001, NULL, '0W-99', 'TEST-SPEC-1', 99.9, 105.6, 'l', 1, NULL, NULL, NULL, NULL, 'Test manual, page 1', '2026-10-12', 'test-reviewer'),
+  (2, 7000, 7001, 2001, 'engine_oil', 70002, NULL, NULL, 'TEST-SPEC-2', 83.3, 88.0, 'qt', 0, NULL, NULL, NULL, 'ca', 'Test manual, page 2', '2026-10-11', 'test-reviewer'),
+  (3, 7000, 7001, 2001, 'transmission', NULL, 'Test automatic', NULL, 'TEST ATF 9', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Test manual, page 3', '2026-10-10', 'test-reviewer'),
+  (4, 7000, 7001, 2001, 'coolant', 70001, NULL, NULL, 'TEST COOLANT 9', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Test manual, page 4', '2026-10-10', 'test-reviewer'),
+  (5, 7000, 7001, 2001, 'refrigerant', NULL, NULL, NULL, 'R-TEST', NULL, NULL, NULL, NULL, 9990, 352.4, 'kg', NULL, 'Test under-hood label', '2026-10-10', 'test-reviewer'),
+  (6, 7000, 7001, 2001, 'brake', NULL, NULL, NULL, 'TEST BRAKE 9', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Test manual, page 5', '2026-10-10', 'test-reviewer'),
+  (7, 498, 900, 2023, 'engine_oil', 8, NULL, '0W-99', 'TEST-SPEC-K', 77.7, 82.1, 'l', 1, NULL, NULL, NULL, NULL, 'Test manual K, page 1', '2026-10-09', 'test-reviewer'),
+  (8, 498, 900, 2023, 'engine_oil', 9, NULL, NULL, 'TEST-SPEC-T', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Test manual K, page 2', '2026-10-09', 'test-reviewer'),
+  (9, 498, 900, 2023, 'brake', NULL, NULL, NULL, 'TEST BRAKE 9', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Test manual K, page 3', '2026-10-09', 'test-reviewer');
+INSERT INTO tire_fitment VALUES
+  (1, 7000, 7001, 2001, '999/99R99', NULL, '["Base","Deluxe"]', 990, 980, 144, 142, 'kpa', 999, 737, 'nm', '9x999', NULL, 'Test door placard', '2026-10-11', 'test-reviewer'),
+  (2, 7000, 7001, 2001, '998/98R98', '997/97R97', '[]', 990, 990, 144, 144, 'psi', NULL, NULL, NULL, NULL, 'us', 'Test manual, page 6', '2026-10-10', 'test-reviewer'),
+  (3, 498, 900, 2023, '996/96R96', NULL, '["SE"]', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Test door placard K', '2026-10-09', 'test-reviewer');
+"#;
+
+/// The hand-kept tables with [`HAND_INSERTS`], as `rows` for a shop file.
+pub fn hand_rows() -> String {
+    format!(
+        "{}{}{HAND_INSERTS}",
+        wenmar_shopdata::schema::FLUIDS,
+        wenmar_shopdata::schema::TIRES
+    )
+}
+
+/// The application over the small data file with `core_rows` added to it
+/// and a shop file built against it, holding `datasets` and `rows`.
+pub async fn app_with_rows_and_shop(core_rows: &str, datasets: &str, rows: &str) -> TestApp {
+    let fixture = data_file();
+    let connection = Connection::open(fixture.path()).unwrap();
+    connection.execute_batch(core_rows).unwrap();
+    connection.close().unwrap();
+    add_shop_file(
+        &fixture,
+        wenmar_shopdata::schema::SCHEMA_VERSION,
+        "2026.09",
+        datasets,
+        rows,
+    );
+    let shop = fixture.shop_path();
+    app_over(fixture, |config| config.shop_data = Some(shop)).await
+}
+
+/// The application with the Testmake Sampler in its catalog and a shop
+/// file holding the fuel datasets and the two hand-kept ones.
+pub async fn hand_app() -> TestApp {
+    let rows = format!("{}{}", fuel_rows(), hand_rows());
+    app_with_rows_and_shop(TESTMAKE_ROWS, HAND_DATASETS, &rows).await
+}
+
+/// The same with the hand-kept datasets alone.
+pub async fn hand_alone_app() -> TestApp {
+    app_with_rows_and_shop(TESTMAKE_ROWS, HAND_DATASETS_ALONE, &hand_rows()).await
+}

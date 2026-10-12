@@ -1379,8 +1379,8 @@
         "tags": [
           "Vehicles"
         ],
-        "summary": "Fluids of a model year. Today: the engine oil viscosity grade.",
-        "description": "The grade is the one the maker certified the engine with, as EPA's\nFuel Economy Guide records it. It is not read from the owner's manual,\nand it gives no capacity and no specification. One entry per engine.",
+        "summary": "Fluids of a model year.",
+        "description": "`engine_oil` is the viscosity grade the maker certified the engine\nwith, as EPA's Fuel Economy Guide records it: not a reading of the\nowner's manual, and with no capacity. `engine_oil_checked`,\n`transmission`, `coolant`, `refrigerant` and `brake` are records a\nperson read from the maker's own documents, each with its `source`\nand the day it was `checked`. They are empty for a model year nobody\nhas recorded: nothing is estimated.",
         "operationId": "vehicle_fluids",
         "parameters": [
           {
@@ -1396,7 +1396,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The engine oil grades, by engine.",
+            "description": "The engine oil grades by engine, and the records read by hand.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1406,7 +1406,7 @@
             }
           },
           "404": {
-            "description": "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no oil grades.",
+            "description": "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds neither oil grades nor hand-read fluids.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1741,6 +1741,50 @@
         }
       }
     },
+    "/v1/vehicles/{id}/tires": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Original-equipment tire fitments of a model year.",
+        "description": "Every size the maker fitted that a person has recorded, each with the\ntrims it covers, the cold pressures, the wheel nut torque and the bolt\npattern, the document it was read from (`source`) and the day\n(`checked`). A model year usually has several; none is picked. An\nempty list means nobody has recorded this model year, not that it has\nno tires on file anywhere.",
+        "operationId": "vehicle_tires",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A vehicle id. Fitments are listed by year, make and model; a submodel or an engine in the id is set aside.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2018_ford_f-150"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The fitments, in the order they were recorded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleTires"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no tire fitments.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vin/batch": {
       "post": {
         "tags": [
@@ -2044,7 +2088,7 @@
           "VIN"
         ],
         "summary": "Fluids for the vehicle a VIN decodes to.",
-        "description": "When the decode settles the engine, `engine_oil` holds the one entry\nof that engine, or none. Otherwise it holds every engine's.",
+        "description": "When the decode settles the engine, `engine_oil` holds the one entry\nof that engine, or none, and each hand-read list holds the records of\nthat engine and those recorded for every engine. Otherwise each holds\nevery engine's.",
         "operationId": "vin_fluids",
         "parameters": [
           {
@@ -2071,7 +2115,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The engine oil grades.",
+            "description": "The engine oil grades and the records read by hand.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2091,7 +2135,7 @@
             }
           },
           "404": {
-            "description": "`not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no oil grades.",
+            "description": "`not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds neither oil grades nor hand-read fluids.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2438,6 +2482,71 @@
           },
           "404": {
             "description": "`not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no specifications.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vin/{vin}/tires": {
+      "get": {
+        "tags": [
+          "VIN"
+        ],
+        "summary": "Tire fitments for the vehicle a VIN decodes to.",
+        "description": "Every fitment of the model year: a VIN does not say which wheels a\nvehicle was built with, so the list is not narrowed. Read the size on\nthe door placard.",
+        "operationId": "vin_tires",
+        "parameters": [
+          {
+            "name": "vin",
+            "in": "path",
+            "description": "A 17-character VIN.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "KM8K2CAB4PU001140"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "The model year, when the VIN's tenth character leaves two possible.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The fitments.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinTires"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`invalid_vin`, or `validation_failed` for `year`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no tire fitments.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3365,6 +3474,136 @@
           }
         }
       },
+      "FluidRecord": {
+        "type": "object",
+        "description": "One fluid of a model year that a person read from the maker's own\ndocument. Which fields are filled depends on the list it is in:\n`grade`, the capacity and `with_filter` are for engine oil, and the\ncharge is for refrigerant.",
+        "required": [
+          "source",
+          "checked"
+        ],
+        "properties": {
+          "applies_to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Which transmission or system the record is for, when it says."
+          },
+          "capacity_l": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "capacity_qt": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "US liquid quarts."
+          },
+          "capacity_written_in": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The unit the document printed, `l` or `qt`. The other figure was\nworked out from it."
+          },
+          "charge_g": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Refrigerant charge, in grams."
+          },
+          "charge_oz": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Refrigerant charge, in ounces."
+          },
+          "charge_written_in": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`g`, `kg`, `oz` or `lb`."
+          },
+          "checked": {
+            "type": "string",
+            "description": "The day it was read.",
+            "example": "2026-10-12"
+          },
+          "engine": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EngineRef",
+                "description": "The catalog engine the record is for. `null` when it is for every\nengine of the model year."
+              }
+            ]
+          },
+          "grade": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Engine oil viscosity, as the document gives it."
+          },
+          "market": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`us` or `ca` when the document is for one country only."
+          },
+          "source": {
+            "type": "string",
+            "description": "The document the record was read from."
+          },
+          "specification": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The maker's specification, or the type of fluid."
+          },
+          "with_filter": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "Whether the capacity includes the oil filter."
+          }
+        }
+      },
+      "FrontRear": {
+        "type": "object",
+        "description": "A figure for the front and for the rear.",
+        "properties": {
+          "front": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "rear": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          }
+        }
+      },
       "FuelAsOf": {
         "type": "object",
         "description": "The day each country's fuel ratings were current. Null for a country\nthis server holds no ratings for.",
@@ -4094,9 +4333,13 @@
           },
           "tires": {
             "type": [
-              "object",
+              "array",
               "null"
-            ]
+            ],
+            "items": {
+              "$ref": "#/components/schemas/TireFitment"
+            },
+            "description": "The original-equipment tire fitments a person recorded, as the\n`fitments` of `/v1/vehicles/{id}/tires`: every one, never narrowed.\n`null` on a server that holds none."
           },
           "vehicle": {
             "oneOf": [
@@ -6007,6 +6250,105 @@
           }
         }
       },
+      "TireFitment": {
+        "type": "object",
+        "description": "One tire size the maker fitted to a model year, read by a person from\nthe door placard or the owner's manual.",
+        "required": [
+          "size",
+          "trims",
+          "source",
+          "checked"
+        ],
+        "properties": {
+          "bolt_pattern": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "checked": {
+            "type": "string",
+            "example": "2026-10-12"
+          },
+          "lug_torque_lbft": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "lug_torque_nm": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "lug_torque_written_in": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`nm` or `lbft`."
+          },
+          "market": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pressure_kpa": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FrontRear",
+                "description": "Cold pressure in kilopascals. `null` when none is recorded."
+              }
+            ]
+          },
+          "pressure_psi": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/FrontRear",
+                "description": "The same in pounds per square inch."
+              }
+            ]
+          },
+          "pressure_written_in": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The unit the document printed: `kpa`, `bar` or `psi`. The other\nfigures were worked out from it."
+          },
+          "size": {
+            "type": "string",
+            "description": "The size as printed. The front size when `size_rear` is given."
+          },
+          "size_rear": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The rear size, only when it differs from the front."
+          },
+          "source": {
+            "type": "string"
+          },
+          "trims": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The trims the document ties the size to, as it names them. Empty\nwhen it names none."
+          }
+        }
+      },
       "VehicleBulletins": {
         "type": "object",
         "description": "Bulletins that list one model year.",
@@ -6152,10 +6494,15 @@
       },
       "VehicleFluids": {
         "type": "object",
-        "description": "The fluids of one model year.",
+        "description": "The fluids of one model year.\n\n`engine_oil` is the grade EPA records. The five lists after\n`checked_as_of` are records a person read from the maker's own\ndocuments, each with its `source` and the day it was `checked`; they\nare empty for a model year nobody has recorded, and on a server that\ndoes not hold the records `checked_as_of` is `null`.",
         "required": [
           "vehicle",
           "engine_oil",
+          "engine_oil_checked",
+          "transmission",
+          "coolant",
+          "refrigerant",
+          "brake",
           "attribution"
         ],
         "properties": {
@@ -6164,6 +6511,7 @@
               "string",
               "null"
             ],
+            "description": "The day EPA's oil grades were current. `null` on a server without\nthem.",
             "example": "2026-09-29"
           },
           "attribution": {
@@ -6172,10 +6520,48 @@
               "type": "string"
             }
           },
+          "brake": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FluidRecord"
+            }
+          },
+          "checked_as_of": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The day of the newest hand-read record the server holds, for any\nvehicle. `null` on a server without them.",
+            "example": "2026-10-12"
+          },
+          "coolant": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FluidRecord"
+            }
+          },
           "engine_oil": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/EngineOil"
+            }
+          },
+          "engine_oil_checked": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FluidRecord"
+            }
+          },
+          "refrigerant": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FluidRecord"
+            }
+          },
+          "transmission": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FluidRecord"
             }
           },
           "vehicle": {
@@ -6366,6 +6752,41 @@
             "items": {
               "$ref": "#/components/schemas/Spec"
             }
+          },
+          "vehicle": {
+            "$ref": "#/components/schemas/RecallVehicle"
+          }
+        }
+      },
+      "VehicleTires": {
+        "type": "object",
+        "description": "Every original-equipment tire fitment on record for one model year.",
+        "required": [
+          "vehicle",
+          "fitments",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The day of the newest record the server holds, for any vehicle.",
+            "example": "2026-10-12"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fitments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TireFitment"
+            },
+            "description": "One entry per size, in the order of the record file. Empty for a\nmodel year nobody has recorded. A size is never picked for the\ncaller."
           },
           "vehicle": {
             "$ref": "#/components/schemas/RecallVehicle"
@@ -6643,6 +7064,11 @@
           "decode",
           "engine_settled",
           "engine_oil",
+          "engine_oil_checked",
+          "transmission",
+          "coolant",
+          "refrigerant",
+          "brake",
           "attribution",
           "warnings"
         ],
@@ -6657,6 +7083,24 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "brake": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FluidRecord"
+            }
+          },
+          "checked_as_of": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "coolant": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FluidRecord"
             }
           },
           "decode": {
@@ -6678,9 +7122,28 @@
               "$ref": "#/components/schemas/EngineOil"
             }
           },
+          "engine_oil_checked": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FluidRecord"
+            },
+            "description": "Narrowed as `engine_oil` is. A record for every engine is kept."
+          },
           "engine_settled": {
             "type": "boolean",
             "description": "Whether `engine_oil` is narrowed to `engine`."
+          },
+          "refrigerant": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FluidRecord"
+            }
+          },
+          "transmission": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FluidRecord"
+            }
           },
           "vehicle": {
             "oneOf": [
@@ -6898,6 +7361,56 @@
             "items": {
               "$ref": "#/components/schemas/Spec"
             }
+          },
+          "vehicle": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecallVehicle"
+              }
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            }
+          }
+        }
+      },
+      "VinTires": {
+        "type": "object",
+        "description": "The tire fitments of the model year a VIN decodes to.",
+        "required": [
+          "decode",
+          "fitments",
+          "attribution",
+          "warnings"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "decode": {
+            "$ref": "#/components/schemas/RecallDecode"
+          },
+          "fitments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TireFitment"
+            },
+            "description": "Every fitment of the model year. A VIN does not say which wheels a\nvehicle left the factory with, so the list is never narrowed."
           },
           "vehicle": {
             "oneOf": [

@@ -894,7 +894,10 @@ pub struct Overview {
     pub fuel: Option<serde_json::Value>,
     #[schema(value_type = Option<Object>)]
     pub fluids: Option<serde_json::Value>,
-    #[schema(value_type = Option<Object>)]
+    /// The original-equipment tire fitments a person recorded, as the
+    /// `fitments` of `/v1/vehicles/{id}/tires`: every one, never narrowed.
+    /// `null` on a server that holds none.
+    #[schema(value_type = Option<Vec<TireFitment>>)]
     pub tires: Option<serde_json::Value>,
     /// `null` when this server holds no recalls. A count of `0` with a
     /// day in `as_of` means none was found.
@@ -1416,13 +1419,68 @@ pub struct EngineOil {
     pub source: String,
 }
 
+/// One fluid of a model year that a person read from the maker's own
+/// document. Which fields are filled depends on the list it is in:
+/// `grade`, the capacity and `with_filter` are for engine oil, and the
+/// charge is for refrigerant.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct FluidRecord {
+    /// The catalog engine the record is for. `null` when it is for every
+    /// engine of the model year.
+    pub engine: Option<EngineRef>,
+    /// Which transmission or system the record is for, when it says.
+    pub applies_to: Option<String>,
+    /// Engine oil viscosity, as the document gives it.
+    pub grade: Option<String>,
+    /// The maker's specification, or the type of fluid.
+    pub specification: Option<String>,
+    pub capacity_l: Option<f64>,
+    /// US liquid quarts.
+    pub capacity_qt: Option<f64>,
+    /// The unit the document printed, `l` or `qt`. The other figure was
+    /// worked out from it.
+    pub capacity_written_in: Option<String>,
+    /// Whether the capacity includes the oil filter.
+    pub with_filter: Option<bool>,
+    /// Refrigerant charge, in grams.
+    pub charge_g: Option<i64>,
+    /// Refrigerant charge, in ounces.
+    pub charge_oz: Option<f64>,
+    /// `g`, `kg`, `oz` or `lb`.
+    pub charge_written_in: Option<String>,
+    /// `us` or `ca` when the document is for one country only.
+    pub market: Option<String>,
+    /// The document the record was read from.
+    pub source: String,
+    /// The day it was read.
+    #[schema(example = "2026-10-12")]
+    pub checked: String,
+}
+
 /// The fluids of one model year.
+///
+/// `engine_oil` is the grade EPA records. The five lists after
+/// `checked_as_of` are records a person read from the maker's own
+/// documents, each with its `source` and the day it was `checked`; they
+/// are empty for a model year nobody has recorded, and on a server that
+/// does not hold the records `checked_as_of` is `null`.
 #[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
 pub struct VehicleFluids {
     pub vehicle: RecallVehicle,
+    /// The day EPA's oil grades were current. `null` on a server without
+    /// them.
     #[schema(example = "2026-09-29")]
     pub as_of: Option<String>,
     pub engine_oil: Vec<EngineOil>,
+    /// The day of the newest hand-read record the server holds, for any
+    /// vehicle. `null` on a server without them.
+    #[schema(example = "2026-10-12")]
+    pub checked_as_of: Option<String>,
+    pub engine_oil_checked: Vec<FluidRecord>,
+    pub transmission: Vec<FluidRecord>,
+    pub coolant: Vec<FluidRecord>,
+    pub refrigerant: Vec<FluidRecord>,
+    pub brake: Vec<FluidRecord>,
     pub attribution: Vec<String>,
 }
 
@@ -1436,6 +1494,76 @@ pub struct VinFluids {
     pub engine_settled: bool,
     pub as_of: Option<String>,
     pub engine_oil: Vec<EngineOil>,
+    pub checked_as_of: Option<String>,
+    /// Narrowed as `engine_oil` is. A record for every engine is kept.
+    pub engine_oil_checked: Vec<FluidRecord>,
+    pub transmission: Vec<FluidRecord>,
+    pub coolant: Vec<FluidRecord>,
+    pub refrigerant: Vec<FluidRecord>,
+    pub brake: Vec<FluidRecord>,
+    pub attribution: Vec<String>,
+    pub warnings: Vec<Warning>,
+}
+
+/// A figure for the front and for the rear.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, ToSchema)]
+pub struct FrontRear {
+    pub front: Option<i64>,
+    pub rear: Option<i64>,
+}
+
+/// One tire size the maker fitted to a model year, read by a person from
+/// the door placard or the owner's manual.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct TireFitment {
+    /// The size as printed. The front size when `size_rear` is given.
+    pub size: String,
+    /// The rear size, only when it differs from the front.
+    pub size_rear: Option<String>,
+    /// The trims the document ties the size to, as it names them. Empty
+    /// when it names none.
+    pub trims: Vec<String>,
+    /// Cold pressure in kilopascals. `null` when none is recorded.
+    pub pressure_kpa: Option<FrontRear>,
+    /// The same in pounds per square inch.
+    pub pressure_psi: Option<FrontRear>,
+    /// The unit the document printed: `kpa`, `bar` or `psi`. The other
+    /// figures were worked out from it.
+    pub pressure_written_in: Option<String>,
+    pub lug_torque_nm: Option<i64>,
+    pub lug_torque_lbft: Option<i64>,
+    /// `nm` or `lbft`.
+    pub lug_torque_written_in: Option<String>,
+    pub bolt_pattern: Option<String>,
+    pub market: Option<String>,
+    pub source: String,
+    #[schema(example = "2026-10-12")]
+    pub checked: String,
+}
+
+/// Every original-equipment tire fitment on record for one model year.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct VehicleTires {
+    pub vehicle: RecallVehicle,
+    /// The day of the newest record the server holds, for any vehicle.
+    #[schema(example = "2026-10-12")]
+    pub as_of: Option<String>,
+    /// One entry per size, in the order of the record file. Empty for a
+    /// model year nobody has recorded. A size is never picked for the
+    /// caller.
+    pub fitments: Vec<TireFitment>,
+    pub attribution: Vec<String>,
+}
+
+/// The tire fitments of the model year a VIN decodes to.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct VinTires {
+    pub decode: RecallDecode,
+    pub vehicle: Option<RecallVehicle>,
+    pub as_of: Option<String>,
+    /// Every fitment of the model year. A VIN does not say which wheels a
+    /// vehicle left the factory with, so the list is never narrowed.
+    pub fitments: Vec<TireFitment>,
     pub attribution: Vec<String>,
     pub warnings: Vec<Warning>,
 }

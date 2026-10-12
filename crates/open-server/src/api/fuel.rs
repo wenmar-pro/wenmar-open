@@ -22,6 +22,7 @@ use wenmar_shopdata::fuel::{self as shopdata, FuelSource};
 use wenmar_vehicles::text::slug;
 use wenmar_vehicles::{CatalogError, Source, Value};
 
+use crate::api::hand::{Recorded, recorded_of};
 use crate::api::recalls::{ModelYear, NO_CATALOG_VEHICLE, model_year};
 use crate::api::types::{
     Consumption, EngineOil, EngineRef, FuelAsOf, FuelRating, Mpg, RecallDecode, RecallVehicle,
@@ -504,20 +505,96 @@ pub async fn oil_of(
         .collect())
 }
 
-fn fluids(shop: &ShopDb, vehicle: RecallVehicle, engine_oil: Vec<EngineOil>) -> VehicleFluids {
+/// The shop file as far as the fluids routes need it: EPA's oil grades,
+/// the hand-read records, or both. Fails as it always has when the
+/// server holds neither.
+pub struct FluidShops<'a> {
+    pub oil: Option<&'a ShopDb>,
+    pub recorded: Option<&'a ShopDb>,
+}
+
+pub fn fluid_shops(state: &AppState) -> Result<FluidShops<'_>, ApiError> {
+    let shops = FluidShops {
+        oil: state.dataset(Dataset::OilGrade).ok(),
+        recorded: state.dataset(Dataset::Fluids).ok(),
+    };
+    if shops.oil.is_none() && shops.recorded.is_none() {
+        return Err(ApiError::DatasetUnavailable(Dataset::OilGrade));
+    }
+    Ok(shops)
+}
+
+/// EPA's grades and the hand-read records of one model year.
+pub async fn fluids_of(
+    state: &AppState,
+    shops: &FluidShops<'_>,
+    found: &ModelYear,
+) -> Result<(Vec<EngineOil>, Recorded), ApiError> {
+    let engine_oil = match shops.oil {
+        Some(shop) => oil_of(state, shop, found).await?,
+        None => Vec::new(),
+    };
+    let recorded = match shops.recorded {
+        Some(shop) => recorded_of(state, shop, found).await?,
+        None => Recorded::default(),
+    };
+    Ok((engine_oil, recorded))
+}
+
+/// The credit lines of the datasets the fluids routes drew on.
+fn fluid_credit(shops: &FluidShops<'_>) -> Vec<String> {
+    let mut credit = Vec::new();
+    for (shop, dataset) in [
+        (shops.oil, Dataset::OilGrade),
+        (shops.recorded, Dataset::Fluids),
+    ] {
+        if let Some(shop) = shop {
+            for line in attribution(shop, &[dataset]) {
+                if !credit.contains(&line) {
+                    credit.push(line);
+                }
+            }
+        }
+    }
+    credit
+}
+
+/// The day EPA's grades were current, and the day of the newest record.
+fn fluid_days(shops: &FluidShops<'_>) -> (Option<String>, Option<String>) {
+    (
+        shops.oil.and_then(|shop| as_of_of(shop, Dataset::OilGrade)),
+        shops
+            .recorded
+            .and_then(|shop| as_of_of(shop, Dataset::Fluids)),
+    )
+}
+
+fn fluids(
+    shops: &FluidShops<'_>,
+    vehicle: RecallVehicle,
+    engine_oil: Vec<EngineOil>,
+    recorded: Recorded,
+) -> VehicleFluids {
+    let (as_of, checked_as_of) = fluid_days(shops);
     VehicleFluids {
         vehicle,
-        as_of: as_of_of(shop, Dataset::OilGrade),
+        as_of,
         engine_oil,
-        attribution: attribution(shop, &[Dataset::OilGrade]),
+        checked_as_of,
+        engine_oil_checked: recorded.engine_oil,
+        transmission: recorded.transmission,
+        coolant: recorded.coolant,
+        refrigerant: recorded.refrigerant,
+        brake: recorded.brake,
+        attribution: fluid_credit(shops),
     }
 }
 
 pub async fn vehicle_fluids_op(state: &AppState, id: String) -> Result<VehicleFluids, ApiError> {
-    let shop = state.dataset(Dataset::OilGrade)?;
+    let shops = fluid_shops(state)?;
     let found = found_by_id(state, id).await?;
-    let engine_oil = oil_of(state, shop, &found).await?;
-    Ok(fluids(shop, found.vehicle, engine_oil))
+    let (engine_oil, recorded) = fluids_of(state, &shops, &found).await?;
+    Ok(fluids(&shops, found.vehicle, engine_oil, recorded))
 }
 
 pub async fn vin_fluids_op(
@@ -525,27 +602,35 @@ pub async fn vin_fluids_op(
     vin: String,
     year: Option<u16>,
 ) -> Result<VinFluids, ApiError> {
-    let shop = state.dataset(Dataset::OilGrade)?;
+    let shops = fluid_shops(state)?;
     let decoded = decoded(state, vin, year).await?;
     let Some(found) = decoded.found else {
+        let (as_of, checked_as_of) = fluid_days(&shops);
         return Ok(VinFluids {
             decode: decoded.summary,
             vehicle: None,
             engine: None,
             engine_settled: false,
-            as_of: as_of_of(shop, Dataset::OilGrade),
+            as_of,
             engine_oil: Vec::new(),
-            attribution: attribution(shop, &[Dataset::OilGrade]),
+            checked_as_of,
+            engine_oil_checked: Vec::new(),
+            transmission: Vec::new(),
+            coolant: Vec::new(),
+            refrigerant: Vec::new(),
+            brake: Vec::new(),
+            attribution: fluid_credit(&shops),
             warnings: decoded.warnings,
         });
     };
-    let mut engine_oil = oil_of(state, shop, &found).await?;
+    let (mut engine_oil, mut recorded) = fluids_of(state, &shops, &found).await?;
     let engines = engines_of(state, &found).await?;
     let engine = settled(&engines, decoded.engine.as_deref()).map(|(_, engine)| engine);
     if let Some(engine) = &engine {
         engine_oil.retain(|oil| oil.engine.as_ref() == Some(engine));
+        recorded.narrow(engine);
     }
-    let answer = fluids(shop, found.vehicle, engine_oil);
+    let answer = fluids(&shops, found.vehicle, engine_oil, recorded);
     Ok(VinFluids {
         decode: decoded.summary,
         vehicle: Some(answer.vehicle),
@@ -553,6 +638,12 @@ pub async fn vin_fluids_op(
         engine,
         as_of: answer.as_of,
         engine_oil: answer.engine_oil,
+        checked_as_of: answer.checked_as_of,
+        engine_oil_checked: answer.engine_oil_checked,
+        transmission: answer.transmission,
+        coolant: answer.coolant,
+        refrigerant: answer.refrigerant,
+        brake: answer.brake,
         attribution: answer.attribution,
         warnings: decoded.warnings,
     })
@@ -608,12 +699,34 @@ pub async fn overview_blocks(
         }
         Err(_) => None,
     };
-    let fluids = match state.dataset(Dataset::OilGrade) {
-        Ok(shop) => {
-            let mut oil = oil_of(state, shop, found).await?;
+    let fluids = match fluid_shops(state) {
+        Ok(shops) => {
+            let (mut oil, mut recorded) = fluids_of(state, &shops, found).await?;
             oil.retain(|oil| is_engine(&oil.engine));
-            add(attribution(shop, &[Dataset::OilGrade]));
-            Some(json!({ "engine_oil": block(serde_json::to_value(&oil))? }))
+            // A record for every engine stays; one for another engine goes.
+            for list in [
+                &mut recorded.engine_oil,
+                &mut recorded.transmission,
+                &mut recorded.coolant,
+                &mut recorded.refrigerant,
+                &mut recorded.brake,
+            ] {
+                list.retain(|record| record.engine.is_none() || is_engine(&record.engine));
+            }
+            if let Some(shop) = shops.oil {
+                add(attribution(shop, &[Dataset::OilGrade]));
+            }
+            if let Some(shop) = shops.recorded {
+                add(attribution(shop, &[Dataset::Fluids]));
+            }
+            Some(json!({
+                "engine_oil": block(serde_json::to_value(&oil))?,
+                "engine_oil_checked": block(serde_json::to_value(&recorded.engine_oil))?,
+                "transmission": block(serde_json::to_value(&recorded.transmission))?,
+                "coolant": block(serde_json::to_value(&recorded.coolant))?,
+                "refrigerant": block(serde_json::to_value(&recorded.refrigerant))?,
+                "brake": block(serde_json::to_value(&recorded.brake))?,
+            }))
         }
         Err(_) => None,
     };
@@ -751,19 +864,23 @@ pub async fn vin_specs(
     Ok(Json(vin_specs_op(&state, vin, query.year).await?))
 }
 
-/// Fluids of a model year. Today: the engine oil viscosity grade.
+/// Fluids of a model year.
 ///
-/// The grade is the one the maker certified the engine with, as EPA's
-/// Fuel Economy Guide records it. It is not read from the owner's manual,
-/// and it gives no capacity and no specification. One entry per engine.
+/// `engine_oil` is the viscosity grade the maker certified the engine
+/// with, as EPA's Fuel Economy Guide records it: not a reading of the
+/// owner's manual, and with no capacity. `engine_oil_checked`,
+/// `transmission`, `coolant`, `refrigerant` and `brake` are records a
+/// person read from the maker's own documents, each with its `source`
+/// and the day it was `checked`. They are empty for a model year nobody
+/// has recorded: nothing is estimated.
 #[utoipa::path(
     get,
     path = "/vehicles/{id}/fluids",
     tag = "Vehicles",
     params(("id" = String, Path, description = "A vehicle id.", example = "2018_ford_f-150")),
     responses(
-        (status = 200, description = "The engine oil grades, by engine.", body = VehicleFluids),
-        (status = 404, description = "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no oil grades.", body = ErrorBody)
+        (status = 200, description = "The engine oil grades by engine, and the records read by hand.", body = VehicleFluids),
+        (status = 404, description = "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds neither oil grades nor hand-read fluids.", body = ErrorBody)
     )
 )]
 pub async fn vehicle_fluids(
@@ -779,7 +896,9 @@ pub async fn vehicle_fluids(
 /// Fluids for the vehicle a VIN decodes to.
 ///
 /// When the decode settles the engine, `engine_oil` holds the one entry
-/// of that engine, or none. Otherwise it holds every engine's.
+/// of that engine, or none, and each hand-read list holds the records of
+/// that engine and those recorded for every engine. Otherwise each holds
+/// every engine's.
 #[utoipa::path(
     get,
     path = "/vin/{vin}/fluids",
@@ -789,9 +908,9 @@ pub async fn vehicle_fluids(
         VinYearQuery
     ),
     responses(
-        (status = 200, description = "The engine oil grades.", body = VinFluids),
+        (status = 200, description = "The engine oil grades and the records read by hand.", body = VinFluids),
         (status = 400, description = "`invalid_vin`, or `validation_failed` for `year`.", body = ErrorBody),
-        (status = 404, description = "`not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no oil grades.", body = ErrorBody)
+        (status = 404, description = "`not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds neither oil grades nor hand-read fluids.", body = ErrorBody)
     )
 )]
 pub async fn vin_fluids(
