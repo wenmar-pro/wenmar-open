@@ -7,7 +7,7 @@ This is the procedure for putting Wenmar Open on the internet and keeping it up 
 - One container, `wenmar-open`, on the same server as `app.wenmarpro.com`.
 - The Kamal proxy already on that server terminates TLS and routes `open.wenmarpro.com` to it.
 - The container is limited to half a CPU and 256 MB of memory. It uses about 125 MB.
-- The image holds the server binary and one data file. There is no volume, no database to back up, and no secret.
+- The image holds the server binary and two data files: the data file (VIN patterns and the catalog) and the shop file (recalls) that was built against it. There is no volume, no database to back up, and no secret.
 
 ## Before the first deploy
 
@@ -42,22 +42,36 @@ Do these once.
 
 4. **The data version.** Set `builder.args.DATA_VERSION` in `config/deploy.yml` to that version and commit the change.
 
-5. **Tools.** Docker must be running on the machine you deploy from. Kamal is not one of this repository's tools; use the one you use for `wenmar`. The registry in `config/deploy.yml` is the same one `wenmar` uses.
+5. **A shop file.** The image is also built around `data/build/shop/wenmar-open-shop-<version>.sqlite3`, and it must be one that was built against the data file of step 3: the server refuses any other pair.
+
+   ```bash
+   bin/shop-pull
+   git diff config/deploy.yml
+   ```
+
+   `bin/shop-pull` reads `DATA_VERSION` from `config/deploy.yml`, downloads the newest `shop-YYYY.MM.DD` release whose manifest names that data version, checks it against the manifest's checksum, and writes its version on the `SHOP_VERSION` line. Commit that one-line change. If it says no release pairs with the data version, run the "Shop data release" workflow from `main` and try again when it is done.
+
+6. **Tools.** Docker must be running on the machine you deploy from. Kamal is not one of this repository's tools; use the one you use for `wenmar`. The registry in `config/deploy.yml` is the same one `wenmar` uses.
 
 ## Try the image first
 
 ```bash
-docker build --build-arg DATA_VERSION=2026.09 -t wenmar-open:local .
+docker build --build-arg DATA_VERSION=2026.09 --build-arg SHOP_VERSION=2026.10.12 -t wenmar-open:local .
 docker run --rm -p 3999:3000 --cpus 0.5 --memory 256m wenmar-open:local
 ```
 
-The build ends by opening the data file; it fails if the file is missing or was built for another schema version. In a second terminal:
+The build ends by opening both files; it fails if either is missing or was built for another schema version, or if the shop file was matched against another data file. In a second terminal:
 
 ```bash
 curl -s http://localhost:3999/health
 curl -s http://localhost:3999/v1/vin/1HGCM82633A004352
+curl -s http://localhost:3999/v1/meta
+for i in $(seq 1 20); do curl -s -o /dev/null http://localhost:3999/v1/vehicles/2019_honda_civic/recalls; done
+curl -s -o /dev/null -w '%{http_code}\n' 'http://localhost:3999/v1/recalls?q=air+bag'
 docker stats --no-stream
 ```
+
+`/v1/meta` lists `recalls_us` and `recalls_ca` under `datasets`. `docker stats` after those requests is the first measurement of the server's memory with a shop file: before it had one it used about 125 MB of the 256 MB it is allowed. If it shows more than 200 MB, set `OPEN_CONNECTIONS: "2"` under `env.clear` in `config/deploy.yml` before deploying, and write the figure down here.
 
 Stop it with Ctrl-C.
 
@@ -93,6 +107,23 @@ curl -s https://open.wenmarpro.com/sitemap.xml | head -5
 ```
 
 The home page answers `200`; the result page carries `x-robots-tag: noindex` and `cache-control: private, max-age=3600`; `robots.txt` names `https://open.wenmarpro.com/sitemap.xml`; and the sitemap's addresses start with `https://open.wenmarpro.com/`. If they start with anything else, `OPEN_BASE_URL` is wrong in `config/deploy.yml`.
+
+Recalls:
+
+```bash
+curl -s https://open.wenmarpro.com/v1/meta
+curl -s https://open.wenmarpro.com/v1/vehicles/2019_honda_civic/recalls | head -c 400
+curl -s -o /dev/null -w '%{http_code}\n' https://open.wenmarpro.com/v1/recalls/nhtsa/19V888000
+curl -s -o /dev/null -w '%{http_code}\n' https://open.wenmarpro.com/v1/vin/1HGCM82633A004352/recalls
+curl -s -o /dev/null -w '%{http_code}\n' https://open.wenmarpro.com/recalls
+curl -s https://open.wenmarpro.com/makes/honda/civic/2019/recalls | grep -c 'may apply'
+curl -s https://open.wenmarpro.com/recalls/nhtsa/19V888000.md | head -n 5
+curl -s https://open.wenmarpro.com/llms.txt | grep -c '/recalls'
+```
+
+`/v1/meta` lists `recalls_us` and `recalls_ca` under `datasets`, each with an `as_of` date no more than a few days before the shop file's version. The second answer starts `{"vehicle":{"id":"2019_honda_civic"` and has `"may_apply":true` and a `lookup` with NHTSA's and Transport Canada's addresses. The three status codes are `200`. The model-year page says "may apply" at least once, the campaign's Markdown starts with its heading, and `/llms.txt` names the recall routes (a count of at least 5).
+
+If `/v1/meta` shows `"datasets":{}`, the server has no shop file: `OPEN_SHOP_DATA` is missing from `config/deploy.yml`. If a recall route answers `404` with `dataset_unavailable`, the same.
 
 What crawlers, agents and a shared link are given:
 
@@ -184,6 +215,7 @@ Tests check what the pages contain. Only looking checks how they look. Before th
 - **The refrigerant chart.** `/tools/refrigerant-pt` shows a heading for each refrigerant. Under one that is checked there is a table of four columns, which at 320 pixels wide scrolls sideways inside its own box, then the day it was checked and a link to each source. Under one that is not there is one amber line, "Not yet checked", and no figure. Print preview shows the tables and no button or navigation.
 - **The tire size calculator.** At 320 pixels wide, `/tools/tire-size` shows two boxes, one to a row, each as wide as the page's column; the first result table has three columns and may scroll sideways inside its own box, and nothing else does. A phone shows its letter keyboard for both boxes. Print preview shows the form and both tables, and no button or navigation.
 - **A warning.** `/vin/1HGCM82633A004353` (a wrong check digit) shows the decode with one amber line above the tables, which says what position 9 should be and links to the guide.
+- **Recalls.** With a shop file in `data/build/shop/` (`mise run serve` picks up the newest), `/makes/honda/civic/2019/recalls` at 320 pixels wide shows a table for each country that scrolls sideways inside its own box, the day each country's data was current, and the two official lookups; `/recalls/nhtsa/19V888000` shows the campaign and the vehicles it lists; `/vin/1HGCM82633A004352` has a section "Recalls that may apply". None of them says a recall applies to the vehicle.
 - **A long name.** The make and the trim with the longest names wrap inside the page at 320 pixels. Find them with:
 
   ```bash
@@ -194,22 +226,34 @@ Tests check what the pages contain. Only looking checks how they look. Before th
 - **A shared link.** `/assets/og.png` is the wordmark on off-white with one line under it.
 - **A screen reader,** if one is at hand: the page title is read first, the wordmark is read as "Wenmar Open, home", tables are announced with their captions, the VIN field is announced as "VIN", and "Copied" is spoken after Copy is pressed.
 
+## A new shop file
+
+Recalls change every day, and a new shop file is released every Monday. To put the newest on the site, from a clean checkout of `main`:
+
+1. `bin/shop-pull`. It downloads the newest shop release that pairs with `DATA_VERSION` and writes its version on the `SHOP_VERSION` line of `config/deploy.yml`. If it says the file is already here and the line already names it, there is nothing new to deploy.
+2. `git commit -am "deploy: shop data <version>"`, and push. Deploy from a clean checkout.
+3. `kamal deploy`.
+4. `curl -s https://open.wenmarpro.com/v1/meta` shows the new `as_of` dates under `datasets`.
+
+Skipping a week does no harm: the site says how old its recall data is, on every page and in every answer.
+
 ## A new data version
 
-Each month, or when a data release is published:
+Each month, or when a data release is published. **The data file and the shop file change in the same deploy.** A shop file holds the ids of one data file's catalog, and the server does not start over a pair that disagree; nor does the image build.
 
-1. Put the new data file in `data/build/` (step 3 above).
-2. `DATA_VERSION` is already set: the release writes the version of the `data-YYYY.MM` release into `config/deploy.yml` and commits it to `main` (see "The monthly release" in `docs/releasing.md`). Check `git status` is clean before deploying, so the image is built around the data release that exists. Change the line by hand only when deploying a data release that no release has cut yet.
-3. `kamal deploy`.
-4. `curl -s https://open.wenmarpro.com/v1/meta` shows the new version.
+1. Put the new data file in `data/build/` (step 3 of "Before the first deploy").
+2. `DATA_VERSION` is already set: the release writes the version of the `data-YYYY.MM` release into `config/deploy.yml` and commits it to `main` (see "The monthly release" in `docs/releasing.md`). Change the line by hand only when deploying a data release that no release has cut yet.
+3. `bin/shop-pull`, and commit the `SHOP_VERSION` line it writes. The "Shop data release" workflow runs by itself when the data release finishes, and takes about half an hour; until it is done, `bin/shop-pull` says that no release pairs with the new data version. Wait for it. Do not deploy the new data file with the old shop file: the image build stops at `open-server check` with "shop file was matched against data version …".
+4. Check `git status` is clean, then `kamal deploy`.
+5. `curl -s https://open.wenmarpro.com/v1/meta` shows the new version, and the datasets.
 
-Cached answers carry the old version in their `ETag`, so clients fetch fresh ones on their own.
+Cached answers carry the old version in their `ETag`, so clients fetch fresh ones on their own. The `ETag` carries the shop file's version too, so a new shop file alone has the same effect.
 
 The same holds for a deploy that changes the server and not the data. The `ETag` of every page and answer, and the address of the stylesheet and the script (`?v=`), carry a build id that is worked out from the templates, the assets and the code when the image is built. A reworded page or a fixed stylesheet therefore reaches visitors who hold the old one without the crate's version number being changed. Building the same source again gives the same id, so a redeploy that changes nothing keeps caches warm.
 
 ## If something goes wrong
 
-- **The new container does not become healthy.** Kamal leaves the previous one serving. `kamal app logs` shows why; the usual cause is a data file of the wrong schema version, which the image build should already have refused.
+- **The new container does not become healthy.** Kamal leaves the previous one serving. `kamal app logs` shows why; the usual cause is a data file of the wrong schema version, or a shop file that was matched against another data file, either of which the image build should already have refused.
 - **A bad release is live.** `kamal rollback <version>` returns to an earlier image; `kamal app containers` lists the versions on the server.
 - **The container is killed for memory.** Set `OPEN_CONNECTIONS: "2"` under `env.clear` in `config/deploy.yml` and deploy. Each slot keeps its own copy of the list of makes, and a slot holds two connections.
 - **A flood of traffic.** The container's limits protect the product, but the traffic still arrives at the product's address. Put a CDN in front of `open.wenmarpro.com`, or move the service to its own server. Neither needs a code change; with a CDN in front, set `OPEN_TRUSTED_PROXIES` to `2`.

@@ -10,6 +10,8 @@ It starts when a tag `v<version>` is pushed to a commit on `main`, and is run by
 
 The data file is released separately, every month, by `.github/workflows/data-release.yml`, as `data-YYYY.MM`. The same run publishes the file to npm as `wenmar-open-data`. A release of the code does not rebuild the data, and a data release does not publish code.
 
+The shop file (recalls, and the datasets that follow) is released separately too, every Monday and after each data release, by `.github/workflows/shop-data-release.yml`, as `shop-YYYY.MM.DD`. The same run publishes it to npm as `wenmar-open-data-shop`. See "The shop data release" below.
+
 ## The monthly release
 
 There are two packages to publish and the order matters: `wenmar-open-data` has to be on npm before
@@ -108,12 +110,44 @@ git diff
 
 With neither `--patch` nor `--minor` it decides minor or patch from the changelog, following the rule in "Versions". Pass one of those to force it.
 
+## The shop data release
+
+A shop file holds the catalog ids of one data file, so it is always built against a released data file. `shop-data-release.yml` does this, on `main`, with nobody watching:
+
+1. finds the newest `data-YYYY.MM` release and downloads its file, checking the checksum;
+2. downloads every source (`open-data fetch nhtsa-recalls`, `open-data fetch tc-recalls`);
+3. builds the shop file with `open-data build-shop`, named for the day: `2026.10.12`;
+4. runs `open-data coverage`, which fails the run when less of a dataset matched the catalog than `data/coverage.yaml` asks;
+5. writes the manifest (`scripts/shop-manifest.mjs`) and compares its datasets with the previous release's (`scripts/shop-datasets-check.mjs`): a dataset that is missing, empty, or under half its former size fails the run;
+6. creates the release `shop-2026.10.12` with three files: `wenmar-open-shop-2026.10.12.sqlite3.gz`, its `.sha256`, and the manifest `wenmar-open-shop-2026.10.12.json`;
+7. in a second job, assembles `wenmar-open-data-shop` from the released file and publishes it, unless that version is on npm already.
+
+It runs every Monday at 09:00 UTC. It also runs whenever "Data release" finishes, because a new data file needs a shop file built against it: until that run is done, `wenmar-open data pull --shop` and `bin/shop-pull` find no shop release for the new data version and say so. A second release on one day is `2026.10.12.1`.
+
+**When a run fails, nothing is published,** and last week's release stays the newest. Read the failed step:
+
+- *Check how much matched the catalog.* The lines starting `below:` name the dataset and the share. The report above them lists the commonest unmatched names. Either add them to `data/shop/models.yaml`, or, if the drop is real and accepted, lower the figure in `data/coverage.yaml` in a commit that says why. Then run the workflow again from `main`.
+- *No dataset of the previous release is missing.* A source answered with nothing, or with part of its file, or a dataset was dropped from the build. If it was dropped on purpose, run the workflow by hand with "accept_dataset_changes" ticked; the release notes then say so. Otherwise wait for the source and run it again.
+- *Fetch every source.* A source could not be downloaded. Run it again later; nothing was released.
+- *The `npm` job.* The GitHub release exists and is fine. Use "Re-run failed jobs", or run the workflow again: the `release` job finds the release and does nothing, and the `npm` job publishes the released file.
+
+To rebuild a day's file, run the workflow by hand with `data_version` set to `2026.10.12.1`. To see what a release holds without downloading it:
+
+```bash
+gh release download shop-2026.10.12 --pattern '*.json' --output - | head -n 20
+```
+
+The scripts are tested by `node --test scripts/shop-release.test.mjs`, which `mise run js` and CI run. The workflow itself can only be tried on GitHub.
+
+`wenmar-shopdata`, the crate that reads a shop file, is not published to crates.io: its reader grows with every dataset, and nothing outside this repository reads a shop file from Rust yet. `scripts/release-check.sh` refuses a release in which it has lost `publish = false`.
+
 ## Versions
 
 - Everything has the same version. It is written in `Cargo.toml` (under `[workspace.package]`, and in the three lines for `wenmar-vin`, `wenmar-vehicles` and `wenmar-open-db` under `[workspace.dependencies]`), in `clients/js/package.json` and in `server.json`.
 - Until 1.0: a change an application has to react to is a new minor version (`0.1.3` to `0.2.0`). Anything else is a patch (`0.1.3` to `0.1.4`).
 - The data file has its own version, `YYYY.MM`, or `YYYY.MM.N` for a rebuild. What ties code to data is the data file's schema version. A version of the code reads data files of one schema version; when that changes, it is a new minor version and the changelog says that older data files must be replaced.
 - The npm package `wenmar-open-data` is versioned `<schema>.<YYYYMM>.<rebuild>`: data `2026.09` at schema version 3 is `3.202609.0`. `wenmar-open` names the schema version it reads as an optional peer, `"wenmar-open-data": "^3.0.0"` in `clients/js/package.json`. When the schema version changes, change that range in the same commit; `npm test` in `clients/js` fails until it matches the decoder.
+- The shop file has its own version, the day it was built: `YYYY.MM.DD`, or `YYYY.MM.DD.N` for a rebuild. Its own schema version starts at `1` and changes only when an existing table changes shape; a new dataset is a new entry in its `datasets` value, not a new schema version. The npm package `wenmar-open-data-shop` is versioned `<schema>.<YYYYMMDD>.<rebuild>`: shop data `2026.10.12` at schema version 1 is `1.20261012.0`. Each version names, as a peer dependency, the one version of `wenmar-open-data` it was built against.
 - A schema change needs the code released first, or on the same day. A data release built from `main` after the change is published as the new major version, which no released `wenmar-open` can read until then. People on the old schema keep the last file of that schema; nothing breaks for them, and they get no newer data until they upgrade.
 - The API is additive only. Adding a field or an endpoint is a patch or a minor version, never a reason for a `/v2`.
 
@@ -217,6 +251,34 @@ To check a data package after a run:
 npm view wenmar-open-data version dist.unpackedSize
 ```
 
+### npm, for the shop data package
+
+`wenmar-open-data-shop` is published by the shop data release, so it trusts a third workflow in a third environment.
+
+1. **GitHub: Settings, Environments, New environment.** Name it `shop-data-release`. Under "Deployment branches and tags" choose "Selected branches and tags" and add the branch `main`. Do not add a required reviewer unless you want to approve a publish every week.
+2. **The name must exist on npm first.** A trusted publisher attaches to a package, and this one has never been published. Publish a placeholder once, by hand, signed in as the owner:
+
+   ```bash
+   mkdir /tmp/wenmar-open-data-shop && cd /tmp/wenmar-open-data-shop
+   printf '{ "name": "wenmar-open-data-shop", "version": "0.0.1", "description": "Placeholder. The shop data arrives with the first shop data release.", "license": "MIT" }\n' > package.json
+   npm publish --access public
+   ```
+
+3. **npmjs.com**, as the owner: open the package, **Settings**, **Trusted Publisher**, **GitHub Actions**:
+
+   | Field | Value |
+   |---|---|
+   | Organization or user | `wenmar-pro` |
+   | Repository | `wenmar-open` |
+   | Workflow filename | `shop-data-release.yml` |
+   | Environment name | `shop-data-release` |
+   | Allowed actions | tick `npm publish` |
+
+4. On the same page, under **Publishing access**, choose **Require two-factor authentication and disallow tokens**.
+5. Run "Shop data release" from `main` with "Run workflow", and watch both jobs. The first run has no previous release to compare with, which is not a failure.
+
+The package is about 17 MB to upload and 77 MB unpacked with recalls alone.
+
 ## Making a release
 
 1. **On `dev`, set the version.** Replace `0.1.0` with the new version in the four lines of `Cargo.toml`, then:
@@ -302,10 +364,12 @@ If a `binaries` job fails, the version is already published and the release exis
 - **`verify` failed.** Nothing was published. Fix the cause on `dev`, merge, delete the tag (`git push origin :refs/tags/v0.2.0`, then `git tag -d v0.2.0`) and tag the new commit. Deleting a tag is safe only while nothing has been published for it.
 - **A later job failed.** Something may be published. Do not delete the tag. Fix what is outside the repository (a registry setting, an outage) and use "Re-run failed jobs". Each step skips what is already published.
 - **The data release's `npm` job failed.** The GitHub release exists and is fine. Fix the cause and use "Re-run failed jobs", or run the workflow again from `main`: the `release` job finds the release and does nothing, and the `npm` job publishes the released file. A data package that is wrong cannot be replaced: publish a rebuild (`data_version` `2026.09.1` in "Run workflow", which becomes `3.202609.1`) and `npm deprecate wenmar-open-data@3.202609.0 "use 3.202609.1"`.
+- **The shop data release failed.** See "The shop data release": nothing is published by a failed `release` job, and a failed `npm` job is run again. A shop data package that is wrong cannot be replaced: publish a rebuild (`data_version` `2026.10.12.1` in "Run workflow", which becomes `1.20261012.1`) and `npm deprecate wenmar-open-data-shop@1.20261012.0 "use 1.20261012.1"`.
 - **A published version is wrong.** A version on crates.io or npm cannot be replaced. Release a new patch version, then mark the bad one: `cargo yank --version 0.2.0 wenmar-vin` (and the other two crates), and `npm deprecate wenmar-open@0.2.0 "use 0.2.1"`. Both need you to be signed in.
 
 ## What a release does not do
 
 - It does not deploy `open.wenmarpro.com`. That is `docs/deploy.md`.
 - It does not build or publish a data file or `wenmar-open-data`. The data release does.
+- It does not build or publish a shop file or `wenmar-open-data-shop`, and it does not change `SHOP_VERSION` in `config/deploy.yml`. The shop data release does the first; `bin/shop-pull` does the second, before a deploy.
 - It does not deploy. The release writes the data version into `config/deploy.yml` and commits it to `main`; `kamal deploy` stays a command a person runs.
