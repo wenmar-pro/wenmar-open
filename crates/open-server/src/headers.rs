@@ -17,14 +17,19 @@ use crate::state::AppState;
 pub const X_DATA_VERSION: &str = "x-data-version";
 pub const CACHE_FOR_A_DAY: &str = "public, max-age=86400";
 
-/// The `ETag` of every cacheable response of this data file and this build.
+/// The `ETag` of every cacheable response of this data and this build.
 ///
 /// The version number alone does not name a build: a page is reworded or
-/// the stylesheet fixed without it changing. [`crate::BUILD_ID`] does.
-pub fn etag(meta: &Meta) -> String {
+/// the stylesheet fixed without it changing. [`crate::BUILD_ID`] does. The
+/// shop file changes more often than the data file, so when there is one
+/// its version is part of the tag.
+pub fn etag(meta: &Meta, shop_data_version: Option<&str>) -> String {
+    let data = match shop_data_version {
+        Some(shop) => format!("{}+{shop}", meta.data_version),
+        None => meta.data_version.clone(),
+    };
     format!(
-        "W/\"{}-{}-{}\"",
-        meta.data_version,
+        "W/\"{data}-{}-{}\"",
         env!("CARGO_PKG_VERSION"),
         crate::BUILD_ID
     )
@@ -99,7 +104,7 @@ mod tests {
             built_at: String::new(),
         };
         assert_eq!(
-            etag(&meta),
+            etag(&meta, None),
             format!(
                 "W/\"2026.09-{}-{}\"",
                 env!("CARGO_PKG_VERSION"),
@@ -109,8 +114,16 @@ mod tests {
         // The build is named by more than the version number, which stays
         // the same from one deploy to the next.
         assert_ne!(
-            etag(&meta),
+            etag(&meta, None),
             format!("W/\"2026.09-{}\"", env!("CARGO_PKG_VERSION"))
+        );
+        assert_eq!(
+            etag(&meta, Some("2026.10.12")),
+            format!(
+                "W/\"2026.09+2026.10.12-{}-{}\"",
+                env!("CARGO_PKG_VERSION"),
+                crate::BUILD_ID
+            )
         );
     }
 

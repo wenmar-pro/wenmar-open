@@ -31,10 +31,12 @@ async fn run() -> Result<(), String> {
     let config = Config::from_env()?;
     let port = config.port;
     let data = config.data.clone();
+    let shop_data = config.shop_data.clone();
     let state = AppState::open(config)
         .await
         .map_err(|error| error.to_string())?;
     let meta = state.db().meta().clone();
+    let shop = state.shop().map(|shop| shop.meta().clone());
 
     // `open-server check` opens the data file and stops. The image build
     // runs it, so an image with a missing or outdated data file is never made.
@@ -45,6 +47,14 @@ async fn run() -> Result<(), String> {
             meta.data_version,
             meta.vpic_release
         );
+        if let (Some(path), Some(shop)) = (&shop_data, &shop) {
+            println!(
+                "shop file {} is version {} (matched against data {})",
+                path.display(),
+                shop.data_version,
+                shop.catalog_data_version
+            );
+        }
         return Ok(());
     }
 
@@ -56,6 +66,10 @@ async fn run() -> Result<(), String> {
         "serving data version {} on http://{address}",
         meta.data_version
     );
+    match &shop {
+        Some(shop) => tracing::info!("serving shop data version {}", shop.data_version),
+        None => tracing::info!("no shop file: OPEN_SHOP_DATA is not set"),
+    }
     let app = open_server::app(state);
     open_server::serve::serve(listener, app, shutdown(), Limits::default()).await;
     Ok(())

@@ -11,6 +11,7 @@ pub mod log;
 pub mod mcp;
 pub mod search_index;
 pub mod serve;
+pub mod shop;
 pub mod site;
 pub mod state;
 pub mod vin_rows;

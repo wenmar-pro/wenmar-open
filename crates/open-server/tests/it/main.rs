@@ -18,6 +18,7 @@ mod search;
 mod search_runtime;
 mod search_speed;
 mod serve;
+mod shop;
 mod site;
 mod site_assets;
 mod site_canada_invoice_tax;

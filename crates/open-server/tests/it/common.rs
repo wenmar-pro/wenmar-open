@@ -46,6 +46,11 @@ impl Fixture {
         self.directory.path().join("data.sqlite3")
     }
 
+    /// Where [`add_shop_file`] puts the shop file.
+    pub fn shop_path(&self) -> PathBuf {
+        self.directory.path().join("shop.sqlite3")
+    }
+
     pub fn directory(&self) -> &Path {
         self.directory.path()
     }
@@ -297,6 +302,40 @@ pub fn other_sqlite_file() -> Fixture {
     fixture
 }
 
+/// The `datasets` value of the fixture shop file: US and Canadian recalls.
+pub const SHOP_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":2,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-10","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."}}"#;
+
+/// Writes a shop file beside the fixture's data file. `rows` is SQL run
+/// after `meta` is filled: a dataset's tables and their rows.
+pub fn add_shop_file(
+    fixture: &Fixture,
+    schema_version: &str,
+    catalog_data_version: &str,
+    datasets: &str,
+    rows: &str,
+) {
+    let connection = Connection::open(fixture.shop_path()).unwrap();
+    connection
+        .execute_batch(wenmar_shopdata::schema::META)
+        .unwrap();
+    for (key, value) in [
+        ("schema_version", schema_version),
+        ("data_version", "2026.10.12"),
+        ("catalog_data_version", catalog_data_version),
+        ("built_at", "2026-10-12 06:00:00"),
+        ("datasets", datasets),
+    ] {
+        connection
+            .execute(
+                "INSERT INTO meta (key, value) VALUES (?1, ?2)",
+                [key, value],
+            )
+            .unwrap();
+    }
+    connection.execute_batch(rows).unwrap();
+    connection.close().unwrap();
+}
+
 /// The names of the files beside the data file.
 pub fn files(fixture: &Fixture) -> Vec<String> {
     let mut names: Vec<String> = std::fs::read_dir(fixture.directory())
@@ -339,6 +378,14 @@ pub fn config(fixture: &Fixture) -> Config {
     }
 }
 
+/// [`config`] with the fixture's shop file named.
+pub fn shop_config(fixture: &Fixture) -> Config {
+    Config {
+        shop_data: Some(fixture.shop_path()),
+        ..config(fixture)
+    }
+}
+
 async fn app_over(fixture: Fixture, change: impl FnOnce(&mut Config)) -> TestApp {
     let mut config = config(&fixture);
     change(&mut config);
@@ -366,6 +413,21 @@ pub async fn app_with_rows(rows: &str) -> TestApp {
 
 pub async fn app() -> TestApp {
     app_with(|_| {}).await
+}
+
+/// The application over the small data file and a shop file built against
+/// it, holding `datasets` and whatever `rows` creates.
+pub async fn app_with_shop(datasets: &str, rows: &str) -> TestApp {
+    let fixture = data_file();
+    add_shop_file(
+        &fixture,
+        wenmar_shopdata::schema::SCHEMA_VERSION,
+        "2026.09",
+        datasets,
+        rows,
+    );
+    let shop = fixture.shop_path();
+    app_over(fixture, |config| config.shop_data = Some(shop)).await
 }
 
 impl TestApp {
