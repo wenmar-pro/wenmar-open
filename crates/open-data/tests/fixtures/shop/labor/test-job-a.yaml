@@ -1,0 +1,49 @@
+# Test fixture. The job, the vehicle and every figure are made up; the
+# hours are impossible on purpose.
+job: test-job-a
+estimates:
+  - scope: class
+    class: compact-car
+    low: "97.5"
+    typical: "98"
+    high: "99.25"
+    basis: expert
+    notes: " Made-up  note. "
+    author: test-author
+    reviewer: test-reviewer
+    updated: 2026-10-10
+  - scope: model
+    make: testmake
+    model: sampler
+    low: "87"
+    typical: "88"
+    high: "89"
+    basis: expert
+    author: test-author
+    reviewer: test-reviewer
+    updated: 2026-10-10
+  - scope: generation
+    make: testmake
+    model: sampler
+    year_from: 2001
+    year_to: 2001
+    low: "77"
+    typical: "78"
+    high: "79"
+    basis: expert
+    author: test-author
+    reviewer: test-reviewer
+    updated: 2026-10-11
+  - scope: engine
+    make: testmake
+    model: sampler
+    year_from: 2001
+    year_to: 2002
+    engine: 9-9l-test
+    low: "67"
+    typical: "68"
+    high: "69"
+    basis: expert
+    author: test-author
+    reviewer: test-reviewer
+    updated: 2026-10-12

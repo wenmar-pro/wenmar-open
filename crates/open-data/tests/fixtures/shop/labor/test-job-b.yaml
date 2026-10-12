@@ -1,0 +1,13 @@
+# Test fixture. The job and the figure are made up; the hours are
+# impossible on purpose.
+job: test-job-b
+estimates:
+  - scope: class
+    class: small-pickup
+    low: "57"
+    typical: "58"
+    high: "59"
+    basis: expert
+    author: test-author
+    reviewer: other-reviewer
+    updated: 2026-10-12

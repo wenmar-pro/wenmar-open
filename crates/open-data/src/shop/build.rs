@@ -214,6 +214,9 @@ fn shape_all(context: &mut ShapeContext<'_>, inputs: &ShopInputs) -> Result<()> 
     crate::shop::codes::shape(context)?;
     // So is the job list.
     crate::shop::jobs::shape(context)?;
+    // And the labour estimates, which name jobs and read the fuel tables
+    // for each model year's class.
+    crate::shop::labor::shape(context)?;
     after_sources(context)
 }
 
@@ -229,7 +232,9 @@ pub fn after_sources(context: &mut ShapeContext<'_>) -> Result<()> {
     let codes = datasets.contains(Dataset::Codes);
     // A job names its components and its system too.
     let jobs = datasets.contains(Dataset::Jobs);
-    if recalls || bulletins || complaints || codes || jobs {
+    // Labour estimates name a job, and so need its components too.
+    let labor = datasets.contains(Dataset::Labor);
+    if recalls || bulletins || complaints || codes || jobs || labor {
         crate::shop::components::shape(context)?;
     }
     if bulletins {

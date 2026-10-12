@@ -1,0 +1,500 @@
+//! `data/labor/`: Wenmar's own estimates of the hours a job takes, built
+//! into `labor_estimate`, and the class of each model year, built into
+//! `vehicle_class` from EPA's size class.
+
+use std::collections::{BTreeMap, HashMap, HashSet};
+use std::path::Path;
+
+use anyhow::{Context, Result, bail};
+use rusqlite::{Connection, OptionalExtension, params};
+use serde::Deserialize;
+use wenmar_shopdata::labor::{ATTRIBUTION, CLASSES, class_name, class_of_epa};
+use wenmar_shopdata::{Dataset, DatasetEntry, licence, schema};
+use wenmar_vehicles::text::{is_slug, slug, squeeze};
+
+use crate::shop::build::ShapeContext;
+use crate::shop::codes::{files, is_day, is_github_name};
+use crate::shop::components::Components;
+use crate::shop::jobs::{Jobs, Status};
+
+/// The most hours a figure may be, in hundredths: 999.99.
+pub const MOST_HUNDREDTHS: i64 = 99_999;
+/// The longest a note may be, in characters.
+pub const LONGEST_NOTE: usize = 300;
+
+/// Hours written as `1`, `1.5` or `0.25`, as whole hundredths. `None` for
+/// anything else: no digits before the point, more than two after it, a
+/// sign, zero, or more than [`MOST_HUNDREDTHS`].
+pub fn hundredths(text: &str) -> Option<i64> {
+    let (whole, part) = match text.split_once('.') {
+        Some((whole, part)) => (whole, part),
+        None => (text, "0"),
+    };
+    let digits = |text: &str| !text.is_empty() && text.bytes().all(|byte| byte.is_ascii_digit());
+    if !digits(whole) || !digits(part) || whole.len() > 3 || part.len() > 2 {
+        return None;
+    }
+    let part = if part.len() == 1 {
+        part.parse::<i64>().ok()? * 10
+    } else {
+        part.parse::<i64>().ok()?
+    };
+    let total = whole.parse::<i64>().ok()? * 100 + part;
+    (1..=MOST_HUNDREDTHS).contains(&total).then_some(total)
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Written {
+    scope: String,
+    #[serde(default)]
+    class: Option<String>,
+    #[serde(default)]
+    make: Option<String>,
+    #[serde(default)]
+    model: Option<String>,
+    #[serde(default)]
+    year_from: Option<u16>,
+    #[serde(default)]
+    year_to: Option<u16>,
+    #[serde(default)]
+    engine: Option<String>,
+    low: String,
+    typical: String,
+    high: String,
+    basis: String,
+    #[serde(default)]
+    notes: Option<String>,
+    author: String,
+    reviewer: String,
+    updated: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LaborFile {
+    job: String,
+    estimates: Vec<Written>,
+}
+
+/// One estimate of a file, checked for shape. The vehicle is still named
+/// by id forms: the catalog has not been asked.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EstimateRecord {
+    pub job: String,
+    /// `class`, `model`, `generation` or `engine`.
+    pub scope: String,
+    pub class: Option<String>,
+    pub make: Option<String>,
+    pub model: Option<String>,
+    pub year_from: Option<u16>,
+    pub year_to: Option<u16>,
+    pub engine: Option<String>,
+    /// Whole hundredths of an hour.
+    pub low: i64,
+    pub typical: i64,
+    pub high: i64,
+    pub notes: Option<String>,
+    pub author: String,
+    pub reviewer: String,
+    pub updated: String,
+}
+
+/// Reads the text of one file, `<name>.yaml`, and checks everything that
+/// can be checked without the job list and the catalog.
+pub fn parse(name: &str, yaml: &str) -> Result<Vec<EstimateRecord>> {
+    let file = format!("{name}.yaml");
+    let parsed: LaborFile =
+        serde_saphyr::from_str(yaml).with_context(|| format!("reading data/labor/{file}"))?;
+    if parsed.job != name {
+        bail!(
+            "data/labor/{file} holds the job {}; name the file after its job",
+            parsed.job
+        );
+    }
+    let mut records = Vec::with_capacity(parsed.estimates.len());
+    for (index, written) in parsed.estimates.into_iter().enumerate() {
+        let place = format!("data/labor/{file}, estimate {}", index + 1);
+        let scope = written.scope.as_str();
+        let vehicle = written.make.is_some() || written.model.is_some();
+        let years = written.year_from.is_some() || written.year_to.is_some();
+        match scope {
+            "class" => {
+                let Some(class) = written.class.as_deref() else {
+                    bail!("{place}: a class estimate needs class");
+                };
+                if class_name(class).is_none() {
+                    bail!(
+                        "{place}: {class} is not a class; use one of {}",
+                        CLASSES
+                            .iter()
+                            .map(|(id, _)| *id)
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    );
+                }
+                if vehicle || years || written.engine.is_some() {
+                    bail!("{place}: a class estimate takes no make, model, model year or engine");
+                }
+            }
+            "model" | "generation" | "engine" => {
+                if written.class.is_some() {
+                    bail!("{place}: a {scope} estimate takes no class");
+                }
+                let named = written.make.as_deref().is_some_and(is_slug)
+                    && written.model.as_deref().is_some_and(is_slug);
+                if !named {
+                    bail!("{place}: a {scope} estimate needs make and model, as id forms");
+                }
+                if scope == "model" {
+                    if years || written.engine.is_some() {
+                        bail!("{place}: a model estimate takes no model year and no engine");
+                    }
+                } else {
+                    let (Some(from), Some(to)) = (written.year_from, written.year_to) else {
+                        bail!("{place}: a {scope} estimate needs year_from and year_to");
+                    };
+                    if from > to {
+                        bail!("{place}: year_from is after year_to");
+                    }
+                    match (scope, written.engine.as_deref()) {
+                        ("engine", Some(engine)) if is_slug(engine) => {}
+                        ("engine", _) => {
+                            bail!("{place}: an engine estimate needs engine, as an id form")
+                        }
+                        (_, Some(_)) => bail!("{place}: a generation estimate takes no engine"),
+                        (_, None) => {}
+                    }
+                }
+            }
+            other => bail!(
+                "{place}: the scope {other} is not one of class, model, generation and engine"
+            ),
+        }
+        let hours = |field: &str, text: &str| {
+            hundredths(text).with_context(|| {
+                format!(
+                    "{place}: {field} must be hours like \"1.5\", from 0.01 to 999.99, not {text:?}"
+                )
+            })
+        };
+        let (low, typical, high) = (
+            hours("low", &written.low)?,
+            hours("typical", &written.typical)?,
+            hours("high", &written.high)?,
+        );
+        if !(low <= typical && typical <= high) {
+            bail!("{place}: low, typical and high must be in that order");
+        }
+        if written.basis != "expert" {
+            bail!(
+                "{place}: basis must be expert, not {:?}; measured figures are not written by hand",
+                written.basis
+            );
+        }
+        let notes = written
+            .notes
+            .as_deref()
+            .map(squeeze)
+            .filter(|notes| !notes.is_empty());
+        if notes
+            .as_ref()
+            .is_some_and(|notes| notes.chars().count() > LONGEST_NOTE)
+        {
+            bail!("{place}: notes is longer than {LONGEST_NOTE} characters");
+        }
+        for (field, name) in [("author", &written.author), ("reviewer", &written.reviewer)] {
+            if !is_github_name(name) {
+                bail!("{place}: the {field} {name:?} is not a GitHub user name");
+            }
+        }
+        if written.author.eq_ignore_ascii_case(&written.reviewer) {
+            bail!("{place}: the reviewer is the author; someone else must review");
+        }
+        if !is_day(&written.updated) {
+            bail!(
+                "{place}: updated must be a day like 2026-10-12, not {:?}",
+                written.updated
+            );
+        }
+        records.push(EstimateRecord {
+            job: parsed.job.clone(),
+            scope: written.scope,
+            class: written.class,
+            make: written.make,
+            model: written.model,
+            year_from: written.year_from,
+            year_to: written.year_to,
+            engine: written.engine,
+            low,
+            typical,
+            high,
+            notes,
+            author: written.author,
+            reviewer: written.reviewer,
+            updated: written.updated,
+        });
+    }
+    Ok(records)
+}
+
+/// An estimate with its make and model as catalog ids.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Estimate {
+    pub record: EstimateRecord,
+    pub make_id: Option<i64>,
+    pub model_id: Option<i64>,
+}
+
+/// The catalog ids of a make and a model, by their id forms.
+fn model_ids(catalog: &Connection, make: &str, model: &str) -> Result<(i64, i64)> {
+    let make_id: Option<i64> = catalog
+        .query_row(
+            "SELECT id FROM catalog_make WHERE slug = ?1",
+            [make],
+            |row| row.get(0),
+        )
+        .optional()?;
+    let Some(make_id) = make_id else {
+        bail!("{make} is not a make of the catalog");
+    };
+    let model_id: Option<i64> = catalog
+        .query_row(
+            "SELECT id FROM catalog_model WHERE make_id = ?1 AND slug = ?2",
+            params![make_id, model],
+            |row| row.get(0),
+        )
+        .optional()?;
+    match model_id {
+        Some(model_id) => Ok((make_id, model_id)),
+        None => bail!("{make} has no model {model} in the catalog"),
+    }
+}
+
+/// The id forms of the engines the catalog lists for one model year.
+/// `None` when the catalog has no such model year.
+fn engines_of(catalog: &Connection, model_id: i64, year: u16) -> Result<Option<Vec<String>>> {
+    let listed: Option<Option<i64>> = catalog
+        .query_row(
+            "SELECT detail_id FROM catalog_vehicle WHERE model_id = ?1 AND year = ?2",
+            params![model_id, year],
+            |row| row.get(0),
+        )
+        .optional()?;
+    let Some(detail_id) = listed else {
+        return Ok(None);
+    };
+    let mut engines = Vec::new();
+    if let Some(detail_id) = detail_id {
+        let mut statement =
+            catalog.prepare("SELECT label FROM catalog_engine WHERE detail_id = ?1")?;
+        let labels = statement.query_map([detail_id], |row| row.get::<_, String>(0))?;
+        for label in labels {
+            engines.push(slug(&label?));
+        }
+    }
+    Ok(Some(engines))
+}
+
+/// Every estimate of `<curated>/labor`, checked against the job list and
+/// the catalog: the job exists, the vehicle and the engine exist for
+/// every model year named, and no job has two figures for one scope.
+pub fn load(curated: &Path, catalog: &Connection) -> Result<Vec<Estimate>> {
+    let found = files(&curated.join("labor"))?;
+    if found.is_empty() {
+        return Ok(Vec::new());
+    }
+    let components = Components::load(curated)?;
+    let jobs = Jobs::load(curated, &components)?;
+    let Some(jobs) = jobs.filter(|jobs| jobs.status == Status::Reviewed) else {
+        bail!(
+            "data/labor has estimates but data/jobs.yaml is still a draft; review the job list first"
+        );
+    };
+    let mut estimates = Vec::new();
+    // What each job already has a figure for.
+    let mut held: HashSet<String> = HashSet::new();
+    for (name, yaml) in found {
+        if !jobs.list.iter().any(|job| job.id == name) {
+            bail!("data/labor/{name}.yaml: {name} is not a job of jobs.yaml");
+        }
+        for record in parse(&name, &yaml)? {
+            let job = &record.job;
+            let (Some(make), Some(model)) = (record.make.as_deref(), record.model.as_deref())
+            else {
+                let class = record.class.clone().unwrap_or_default();
+                if !held.insert(format!("{job}|class|{class}")) {
+                    bail!("data/labor: {job} has two class estimates for {class}");
+                }
+                estimates.push(Estimate {
+                    record,
+                    make_id: None,
+                    model_id: None,
+                });
+                continue;
+            };
+            let (make_id, model_id) = model_ids(catalog, make, model)
+                .with_context(|| format!("data/labor/{name}.yaml"))?;
+            let scope = record.scope.as_str();
+            match (record.year_from, record.year_to) {
+                (Some(from), Some(to)) => {
+                    for year in from..=to {
+                        let Some(engines) = engines_of(catalog, model_id, year)? else {
+                            bail!(
+                                "data/labor/{name}.yaml: the catalog has no {year} {make} {model}"
+                            );
+                        };
+                        let engine = record.engine.clone().unwrap_or_default();
+                        if scope == "engine" && !engines.contains(&engine) {
+                            bail!(
+                                "data/labor/{name}.yaml: the {year} {make} {model} has no engine {engine}"
+                            );
+                        }
+                        if !held.insert(format!("{job}|{scope}|{model_id}|{year}|{engine}")) {
+                            bail!(
+                                "data/labor: {job} has two {scope} estimates that cover the {year} {make} {model}"
+                            );
+                        }
+                    }
+                }
+                _ => {
+                    if !held.insert(format!("{job}|model|{model_id}")) {
+                        bail!("data/labor: {job} has two model estimates for {make} {model}");
+                    }
+                }
+            }
+            estimates.push(Estimate {
+                record,
+                make_id: Some(make_id),
+                model_id: Some(model_id),
+            });
+        }
+    }
+    Ok(estimates)
+}
+
+/// Fills `vehicle_class`: for each light model year of the catalog, the
+/// class EPA's size class puts it in (the one with the most EPA rows), or
+/// that of the nearest model year of the same model that has one. Does
+/// nothing when the file holds no specifications.
+fn shape_classes(context: &ShapeContext<'_>) -> Result<()> {
+    if !context.datasets().contains(Dataset::Specs) {
+        return Ok(());
+    }
+    let transaction = context.transaction;
+    // (model, year) to rows per class.
+    let mut counted: BTreeMap<(i64, u16), HashMap<&'static str, i64>> = BTreeMap::new();
+    {
+        let mut statement = transaction.prepare(
+            "SELECT f.model_id, f.year, s.size_class, COUNT(*)
+             FROM vehicle_spec s
+             JOIN fuel_rating f ON f.source = 'epa' AND f.source_id = s.epa_id
+             WHERE f.model_id IS NOT NULL
+             GROUP BY f.model_id, f.year, s.size_class",
+        )?;
+        let mut rows = statement.query([])?;
+        while let Some(row) = rows.next()? {
+            let (model_id, year, size_class, count): (i64, u16, String, i64) =
+                (row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?);
+            if let Some(class) = class_of_epa(&size_class) {
+                *counted
+                    .entry((model_id, year))
+                    .or_default()
+                    .entry(class)
+                    .or_insert(0) += count;
+            }
+        }
+    }
+    // The class of each model year EPA rated: the most rows, and on a tie
+    // the first of `CLASSES`.
+    let mut known: BTreeMap<i64, Vec<(u16, &'static str)>> = BTreeMap::new();
+    for ((model_id, year), classes) in &counted {
+        let best = CLASSES
+            .iter()
+            .map(|(id, _)| *id)
+            .filter(|id| classes.contains_key(id))
+            .max_by_key(|id| {
+                let place = CLASSES.iter().position(|(other, _)| other == id);
+                (classes[id], std::cmp::Reverse(place))
+            });
+        if let Some(class) = best {
+            known.entry(*model_id).or_default().push((*year, class));
+        }
+    }
+    let mut vehicles = context.catalog.prepare(
+        "SELECT model_id, year FROM catalog_vehicle WHERE light = 1 ORDER BY model_id, year",
+    )?;
+    let mut insert = transaction.prepare(
+        "INSERT INTO vehicle_class (model_id, year, class, source) VALUES (?1, ?2, ?3, ?4)",
+    )?;
+    let mut rows = vehicles.query([])?;
+    while let Some(row) = rows.next()? {
+        let (model_id, year): (i64, u16) = (row.get(0)?, row.get(1)?);
+        let Some(years) = known.get(&model_id) else {
+            continue;
+        };
+        // The nearest year that has a class; the earlier one on a tie.
+        let Some((from, class)) = years
+            .iter()
+            .min_by_key(|(other, _)| (other.abs_diff(year), *other))
+        else {
+            continue;
+        };
+        let source = if *from == year { "epa" } else { "nearest" };
+        insert.execute(params![model_id, year, class, source])?;
+    }
+    Ok(())
+}
+
+/// Fills `labor_estimate` from `<curated>/labor` and `vehicle_class` from
+/// the fuel tables, and registers the `labor` dataset. With no estimate
+/// it does nothing at all. Runs in every build, after the fuel steps and
+/// the job list.
+pub fn shape(context: &mut ShapeContext<'_>) -> Result<()> {
+    let estimates = load(context.curated, context.catalog)?;
+    let Some(as_of) = estimates
+        .iter()
+        .map(|estimate| estimate.record.updated.clone())
+        .max()
+    else {
+        return Ok(());
+    };
+    let transaction = context.transaction;
+    transaction.execute_batch(schema::LABOR)?;
+    {
+        let mut insert = transaction.prepare(
+            "INSERT INTO labor_estimate (job_id, scope, class, make_id, model_id, year_from, year_to, engine, hours_low, hours_typical, hours_high, basis, notes, author, reviewer, updated)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, 'expert', ?12, ?13, ?14, ?15)",
+        )?;
+        for estimate in &estimates {
+            let record = &estimate.record;
+            insert.execute(params![
+                record.job,
+                record.scope,
+                record.class,
+                estimate.make_id,
+                estimate.model_id,
+                record.year_from,
+                record.year_to,
+                record.engine,
+                record.low,
+                record.typical,
+                record.high,
+                record.notes,
+                record.author,
+                record.reviewer,
+                record.updated,
+            ])?;
+        }
+    }
+    shape_classes(context)?;
+    context.register(
+        Dataset::Labor,
+        DatasetEntry {
+            as_of,
+            rows: estimates.len() as u64,
+            licence: licence::CC_BY_4.to_owned(),
+            attribution: ATTRIBUTION.to_owned(),
+        },
+    )
+}
