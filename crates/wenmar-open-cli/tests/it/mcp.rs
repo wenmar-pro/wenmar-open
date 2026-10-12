@@ -569,3 +569,185 @@ fn with_only_the_data_file_the_recalls_tool_says_what_to_run() {
     // The other tools answer from the data file as before.
     assert_eq!(answers[3]["result"]["structuredContent"]["model"], "Kona");
 }
+
+fn overview_api(request: &Seen) -> Reply {
+    let (path, _) = request
+        .target
+        .split_once('?')
+        .unwrap_or((&request.target, ""));
+    let overview = |name: &str| {
+        json!({
+            "route": name,
+            "vehicle": null,
+            "recalls": null,
+            "links": { "page": null, "maker": null }
+        })
+    };
+    match path {
+        "/v1/vehicles/2023_hyundai_kona/overview" => Reply::json(200, &overview("vehicle")),
+        "/v1/vin/KM8K2CAB4PU001140/overview" => Reply::json(200, &overview("vin")),
+        "/v1/models/Land%20Rover/Range%20Rover%2FSport" => Reply::json(
+            200,
+            &json!({ "route": "model_years", "may_apply": true, "years": [] }),
+        ),
+        "/v1/recalls/recent" => Reply::json(
+            200,
+            &json!({ "route": "recent", "may_apply": true, "recalls": [] }),
+        ),
+        // Something that is not the API's overview.
+        "/v1/vehicles/2019_honda_civic/overview" => Reply::json(200, &json!({ "vehicle": null })),
+        _ => Reply::json(
+            404,
+            &json!({ "error": { "code": "not_found", "message": "There is nothing at this address.", "details": {} } }),
+        ),
+    }
+}
+
+#[test]
+fn the_overview_actions_ask_the_api_at_their_routes() {
+    let server = server::serve(overview_api);
+    let fixture = common::empty_dir();
+    let env = Env {
+        api: Some(server.url().to_owned()),
+        ..common::env(&fixture)
+    };
+    let answers = session(
+        &env,
+        &["mcp"],
+        &[
+            call(
+                1,
+                "wenmar_vehicles",
+                json!({ "action": "overview", "id": "2023_hyundai_kona" }),
+            ),
+            call(
+                2,
+                "wenmar_vin",
+                json!({ "action": "overview", "vin": "km8k2-cab4pu001140", "year": 2023 }),
+            ),
+            // A name with a space and a slash in it stays one part of the path.
+            call(
+                3,
+                "wenmar_vehicles",
+                json!({ "action": "model_years", "make": "Land Rover", "model": "Range Rover/Sport" }),
+            ),
+            call(
+                4,
+                "wenmar_recalls",
+                json!({ "action": "recent", "since": "2026-09-01", "make": "ford", "country": "CA", "limit": 500 }),
+            ),
+            // Refused here, and never sent.
+            call(
+                5,
+                "wenmar_vehicles",
+                json!({ "action": "overview", "id": "../meta" }),
+            ),
+            call(
+                6,
+                "wenmar_vehicles",
+                json!({ "action": "model_years", "make": "honda" }),
+            ),
+            call(
+                7,
+                "wenmar_vin",
+                json!({ "action": "overview", "vin": "nope" }),
+            ),
+            // An answer without `links` did not come from the API.
+            call(
+                8,
+                "wenmar_vehicles",
+                json!({ "action": "overview", "id": "2019_honda_civic" }),
+            ),
+        ],
+    );
+    for (index, route) in ["vehicle", "vin", "model_years", "recent"]
+        .iter()
+        .enumerate()
+    {
+        assert_eq!(answers[index]["result"]["isError"], false, "{route}");
+        assert_eq!(text(&answers[index])["route"], *route);
+    }
+    assert_eq!(
+        server.targets(),
+        [
+            "/v1/vehicles/2023_hyundai_kona/overview",
+            "/v1/vin/KM8K2CAB4PU001140/overview?year=2023",
+            "/v1/models/Land%20Rover/Range%20Rover%2FSport",
+            "/v1/recalls/recent?since=2026-09-01&country=ca&make=ford&limit=100",
+            "/v1/vehicles/2019_honda_civic/overview"
+        ]
+    );
+    let codes: Vec<&str> = answers[4..]
+        .iter()
+        .map(|answer| {
+            assert_eq!(answer["result"]["isError"], true, "{answer}");
+            answer["result"]["structuredContent"]["error"]["code"]
+                .as_str()
+                .unwrap()
+        })
+        .collect();
+    assert_eq!(
+        codes,
+        [
+            "not_found",
+            "validation_failed",
+            "invalid_vin",
+            "bad_response"
+        ]
+    );
+}
+
+#[test]
+fn with_only_the_data_file_the_overview_actions_answer_and_recent_says_what_to_run() {
+    let fixture = common::data_dir();
+    let answers = session(
+        &common::env(&fixture),
+        &["mcp"],
+        &[
+            call(
+                1,
+                "wenmar_vehicles",
+                json!({ "action": "overview", "id": "2023_hyundai_kona" }),
+            ),
+            call(
+                2,
+                "wenmar_vin",
+                json!({ "action": "overview", "vin": KONA }),
+            ),
+            call(
+                3,
+                "wenmar_vehicles",
+                json!({ "action": "model_years", "make": "hyundai", "model": "kona" }),
+            ),
+            call(
+                4,
+                "wenmar_recalls",
+                json!({ "action": "recent", "since": "2026-09-01" }),
+            ),
+        ],
+    );
+    for index in [0, 1, 2] {
+        assert_eq!(answers[index]["result"]["isError"], false, "{index}");
+    }
+    assert_eq!(
+        answers[0]["result"]["structuredContent"]["vehicle"]["id"],
+        "2023_hyundai_kona"
+    );
+    assert_eq!(
+        answers[0]["result"]["structuredContent"]["recalls"],
+        Value::Null
+    );
+    assert_eq!(
+        answers[1]["result"]["structuredContent"]["decode"]["vin"],
+        KONA
+    );
+    assert_eq!(
+        answers[2]["result"]["structuredContent"]["years"][0]["recalls"],
+        Value::Null
+    );
+    assert_eq!(answers[3]["result"]["isError"], true);
+    assert_eq!(
+        answers[3]["result"]["structuredContent"]["error"]["details"]["hint"],
+        "Run: wenmar-open data pull --shop"
+    );
+}

@@ -14,7 +14,7 @@ It needs no key and no account. It answers from a local data file when there is 
 - Piped, every command prints JSON on standard output: one object or one list, with no wrapper.
 - `--jq EXPR` filters the JSON with a jq expression. Text results are printed without quotes.
 - An error is JSON on standard error, `{ "error": { "code", "message", "details" } }`, with a non-zero exit code. `details.hint`, when present, says what to do.
-- A field that is not known is left out. It is never `null` or empty. Recall answers are the one exception: see Recalls.
+- A field that is not known is left out. It is never `null` or empty. Recall and overview answers are the exception: see Recalls and Everything for one vehicle.
 - The tool never asks a question and never waits for input.
 
 Exit codes: 0 success, 2 the command line was wrong, 3 `not_found`, 4 `invalid_vin` or `validation_failed`, 5 `rate_limited`, 6 the API failed or answered with something else, 10 `network`, 11 the local data file is missing or unusable or the recalls are not held where the question was asked (`dataset_unavailable`), 1 anything else.
@@ -90,6 +90,26 @@ wenmar-open recalls search --component "air bags" --limit 5
 
 Offline, the recalls are in a second file, the shop data file. Without it the error is `dataset_unavailable` and `details.hint` is `Run: wenmar-open data pull --shop`. `lookup.maker`, the manufacturer's own lookup, is filled only by the hosted API; offline it is `null`.
 
+## Everything for one vehicle
+
+One answer with everything held for a model year, asked for by vehicle id or by VIN; every model year of a model; and the recall campaigns reported since a day.
+
+```bash
+wenmar-open vehicles overview 2018_ford_f-150
+wenmar-open vin overview KM8K2CAB4PU001140
+wenmar-open vin overview KM8K2CAB4PU001140 --jq .recalls.count
+wenmar-open vehicles model-years --make ford --model f-150
+wenmar-open recalls recent --since 2026-09-01
+wenmar-open recalls recent --since 2026-09-01 --make ford --country ca
+```
+
+- `vehicles overview` and `vin overview` give `vehicle`, `decode` (what the VIN decoded to in brief; `null` when asked by vehicle id), `recalls`, `links` and `attribution`. `recalls` has `count` (`us` and `ca`), `do_not_drive`, `park_outside`, the three `newest` campaigns, `as_of`, `lookup` and `"may_apply": true`. It counts the campaigns that may apply to the year, make and model, and is never a statement about one VIN. The whole list is `recalls vehicle`.
+- A block with no data is `null`. `specs`, `fuel`, `fluids` and `safety` (crash test ratings) are filled by the hosted API where its server holds them; from local files they are `null` for now. `tires`, `labor` and `bulletins` are `null` everywhere today. Offline, `recalls` is `null` when there is no shop data file. That is not an error.
+- A VIN that decodes to no vehicle in the catalog gives `"vehicle": null`, every block `null` and a warning with the code `no_catalog_vehicle`.
+- `vehicles model-years` lists every model year of one model, newest first, each with its vehicle id and `recalls`, the number of campaigns that may apply (`null` when no recalls are held).
+- `recalls recent` lists the campaigns reported on or after `--since`, a day written like `2026-09-01`, newest first, each with `vehicles`, the vehicles it lists (at most 200; `vehicles_listed` is how many there are in all). Compare `vehicles[].vehicle_id` with your own list. `--make`, `--country`, `--limit` and `--cursor` are as in `recalls search`. Offline it needs the shop data file.
+- In these answers every field is always there, as in a recall answer. `links.maker` and `lookup.maker` are filled only by the hosted API; offline they are `null`.
+
 ## Online and offline
 
 ```bash
@@ -117,6 +137,6 @@ Online, one address may make 600 requests a minute. Over that the error is `rate
 wenmar-open mcp
 ```
 
-This runs an MCP server on standard input and output with three tools: `wenmar_vin` (actions `decode` and `batch`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search` and `entry`) and `wenmar_recalls` (actions `vehicle`, `vin`, `campaign` and `search`). The results are the same JSON as the commands above. `wenmar-open setup claude` and `wenmar-open setup codex` print the command that registers it.
+This runs an MCP server on standard input and output with three tools: `wenmar_vin` (actions `decode`, `batch` and `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview` and `model_years`) and `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search` and `recent`). The results are the same JSON as the commands above. `wenmar-open setup claude` and `wenmar-open setup codex` print the command that registers it.
 
 <!-- wenmar-open-skill: managed. Written by `wenmar-open setup`; the next setup replaces it. -->

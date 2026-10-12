@@ -61,6 +61,21 @@ pub fn is_http(url: &str) -> bool {
     })
 }
 
+/// Text as one part of a path. Everything but letters, digits, `-`, `_`
+/// and `~` is percent-encoded, so that a name with a space, a slash or a
+/// dot in it stays one part and names nothing else.
+fn segment(text: &str) -> String {
+    let mut encoded = String::with_capacity(text.len());
+    for byte in text.bytes() {
+        if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'~') {
+            encoded.push(char::from(byte));
+        } else {
+            encoded.push_str(&format!("%{byte:02X}"));
+        }
+    }
+    encoded
+}
+
 impl Remote {
     /// `base` is the API's address without `/v1`, such as
     /// `https://open.wenmarpro.com`.
@@ -152,13 +167,30 @@ impl Remote {
         match request {
             Request::VinDecode { vin, year } => self.decode(vin, *year),
             Request::VinBatch { vins, year } => self.batch(vins, *year),
+            Request::VinOverview { vin, year } => {
+                let query: Vec<(&str, String)> =
+                    year.iter().map(|year| ("year", year.to_string())).collect();
+                // `vin` is well formed, so it is safe in a path.
+                self.overview(&format!("/v1/vin/{vin}/overview"), &query)
+            }
             Request::Vehicles { action, lookup } => self.vehicles(*action, lookup),
             Request::Recalls { action, lookup } => self.recalls(*action, lookup),
         }
     }
 
-    /// The four recall routes. Whatever goes in the path has been checked
-    /// to be an id, a VIN, a publisher or a campaign number.
+    /// An overview, of a model year or of a VIN. Every one has `links`: an
+    /// answer without it did not come from the API.
+    fn overview(&self, path: &str, query: &[(&str, String)]) -> Result<Value, CliError> {
+        let answer = self.get(path, query)?;
+        if answer.get("links").is_some_and(Value::is_object) {
+            Ok(answer)
+        } else {
+            Err(self.not_the_api(200))
+        }
+    }
+
+    /// The recall routes. Whatever goes in the path has been checked to be
+    /// an id, a VIN, a publisher or a campaign number.
     fn recalls(&self, action: RecallAction, lookup: &RecallLookup) -> Result<Value, CliError> {
         let text = |field: &Option<String>| field.clone().unwrap_or_default();
         let mut query: Vec<(&str, String)> = Vec::new();
@@ -196,6 +228,14 @@ impl Remote {
                 add("limit", lookup.limit.map(|limit| limit.to_string()));
                 add("cursor", lookup.cursor.clone());
                 "/v1/recalls".to_owned()
+            }
+            RecallAction::Recent => {
+                add("since", lookup.since.clone());
+                add("country", lookup.country.clone());
+                add("make", lookup.make.clone());
+                add("limit", lookup.limit.map(|limit| limit.to_string()));
+                add("cursor", lookup.cursor.clone());
+                "/v1/recalls/recent".to_owned()
             }
         };
         let answer = self.get(&path, &query)?;
@@ -287,6 +327,24 @@ impl Remote {
                 Err(self.not_the_api(200))
             };
         }
+        if action == Action::Overview {
+            let id = lookup.id.clone().unwrap_or_default();
+            // Only text that has the form of an id is put in a path.
+            if VehicleId::parse(&id).is_none() {
+                return Err(CliError::new(NOT_FOUND, "No vehicle has that id."));
+            }
+            return self.overview(&format!("/v1/vehicles/{id}/overview"), &[]);
+        }
+        if action == Action::ModelYears {
+            let part = |field: &Option<String>| segment(field.as_deref().unwrap_or_default());
+            let path = format!("/v1/models/{}/{}", part(&lookup.make), part(&lookup.model));
+            let years = self.get(&path, &[])?;
+            return if years.get("may_apply") == Some(&Value::Bool(true)) {
+                Ok(years)
+            } else {
+                Err(self.not_the_api(200))
+            };
+        }
         let mut query: Vec<(&str, String)> = Vec::new();
         let mut add = |name: &'static str, value: Option<String>| {
             if let Some(value) = value {
@@ -340,6 +398,16 @@ mod tests {
             let error = Remote::new(base).err().unwrap();
             assert_eq!(error.code, "usage", "{base}");
         }
+    }
+
+    #[test]
+    fn a_name_in_a_path_is_one_part_of_it() {
+        assert_eq!(segment("f-150"), "f-150");
+        assert_eq!(segment("Land Rover"), "Land%20Rover");
+        assert_eq!(segment("a/b"), "a%2Fb");
+        assert_eq!(segment(".."), "%2E%2E");
+        assert_eq!(segment("Citroën?x=1#y"), "Citro%C3%ABn%3Fx%3D1%23y");
+        assert_eq!(segment(""), "");
     }
 
     #[test]

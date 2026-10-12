@@ -5,7 +5,7 @@ use std::path::Path;
 
 use serde::Serialize;
 use serde_json::Value;
-use wenmar_shopdata::answer::{self, AnswerError, Answers, SITE, Search};
+use wenmar_shopdata::answer::{self, AnswerError, Answers, Overviews, Recent, SITE, Search};
 use wenmar_shopdata::sqlite::ShopSource;
 use wenmar_shopdata::{Dataset, ShopData, ShopError};
 use wenmar_vehicles::sqlite::SqliteSource;
@@ -149,6 +149,19 @@ impl Local {
         &self.shop_status
     }
 
+    /// What an overview is built from. The shop file is used when it is
+    /// there and goes with this data file. Without it, and with one that
+    /// cannot be used, the answer's recalls are `null`: that is not an
+    /// error, and `data status --shop` says what is wrong with the file.
+    fn overviews(&self) -> Overviews<'_, ShopSource, SqliteSource> {
+        Overviews {
+            shop: self.shop.as_ref(),
+            catalog: &self.catalog,
+            core: &self.core,
+            base: SITE,
+        }
+    }
+
     /// The recalls that may apply, from the shop file beside the data
     /// file, worded as the hosted API words them.
     fn recalls(&self, action: RecallAction, lookup: &RecallLookup) -> Result<Value, CliError> {
@@ -201,6 +214,17 @@ impl Local {
                     })
                     .map_err(answer_error)?,
             ),
+            RecallAction::Recent => json(
+                answers
+                    .recent(&Recent {
+                        since: lookup.since.clone(),
+                        country: lookup.country.clone(),
+                        make: lookup.make.clone(),
+                        limit: lookup.limit,
+                        cursor: lookup.cursor.clone(),
+                    })
+                    .map_err(answer_error)?,
+            ),
         }
     }
 
@@ -226,6 +250,12 @@ impl Local {
                     })
                     .collect();
                 Ok(Value::Array(items))
+            }
+            Request::VinOverview { vin, year } => {
+                // The decode comes first, as in the API: a VIN that cannot
+                // be decoded fails as a decode does.
+                let decode = self.decode(vin, *year)?;
+                json(self.overviews().vin(&decode).map_err(answer_error)?)
             }
             Request::Vehicles { action, lookup } => self.vehicles(*action, lookup),
             Request::Recalls { action, lookup } => self.recalls(*action, lookup),
@@ -316,6 +346,16 @@ impl Local {
                 Some(entry) => json(entry),
                 None => Err(CliError::new(NOT_FOUND, "No vehicle has that id.")),
             },
+            Action::Overview => json(
+                self.overviews()
+                    .vehicle(&text(&lookup.id))
+                    .map_err(answer_error)?,
+            ),
+            Action::ModelYears => json(
+                self.overviews()
+                    .model_years(&make, &model)
+                    .map_err(answer_error)?,
+            ),
         }
     }
 }

@@ -48,10 +48,14 @@ pub enum Action {
     Engines,
     Search,
     Entry,
+    /// Everything held for one model year, by its vehicle id.
+    Overview,
+    /// Every model year of one model.
+    ModelYears,
 }
 
 impl Action {
-    pub const ALL: [Action; 7] = [
+    pub const ALL: [Action; 9] = [
         Action::Years,
         Action::Makes,
         Action::Models,
@@ -59,10 +63,12 @@ impl Action {
         Action::Engines,
         Action::Search,
         Action::Entry,
+        Action::Overview,
+        Action::ModelYears,
     ];
 
-    /// The name of the action in the `wenmar_vehicles` tool, and the last
-    /// part of the API's path.
+    /// The name of the action in the `wenmar_vehicles` tool. For the first
+    /// six it is also the last part of the API's path.
     pub fn name(self) -> &'static str {
         match self {
             Action::Years => "years",
@@ -72,6 +78,8 @@ impl Action {
             Action::Engines => "engines",
             Action::Search => "search",
             Action::Entry => "entry",
+            Action::Overview => "overview",
+            Action::ModelYears => "model_years",
         }
     }
 
@@ -106,14 +114,18 @@ pub enum RecallAction {
     Campaign,
     /// Campaigns, newest first, narrowed by what is given.
     Search,
+    /// Campaigns reported on or after a day, each with the vehicles it
+    /// lists.
+    Recent,
 }
 
 impl RecallAction {
-    pub const ALL: [RecallAction; 4] = [
+    pub const ALL: [RecallAction; 5] = [
         RecallAction::Vehicle,
         RecallAction::Vin,
         RecallAction::Campaign,
         RecallAction::Search,
+        RecallAction::Recent,
     ];
 
     /// The name of the action in the `wenmar_recalls` tool.
@@ -123,6 +135,7 @@ impl RecallAction {
             RecallAction::Vin => "vin",
             RecallAction::Campaign => "campaign",
             RecallAction::Search => "search",
+            RecallAction::Recent => "recent",
         }
     }
 
@@ -149,6 +162,8 @@ pub struct RecallLookup {
     pub country: Option<String>,
     pub limit: Option<usize>,
     pub cursor: Option<String>,
+    /// For the recent list: a day, such as `2026-09-01`.
+    pub since: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -159,6 +174,11 @@ pub enum Request {
     },
     VinBatch {
         vins: Vec<String>,
+        year: Option<u16>,
+    },
+    /// Everything held for the model year a VIN decodes to.
+    VinOverview {
+        vin: String,
         year: Option<u16>,
     },
     Vehicles {
@@ -315,6 +335,22 @@ fn checked_recalls(
                 ..RecallLookup::default()
             }
         }
+        // `since` is judged where the answer is made, after the recalls
+        // are looked for, as the API does it. It goes in the query string
+        // and never in a path.
+        RecallAction::Recent => RecallLookup {
+            since: present(lookup.since.as_ref()),
+            make: present(lookup.make.as_ref()),
+            country,
+            limit: Some(
+                lookup
+                    .limit
+                    .unwrap_or(RECALLS_DEFAULT)
+                    .clamp(1, RECALLS_MOST),
+            ),
+            cursor: present(lookup.cursor.as_ref()),
+            ..RecallLookup::default()
+        },
     })
 }
 
@@ -341,6 +377,11 @@ impl Request {
                 }
                 vin_year(year, current_year)?;
                 Ok(Request::VinBatch { vins, year })
+            }
+            Request::VinOverview { vin, year } => {
+                vin_year(year, current_year)?;
+                let vin = well_formed(&vin)?.as_str().to_owned();
+                Ok(Request::VinOverview { vin, year })
             }
             Request::Recalls { action, lookup } => Ok(Request::Recalls {
                 action,
@@ -394,7 +435,12 @@ impl Request {
                         limit: Some(lookup.limit.unwrap_or(SEARCH_DEFAULT).clamp(1, SEARCH_MOST)),
                         ..Lookup::default()
                     },
-                    Action::Entry => Lookup {
+                    Action::ModelYears => Lookup {
+                        make: required("make", lookup.make.as_ref())?,
+                        model: required("model", lookup.model.as_ref())?,
+                        ..Lookup::default()
+                    },
+                    Action::Entry | Action::Overview => Lookup {
                         id: required("id", lookup.id.as_ref())?,
                         ..Lookup::default()
                     },
@@ -443,9 +489,16 @@ impl Request {
                     };
                     Ok(Request::VinBatch { vins, year })
                 }
+                "overview" => match text(arguments, "vin")? {
+                    Some(vin) => Ok(Request::VinOverview { vin, year }),
+                    None => Err(CliError::validation(
+                        "vin",
+                        "vin is required for action=overview",
+                    )),
+                },
                 _ => Err(CliError::validation(
                     "action",
-                    "action must be decode or batch",
+                    "action must be decode, batch or overview",
                 )),
             };
         }
@@ -453,7 +506,7 @@ impl Request {
             let Some(action) = RecallAction::parse(action) else {
                 return Err(CliError::validation(
                     "action",
-                    "action must be vehicle, vin, campaign or search",
+                    "action must be vehicle, vin, campaign, search or recent",
                 ));
             };
             return Ok(Request::Recalls {
@@ -471,13 +524,14 @@ impl Request {
                     country: text(arguments, "country")?,
                     limit: number(arguments, "limit")?,
                     cursor: text(arguments, "cursor")?,
+                    since: text(arguments, "since")?,
                 },
             });
         }
         let Some(action) = Action::parse(action) else {
             return Err(CliError::validation(
                 "action",
-                "action must be years, makes, models, submodels, engines, search or entry",
+                "action must be years, makes, models, submodels, engines, search, entry, overview or model_years",
             ));
         };
         Ok(Request::Vehicles {
@@ -974,6 +1028,107 @@ mod tests {
             assert_eq!(error.code, "validation_failed", "{arguments}");
             assert_eq!(error.details["field"], field, "{arguments}");
         }
+    }
+
+    #[test]
+    fn the_overview_questions_are_checked_and_read_from_tool_calls() {
+        // A vehicle id, or a make and a model, is required.
+        let error = vehicles(Action::Overview, Lookup::default())
+            .checked(2026)
+            .unwrap_err();
+        assert_eq!(error.details["field"], "id");
+        let error = vehicles(
+            Action::ModelYears,
+            Lookup {
+                make: text("honda"),
+                ..Lookup::default()
+            },
+        )
+        .checked(2026)
+        .unwrap_err();
+        assert_eq!(error.details["field"], "model");
+        // The overview of a VIN is checked as a decode is.
+        let overview = |vin: &str, year: Option<u16>| Request::VinOverview {
+            vin: vin.to_owned(),
+            year,
+        };
+        assert_eq!(
+            overview("km8-k2cab4 pu001140", None).checked(2026).unwrap(),
+            overview("KM8K2CAB4PU001140", None)
+        );
+        assert_eq!(
+            overview("nope", None).checked(2026).unwrap_err().code,
+            "invalid_vin"
+        );
+        let error = overview("KM8K2CAB4PU001140", Some(1979))
+            .checked(2026)
+            .unwrap_err();
+        assert_eq!(error.details["field"], "year");
+        // The recent list has the API's default and ceiling. `since` is
+        // judged where the answer is made, so it is only tidied here.
+        let Request::Recalls { lookup, .. } = recalls(
+            RecallAction::Recent,
+            RecallLookup {
+                since: text(" 2026-09-01 "),
+                country: text("CA"),
+                year: Some(2020),
+                ..RecallLookup::default()
+            },
+        )
+        .checked(2026)
+        .unwrap() else {
+            panic!("a recall request stays one");
+        };
+        assert_eq!(
+            lookup,
+            RecallLookup {
+                since: text("2026-09-01"),
+                country: text("ca"),
+                limit: Some(25),
+                ..RecallLookup::default()
+            }
+        );
+        // The same three actions, as tool calls.
+        assert_eq!(
+            Request::from_tool(
+                "wenmar_vin",
+                &json!({ "action": "overview", "vin": "KM8K2CAB4PU001140", "year": 2023 })
+            )
+            .unwrap(),
+            overview("KM8K2CAB4PU001140", Some(2023))
+        );
+        assert_eq!(
+            Request::from_tool(
+                "wenmar_vehicles",
+                &json!({ "action": "model_years", "make": "ford", "model": "f-150" })
+            )
+            .unwrap(),
+            vehicles(
+                Action::ModelYears,
+                Lookup {
+                    make: text("ford"),
+                    model: text("f-150"),
+                    ..Lookup::default()
+                }
+            )
+        );
+        assert_eq!(
+            Request::from_tool(
+                "wenmar_recalls",
+                &json!({ "action": "recent", "since": "2026-09-01", "make": "ford" })
+            )
+            .unwrap(),
+            recalls(
+                RecallAction::Recent,
+                RecallLookup {
+                    since: text("2026-09-01"),
+                    make: text("ford"),
+                    ..RecallLookup::default()
+                }
+            )
+        );
+        let error = Request::from_tool("wenmar_vin", &json!({ "action": "overview" })).unwrap_err();
+        assert_eq!(error.details["field"], "vin");
     }
 
     #[test]

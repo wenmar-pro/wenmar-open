@@ -163,6 +163,19 @@ pub enum VinCommand {
         #[arg(long)]
         year: Option<u16>,
     },
+    /// Everything held for the model year a VIN decodes to, in one answer.
+    ///
+    /// What the VIN decoded to in brief, a count of the recall campaigns
+    /// that may apply to that year, make and model with the three newest,
+    /// and links. A block with no data is `null`. The VIN only names the
+    /// model year: nothing here says a recall applies to one vehicle.
+    Overview {
+        /// The 17-character VIN.
+        vin: String,
+        /// Use this model year instead of the one worked out from the VIN.
+        #[arg(long)]
+        year: Option<u16>,
+    },
 }
 
 /// `--scope`, for the commands that take one.
@@ -266,6 +279,25 @@ pub enum VehiclesCommand {
         /// The vehicle id.
         id: String,
     },
+    /// Everything held for one model year, in one answer.
+    ///
+    /// A count of the recall campaigns that may apply, with the three
+    /// newest, and links. A block with no data is `null`. Offline it
+    /// answers with no shop data file too: `recalls` is then `null`.
+    Overview {
+        /// The vehicle id, such as 2018_ford_f-150.
+        id: String,
+    },
+    /// Every model year of one model, newest first, each with its vehicle
+    /// id and the number of recall campaigns that may apply to it.
+    ModelYears {
+        /// A make's name, alias or id: Chevrolet, chevy or chevrolet.
+        #[arg(long)]
+        make: String,
+        /// A model's name or id: F-150, f150 or f-150.
+        #[arg(long)]
+        model: String,
+    },
 }
 
 /// `--country`, for the recall commands that take one.
@@ -334,6 +366,28 @@ pub enum RecallsCommand {
         #[arg(long)]
         cursor: Option<String>,
     },
+    /// Recall campaigns reported on or after a day, newest first, each
+    /// with the vehicles it lists.
+    ///
+    /// For keeping a list of vehicles up to date: ask once a day with the
+    /// day of the last answer. Each campaign may apply to the vehicles it
+    /// lists; confirm by VIN with the manufacturer.
+    Recent {
+        /// The day, such as 2026-09-01. That day is included.
+        #[arg(long, value_name = "DAY")]
+        since: String,
+        /// Only campaigns that list a vehicle of this make.
+        #[arg(long)]
+        make: Option<String>,
+        #[command(flatten)]
+        country: CountryArg,
+        /// At most this many, up to 100. The default is 25.
+        #[arg(long)]
+        limit: Option<usize>,
+        /// `next_cursor` of the page before, to get the next page.
+        #[arg(long)]
+        cursor: Option<String>,
+    },
 }
 
 impl RecallsCommand {
@@ -387,6 +441,23 @@ impl RecallsCommand {
                     ..RecallLookup::default()
                 },
             ),
+            RecallsCommand::Recent {
+                since,
+                make,
+                country,
+                limit,
+                cursor,
+            } => (
+                RecallAction::Recent,
+                RecallLookup {
+                    since: Some(since),
+                    make,
+                    country: country.country,
+                    limit,
+                    cursor,
+                    ..RecallLookup::default()
+                },
+            ),
         };
         Request::Recalls { action, lookup }
     }
@@ -396,6 +467,7 @@ impl VinCommand {
     pub fn request(self) -> Request {
         match self {
             VinCommand::Decode { vin, year } => Request::VinDecode { vin, year },
+            VinCommand::Overview { vin, year } => Request::VinOverview { vin, year },
         }
     }
 }
@@ -488,6 +560,21 @@ impl VehiclesCommand {
                 Action::Entry,
                 Lookup {
                     id: Some(id),
+                    ..Lookup::default()
+                },
+            ),
+            VehiclesCommand::Overview { id } => (
+                Action::Overview,
+                Lookup {
+                    id: Some(id),
+                    ..Lookup::default()
+                },
+            ),
+            VehiclesCommand::ModelYears { make, model } => (
+                Action::ModelYears,
+                Lookup {
+                    make: Some(make),
+                    model: Some(model),
                     ..Lookup::default()
                 },
             ),
@@ -605,6 +692,76 @@ mod tests {
         // A search needs no words: it is then the list of every campaign.
         let (_, lookup) = request(&["wenmar-open", "recalls", "search"]);
         assert_eq!(lookup.query.as_deref(), Some(""));
+    }
+
+    #[test]
+    fn the_overview_commands_become_requests() {
+        let request = |args: &[&str]| {
+            let cli = Cli::try_parse_from(args).unwrap();
+            match cli.command {
+                Some(Command::Vin { command }) => command.request(),
+                Some(Command::Vehicles { command }) => command.request(),
+                Some(Command::Recalls { command }) => command.request(),
+                _ => panic!("a command that asks a question"),
+            }
+        };
+        assert_eq!(
+            request(&[
+                "wenmar-open",
+                "vin",
+                "overview",
+                "KM8K2CAB4PU001140",
+                "--year",
+                "2023"
+            ]),
+            Request::VinOverview {
+                vin: "KM8K2CAB4PU001140".to_owned(),
+                year: Some(2023)
+            }
+        );
+        let Request::Vehicles { action, lookup } =
+            request(&["wenmar-open", "vehicles", "overview", "2018_ford_f-150"])
+        else {
+            panic!("a vehicles request");
+        };
+        assert_eq!(action, Action::Overview);
+        assert_eq!(lookup.id.as_deref(), Some("2018_ford_f-150"));
+        let Request::Vehicles { action, lookup } = request(&[
+            "wenmar-open",
+            "vehicles",
+            "model-years",
+            "--make",
+            "ford",
+            "--model",
+            "f-150",
+        ]) else {
+            panic!("a vehicles request");
+        };
+        assert_eq!(action, Action::ModelYears);
+        assert_eq!(lookup.make.as_deref(), Some("ford"));
+        assert_eq!(lookup.model.as_deref(), Some("f-150"));
+        let Request::Recalls { action, lookup } = request(&[
+            "wenmar-open",
+            "recalls",
+            "recent",
+            "--since",
+            "2026-09-01",
+            "--make",
+            "ford",
+            "--country",
+            "ca",
+            "--limit",
+            "5",
+        ]) else {
+            panic!("a recalls request");
+        };
+        assert_eq!(action, RecallAction::Recent);
+        assert_eq!(lookup.since.as_deref(), Some("2026-09-01"));
+        assert_eq!(lookup.make.as_deref(), Some("ford"));
+        assert_eq!(lookup.country.as_deref(), Some("ca"));
+        assert_eq!(lookup.limit, Some(5));
+        // The day is required: without it the command line is refused.
+        assert!(Cli::try_parse_from(["wenmar-open", "recalls", "recent"]).is_err());
     }
 
     #[test]

@@ -634,6 +634,7 @@ fn recalls(action: RecallAction, value: &Value) -> String {
             recall_list(heading, value)
         }
         RecallAction::Campaign => recall_campaign(value),
+        RecallAction::Recent => recent(value),
         RecallAction::Search => {
             let count = value["recalls"].as_array().map_or(0, Vec::len);
             recall_list(
@@ -646,6 +647,145 @@ fn recalls(action: RecallAction, value: &Value) -> String {
             )
         }
     }
+}
+
+/// Everything held for one model year, as a few lines: the vehicle, then
+/// its recalls in brief. The words "may apply" are the point.
+fn overview(value: &Value) -> String {
+    let vehicle = &value["vehicle"];
+    let mut text = if vehicle.is_object() {
+        format!(
+            "{} {} {}\n",
+            cell(vehicle, "year"),
+            cell(vehicle, "make"),
+            cell(vehicle, "model")
+        )
+    } else {
+        "No vehicle in the catalog\n".to_owned()
+    };
+    if let Some(vin) = field(&value["decode"], "vin") {
+        text.push_str(&format!("VIN {vin}\n"));
+    }
+    for warning in value["warnings"].as_array().into_iter().flatten() {
+        if let Some(message) = field(warning, "message") {
+            text.push_str(&format!("Warning: {message}\n"));
+        }
+    }
+    if let Some(page) = field(&value["links"], "page") {
+        text.push_str(&format!("Page: {page}\n"));
+    }
+    let recalls = &value["recalls"];
+    if !recalls.is_object() {
+        text.push_str("\nRecalls: no recall data is held where this was asked.\n");
+        return text;
+    }
+    let count = |country: &str| recalls["count"][country].as_u64().unwrap_or(0);
+    text.push_str(&match count("us") + count("ca") {
+        0 => "\nRecalls: no recall campaigns were found that may apply\n".to_owned(),
+        1 => "\nRecalls: 1 recall campaign may apply\n".to_owned(),
+        all => format!("\nRecalls: {all} recall campaigns may apply\n"),
+    });
+    if recalls["do_not_drive"] == true {
+        text.push_str("  At least one says DO NOT DRIVE (NHTSA advisory)\n");
+    }
+    if recalls["park_outside"] == true {
+        text.push_str("  At least one says PARK OUTSIDE (NHTSA advisory)\n");
+    }
+    text.push('\n');
+    for recall in recalls["newest"].as_array().into_iter().flatten() {
+        text.push_str(&recall_lines(recall));
+        text.push('\n');
+    }
+    if let Some(url) = field(recalls, "url") {
+        text.push_str(&format!("All of them: {url}\n"));
+    }
+    // The credits are the overview's own; the rest of the footer is the
+    // recall block's.
+    let mut footed = recalls.clone();
+    footed["attribution"] = value["attribution"].clone();
+    text + &recall_footer(&footed)
+}
+
+/// Every model year of one model, as a table with the recall counts.
+fn model_years(value: &Value) -> String {
+    let years = value["years"]
+        .as_array()
+        .map(Vec::as_slice)
+        .unwrap_or_default();
+    let mut text = format!(
+        "{} {}: {}\n\n",
+        cell(&value["make"], "name"),
+        cell(&value["model"], "name"),
+        match years.len() {
+            1 => "1 model year".to_owned(),
+            all => format!("{all} model years"),
+        }
+    );
+    let dash = || "-".to_owned();
+    let count = |year: &Value, country: &str| field(&year["recalls"], country).unwrap_or_else(dash);
+    let mut rows = vec![
+        ["ID", "YEAR", "RECALLS US", "RECALLS CA"]
+            .iter()
+            .map(|heading| (*heading).to_owned())
+            .collect::<Vec<String>>(),
+    ];
+    rows.extend(years.iter().map(|year| {
+        vec![
+            cell(year, "id"),
+            cell(year, "year"),
+            count(year, "us"),
+            count(year, "ca"),
+        ]
+    }));
+    text.push_str(&table(&rows));
+    text.push('\n');
+    text + &recall_footer(value)
+}
+
+/// The campaigns reported since a day, each with the vehicles it lists.
+fn recent(value: &Value) -> String {
+    let entries = value["recalls"]
+        .as_array()
+        .map(Vec::as_slice)
+        .unwrap_or_default();
+    let since = cell(value, "since");
+    let mut text = match entries.len() {
+        0 => format!("No recall campaigns reported since {since}.\n\n"),
+        1 => format!("1 recall campaign reported since {since}\n\n"),
+        all => format!("{all} recall campaigns reported since {since}, newest first\n\n"),
+    };
+    for entry in entries {
+        text.push_str(&recall_lines(&entry["recall"]));
+        let listed: Vec<String> = entry["vehicles"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .take(5)
+            .map(|vehicle| {
+                [
+                    cell(vehicle, "year"),
+                    cell(vehicle, "make"),
+                    cell(vehicle, "model"),
+                ]
+                .join(" ")
+                .trim()
+                .to_owned()
+            })
+            .collect();
+        if !listed.is_empty() {
+            let shown = u64::try_from(listed.len()).unwrap_or(u64::MAX);
+            let more = match entry["vehicles_listed"].as_u64() {
+                Some(all) if all > shown => format!(" and {} more", all - shown),
+                _ => String::new(),
+            };
+            text.push_str(&format!("  Lists: {}{more}\n", listed.join("; ")));
+        }
+        text.push('\n');
+    }
+    if let Some(cursor) = field(value, "next_cursor") {
+        text.push_str(&format!("More: add --cursor {cursor}\n\n"));
+    }
+    text + &recall_footer(value)
 }
 
 /// What `data status --shop` reports, as text.
@@ -699,6 +839,7 @@ pub fn text(request: &Request, value: &Value) -> String {
     let action = match request {
         Request::VinDecode { .. } => return decode(value),
         Request::VinBatch { .. } => return batch(value),
+        Request::VinOverview { .. } => return overview(value),
         Request::Recalls { action, .. } => return recalls(*action, value),
         Request::Vehicles { action, .. } => *action,
     };
@@ -746,6 +887,8 @@ pub fn text(request: &Request, value: &Value) -> String {
             vec![cell(found, "id"), cell(found, "summary")]
         }),
         Action::Entry => entry(value),
+        Action::Overview => overview(value),
+        Action::ModelYears => model_years(value),
     }
 }
 

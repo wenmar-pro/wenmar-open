@@ -649,3 +649,341 @@ fn shop_status_says_what_is_there() {
             .contains("recalls_us      as of 2026-10-11, 3 rows")
     );
 }
+
+// ----- the overview commands -----
+
+#[test]
+fn the_overview_commands_answer_from_the_files_as_the_api_words_it() {
+    let fixture = common::shop_dir();
+
+    let run = offline(&fixture, &["vehicles", "overview", "2023_hyundai_kona_se"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    let answer = run.json();
+    assert_eq!(
+        answer["vehicle"],
+        json!({ "id": "2023_hyundai_kona", "year": 2023, "make": "Hyundai", "model": "Kona" })
+    );
+    assert_eq!(answer["decode"], Value::Null);
+    let recalls = &answer["recalls"];
+    assert_eq!(recalls["may_apply"], true);
+    assert_eq!(recalls["count"], json!({ "us": 2, "ca": 1 }));
+    assert_eq!(
+        recalls["as_of"],
+        json!({ "us": "2026-10-11", "ca": "2026-10-06" })
+    );
+    assert_eq!(recalls["do_not_drive"], true);
+    assert_eq!(recalls["park_outside"], true);
+    let newest: Vec<&str> = recalls["newest"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|recall| recall["campaign"].as_str().unwrap())
+        .collect();
+    assert_eq!(newest, ["24V456000", "2023101", "23V123000"]);
+    assert_eq!(
+        recalls["url"],
+        format!("{SITE}/makes/hyundai/kona/2023/recalls")
+    );
+    assert_eq!(recalls["lookup"]["nhtsa"], "https://www.nhtsa.gov/recalls");
+    assert_eq!(recalls["lookup"]["maker"], Value::Null);
+    assert_eq!(
+        answer["links"],
+        json!({ "page": format!("{SITE}/makes/hyundai/kona/2023"), "maker": null })
+    );
+    // A block the files do not hold is null, and it is there.
+    for block in [
+        "specs",
+        "fuel",
+        "fluids",
+        "tires",
+        "safety",
+        "labor",
+        "bulletins",
+    ] {
+        assert_eq!(answer[block], Value::Null, "{block}");
+        assert!(answer.as_object().unwrap().contains_key(block), "{block}");
+    }
+    assert_eq!(
+        answer["attribution"],
+        json!(["Contains information licensed under the Open Government Licence - Canada."])
+    );
+    assert_eq!(answer["warnings"], json!([]));
+
+    // By VIN: the same, with what the VIN decoded to.
+    let run = offline(&fixture, &["vin", "overview", KONA]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    let by_vin = run.json();
+    assert_eq!(by_vin["decode"]["vin"], KONA);
+    assert_eq!(by_vin["decode"]["valid"], true);
+    assert_eq!(by_vin["decode"]["year"], 2023);
+    assert_eq!(by_vin["decode"]["entry_id"], "2023_hyundai_kona_se_2-0l");
+    assert_eq!(by_vin["decode"]["engine"], "2.0L");
+    assert_eq!(by_vin["decode"]["engine_settled"], true);
+    for key in ["vehicle", "recalls", "links", "attribution"] {
+        assert_eq!(by_vin[key], answer[key], "{key}");
+    }
+
+    // The model years of a model, each with its count.
+    let run = offline(
+        &fixture,
+        &[
+            "vehicles",
+            "model-years",
+            "--make",
+            "Hyundai",
+            "--model",
+            "KONA",
+        ],
+    );
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    let years = run.json();
+    assert_eq!(years["make"], json!({ "id": "hyundai", "name": "Hyundai" }));
+    assert_eq!(years["model"], json!({ "id": "kona", "name": "Kona" }));
+    assert_eq!(years["may_apply"], true);
+    assert_eq!(
+        years["years"],
+        json!([
+            {
+                "id": "2023_hyundai_kona", "year": 2023,
+                "recalls": { "us": 2, "ca": 1 }, "bulletins": null,
+                "url": format!("{SITE}/makes/hyundai/kona/2023")
+            },
+            {
+                "id": "2022_hyundai_kona", "year": 2022,
+                "recalls": { "us": 0, "ca": 0 }, "bulletins": null,
+                "url": format!("{SITE}/makes/hyundai/kona/2022")
+            }
+        ])
+    );
+    assert_eq!(years["lookup"]["maker"], Value::Null);
+
+    // The campaigns reported since a day, with the vehicles they list.
+    let run = offline(&fixture, &["recalls", "recent", "--since", "2023-03-05"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    let recent = run.json();
+    assert_eq!(recent["may_apply"], true);
+    assert_eq!(recent["since"], "2023-03-05");
+    let listed: Vec<&str> = recent["recalls"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|entry| entry["recall"]["campaign"].as_str().unwrap())
+        .collect();
+    assert_eq!(listed, ["24V456000", "2023101"]);
+    assert_eq!(recent["recalls"][0]["vehicles_listed"], 1);
+    assert_eq!(
+        recent["recalls"][0]["vehicles"],
+        json!([{
+            "year": 2023, "make": "HYUNDAI", "model": "KONA ELECTRIC",
+            "vehicle_id": "2023_hyundai_kona", "match": "base",
+            "built_from": null, "built_to": null
+        }])
+    );
+    assert_eq!(recent["next_cursor"], Value::Null);
+
+    // What is wrong fails with the API's codes and sentences.
+    let run = offline(&fixture, &["vehicles", "overview", "2019_honda_nothing"]);
+    assert_eq!(run.code, 3);
+    assert_eq!(run.error()["error"]["message"], "No vehicle has that id.");
+    let run = offline(
+        &fixture,
+        &[
+            "vehicles",
+            "model-years",
+            "--make",
+            "honda",
+            "--model",
+            "nothing",
+        ],
+    );
+    assert_eq!(run.code, 3);
+    assert_eq!(run.error()["error"]["message"], "No model has that id.");
+    let run = offline(&fixture, &["recalls", "recent", "--since", "yesterday"]);
+    assert_eq!(run.code, 4);
+    assert_eq!(run.error()["error"]["details"]["field"], "since");
+    let run = offline(&fixture, &["vin", "overview", "KM8"]);
+    assert_eq!(run.error()["error"]["code"], "invalid_vin");
+}
+
+#[test]
+fn without_the_shop_file_an_overview_still_answers_and_its_recalls_are_null() {
+    // The data file is here; the shop file is not.
+    let fixture = common::data_dir();
+    let run = offline(&fixture, &["vehicles", "overview", "2023_hyundai_kona"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    let answer = run.json();
+    assert_eq!(answer["vehicle"]["id"], "2023_hyundai_kona");
+    assert_eq!(answer["recalls"], Value::Null);
+    assert_eq!(answer["safety"], Value::Null);
+    assert_eq!(answer["attribution"], json!([]));
+    assert_eq!(
+        answer["links"]["page"],
+        format!("{SITE}/makes/hyundai/kona/2023")
+    );
+    assert_eq!(answer.as_object().unwrap().len(), 13);
+
+    let run = offline(&fixture, &["vin", "overview", KONA]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(run.json()["recalls"], Value::Null);
+    assert_eq!(run.json()["decode"]["vin"], KONA);
+
+    let run = offline(
+        &fixture,
+        &[
+            "vehicles",
+            "model-years",
+            "--make",
+            "hyundai",
+            "--model",
+            "kona",
+        ],
+    );
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    let years = run.json();
+    assert_eq!(years["as_of"], json!({ "us": null, "ca": null }));
+    assert_eq!(years["attribution"], json!([]));
+    assert_eq!(years["years"].as_array().unwrap().len(), 2);
+    for year in years["years"].as_array().unwrap() {
+        assert_eq!(year["recalls"], Value::Null);
+    }
+
+    // The recent list is recalls and nothing else: it says what to run.
+    let run = offline(&fixture, &["recalls", "recent", "--since", "2023-03-05"]);
+    assert_eq!(run.code, 11);
+    assert_eq!(
+        run.error(),
+        json!({
+            "error": {
+                "code": "dataset_unavailable",
+                "message": "The recalls_us dataset is not available.",
+                "details": { "dataset": "recalls_us", "hint": "Run: wenmar-open data pull --shop" }
+            }
+        })
+    );
+
+    // A shop file that goes with another data file is not read: the
+    // overview answers as with none. `data status --shop` says why.
+    common::write_shop_file(&fixture.shop_file(), "2026.10.12", "2026.08");
+    let run = offline(&fixture, &["vehicles", "overview", "2023_hyundai_kona"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(run.json()["recalls"], Value::Null);
+}
+
+#[test]
+fn at_a_terminal_an_overview_is_text_that_says_may_apply() {
+    let fixture = common::shop_dir();
+    let terminal = Env {
+        stdout_terminal: true,
+        ..common::env(&fixture)
+    };
+    let run = common::run(&terminal, &["vin", "overview", KONA, "--offline"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(
+        run.stdout,
+        "\
+2023 Hyundai Kona
+VIN KM8K2CAB4PU001140
+Page: https://open.wenmarpro.com/makes/hyundai/kona/2023
+
+Recalls: 3 recall campaigns may apply
+  At least one says DO NOT DRIVE (NHTSA advisory)
+  At least one says PARK OUTSIDE (NHTSA advisory)
+
+2024-05-10  nhtsa 24V456000  DO NOT DRIVE (NHTSA advisory)
+  SERVICE BRAKES, HYDRAULIC
+  The brake control unit may fail.
+
+2023-03-10  tc 2023101
+  Electrical
+  Issue: A wiring harness may overheat.
+
+2023-03-02  nhtsa 23V123000  PARK OUTSIDE (NHTSA advisory)
+  ELECTRICAL SYSTEM:WIRING
+  A wiring harness may overheat.
+
+All of them: https://open.wenmarpro.com/makes/hyundai/kona/2023/recalls
+As of: United States 2026-10-11, Canada 2026-10-06
+Check the VIN:
+  United States: https://www.nhtsa.gov/recalls
+  Canada: https://wwwapps.tc.gc.ca/Saf-Sec-Sur/7/VRDB-BDRV/search-recherche/menu.aspx?lang=eng
+Contains information licensed under the Open Government Licence - Canada.
+A recall listed here may apply to a vehicle of that year, make and model. Only the manufacturer can say whether it applies to one vehicle: check the VIN at the addresses above.
+"
+    );
+    for args in [
+        &["vehicles", "overview", "2019_honda_civic", "--offline"][..],
+        &[
+            "vehicles",
+            "model-years",
+            "--make",
+            "hyundai",
+            "--model",
+            "kona",
+            "--offline",
+        ],
+        &["recalls", "recent", "--since", "2019-01-01", "--offline"],
+    ] {
+        let run = common::run(&terminal, args);
+        assert_eq!(run.code, 0, "{args:?} {}", run.stderr);
+        assert!(run.stdout.contains("may apply"), "{args:?}");
+        assert!(run.stdout.contains("https://www.nhtsa.gov/recalls"));
+        assert!(run.stdout.contains("https://wwwapps.tc.gc.ca/"));
+        for claim in [
+            "is affected",
+            "open recall",
+            "your vehicle",
+            "applies to this",
+        ] {
+            assert!(!run.stdout.contains(claim), "{args:?} says {claim}");
+        }
+    }
+    let run = common::run(
+        &terminal,
+        &[
+            "vehicles",
+            "model-years",
+            "--make",
+            "hyundai",
+            "--model",
+            "kona",
+            "--offline",
+        ],
+    );
+    assert!(
+        run.stdout.starts_with(
+            "Hyundai Kona: 2 model years\n\nID                 YEAR  RECALLS US  RECALLS CA\n2023_hyundai_kona  2023  2           1\n2022_hyundai_kona  2022  0           0\n"
+        ),
+        "{}",
+        run.stdout
+    );
+    let run = common::run(
+        &terminal,
+        &["recalls", "recent", "--since", "2019-01-01", "--offline"],
+    );
+    assert!(
+        run.stdout
+            .starts_with("4 recall campaigns reported since 2019-01-01, newest first\n"),
+        "{}",
+        run.stdout
+    );
+    assert!(
+        run.stdout
+            .contains("  Lists: 2019 CHEVROLET SILVERADO 1500; 2019 GMC SIERRA 1500\n"),
+        "{}",
+        run.stdout
+    );
+    // With no shop file the text says so, and claims nothing.
+    let bare = common::data_dir();
+    let terminal = Env {
+        stdout_terminal: true,
+        ..common::env(&bare)
+    };
+    let run = common::run(
+        &terminal,
+        &["vehicles", "overview", "2023_hyundai_kona", "--offline"],
+    );
+    assert_eq!(
+        run.stdout,
+        "2023 Hyundai Kona\nPage: https://open.wenmarpro.com/makes/hyundai/kona/2023\n\nRecalls: no recall data is held where this was asked.\n"
+    );
+}
