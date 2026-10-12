@@ -19,3 +19,7 @@ wenmar-vehicles.workspace = true
 
 [features]
 sqlite = ["dep:rusqlite"]
+
+[[test]]
+name = "shop"
+required-features = ["sqlite"]

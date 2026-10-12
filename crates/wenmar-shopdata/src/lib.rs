@@ -9,6 +9,11 @@ pub mod dataset;
 pub mod error;
 pub mod licence;
 pub mod schema;
+pub mod shop;
 
 pub use dataset::{Dataset, DatasetEntry, Datasets};
 pub use error::ShopError;
+pub use shop::{ShopData, ShopMeta, check_pairing};
+
+#[cfg(feature = "sqlite")]
+pub mod sqlite;
