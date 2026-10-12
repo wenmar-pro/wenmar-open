@@ -377,10 +377,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Fluids of a model year. Today: the engine oil viscosity grade.
-         * @description The grade is the one the maker certified the engine with, as EPA's
-         *     Fuel Economy Guide records it. It is not read from the owner's manual,
-         *     and it gives no capacity and no specification. One entry per engine.
+         * Fluids of a model year.
+         * @description `engine_oil` is the viscosity grade the maker certified the engine
+         *     with, as EPA's Fuel Economy Guide records it: not a reading of the
+         *     owner's manual, and with no capacity. `engine_oil_checked`,
+         *     `transmission`, `coolant`, `refrigerant` and `brake` are records a
+         *     person read from the maker's own documents, each with its `source`
+         *     and the day it was `checked`. They are empty for a model year nobody
+         *     has recorded: nothing is estimated.
          */
         get: operations["vehicle_fluids"];
         put?: never;
@@ -528,6 +532,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vehicles/{id}/tires": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Original-equipment tire fitments of a model year.
+         * @description Every size the maker fitted that a person has recorded, each with the
+         *     trims it covers, the cold pressures, the wheel nut torque and the bolt
+         *     pattern, the document it was read from (`source`) and the day
+         *     (`checked`). A model year usually has several; none is picked. An
+         *     empty list means nobody has recorded this model year, not that it has
+         *     no tires on file anywhere.
+         */
+        get: operations["vehicle_tires"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vin/batch": {
         parameters: {
             query?: never;
@@ -608,7 +637,9 @@ export interface paths {
         /**
          * Fluids for the vehicle a VIN decodes to.
          * @description When the decode settles the engine, `engine_oil` holds the one entry
-         *     of that engine, or none. Otherwise it holds every engine's.
+         *     of that engine, or none, and each hand-read list holds the records of
+         *     that engine and those recorded for every engine. Otherwise each holds
+         *     every engine's.
          */
         get: operations["vin_fluids"];
         put?: never;
@@ -726,6 +757,28 @@ export interface paths {
          *     fuel route is.
          */
         get: operations["vin_specs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vin/{vin}/tires": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tire fitments for the vehicle a VIN decodes to.
+         * @description Every fitment of the model year: a VIN does not say which wheels a
+         *     vehicle was built with, so the list is not narrowed. Read the size on
+         *     the door placard.
+         */
+        get: operations["vin_tires"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1156,6 +1209,63 @@ export interface components {
             message: string;
         };
         /**
+         * @description One fluid of a model year that a person read from the maker's own
+         *     document. Which fields are filled depends on the list it is in:
+         *     `grade`, the capacity and `with_filter` are for engine oil, and the
+         *     charge is for refrigerant.
+         */
+        FluidRecord: {
+            /** @description Which transmission or system the record is for, when it says. */
+            applies_to?: string | null;
+            /** Format: double */
+            capacity_l?: number | null;
+            /**
+             * Format: double
+             * @description US liquid quarts.
+             */
+            capacity_qt?: number | null;
+            /**
+             * @description The unit the document printed, `l` or `qt`. The other figure was
+             *     worked out from it.
+             */
+            capacity_written_in?: string | null;
+            /**
+             * Format: int64
+             * @description Refrigerant charge, in grams.
+             */
+            charge_g?: number | null;
+            /**
+             * Format: double
+             * @description Refrigerant charge, in ounces.
+             */
+            charge_oz?: number | null;
+            /** @description `g`, `kg`, `oz` or `lb`. */
+            charge_written_in?: string | null;
+            /**
+             * @description The day it was read.
+             * @example 2026-10-12
+             */
+            checked: string;
+            engine?: null | components["schemas"]["EngineRef"];
+            /** @description Engine oil viscosity, as the document gives it. */
+            grade?: string | null;
+            /** @description `us` or `ca` when the document is for one country only. */
+            market?: string | null;
+            /** @description The document the record was read from. */
+            source: string;
+            /** @description The maker's specification, or the type of fluid. */
+            specification?: string | null;
+            /** @description Whether the capacity includes the oil filter. */
+            with_filter?: boolean | null;
+        };
+        /** @description A figure for the front and for the rear. */
+        FrontRear: {
+            /** Format: int64 */
+            front?: number | null;
+            /** Format: int64 */
+            rear?: number | null;
+        };
+        /**
          * @description The day each country's fuel ratings were current. Null for a country
          *     this server holds no ratings for.
          */
@@ -1473,7 +1583,12 @@ export interface components {
             recalls?: null | components["schemas"]["OverviewRecalls"];
             safety?: null | components["schemas"]["VehicleSafety"];
             specs?: Record<string, unknown> | null;
-            tires?: Record<string, unknown> | null;
+            /**
+             * @description The original-equipment tire fitments a person recorded, as the
+             *     `fitments` of `/v1/vehicles/{id}/tires`: every one, never narrowed.
+             *     `null` on a server that holds none.
+             */
+            tires?: components["schemas"]["TireFitment"][] | null;
             vehicle?: null | components["schemas"]["RecallVehicle"];
             warnings: components["schemas"]["Warning"][];
         };
@@ -2244,6 +2359,39 @@ export interface components {
             /** @example EX-L */
             name: string;
         };
+        /**
+         * @description One tire size the maker fitted to a model year, read by a person from
+         *     the door placard or the owner's manual.
+         */
+        TireFitment: {
+            bolt_pattern?: string | null;
+            /** @example 2026-10-12 */
+            checked: string;
+            /** Format: int64 */
+            lug_torque_lbft?: number | null;
+            /** Format: int64 */
+            lug_torque_nm?: number | null;
+            /** @description `nm` or `lbft`. */
+            lug_torque_written_in?: string | null;
+            market?: string | null;
+            pressure_kpa?: null | components["schemas"]["FrontRear"];
+            pressure_psi?: null | components["schemas"]["FrontRear"];
+            /**
+             * @description The unit the document printed: `kpa`, `bar` or `psi`. The other
+             *     figures were worked out from it.
+             */
+            pressure_written_in?: string | null;
+            /** @description The size as printed. The front size when `size_rear` is given. */
+            size: string;
+            /** @description The rear size, only when it differs from the front. */
+            size_rear?: string | null;
+            source: string;
+            /**
+             * @description The trims the document ties the size to, as it names them. Empty
+             *     when it names none.
+             */
+            trims: string[];
+        };
         /** @description Bulletins that list one model year. */
         VehicleBulletins: {
             /**
@@ -2304,12 +2452,35 @@ export interface components {
              */
             verified: boolean;
         };
-        /** @description The fluids of one model year. */
+        /**
+         * @description The fluids of one model year.
+         *
+         *     `engine_oil` is the grade EPA records. The five lists after
+         *     `checked_as_of` are records a person read from the maker's own
+         *     documents, each with its `source` and the day it was `checked`; they
+         *     are empty for a model year nobody has recorded, and on a server that
+         *     does not hold the records `checked_as_of` is `null`.
+         */
         VehicleFluids: {
-            /** @example 2026-09-29 */
+            /**
+             * @description The day EPA's oil grades were current. `null` on a server without
+             *     them.
+             * @example 2026-09-29
+             */
             as_of?: string | null;
             attribution: string[];
+            brake: components["schemas"]["FluidRecord"][];
+            /**
+             * @description The day of the newest hand-read record the server holds, for any
+             *     vehicle. `null` on a server without them.
+             * @example 2026-10-12
+             */
+            checked_as_of?: string | null;
+            coolant: components["schemas"]["FluidRecord"][];
             engine_oil: components["schemas"]["EngineOil"][];
+            engine_oil_checked: components["schemas"]["FluidRecord"][];
+            refrigerant: components["schemas"]["FluidRecord"][];
+            transmission: components["schemas"]["FluidRecord"][];
             vehicle: components["schemas"]["RecallVehicle"];
         };
         /** @description The fuel ratings of one model year. */
@@ -2388,6 +2559,22 @@ export interface components {
             specs: components["schemas"]["Spec"][];
             vehicle: components["schemas"]["RecallVehicle"];
         };
+        /** @description Every original-equipment tire fitment on record for one model year. */
+        VehicleTires: {
+            /**
+             * @description The day of the newest record the server holds, for any vehicle.
+             * @example 2026-10-12
+             */
+            as_of?: string | null;
+            attribution: string[];
+            /**
+             * @description One entry per size, in the order of the record file. Empty for a
+             *     model year nobody has recorded. A size is never picked for the
+             *     caller.
+             */
+            fitments: components["schemas"]["TireFitment"][];
+            vehicle: components["schemas"]["RecallVehicle"];
+        };
         /** @description Bulletins that list the year, make and model a VIN decodes to. */
         VinBulletins: {
             as_of?: string | null;
@@ -2464,11 +2651,18 @@ export interface components {
         VinFluids: {
             as_of?: string | null;
             attribution: string[];
+            brake: components["schemas"]["FluidRecord"][];
+            checked_as_of?: string | null;
+            coolant: components["schemas"]["FluidRecord"][];
             decode: components["schemas"]["RecallDecode"];
             engine?: null | components["schemas"]["EngineRef"];
             engine_oil: components["schemas"]["EngineOil"][];
+            /** @description Narrowed as `engine_oil` is. A record for every engine is kept. */
+            engine_oil_checked: components["schemas"]["FluidRecord"][];
             /** @description Whether `engine_oil` is narrowed to `engine`. */
             engine_settled: boolean;
+            refrigerant: components["schemas"]["FluidRecord"][];
+            transmission: components["schemas"]["FluidRecord"][];
             vehicle?: null | components["schemas"]["RecallVehicle"];
             warnings: components["schemas"]["Warning"][];
         };
@@ -2529,6 +2723,19 @@ export interface components {
             /** @description Whether `specs` is narrowed to `engine`. */
             engine_settled: boolean;
             specs: components["schemas"]["Spec"][];
+            vehicle?: null | components["schemas"]["RecallVehicle"];
+            warnings: components["schemas"]["Warning"][];
+        };
+        /** @description The tire fitments of the model year a VIN decodes to. */
+        VinTires: {
+            as_of?: string | null;
+            attribution: string[];
+            decode: components["schemas"]["RecallDecode"];
+            /**
+             * @description Every fitment of the model year. A VIN does not say which wheels a
+             *     vehicle left the factory with, so the list is never narrowed.
+             */
+            fitments: components["schemas"]["TireFitment"][];
             vehicle?: null | components["schemas"]["RecallVehicle"];
             warnings: components["schemas"]["Warning"][];
         };
@@ -3440,7 +3647,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description The engine oil grades, by engine. */
+            /** @description The engine oil grades by engine, and the records read by hand. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3449,7 +3656,7 @@ export interface operations {
                     "application/json": components["schemas"]["VehicleFluids"];
                 };
             };
-            /** @description `not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no oil grades. */
+            /** @description `not_found`: no vehicle has that id. `dataset_unavailable`: this server holds neither oil grades nor hand-read fluids. */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3718,6 +3925,41 @@ export interface operations {
             };
         };
     };
+    vehicle_tires: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description A vehicle id. Fitments are listed by year, make and model; a submodel or an engine in the id is set aside.
+                 * @example 2018_ford_f-150
+                 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The fitments, in the order they were recorded. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleTires"];
+                };
+            };
+            /** @description `not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no tire fitments. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     batch: {
         parameters: {
             query?: {
@@ -3941,7 +4183,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description The engine oil grades. */
+            /** @description The engine oil grades and the records read by hand. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3959,7 +4201,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorBody"];
                 };
             };
-            /** @description `not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no oil grades. */
+            /** @description `not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds neither oil grades nor hand-read fluids. */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -4208,6 +4450,53 @@ export interface operations {
                 };
             };
             /** @description `not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no specifications. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    vin_tires: {
+        parameters: {
+            query?: {
+                /** @description The model year, when the VIN's tenth character leaves two possible. */
+                year?: number;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description A 17-character VIN.
+                 * @example KM8K2CAB4PU001140
+                 */
+                vin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The fitments. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VinTires"];
+                };
+            };
+            /** @description `invalid_vin`, or `validation_failed` for `year`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no tire fitments. */
             404: {
                 headers: {
                     [name: string]: unknown;

@@ -38,6 +38,7 @@ import type {
   VehicleComplaints,
   VehicleSafety,
   VehicleSpecs,
+  VehicleTires,
   VinDecode,
   VinFluids,
   VinFuel,
@@ -47,6 +48,7 @@ import type {
   VinRecalls,
   VinRecallsQuery,
   VinSpecs,
+  VinTires,
   VinYearQuery,
   YearsQuery,
 } from "./types.js";
@@ -345,8 +347,9 @@ export class WenmarOpen {
   }
 
   /**
-   * Fluids of a model year. Today the engine oil viscosity grade the maker
-   * certified each engine with, per EPA: not a reading of the owner's manual.
+   * Fluids of a model year: the engine oil viscosity grade the maker
+   * certified each engine with, per EPA, and the records a person read from
+   * the maker's own documents, each with its source and the day it was checked.
    */
   async fluids(id: string, options: RequestOptions = {}): Promise<VehicleFluids> {
     return this.#request("GET", `/v1/vehicles/${segment("id", id)}/fluids`, undefined, options);
@@ -355,6 +358,21 @@ export class WenmarOpen {
   /** Fluids for the vehicle a VIN decodes to: one engine's when the decode settles it. */
   async vinFluids(vin: string, query: VinYearQuery = {}, options: RequestOptions = {}): Promise<VinFluids> {
     const path = `/v1/vin/${segment("vin", vin)}/fluids${queryString(query)}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /**
+   * Original-equipment tire fitments of a model year, read by a person from
+   * the door placard or the owner's manual. Every size on record is listed
+   * with the trims it covers; none is picked.
+   */
+  async tires(id: string, options: RequestOptions = {}): Promise<VehicleTires> {
+    return this.#request("GET", `/v1/vehicles/${segment("id", id)}/tires`, undefined, options);
+  }
+
+  /** Tire fitments of the model year a VIN decodes to. Never narrowed: a VIN does not name the wheels. */
+  async vinTires(vin: string, query: VinYearQuery = {}, options: RequestOptions = {}): Promise<VinTires> {
+    const path = `/v1/vin/${segment("vin", vin)}/tires${queryString(query)}`;
     return this.#request("GET", path, undefined, options);
   }
 

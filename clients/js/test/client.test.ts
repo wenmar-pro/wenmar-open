@@ -135,6 +135,16 @@ const calls: Record<string, { call: () => Promise<unknown>; method: string; url:
     method: "GET",
     url: `/v1/vin/${KONA}/fluids`,
   },
+  vehicle_tires: {
+    call: () => client.tires("2018_ford_f-150"),
+    method: "GET",
+    url: "/v1/vehicles/2018_ford_f-150/tires",
+  },
+  vin_tires: {
+    call: () => client.vinTires(KONA, { year: 2023 }),
+    method: "GET",
+    url: `/v1/vin/${KONA}/tires?year=2023`,
+  },
   parts_card: {
     call: () => client.partsCard(KONA, { year: 2023 }),
     method: "GET",

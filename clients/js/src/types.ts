@@ -61,12 +61,20 @@ export type VehicleSpecs = Schemas["VehicleSpecs"];
 export type VinSpecs = Schemas["VinSpecs"];
 /** The specifications that come with one EPA rating. */
 export type Spec = Schemas["Spec"];
-/** The fluids of one model year. Today: the engine oil viscosity grade. */
+/** The fluids of one model year: EPA's oil grade, and the records read by hand. */
 export type VehicleFluids = Schemas["VehicleFluids"];
 /** The fluids for the vehicle a VIN decodes to. */
 export type VinFluids = Schemas["VinFluids"];
 /** The oil grade a maker certified an engine with, per EPA. Not from the owner's manual. */
 export type EngineOil = Schemas["EngineOil"];
+/** One fluid a person read from the maker's own document, with its source and the day it was checked. */
+export type FluidRecord = Schemas["FluidRecord"];
+/** Every original-equipment tire fitment on record for one model year. */
+export type VehicleTires = Schemas["VehicleTires"];
+/** The tire fitments of the model year a VIN decodes to. */
+export type VinTires = Schemas["VinTires"];
+/** One tire size the maker fitted, with the trims it covers, pressures and wheel nut torque. */
+export type TireFitment = Schemas["TireFitment"];
 /** What a parts counter asks for about one vehicle, each line with its source. */
 export type PartsCard = Schemas["PartsCard"];
 /** One line of a parts-ordering card. */
