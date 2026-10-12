@@ -554,3 +554,21 @@ pub fn epa_guide_dir(scratch: &Scratch) -> PathBuf {
     .unwrap();
     directory
 }
+
+/// A fetched `epa-emissions` directory made from the fixture, under
+/// `scratch`: the CSV zipped under the name `open-data fetch` saves, with
+/// CR LF line ends, and `source.json` beside it.
+pub fn epa_emissions_dir(scratch: &Scratch) -> PathBuf {
+    let directory = scratch.path("sources/epa-emissions");
+    std::fs::create_dir_all(&directory).unwrap();
+    let text = std::fs::read_to_string(fixture("epa-emissions").join("emissions.csv"))
+        .unwrap()
+        .replace('\n', "\r\n");
+    zip_one(&directory.join("emissions.csv.zip"), "emissions.csv", &text);
+    std::fs::copy(
+        fixture("epa-emissions").join("source.json"),
+        directory.join("source.json"),
+    )
+    .unwrap();
+    directory
+}

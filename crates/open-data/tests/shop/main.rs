@@ -3,6 +3,7 @@
 mod build;
 mod common;
 mod coverage;
+mod epa_emissions;
 mod epa_guide;
 mod epa_match;
 mod epa_vehicles;
