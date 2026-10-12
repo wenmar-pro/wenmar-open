@@ -1,0 +1,54 @@
+# An example of the shape of a file. This file is not built: its name
+# starts with an underscore. The job, the vehicle and every figure are
+# made up; the hours are impossible on purpose.
+job: test-job-a
+estimates:
+  # Every vehicle of a class.
+  - scope: class
+    class: compact-car
+    low: "97.5"
+    typical: "98"
+    high: "99.25"
+    basis: expert
+    notes: "Made-up note."
+    author: your-github-name
+    reviewer: their-github-name
+    updated: 2026-10-12
+  # Every model year of one model.
+  - scope: model
+    make: testmake
+    model: sampler
+    low: "87"
+    typical: "88"
+    high: "89"
+    basis: expert
+    author: your-github-name
+    reviewer: their-github-name
+    updated: 2026-10-12
+  # A run of model years of one model.
+  - scope: generation
+    make: testmake
+    model: sampler
+    year_from: 2001
+    year_to: 2001
+    low: "77"
+    typical: "78"
+    high: "79"
+    basis: expert
+    author: your-github-name
+    reviewer: their-github-name
+    updated: 2026-10-12
+  # One engine of a run of model years.
+  - scope: engine
+    make: testmake
+    model: sampler
+    year_from: 2001
+    year_to: 2002
+    engine: 9-9l-test
+    low: "67"
+    typical: "68"
+    high: "69"
+    basis: expert
+    author: your-github-name
+    reviewer: their-github-name
+    updated: 2026-10-12
