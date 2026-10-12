@@ -23,6 +23,45 @@ pub struct Config {
     pub requests_per_minute: u32,
     /// `OPEN_BASE_URL`: the public address, used in absolute links.
     pub base_url: String,
+    /// `OPEN_FEEDBACK_EMAIL`: where "report an error by email" sends mail.
+    /// Unset: no email link is shown.
+    pub feedback_email: Option<String>,
+    /// `OPEN_GITHUB_REPO`: the repository error reports are opened in, as
+    /// `owner/name`. Default `wenmar-pro/wenmar-open`.
+    pub github_repo: String,
+}
+
+/// Whether `text` can follow `mailto:` in a link: one `@`, a dot inside the
+/// host, and no character that would end the address or start a query.
+fn is_email(text: &str) -> bool {
+    let mut parts = text.split('@');
+    match (parts.next(), parts.next(), parts.next()) {
+        (Some(name), Some(host), None) => {
+            !name.is_empty()
+                && host.contains('.')
+                && !host.starts_with('.')
+                && !host.ends_with('.')
+                && text
+                    .chars()
+                    .all(|c| c.is_ascii_alphanumeric() || "@._+-".contains(c))
+        }
+        _ => false,
+    }
+}
+
+/// Whether `text` is `owner/name`, as GitHub writes a repository.
+fn is_repo(text: &str) -> bool {
+    let part = |part: &str| {
+        !part.is_empty()
+            && part
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || "._-".contains(c))
+    };
+    let mut parts = text.split('/');
+    match (parts.next(), parts.next(), parts.next()) {
+        (Some(owner), Some(name), None) => part(owner) && part(name),
+        _ => false,
+    }
 }
 
 fn number<T: std::str::FromStr>(
@@ -57,6 +96,26 @@ impl Config {
             .unwrap_or_else(|| "https://open.wenmarpro.com".to_owned())
             .trim_end_matches('/')
             .to_owned();
+        let given = |name: &str| {
+            lookup(name)
+                .map(|text| text.trim().to_owned())
+                .filter(|text| !text.is_empty())
+        };
+        let feedback_email = given("OPEN_FEEDBACK_EMAIL");
+        if let Some(email) = &feedback_email
+            && !is_email(email)
+        {
+            return Err(format!(
+                "OPEN_FEEDBACK_EMAIL must be an email address, but it is {email:?}"
+            ));
+        }
+        let github_repo =
+            given("OPEN_GITHUB_REPO").unwrap_or_else(|| "wenmar-pro/wenmar-open".to_owned());
+        if !is_repo(&github_repo) {
+            return Err(format!(
+                "OPEN_GITHUB_REPO must be owner/name, but it is {github_repo:?}"
+            ));
+        }
         Ok(Config {
             data: PathBuf::from(data),
             shop_data: lookup("OPEN_SHOP_DATA")
@@ -67,6 +126,8 @@ impl Config {
             trusted_proxies: number(&lookup, "OPEN_TRUSTED_PROXIES", 0)?,
             requests_per_minute: number(&lookup, "OPEN_RATE_LIMIT", 600u32)?.max(1),
             base_url,
+            feedback_email,
+            github_repo,
         })
     }
 }
@@ -134,5 +195,62 @@ mod tests {
         assert_eq!(config.connections, 1);
         assert_eq!(config.requests_per_minute, 1);
         assert_eq!(config.base_url, "http://localhost:3000");
+    }
+
+    fn with(name: &'static str, value: &'static str) -> Result<Config, String> {
+        Config::from_lookup(move |asked| match asked {
+            "OPEN_DATA" => Some("d".to_owned()),
+            asked if asked == name => Some(value.to_owned()),
+            _ => None,
+        })
+    }
+
+    #[test]
+    fn feedback_settings_have_defaults_and_are_tidied() {
+        let config = with("PORT", "3000").unwrap();
+        assert_eq!(config.feedback_email, None);
+        assert_eq!(config.github_repo, "wenmar-pro/wenmar-open");
+        let config = with("OPEN_FEEDBACK_EMAIL", " data@open.example ").unwrap();
+        assert_eq!(config.feedback_email.as_deref(), Some("data@open.example"));
+        assert_eq!(
+            with("OPEN_GITHUB_REPO", "someone/a-fork.rs")
+                .unwrap()
+                .github_repo,
+            "someone/a-fork.rs"
+        );
+        // An empty setting is the same as none.
+        assert_eq!(
+            with("OPEN_FEEDBACK_EMAIL", " ").unwrap().feedback_email,
+            None
+        );
+        assert_eq!(
+            with("OPEN_GITHUB_REPO", "").unwrap().github_repo,
+            "wenmar-pro/wenmar-open"
+        );
+    }
+
+    #[test]
+    fn a_feedback_setting_that_is_wrong_is_named() {
+        for bad in [
+            "nobody",
+            "a@b",
+            "a b@c.d",
+            "a@b.c?subject=x",
+            "<a@b.c>",
+            "a@@b.c",
+        ] {
+            let error = with("OPEN_FEEDBACK_EMAIL", bad).unwrap_err();
+            assert!(
+                error.starts_with("OPEN_FEEDBACK_EMAIL must be an email address"),
+                "{bad}: {error}"
+            );
+        }
+        for bad in ["wenmar-open", "a/b/c", "a/", "/b", "a b/c", "a/b?c"] {
+            let error = with("OPEN_GITHUB_REPO", bad).unwrap_err();
+            assert!(
+                error.starts_with("OPEN_GITHUB_REPO must be owner/name"),
+                "{bad}: {error}"
+            );
+        }
     }
 }

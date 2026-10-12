@@ -375,6 +375,8 @@ pub fn config(fixture: &Fixture) -> Config {
         trusted_proxies: 0,
         requests_per_minute: 600,
         base_url: "https://open.example".to_owned(),
+        feedback_email: None,
+        github_repo: "wenmar-pro/wenmar-open".to_owned(),
     }
 }
 
