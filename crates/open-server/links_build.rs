@@ -47,6 +47,12 @@ struct Make {
     parts_url: Option<String>,
     #[serde(default)]
     customer_line: Option<String>,
+    /// The address of one model year's manuals, with `{year}` and
+    /// `{model}` where the maker's address has them.
+    #[serde(default)]
+    manual_url_template: Option<String>,
+    #[serde(default)]
+    maintenance_url_template: Option<String>,
 }
 
 impl Make {
@@ -61,8 +67,18 @@ impl Make {
         ]
     }
 
+    /// The two address patterns with their field names.
+    fn templates(&self) -> [(&'static str, &Option<String>); 2] {
+        [
+            ("manual_url_template", &self.manual_url_template),
+            ("maintenance_url_template", &self.maintenance_url_template),
+        ]
+    }
+
     fn any(&self) -> bool {
-        self.customer_line.is_some() || self.addresses().iter().any(|(_, value)| value.is_some())
+        self.customer_line.is_some()
+            || self.addresses().iter().any(|(_, value)| value.is_some())
+            || self.templates().iter().any(|(_, value)| value.is_some())
     }
 }
 
@@ -101,6 +117,13 @@ fn is_address(text: &str) -> bool {
         })
 }
 
+/// An address pattern: an address once `{year}` and `{model}` are filled
+/// in, with at least one of the two in it and no other brace.
+fn is_template(text: &str) -> bool {
+    let filled = text.replace("{year}", "2000").replace("{model}", "model");
+    filled != text && !filled.contains(['{', '}']) && is_address(&filled)
+}
+
 /// A telephone number as a maker prints it: `1-800-555-0100`, `1 (800) 33-HONDA`.
 fn is_phone(text: &str) -> bool {
     (7..=40).contains(&text.len())
@@ -130,6 +153,15 @@ fn check(file: &File) -> Result<(), String> {
             {
                 return Err(format!(
                     "{name}: {field} must be an https:// address of at most {LONGEST} characters with no space, quote, bracket or parenthesis, but it is {address:?}"
+                ));
+            }
+        }
+        for (field, value) in make.templates() {
+            if let Some(template) = value
+                && !is_template(template)
+            {
+                return Err(format!(
+                    "{name}: {field} must be an https:// address with {{year}} or {{model}} in it and no other brace, but it is {template:?}"
                 ));
             }
         }
@@ -166,7 +198,7 @@ fn write(file: &File) -> String {
     ));
     for make in with_links {
         code.push_str(&format!(
-            "MakeLinks {{ norm: {:?}, checked: {:?}, recall_lookup_url: {}, manual_url: {}, maintenance_url: {}, service_info_url: {}, parts_url: {}, customer_line: {} }},\n",
+            "MakeLinks {{ norm: {:?}, checked: {:?}, recall_lookup_url: {}, manual_url: {}, maintenance_url: {}, service_info_url: {}, parts_url: {}, customer_line: {}, manual_url_template: {}, maintenance_url_template: {} }},\n",
             norm(&make.name),
             make.links_checked.clone().unwrap_or_default(),
             option(&make.recall_lookup_url),
@@ -175,6 +207,8 @@ fn write(file: &File) -> String {
             option(&make.service_info_url),
             option(&make.parts_url),
             option(&make.customer_line),
+            option(&make.manual_url_template),
+            option(&make.maintenance_url_template),
         ));
     }
     code.push_str("];\n");
@@ -201,7 +235,7 @@ mod tests {
             code.contains("pub static MAKE_LINKS: [MakeLinks; 1] = [\n"),
             "{code}"
         );
-        assert!(code.contains("MakeLinks { norm: \"mercedesbenz\", checked: \"2026-10-12\", recall_lookup_url: Some(\"https://example.org/recalls?a=1&b=2\"), manual_url: None, maintenance_url: None, service_info_url: None, parts_url: None, customer_line: Some(\"1 (800) 555-0100\") },\n"), "{code}");
+        assert!(code.contains("MakeLinks { norm: \"mercedesbenz\", checked: \"2026-10-12\", recall_lookup_url: Some(\"https://example.org/recalls?a=1&b=2\"), manual_url: None, maintenance_url: None, service_info_url: None, parts_url: None, customer_line: Some(\"1 (800) 555-0100\"), manual_url_template: None, maintenance_url_template: None },\n"), "{code}");
         assert!(
             generate("makes: []\n")
                 .unwrap()
@@ -251,6 +285,33 @@ mod tests {
             (
                 "    links_checked: \"2026-10-12\"\n    manuals_url: https://example.org/m\n",
                 "manuals_url",
+            ),
+        ] {
+            let error = generate(&format!("makes:\n  - name: Honda\n{lines}")).unwrap_err();
+            assert!(error.contains(expected), "{lines}: {error}");
+        }
+    }
+
+    #[test]
+    fn an_address_pattern_is_written_and_a_wrong_one_is_refused() {
+        let code = generate("makes:\n  - name: Honda\n    links_checked: \"2026-10-12\"\n    manual_url_template: https://example.org/owners/{year}/{model}/manuals\n    maintenance_url_template: https://example.org/schedule?model={model}\n").unwrap();
+        assert!(code.contains("manual_url_template: Some(\"https://example.org/owners/{year}/{model}/manuals\"), maintenance_url_template: Some(\"https://example.org/schedule?model={model}\") },\n"), "{code}");
+        for (lines, expected) in [
+            (
+                "    manual_url_template: https://example.org/owners/{year}\n",
+                "Honda has a link but no links_checked",
+            ),
+            (
+                "    links_checked: \"2026-10-12\"\n    manual_url_template: https://example.org/owners\n",
+                "Honda: manual_url_template must be an https:// address with {year} or {model} in it",
+            ),
+            (
+                "    links_checked: \"2026-10-12\"\n    manual_url_template: https://example.org/{trim}/{model}\n",
+                "Honda: manual_url_template must be",
+            ),
+            (
+                "    links_checked: \"2026-10-12\"\n    maintenance_url_template: http://example.org/{year}/{model}\n",
+                "Honda: maintenance_url_template must be",
             ),
         ] {
             let error = generate(&format!("makes:\n  - name: Honda\n{lines}")).unwrap_err();

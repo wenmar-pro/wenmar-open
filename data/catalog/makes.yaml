@@ -16,6 +16,11 @@
 # service_info_url   The maker's service information site for repairers.
 # parts_url          The maker's parts catalogue.
 # customer_line      The maker's telephone line for customers, in quotes.
+# manual_url_template       Only where the maker's address for one model
+#                           year's manuals follows a pattern: that address
+#                           with {year} and {model} in it. {model} is the
+#                           catalog's id form of the model, such as f-150.
+# maintenance_url_template  The same for one model year's maintenance schedule.
 makes:
   - name: Toyota
     aliases: [yota]

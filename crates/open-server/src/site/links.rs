@@ -19,9 +19,21 @@ pub struct MakeLinks {
     pub service_info_url: Option<&'static str>,
     pub parts_url: Option<&'static str>,
     pub customer_line: Option<&'static str>,
+    /// The address of one model year's manuals, with `{year}` and
+    /// `{model}` to fill in. See [`fill`].
+    pub manual_url_template: Option<&'static str>,
+    pub maintenance_url_template: Option<&'static str>,
 }
 
 include!(concat!(env!("OUT_DIR"), "/make_links.rs"));
+
+/// An address pattern filled in for one model year. `model` is the
+/// catalog's id form of the model, such as `f-150`.
+pub fn fill(template: &str, year: u16, model: &str) -> String {
+    template
+        .replace("{year}", &year.to_string())
+        .replace("{model}", model)
+}
 
 /// The links of the make called `make`, among `all`.
 pub fn find<'a>(all: &'a [MakeLinks], make: &str) -> Option<&'a MakeLinks> {
@@ -104,6 +116,8 @@ mod tests {
         service_info_url: None,
         parts_url: None,
         customer_line: Some("1 (800) 555-0100"),
+        manual_url_template: Some("https://example.org/owners/{year}/{model}/manuals"),
+        maintenance_url_template: None,
     }];
 
     #[test]
@@ -141,10 +155,31 @@ mod tests {
         for links in &MAKE_LINKS {
             let list = links.list("A make");
             assert!(
-                !list.items.is_empty() || list.customer_line.is_some(),
+                !list.items.is_empty()
+                    || list.customer_line.is_some()
+                    || links.manual_url_template.is_some()
+                    || links.maintenance_url_template.is_some(),
                 "{}",
                 links.norm
             );
         }
+    }
+
+    #[test]
+    fn a_pattern_is_filled_with_the_year_and_the_models_id_form() {
+        assert_eq!(
+            fill(SAMPLE[0].manual_url_template.unwrap(), 2001, "sampler"),
+            "https://example.org/owners/2001/sampler/manuals"
+        );
+        assert_eq!(
+            fill(
+                "https://example.org/m?model={model}&also={model}",
+                2001,
+                "f-150"
+            ),
+            "https://example.org/m?model=f-150&also=f-150"
+        );
+        // A pattern does not add to the make's own list.
+        assert_eq!(SAMPLE[0].list("Mercedes-Benz").items.len(), 2);
     }
 }

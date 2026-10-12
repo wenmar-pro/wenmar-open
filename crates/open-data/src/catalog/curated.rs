@@ -56,6 +56,10 @@ struct MakeEntry {
     #[serde(default)]
     maintenance_url: Option<String>,
     #[serde(default)]
+    manual_url_template: Option<String>,
+    #[serde(default)]
+    maintenance_url_template: Option<String>,
+    #[serde(default)]
     service_info_url: Option<String>,
     #[serde(default)]
     parts_url: Option<String>,
