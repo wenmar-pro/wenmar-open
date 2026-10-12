@@ -5,15 +5,20 @@ use std::path::Path;
 
 use serde::Serialize;
 use serde_json::Value;
-use wenmar_shopdata::{Dataset, ShopError};
+use wenmar_shopdata::answer::{self, AnswerError, Answers, SITE, Search};
+use wenmar_shopdata::sqlite::ShopSource;
+use wenmar_shopdata::{Dataset, ShopData, ShopError};
 use wenmar_vehicles::sqlite::SqliteSource;
 use wenmar_vehicles::{Catalog, Scope};
 use wenmar_vin::sqlite::SqliteData;
 use wenmar_vin::{DecodeError, DecodeOptions, Decoder};
 
-use crate::data::{self, Status};
+use crate::data::{self, ShopStatus, Status};
+use crate::env::SHOP_FILE;
 use crate::error::{CliError, DATA_INVALID, DATASET_UNAVAILABLE, NO_DATA, NOT_FOUND};
-use crate::request::{Action, Lookup, MOST, RecallLookup, Request, SEARCH_DEFAULT, current_year};
+use crate::request::{
+    Action, Lookup, MOST, RecallAction, RecallLookup, Request, SEARCH_DEFAULT, current_year,
+};
 
 /// What to do about a data file that cannot be used.
 pub const PULL_HINT: &str = "Run `wenmar-open data pull` to download the current data file.";
@@ -45,6 +50,13 @@ pub fn recall_dataset(lookup: &RecallLookup) -> Dataset {
 pub struct Local {
     decoder: Decoder<SqliteData>,
     catalog: Catalog<SqliteSource>,
+    /// A second connection to the data file, for the lookups the catalog
+    /// has no method for.
+    core: SqliteSource,
+    /// The shop file beside the data file, when it is there and goes with
+    /// this data file.
+    shop: Option<ShopData<ShopSource>>,
+    shop_status: ShopStatus,
     status: Status,
 }
 
@@ -58,6 +70,29 @@ fn unreadable(error: impl Display) -> CliError {
 
 fn json<T: Serialize>(value: T) -> Result<Value, CliError> {
     serde_json::to_value(value).map_err(unreadable)
+}
+
+/// What to do about a shop file that cannot be used.
+fn shop_unusable(status: &ShopStatus) -> CliError {
+    CliError::new(
+        DATA_INVALID,
+        format!(
+            "The shop data file at {} cannot be used: {}.",
+            status.path,
+            status.problem.as_deref().unwrap_or("it could not be read")
+        ),
+    )
+    .with_hint(SHOP_PULL_HINT)
+}
+
+/// An error of the shared answers, as this tool reports it.
+fn answer_error(error: AnswerError) -> CliError {
+    match error {
+        AnswerError::Validation { field, message } => CliError::validation(field, message),
+        AnswerError::NotFound(message) => CliError::new(NOT_FOUND, message),
+        AnswerError::Shop(ShopError::DatasetUnavailable(dataset)) => dataset_unavailable(dataset),
+        other => unreadable(other),
+    }
 }
 
 impl Local {
@@ -84,15 +119,89 @@ impl Local {
         let decoder = Decoder::new(SqliteData::open(path).map_err(unreadable)?);
         let source = SqliteSource::open(path).map_err(unreadable)?;
         let catalog = Catalog::new(source).map_err(unreadable)?;
+        let core = SqliteSource::open(path).map_err(unreadable)?;
+        // The shop file is beside the data file. One that is missing or
+        // cannot be used does not stop the data file from answering: only
+        // a question about recalls says so.
+        let shop_path = path.with_file_name(SHOP_FILE);
+        let shop_status = data::inspect_shop(&shop_path, status.data_version.as_deref());
+        let shop = if shop_status.usable {
+            data::open_shop(&shop_path).ok()
+        } else {
+            None
+        };
         Ok(Local {
             decoder,
             catalog,
+            core,
+            shop,
+            shop_status,
             status,
         })
     }
 
     pub fn status(&self) -> &Status {
         &self.status
+    }
+
+    /// The shop file's status: `data status --shop` prints it.
+    pub fn shop_status(&self) -> &ShopStatus {
+        &self.shop_status
+    }
+
+    /// The recalls that may apply, from the shop file beside the data
+    /// file, worded as the hosted API words them.
+    fn recalls(&self, action: RecallAction, lookup: &RecallLookup) -> Result<Value, CliError> {
+        let Some(shop) = &self.shop else {
+            return Err(if self.shop_status.installed {
+                shop_unusable(&self.shop_status)
+            } else {
+                dataset_unavailable(recall_dataset(lookup))
+            });
+        };
+        let answers = Answers {
+            shop,
+            catalog: &self.catalog,
+            core: &self.core,
+            base: SITE,
+        };
+        let text = |field: &Option<String>| field.clone().unwrap_or_default();
+        let country = lookup.country.as_deref();
+        match action {
+            RecallAction::Vehicle => json(
+                answers
+                    .vehicle(&text(&lookup.id), country)
+                    .map_err(answer_error)?,
+            ),
+            RecallAction::Vin => {
+                // The API looks for the recalls before it decodes the VIN,
+                // so the same error comes first here.
+                let source = answer::country(country).map_err(answer_error)?;
+                shop.require_recalls(source)
+                    .map_err(|error| answer_error(error.into()))?;
+                let decode = self.decode(&text(&lookup.vin), lookup.year)?;
+                json(answers.vin(&decode, country).map_err(answer_error)?)
+            }
+            RecallAction::Campaign => json(
+                answers
+                    .campaign(&text(&lookup.source), &text(&lookup.campaign))
+                    .map_err(answer_error)?,
+            ),
+            RecallAction::Search => json(
+                answers
+                    .search(&Search {
+                        make: lookup.make.clone(),
+                        model: lookup.model.clone(),
+                        year: lookup.year,
+                        component: lookup.component.clone(),
+                        q: lookup.query.clone(),
+                        country: lookup.country.clone(),
+                        limit: lookup.limit,
+                        cursor: lookup.cursor.clone(),
+                    })
+                    .map_err(answer_error)?,
+            ),
+        }
     }
 
     /// Answers a request that has been through [`Request::checked`].
@@ -119,9 +228,7 @@ impl Local {
                 Ok(Value::Array(items))
             }
             Request::Vehicles { action, lookup } => self.vehicles(*action, lookup),
-            // The data file holds no recalls. They are in the shop file,
-            // which this build does not read yet.
-            Request::Recalls { lookup, .. } => Err(dataset_unavailable(recall_dataset(lookup))),
+            Request::Recalls { action, lookup } => self.recalls(*action, lookup),
         }
     }
 

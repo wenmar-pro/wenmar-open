@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
 
-use crate::request::{Action, Lookup, Request};
+use crate::request::{Action, Lookup, RecallAction, RecallLookup, Request};
 use crate::setup::Agent;
 
 /// Free vehicle data for auto repair shops: decode a VIN, or look a vehicle
@@ -59,6 +59,18 @@ pub enum Command {
     Vehicles {
         #[command(subcommand)]
         command: VehiclesCommand,
+    },
+
+    /// Recall campaigns from NHTSA and Transport Canada that may apply to a
+    /// vehicle.
+    ///
+    /// A campaign lists a year, a make and a model. Nothing here says a
+    /// recall applies to one vehicle: confirm by VIN with the manufacturer.
+    /// Offline, the recalls come from the shop data file (see `wenmar-open
+    /// data pull --shop`).
+    Recalls {
+        #[command(subcommand)]
+        command: RecallsCommand,
     },
     /// The local data file, for answers without a connection.
     Data {
@@ -122,9 +134,19 @@ pub enum DataCommand {
         /// Where the releases are listed. Also WENMAR_OPEN_RELEASES.
         #[arg(long, value_name = "URL")]
         releases: Option<String>,
+        /// Download the shop data file instead: the recalls, matched to
+        /// the data file already in place. It is published weekly, is
+        /// about 20 MB to download and 80 MB on disk, and VERSION is then
+        /// a day, such as 2026.10.12.
+        #[arg(long)]
+        shop: bool,
     },
     /// Say whether there is a data file, which version it is, and where.
-    Status,
+    Status {
+        /// Say the same of the shop data file, which holds the recalls.
+        #[arg(long)]
+        shop: bool,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -244,6 +266,130 @@ pub enum VehiclesCommand {
         /// The vehicle id.
         id: String,
     },
+}
+
+/// `--country`, for the recall commands that take one.
+#[derive(Debug, Clone, Default, Args)]
+pub struct CountryArg {
+    /// us (NHTSA) or ca (Transport Canada). The default is both.
+    #[arg(long, value_name = "COUNTRY")]
+    pub country: Option<String>,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum RecallsCommand {
+    /// The recalls that may apply to a model year, newest first.
+    ///
+    /// The list is for the year, make and model, not for one vehicle.
+    Vehicle {
+        /// The vehicle id, such as 2018_ford_f-150.
+        id: String,
+        #[command(flatten)]
+        country: CountryArg,
+    },
+    /// The recalls that may apply to the model year a VIN decodes to.
+    ///
+    /// The VIN only names the year, make and model. Whether a recall
+    /// applies to that one vehicle is for the manufacturer to say: the
+    /// answer's `lookup` gives the official addresses.
+    Vin {
+        /// The 17-character VIN.
+        vin: String,
+        /// Use this model year instead of the one worked out from the VIN.
+        #[arg(long)]
+        year: Option<u16>,
+        #[command(flatten)]
+        country: CountryArg,
+    },
+    /// One recall campaign with every vehicle it lists.
+    Campaign {
+        /// Who published it: nhtsa or tc (Transport Canada).
+        source: String,
+        /// The publisher's campaign number, such as 19V888000.
+        campaign: String,
+    },
+    /// Recall campaigns, newest first, narrowed by what is given.
+    Search {
+        /// Words to look for in the campaign. Several words need no quotes.
+        #[arg(value_name = "TEXT")]
+        text: Vec<String>,
+        /// Only campaigns that list a vehicle of this make.
+        #[arg(long)]
+        make: Option<String>,
+        /// Only campaigns that list this model. Needs --make.
+        #[arg(long)]
+        model: Option<String>,
+        /// Only campaigns that list this model year.
+        #[arg(long)]
+        year: Option<u16>,
+        /// Only campaigns whose component text contains this.
+        #[arg(long)]
+        component: Option<String>,
+        #[command(flatten)]
+        country: CountryArg,
+        /// At most this many, up to 100. The default is 25.
+        #[arg(long)]
+        limit: Option<usize>,
+        /// `next_cursor` of the page before, to get the next page.
+        #[arg(long)]
+        cursor: Option<String>,
+    },
+}
+
+impl RecallsCommand {
+    pub fn request(self) -> Request {
+        let (action, lookup) = match self {
+            RecallsCommand::Vehicle { id, country } => (
+                RecallAction::Vehicle,
+                RecallLookup {
+                    id: Some(id),
+                    country: country.country,
+                    ..RecallLookup::default()
+                },
+            ),
+            RecallsCommand::Vin { vin, year, country } => (
+                RecallAction::Vin,
+                RecallLookup {
+                    vin: Some(vin),
+                    year,
+                    country: country.country,
+                    ..RecallLookup::default()
+                },
+            ),
+            RecallsCommand::Campaign { source, campaign } => (
+                RecallAction::Campaign,
+                RecallLookup {
+                    source: Some(source),
+                    campaign: Some(campaign),
+                    ..RecallLookup::default()
+                },
+            ),
+            RecallsCommand::Search {
+                text,
+                make,
+                model,
+                year,
+                component,
+                country,
+                limit,
+                cursor,
+            } => (
+                RecallAction::Search,
+                RecallLookup {
+                    query: Some(text.join(" ")),
+                    make,
+                    model,
+                    year,
+                    component,
+                    country: country.country,
+                    limit,
+                    cursor,
+                    ..RecallLookup::default()
+                },
+            ),
+        };
+        Request::Recalls { action, lookup }
+    }
 }
 
 impl VinCommand {
@@ -394,6 +540,85 @@ mod tests {
                 cli.command,
                 Some(Command::Vehicles {
                     command: VehiclesCommand::Submodels { .. }
+                })
+            ));
+        }
+    }
+
+    #[test]
+    fn the_recall_commands_become_recall_requests() {
+        let request = |args: &[&str]| {
+            let cli = Cli::try_parse_from(args).unwrap();
+            let Some(Command::Recalls { command }) = cli.command else {
+                panic!("a recalls command");
+            };
+            let Request::Recalls { action, lookup } = command.request() else {
+                panic!("a recalls request");
+            };
+            (action, lookup)
+        };
+        let (action, lookup) = request(&[
+            "wenmar-open",
+            "recalls",
+            "vehicle",
+            "2018_ford_f-150",
+            "--country",
+            "ca",
+        ]);
+        assert_eq!(action, RecallAction::Vehicle);
+        assert_eq!(lookup.id.as_deref(), Some("2018_ford_f-150"));
+        assert_eq!(lookup.country.as_deref(), Some("ca"));
+
+        let (action, lookup) = request(&[
+            "wenmar-open",
+            "recalls",
+            "vin",
+            "KM8K2CAB4PU001140",
+            "--year",
+            "2023",
+        ]);
+        assert_eq!(action, RecallAction::Vin);
+        assert_eq!(lookup.vin.as_deref(), Some("KM8K2CAB4PU001140"));
+        assert_eq!(lookup.year, Some(2023));
+
+        let (action, lookup) =
+            request(&["wenmar-open", "recalls", "campaign", "nhtsa", "19V888000"]);
+        assert_eq!(action, RecallAction::Campaign);
+        assert_eq!(lookup.source.as_deref(), Some("nhtsa"));
+        assert_eq!(lookup.campaign.as_deref(), Some("19V888000"));
+
+        let (action, lookup) = request(&[
+            "wenmar-open",
+            "recalls",
+            "search",
+            "wiring",
+            "harness",
+            "--make",
+            "hyundai",
+            "--limit",
+            "5",
+        ]);
+        assert_eq!(action, RecallAction::Search);
+        assert_eq!(lookup.query.as_deref(), Some("wiring harness"));
+        assert_eq!(lookup.make.as_deref(), Some("hyundai"));
+        assert_eq!(lookup.limit, Some(5));
+        // A search needs no words: it is then the list of every campaign.
+        let (_, lookup) = request(&["wenmar-open", "recalls", "search"]);
+        assert_eq!(lookup.query.as_deref(), Some(""));
+    }
+
+    #[test]
+    fn the_data_commands_take_shop() {
+        for args in [
+            ["wenmar-open", "data", "pull", "--shop"],
+            ["wenmar-open", "data", "status", "--shop"],
+        ] {
+            let cli = Cli::try_parse_from(args).unwrap();
+            assert!(matches!(
+                cli.command,
+                Some(Command::Data {
+                    command: DataCommand::Pull { shop: true, .. }
+                        | DataCommand::Status { shop: true }
                 })
             ));
         }

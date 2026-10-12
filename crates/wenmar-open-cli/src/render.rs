@@ -7,7 +7,7 @@
 
 use serde_json::Value;
 
-use crate::request::{Action, Request};
+use crate::request::{Action, RecallAction, Request};
 
 /// A value with every control character replaced, so that data cannot move
 /// the cursor, change colours or ring the bell.
@@ -397,16 +397,285 @@ pub fn doctor(value: &Value) -> String {
     format!("wenmar-open {}\n\n{}", cell(value, "version"), table(&rows))
 }
 
+/// What every text answer about recalls ends with. The words "may apply"
+/// are the point: nothing here is a lookup by VIN.
+const MAY_APPLY: &str = "A recall listed here may apply to a vehicle of that year, make and model. Only the manufacturer can say whether it applies to one vehicle: check the VIN at the addresses above.";
+
+/// Text of several lines as one line, with nothing in it that could move
+/// the cursor.
+fn one_line(text: &str) -> String {
+    text.split_whitespace()
+        .map(clean)
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// One campaign of a list, as three lines.
+fn recall_lines(recall: &Value) -> String {
+    let mut head = vec![
+        field(recall, "date").unwrap_or_else(|| "no date".to_owned()),
+        format!("{} {}", cell(recall, "source"), cell(recall, "campaign")),
+    ];
+    if recall["do_not_drive"] == true {
+        head.push("DO NOT DRIVE (NHTSA advisory)".to_owned());
+    }
+    if recall["park_outside"] == true {
+        head.push("PARK OUTSIDE (NHTSA advisory)".to_owned());
+    }
+    let mut text = head.join("  ") + "\n";
+    for key in ["component", "summary"] {
+        if let Some(words) = recall[key].as_str() {
+            text.push_str(&format!("  {}\n", one_line(words)));
+        }
+    }
+    text
+}
+
+/// The dates the data was current, the official lookups, the credits and
+/// the sentence about "may apply": what every recall answer ends with.
+fn recall_footer(value: &Value) -> String {
+    let mut text = String::new();
+    let as_of = &value["as_of"];
+    if as_of.is_object() {
+        let day = |key: &str| field(as_of, key).unwrap_or_else(|| "not held".to_owned());
+        text.push_str(&format!(
+            "As of: United States {}, Canada {}\n",
+            day("us"),
+            day("ca")
+        ));
+    } else if let Some(day) = scalar(as_of) {
+        text.push_str(&format!("As of: {day}\n"));
+    }
+    let lookup = &value["lookup"];
+    text.push_str("Check the VIN:\n");
+    for (key, name) in [
+        ("nhtsa", "United States"),
+        ("tc", "Canada"),
+        ("maker", "The manufacturer"),
+    ] {
+        if let Some(address) = field(lookup, key) {
+            text.push_str(&format!("  {name}: {address}\n"));
+        }
+    }
+    for credit in value["attribution"].as_array().into_iter().flatten() {
+        if let Some(credit) = scalar(credit) {
+            text.push_str(&format!("{credit}\n"));
+        }
+    }
+    text.push_str(MAY_APPLY);
+    text.push('\n');
+    text
+}
+
+/// A list of campaigns under one heading line.
+fn recall_list(heading: String, value: &Value) -> String {
+    let mut text = heading + "\n\n";
+    for recall in value["recalls"].as_array().into_iter().flatten() {
+        text.push_str(&recall_lines(recall));
+        text.push('\n');
+    }
+    if let Some(cursor) = field(value, "next_cursor") {
+        text.push_str(&format!("More: add --cursor {cursor}\n\n"));
+    }
+    text + &recall_footer(value)
+}
+
+fn recall_count(value: &Value) -> String {
+    match value["recalls"].as_array().map_or(0, Vec::len) {
+        0 => "no recall campaigns were found that may apply".to_owned(),
+        1 => "1 recall campaign may apply".to_owned(),
+        count => format!("{count} recall campaigns may apply"),
+    }
+}
+
+/// One campaign with the vehicles it lists.
+fn recall_campaign(value: &Value) -> String {
+    let mut rows = fields(
+        value,
+        &[
+            "campaign",
+            "date",
+            "manufacturer",
+            "component",
+            "mfr_campaign",
+            "owner_notified",
+            "units",
+            "notification",
+            "part_number",
+        ],
+        &[
+            "source",
+            "country",
+            "summary",
+            "consequence",
+            "remedy",
+            "notes",
+            "may_apply",
+            "as_of",
+            "url",
+            "do_not_drive",
+            "park_outside",
+        ],
+    );
+    for (key, words) in [
+        ("do_not_drive", "Do not drive until repaired"),
+        ("park_outside", "Park outside until repaired"),
+    ] {
+        if value[key] == true {
+            rows.push(vec!["NHTSA advisory".to_owned(), words.to_owned()]);
+        }
+    }
+    let mut text = format!(
+        "{} recall {}\n\n{}",
+        match value["source"].as_str() {
+            Some("tc") => "Transport Canada",
+            _ => "NHTSA",
+        },
+        cell(value, "campaign"),
+        table(&rows)
+    );
+    for (key, heading) in [
+        ("summary", "Summary"),
+        ("consequence", "Consequence"),
+        ("remedy", "Remedy"),
+        ("notes", "Notes"),
+    ] {
+        if let Some(words) = value[key].as_str() {
+            text.push_str(&format!("\n{heading}\n{}\n", clean_lines(words)));
+        }
+    }
+    let vehicles = value["vehicles"]
+        .as_array()
+        .map(Vec::as_slice)
+        .unwrap_or_default();
+    if !vehicles.is_empty() {
+        let mut rows = vec![vec![
+            "YEAR".to_owned(),
+            "MAKE".to_owned(),
+            "MODEL".to_owned(),
+            "VEHICLE ID".to_owned(),
+        ]];
+        rows.extend(vehicles.iter().map(|vehicle| {
+            vec![
+                cell(vehicle, "year"),
+                cell(vehicle, "make"),
+                cell(vehicle, "model"),
+                cell(vehicle, "vehicle_id"),
+            ]
+        }));
+        text.push_str(&format!("\nVehicles it lists\n{}", table(&rows)));
+    }
+    text.push('\n');
+    text + &recall_footer(value)
+}
+
+/// The answer to a recall question, as text.
+fn recalls(action: RecallAction, value: &Value) -> String {
+    match action {
+        RecallAction::Vehicle => {
+            let vehicle = &value["vehicle"];
+            recall_list(
+                format!(
+                    "{} {} {}: {}",
+                    cell(vehicle, "year"),
+                    cell(vehicle, "make"),
+                    cell(vehicle, "model"),
+                    recall_count(value)
+                ),
+                value,
+            )
+        }
+        RecallAction::Vin => {
+            let vehicle = &value["vehicle"];
+            let name = if vehicle.is_object() {
+                format!(
+                    "{} {} {}",
+                    cell(vehicle, "year"),
+                    cell(vehicle, "make"),
+                    cell(vehicle, "model")
+                )
+            } else {
+                "no vehicle in the catalog".to_owned()
+            };
+            let mut heading = format!(
+                "VIN {}: {name}: {}",
+                cell(&value["decode"], "vin"),
+                recall_count(value)
+            );
+            for warning in value["warnings"].as_array().into_iter().flatten() {
+                if let Some(message) = field(warning, "message") {
+                    heading.push_str(&format!("\nWarning: {message}"));
+                }
+            }
+            recall_list(heading, value)
+        }
+        RecallAction::Campaign => recall_campaign(value),
+        RecallAction::Search => {
+            let count = value["recalls"].as_array().map_or(0, Vec::len);
+            recall_list(
+                match count {
+                    0 => "No recall campaigns found.".to_owned(),
+                    1 => "1 recall campaign, newest first".to_owned(),
+                    count => format!("{count} recall campaigns, newest first"),
+                },
+                value,
+            )
+        }
+    }
+}
+
+/// What `data status --shop` reports, as text.
+pub fn shop_status(value: &Value) -> String {
+    let path = cell(value, "path");
+    if value["installed"] != true {
+        return format!(
+            "There is no shop data file at {path}.\nIt holds the recalls. Run `wenmar-open data pull --shop` to download it, or pass --online to ask the hosted API.\n"
+        );
+    }
+    if let Some(problem) = field(value, "problem") {
+        return format!(
+            "The shop data file at {path} cannot be used: {problem}.\nRun `wenmar-open data pull --shop` to replace it.\n"
+        );
+    }
+    let mut rows = vec![vec!["Shop data file".to_owned(), path]];
+    rows.push(vec![
+        "Version".to_owned(),
+        format!(
+            "{} (for data {})",
+            cell(value, "data_version"),
+            cell(value, "catalog_data_version")
+        ),
+    ]);
+    if let Some(built) = field(value, "built_at") {
+        rows.push(vec!["Built".to_owned(), built]);
+    }
+    if let Some(size) = megabytes(&value["bytes"]) {
+        rows.push(vec!["Size".to_owned(), size]);
+    }
+    for (id, entry) in value["datasets"].as_object().into_iter().flatten() {
+        rows.push(vec![
+            clean(id),
+            format!(
+                "as of {}, {} rows",
+                cell(entry, "as_of"),
+                cell(entry, "rows")
+            ),
+        ]);
+    }
+    table(&rows)
+}
+
+/// What `data pull --shop` did, as text.
+pub fn pulled_shop(value: &Value) -> String {
+    format!("Shop {}", pulled(value).replacen("Data", "data", 1))
+}
+
 /// The answer to a request, as text.
 pub fn text(request: &Request, value: &Value) -> String {
     let action = match request {
         Request::VinDecode { .. } => return decode(value),
         Request::VinBatch { .. } => return batch(value),
-        // The commands that print recalls as text come with the `recalls`
-        // commands. Until then nothing asks for this as text.
-        Request::Recalls { .. } => {
-            return serde_json::to_string_pretty(value).unwrap_or_default() + "\n";
-        }
+        Request::Recalls { action, .. } => return recalls(*action, value),
         Request::Vehicles { action, .. } => *action,
     };
     match action {

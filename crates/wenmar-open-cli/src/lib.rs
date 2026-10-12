@@ -145,25 +145,38 @@ fn execute(
         }
         Some(Command::Vin { command }) => command.request(),
         Some(Command::Vehicles { command }) => command.request(),
+        Some(Command::Recalls { command }) => command.request(),
         Some(Command::Data { command }) => {
             let directory = env.data_directory(cli.global.data_dir.as_deref())?;
             return match command {
-                DataCommand::Status => {
+                DataCommand::Status { shop: false } => {
                     let status = data::inspect(&directory.join(env::DATA_FILE));
                     output::answer(stdout, mode, &to_json(&status)?, render::status)
+                }
+                DataCommand::Status { shop: true } => {
+                    let core = data::inspect(&directory.join(env::DATA_FILE));
+                    let status = data::inspect_shop(
+                        &directory.join(env::SHOP_FILE),
+                        core.data_version.as_deref().filter(|_| core.usable),
+                    );
+                    output::answer(stdout, mode, &to_json(&status)?, render::shop_status)
                 }
                 DataCommand::Pull {
                     data_version,
                     force,
                     releases,
+                    shop,
                 } => {
-                    let pulled = pull::pull(
-                        &directory,
-                        &env.releases_url(releases.as_deref()),
-                        data_version.as_deref(),
-                        force,
-                    )?;
-                    output::answer(stdout, mode, &to_json(&pulled)?, render::pulled)
+                    let releases = env.releases_url(releases.as_deref());
+                    if shop {
+                        let pulled =
+                            pull::pull_shop(&directory, &releases, data_version.as_deref(), force)?;
+                        output::answer(stdout, mode, &to_json(&pulled)?, render::pulled_shop)
+                    } else {
+                        let pulled =
+                            pull::pull(&directory, &releases, data_version.as_deref(), force)?;
+                        output::answer(stdout, mode, &to_json(&pulled)?, render::pulled)
+                    }
                 }
             };
         }
