@@ -119,12 +119,32 @@ pub async fn overview_of(
     decode: Option<OverviewDecode>,
     warnings: Vec<Warning>,
 ) -> Result<Overview, ApiError> {
-    let (recalls, attribution) = match found {
+    let (recalls, mut attribution) = match found {
         Some(found) => match recall_block(state, found).await? {
             Some((block, credit)) => (Some(block), credit),
             None => (None, Vec::new()),
         },
         None => (None, Vec::new()),
+    };
+    // Fuel, specifications and the engine oil grade, for a server that
+    // holds them. A VIN whose decode settles the engine gets only what
+    // was matched to that engine.
+    let settled = decode
+        .as_ref()
+        .filter(|decode| decode.engine_settled)
+        .and_then(|decode| decode.engine.clone());
+    let (fuel, specs, fluids) = match found {
+        Some(found) => {
+            let (fuel, specs, fluids, credit) =
+                crate::api::fuel::overview_blocks(state, found, settled.as_deref()).await?;
+            for line in credit {
+                if !attribution.contains(&line) {
+                    attribution.push(line);
+                }
+            }
+            (fuel, specs, fluids)
+        }
+        None => (None, None, None),
     };
     // The maker's links go by the make's name: the catalog's when the model
     // year is known, and otherwise the one the VIN decoded to.
@@ -149,9 +169,9 @@ pub async fn overview_of(
     Ok(Overview {
         vehicle: found.map(|found| found.vehicle.clone()),
         decode,
-        specs: None,
-        fuel: None,
-        fluids: None,
+        specs,
+        fuel,
+        fluids,
         tires: None,
         recalls,
         safety,

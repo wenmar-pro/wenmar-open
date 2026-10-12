@@ -13,7 +13,7 @@ const TC_LOOKUP: &str =
 
 /// The blocks no dataset fills yet. A plan that fills one takes its name
 /// out of this list and adds a test of its own.
-const NOT_YET: [&str; 6] = ["specs", "fuel", "fluids", "tires", "labor", "bulletins"];
+const NOT_YET: [&str; 3] = ["tires", "labor", "bulletins"];
 
 async fn ok(app: &TestApp, path: &str) -> Value {
     let (status, body) = app.json(path).await;
@@ -528,4 +528,42 @@ async fn the_overview_has_the_crash_test_ratings_when_the_server_holds_them() {
     let body = ok(&app, "/v1/vehicles/2023_hyundai_kona/overview").await;
     assert_eq!(body["safety"], Value::Null);
     assert!(body.as_object().unwrap().contains_key("safety"));
+}
+
+#[tokio::test]
+async fn fuel_specs_and_fluids_are_filled_when_held_and_narrowed_by_a_settled_engine() {
+    // A server that holds recalls and no fuel data: the three are null.
+    let app = common::recalls_app().await;
+    let body = ok(&app, "/v1/vehicles/2023_hyundai_kona/overview").await;
+    for block in ["specs", "fuel", "fluids"] {
+        assert_eq!(body[block], Value::Null, "{block}");
+    }
+    // A server that holds them: lists for the model year.
+    let app = common::fuel_app().await;
+    let body = ok(&app, "/v1/vehicles/2023_hyundai_kona/overview").await;
+    assert_eq!(body["fuel"].as_array().unwrap().len(), 5);
+    assert_eq!(body["specs"].as_array().unwrap().len(), 4);
+    assert_eq!(body["fluids"]["engine_oil"].as_array().unwrap().len(), 2);
+    assert_eq!(body["attribution"], json!([common::OGL_CANADA]));
+    assert_eq!(body["recalls"], Value::Null);
+    // The VIN settles the 2.0L: only what was matched to it.
+    let body = ok(&app, &format!("/v1/vin/{KONA}/overview")).await;
+    assert_eq!(body["decode"]["engine_settled"], true);
+    let fuel = body["fuel"].as_array().unwrap();
+    assert_eq!(fuel.len(), 3);
+    assert!(
+        fuel.iter()
+            .all(|rating| rating["engine"]["label"] == "2.0L")
+    );
+    assert_eq!(body["specs"].as_array().unwrap().len(), 2);
+    assert_eq!(
+        body["fluids"]["engine_oil"],
+        json!([{
+            "confidence": "engine",
+            "engine": { "id": "2-0l", "label": "2.0L", "vin8": "A" },
+            "displacement_l": 2.0, "cylinders": 4,
+            "grades": ["0W-20"], "as_written": ["0W-20", "SAE 0W-20"],
+            "source": "EPA fuel economy certification"
+        }])
+    );
 }
