@@ -16,12 +16,14 @@ const GUIDES: [(&str, &str); 5] = [
 ];
 
 /// Guides whose text is not written yet. Publishing one takes it out of this list.
-const DRAFT_GUIDES: [&str; 5] = [
+const DRAFT_GUIDES: [&str; 7] = [
     "engine-oil-specifications",
     "transmission-fluids",
     "coolant-types",
     "brake-fluid-grades",
     "refrigerants",
+    "fuel-trims",
+    "readiness-monitors",
 ];
 
 #[tokio::test]
