@@ -257,6 +257,7 @@ fn both_sources_share_the_tables_and_coverage_measures_each() {
             "SELECT name FROM sqlite_master WHERE type = 'index' AND name LIKE 'recall%' ORDER BY name"
         ),
         [
+            "recall_component_component",
             "recall_report_date",
             "recall_vehicle_recall",
             "recall_vehicle_year",

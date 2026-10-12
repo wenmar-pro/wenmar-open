@@ -103,6 +103,44 @@ models:
     to: [C-Class]
 ";
 
+/// The components the fixture builds with: a few of `data/components.yaml`.
+pub const COMPONENTS_YAML: &str = "
+components:
+  - id: air-bags
+    name: Air bags
+    nhtsa: ['AIR BAGS']
+    tc: [Airbag]
+  - id: electrical
+    name: Electrical system
+    nhtsa: ['ELECTRICAL SYSTEM']
+    tc: [Electrical]
+  - id: engine
+    name: Engine
+    nhtsa: ['ENGINE', 'ENGINE AND ENGINE COOLING']
+    tc: [Engine]
+  - id: exhaust-emissions
+    name: Exhaust and emissions
+    nhtsa: ['ENGINE AND ENGINE COOLING:EXHAUST SYSTEM']
+  - id: powertrain
+    name: Transmission and driveline
+    nhtsa: ['POWER TRAIN']
+    tc: [Powertrain]
+  - id: visibility
+    name: Glass, wipers and mirrors
+    nhtsa: ['VISIBILITY']
+  - id: software
+    name: Software
+    parent: electrical
+    nhtsa: ['ELECTRICAL SYSTEM:SOFTWARE']
+  - id: transmission-control-module
+    name: Transmission control module
+    parent: powertrain
+    nhtsa: ['POWER TRAIN:AUTOMATIC TRANSMISSION:CONTROL MODULE (TCM/PCM/TECM)']
+  - id: timing-belt
+    name: Timing belt or chain
+    parent: engine
+";
+
 /// A temporary directory holding a fixture core file, removed when dropped.
 pub struct Scratch {
     directory: PathBuf,
@@ -115,6 +153,7 @@ impl Scratch {
         let _ = std::fs::remove_dir_all(&directory);
         std::fs::create_dir_all(directory.join("curated/shop")).unwrap();
         std::fs::write(directory.join("curated/shop/models.yaml"), MODELS_YAML).unwrap();
+        std::fs::write(directory.join("curated/components.yaml"), COMPONENTS_YAML).unwrap();
         let scratch = Scratch { directory };
         let connection = Connection::open(scratch.core()).unwrap();
         connection

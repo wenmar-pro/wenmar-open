@@ -285,7 +285,13 @@ fn the_offline_copy_leaves_out_what_only_the_hosted_service_carries() {
             &connection,
             "SELECT name FROM sqlite_schema WHERE type = 'table' ORDER BY name"
         ),
-        ["meta", "recall", "recall_vehicle"]
+        [
+            "component",
+            "meta",
+            "recall",
+            "recall_component",
+            "recall_vehicle"
+        ]
     );
     assert_eq!(rows(&connection, "SELECT COUNT(*) FROM recall"), ["8"]);
 
@@ -296,8 +302,15 @@ fn the_offline_copy_leaves_out_what_only_the_hosted_service_carries() {
     for (id, tables) in schema::HOSTED_ONLY_TABLES {
         assert_eq!(*id, "bulletins");
         for table in *tables {
+            let created = format!("CREATE TABLE {table} (");
             assert!(
-                schema::BULLETINS.contains(&format!("CREATE TABLE {table} (")),
+                [
+                    schema::BULLETINS,
+                    schema::BULLETIN_COMPONENTS,
+                    schema::BULLETIN_TEXT
+                ]
+                .iter()
+                .any(|ddl| ddl.contains(&created)),
                 "{table}"
             );
         }

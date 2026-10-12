@@ -201,6 +201,22 @@ fn shape_all(context: &mut ShapeContext<'_>, inputs: &ShopInputs) -> Result<()> 
     if let Some(directory) = nhtsa_mfr_comms {
         crate::shop::mfr_comms::shape(context, directory)?;
     }
+    after_sources(context)
+}
+
+/// The steps that read what the sources stored: which components each
+/// recall and bulletin is about, and what each bulletin's summary names.
+/// They run only for the datasets the file holds.
+pub fn after_sources(context: &mut ShapeContext<'_>) -> Result<()> {
+    let datasets = context.datasets();
+    let recalls = datasets.contains(Dataset::RecallsUs) || datasets.contains(Dataset::RecallsCa);
+    let bulletins = datasets.contains(Dataset::Bulletins);
+    if recalls || bulletins {
+        crate::shop::components::shape(context)?;
+    }
+    if bulletins {
+        crate::shop::bulletin_text::shape(context)?;
+    }
     Ok(())
 }
 
