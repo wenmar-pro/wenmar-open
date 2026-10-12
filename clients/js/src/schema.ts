@@ -555,6 +555,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vin/{vin}/parts-card": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The parts-ordering card for a VIN.
+         * @description What a parts counter asks for, one line each, and where each line came
+         *     from: the decode, the catalog engine when the decode settles it, the
+         *     emission standard when EPA's file was matched to that engine, and the
+         *     build dates a recall campaign names for the model year. A build-date
+         *     line is the range a campaign covers, not this vehicle's build date.
+         *     `text` is the card as plain text, ready to paste. Works without shop
+         *     data: the lines that need it are then left off.
+         */
+        get: operations["parts_card"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vin/{vin}/recalls": {
         parameters: {
             query?: never;
@@ -1171,6 +1197,33 @@ export interface components {
              * @example https://open.wenmarpro.com/makes/ford/f-150/2018/recalls
              */
             url: string;
+        };
+        /** @description What a parts counter asks for about one vehicle. */
+        PartsCard: {
+            attribution: string[];
+            /**
+             * @description Whether the decode settled one catalog engine. The catalog engine
+             *     and emission standard lines are there only when it did.
+             */
+            engine_settled: boolean;
+            lines: components["schemas"]["PartsCardLine"][];
+            /** @description The lines as plain text, one `Label: value` each. */
+            text: string;
+            vehicle?: null | components["schemas"]["RecallVehicle"];
+            vin: string;
+            warnings: components["schemas"]["Warning"][];
+        };
+        /** @description One line of a parts-ordering card. */
+        PartsCardLine: {
+            /** @example Engine */
+            label: string;
+            /**
+             * @description Where the line came from.
+             * @example VIN decode (NHTSA vPIC)
+             */
+            source: string;
+            /** @example 2.0L */
+            value: string;
         };
         /** @description Where the vehicle was built. `code` is position 11 of the VIN. */
         Plant: {
@@ -3228,6 +3281,53 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Overview"];
+                };
+            };
+            /** @description `invalid_vin`, or `validation_failed` for `year`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `not_found`: no manufacturer is registered for the first three characters. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    parts_card: {
+        parameters: {
+            query?: {
+                /** @description The model year, when the VIN's tenth character leaves two possible. */
+                year?: number;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description A 17-character VIN.
+                 * @example KM8K2CAB4PU001140
+                 */
+                vin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The card. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartsCard"];
                 };
             };
             /** @description `invalid_vin`, or `validation_failed` for `year`. */

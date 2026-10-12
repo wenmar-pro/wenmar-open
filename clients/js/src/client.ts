@@ -13,6 +13,7 @@ import type {
   ModelYears,
   ModelsQuery,
   Overview,
+  PartsCard,
   RecallCampaign,
   RecallInvestigations,
   RecallList,
@@ -303,6 +304,15 @@ export class WenmarOpen {
   /** Fluids for the vehicle a VIN decodes to: one engine's when the decode settles it. */
   async vinFluids(vin: string, query: VinYearQuery = {}, options: RequestOptions = {}): Promise<VinFluids> {
     const path = `/v1/vin/${segment("vin", vin)}/fluids${queryString(query)}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /**
+   * The parts-ordering card for a VIN: what a parts counter asks for, each
+   * line with where it came from. `text` is the card ready to paste.
+   */
+  async partsCard(vin: string, query: VinYearQuery = {}, options: RequestOptions = {}): Promise<PartsCard> {
+    const path = `/v1/vin/${segment("vin", vin)}/parts-card${queryString(query)}`;
     return this.#request("GET", path, undefined, options);
   }
 

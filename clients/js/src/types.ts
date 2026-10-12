@@ -53,6 +53,10 @@ export type VehicleFluids = Schemas["VehicleFluids"];
 export type VinFluids = Schemas["VinFluids"];
 /** The oil grade a maker certified an engine with, per EPA. Not from the owner's manual. */
 export type EngineOil = Schemas["EngineOil"];
+/** What a parts counter asks for about one vehicle, each line with its source. */
+export type PartsCard = Schemas["PartsCard"];
+/** One line of a parts-ordering card. */
+export type PartsCardLine = Schemas["PartsCardLine"];
 /**
  * Everything held for one model year. A block the server has no data for is
  * `null`; `recalls` counts campaigns that may apply, never a lookup by VIN.

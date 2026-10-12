@@ -130,6 +130,11 @@ const calls: Record<string, { call: () => Promise<unknown>; method: string; url:
     method: "GET",
     url: `/v1/vin/${KONA}/fluids`,
   },
+  parts_card: {
+    call: () => client.partsCard(KONA, { year: 2023 }),
+    method: "GET",
+    url: `/v1/vin/${KONA}/parts-card?year=2023`,
+  },
   recall_campaign: {
     call: () => client.recall("nhtsa", "19V888000"),
     method: "GET",

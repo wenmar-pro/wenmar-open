@@ -38,6 +38,8 @@ export type {
   ModelsQuery,
   Overview,
   OverviewRecalls,
+  PartsCard,
+  PartsCardLine,
   Plant,
   Recall,
   RecallCampaign,
