@@ -21,6 +21,8 @@
 //! the model years of a model. With no shop file, or one without recalls,
 //! their recall parts are `null` and they still answer.
 
+pub mod facts;
+
 use std::collections::HashMap;
 
 use serde::Serialize;
@@ -1240,13 +1242,38 @@ impl<'a, S: Source, C: Source> Overviews<'a, S, C> {
             }
             _ => None,
         };
+        // Fuel, specifications, fluids and tire fitments, each when the
+        // shop file holds it. A VIN whose decode settles the engine gets
+        // only what is for that engine, as on the server.
+        let settled = decode
+            .as_ref()
+            .filter(|decode| decode.engine_settled)
+            .and_then(|decode| decode.engine.clone());
+        let blocks = match (found, self.shop) {
+            (Some(found), Some(shop)) => {
+                let answers = Answers {
+                    shop,
+                    catalog: self.catalog,
+                    core: self.core,
+                    base: self.base,
+                };
+                answers.blocks(found, settled.as_deref())?
+            }
+            _ => facts::Blocks::default(),
+        };
+        let mut attribution = attribution;
+        for line in blocks.attribution {
+            if !attribution.contains(&line) {
+                attribution.push(line);
+            }
+        }
         Ok(Overview {
             vehicle: found.map(|found| found.vehicle.clone()),
             decode,
-            specs: None,
-            fuel: None,
-            fluids: None,
-            tires: None,
+            specs: blocks.specs,
+            fuel: blocks.fuel,
+            fluids: blocks.fluids,
+            tires: blocks.tires,
             recalls,
             safety,
             labor: None,
