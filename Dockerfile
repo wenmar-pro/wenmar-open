@@ -16,6 +16,8 @@ COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
 # The rates of the Canadian invoice page, which the server's build reads.
 COPY data/rates ./data/rates
+# The makers' own links, which the server's build reads and checks.
+COPY data/catalog ./data/catalog
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/app/target \
     cargo build --release --locked -p open-server \

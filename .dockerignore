@@ -3,4 +3,5 @@
 !Cargo.lock
 !crates/
 !data/rates/
+!data/catalog/
 !data/build/wenmar-open-*.sqlite3
