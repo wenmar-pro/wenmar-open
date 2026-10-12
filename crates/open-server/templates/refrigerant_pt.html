@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% import "tool.html" as piece %}
+{% block content %}
+{% call piece::opening(tool) %}
+<p class="note">{{ limits }}</p>
+{% call piece::actions() %}
+{% for chart in charts -%}
+<h2 id="{{ chart.key }}">{{ chart.name }}</h2>
+{% if let Some(table) = chart.table -%}
+{% call piece::table(table) %}
+<p class="note">{{ chart.checked }} {{ chart.units }}</p>
+{% for note in chart.notes -%}
+<p class="note">{{ note }}</p>
+{% endfor -%}
+<p>The figures were read from:</p>
+<ul class="plain links">
+{% for source in chart.sources -%}
+<li><a href="{{ source.1 }}">{{ source.0 }}</a></li>
+{% endfor -%}
+</ul>
+{% else -%}
+<p class="warning">{{ chart.not_checked }}</p>
+{% for line in chart.missing -%}
+<p>{{ line }}</p>
+{% endfor -%}
+{% endif -%}
+{% endfor -%}
+{% call piece::how(how) %}
+<p class="pro"><a href="{{ tool.pro_link() }}">Wenmar Pro</a> {{ tool.pro_does }}</p>
+{% endblock %}
