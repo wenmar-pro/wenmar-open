@@ -73,3 +73,7 @@ jobs:
       - name: Test the data package's scripts
         working-directory: clients/data
         run: node --test test/data.test.mjs
+
+      - name: Test the shop data package's scripts
+        working-directory: clients/data-shop
+        run: node --test test/data-shop.test.mjs

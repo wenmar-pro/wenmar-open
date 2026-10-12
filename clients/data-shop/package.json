@@ -1,0 +1,45 @@
+{
+  "name": "wenmar-open-data-shop",
+  "version": "0.0.0",
+  "description": "The Wenmar Open shop file: recall campaigns from NHTSA and Transport Canada matched to the Wenmar Open vehicle catalog, as one SQLite file. Read by wenmar-open/offline beside wenmar-open-data.",
+  "keywords": [
+    "recalls",
+    "vehicle",
+    "automotive",
+    "nhtsa",
+    "transport-canada",
+    "sqlite"
+  ],
+  "license": "MIT",
+  "author": "Wenmar Pro (https://wenmarpro.com)",
+  "homepage": "https://open.wenmarpro.com/data",
+  "bugs": "https://github.com/wenmar-pro/wenmar-open/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wenmar-pro/wenmar-open.git",
+    "directory": "clients/data-shop"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./wenmar-open-shop.sqlite3": "./wenmar-open-shop.sqlite3",
+    "./package.json": "./package.json"
+  },
+  "types": "./index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "wenmar-open-shop.sqlite3",
+    "NOTICE.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/data-shop.test.mjs"
+  }
+}
