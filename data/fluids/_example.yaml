@@ -1,0 +1,54 @@
+# An example, not a record. The build leaves out every file whose name
+# starts with "_"; a test still checks that this one is well formed.
+# "Testmake Sampler" does not exist and every figure here is impossible on
+# purpose. See README.md beside this file for each field.
+#
+# A real file is named <make>_<model>.yaml after the catalog's id forms,
+# such as ford_f-150.yaml, and holds every record of that model.
+make: testmake
+model: sampler
+fluids:
+  # Engine oil: one record per engine.
+  - year_from: 2001
+    year_to: 2002
+    kind: engine_oil
+    engine: 9-9l-test
+    grade: "0W-99"
+    specification: "TEST-SPEC-1"
+    capacity: "99.9"
+    capacity_unit: l
+    with_filter: true
+    source: "Test manual, page 1"
+    checked: 2026-10-12
+    reviewer: test-reviewer
+  # Transmission fluid: the specification only, and which transmission.
+  - year_from: 2001
+    kind: transmission
+    applies_to: "Test automatic"
+    specification: "TEST ATF 9"
+    source: "Test manual, page 3"
+    checked: 2026-10-12
+    reviewer: test-reviewer
+  # Coolant: the type only.
+  - year_from: 2001
+    kind: coolant
+    specification: "TEST COOLANT 9"
+    source: "Test manual, page 4"
+    checked: 2026-10-12
+    reviewer: test-reviewer
+  # Refrigerant: the type, and the charge when the label gives it.
+  - year_from: 2001
+    kind: refrigerant
+    specification: "R-TEST"
+    charge: "9.99"
+    charge_unit: kg
+    source: "Test under-hood label"
+    checked: 2026-10-12
+    reviewer: test-reviewer
+  # Brake fluid.
+  - year_from: 2001
+    kind: brake
+    specification: "TEST BRAKE 9"
+    source: "Test manual, page 5"
+    checked: 2026-10-12
+    reviewer: test-reviewer

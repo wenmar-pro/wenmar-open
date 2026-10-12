@@ -1,0 +1,35 @@
+# An example, not a record. The build leaves out every file whose name
+# starts with "_"; a test still checks that this one is well formed.
+# "Testmake Sampler" does not exist and every figure here is impossible on
+# purpose. See README.md beside this file for each field.
+#
+# A real file is named <make>_<model>.yaml after the catalog's id forms,
+# such as ford_f-150.yaml, and holds every fitment of that model.
+make: testmake
+model: sampler
+fitments:
+  # One record per size the maker fitted. Never pick one.
+  - year_from: 2001
+    year_to: 2002
+    trims: ["Base", "Deluxe"]
+    size: "999/99R99"
+    pressure_front: "990"
+    pressure_rear: "980"
+    pressure_unit: kpa
+    lug_torque: "999"
+    lug_torque_unit: nm
+    bolt_pattern: "9x999"
+    source: "Test door placard; test manual, page 6"
+    checked: 2026-10-12
+    reviewer: test-reviewer
+  # A rear size is given only when it differs from the front.
+  - year_from: 2001
+    trims: ["Sport"]
+    size: "998/98R98"
+    size_rear: "997/97R97"
+    pressure_front: "990"
+    pressure_rear: "990"
+    pressure_unit: kpa
+    source: "Test door placard"
+    checked: 2026-10-12
+    reviewer: test-reviewer
