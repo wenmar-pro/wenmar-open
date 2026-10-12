@@ -1,0 +1,24 @@
+# An example of the shape of the table. This file is not built: its name
+# starts with an underscore. The job, the vehicle and every figure are
+# made up; the hours are impossible on purpose.
+generated: 2026-10-12
+rows:
+  - job: test-job-a
+    scope: class
+    class: compact-car
+    median: 9800
+    low: 9750
+    high: 9925
+    jobs: 40
+    shops: 6
+  - job: test-job-a
+    scope: generation
+    make: testmake
+    model: sampler
+    year_from: 2001
+    year_to: 2002
+    median: 7800
+    low: 7700
+    high: 7900
+    jobs: 20
+    shops: 5

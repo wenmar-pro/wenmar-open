@@ -20,6 +20,13 @@ pub const ATTRIBUTION: &str = "Labour estimates by Wenmar Pro, CC BY 4.0";
 pub const NOTE: &str =
     "An estimate, not a quote. Rust, seized fasteners and added equipment change the time.";
 
+/// The fewest shops that must stand behind a measured figure for it to be
+/// published.
+pub const MIN_SHOPS: i64 = 5;
+
+/// The fewest repair orders that must stand behind a measured figure.
+pub const MIN_JOBS: i64 = 20;
+
 /// The scopes, narrowest first: the order a lookup tries them in.
 pub const SCOPES: [&str; 4] = ["engine", "generation", "model", "class"];
 
