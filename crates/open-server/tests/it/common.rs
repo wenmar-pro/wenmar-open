@@ -800,6 +800,104 @@ pub async fn ratings_and_recalls_app_at(base_url: &str) -> TestApp {
     .await
 }
 
+// ----- bulletins -----
+
+/// The `datasets` value of the bulletin fixture: both countries' recalls
+/// and the bulletins.
+pub const BULLETIN_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":7,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":2,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence – Canada."},"bulletins":{"as_of":"2026-10-11","rows":10,"licence":"public-domain","attribution":""}}"#;
+
+/// Ten bulletins against the small data file's catalog, shaped as
+/// `open-data build-shop` stores them; the text is made up. The Kona of
+/// model year 2023, which [`KONA`] decodes to, has six: a warranty
+/// extension, an over-the-air update, one about maintenance, one that
+/// names two trouble codes, and one with HTML where its text should be.
+/// 11000002 reaches the Kona through two names. 10100001 is too old for
+/// a document address; 11000005 has no manufacturer's date.
+pub const BULLETIN_INSERTS: &str = r#"
+INSERT INTO bulletin VALUES
+  (11000001, 'service_bulletin', '2025-03-10', '2025-03-01', 'TSB 25-01-012', NULL, NULL, 'ENGINE AND ENGINE COOLING:ENGINE; ELECTRICAL SYSTEM:SOFTWARE', NULL, 'Some 2022-2023 Kona vehicles may set DTC P0420 and P0300 with a rough idle. Update the ECM software.'),
+  (11000002, 'warranty_extension', '2025-06-02', '2025-05-20', 'WX-25-003', 'WX003', NULL, 'POWER TRAIN:AUTOMATIC TRANSMISSION', NULL, 'Warranty extension: the transmission control module is covered for 10 years.'),
+  (11000003, 'over_the_air', '2026-01-15', '2026-01-10', 'OTA 26.1', '26.1.4', NULL, 'ELECTRICAL SYSTEM:SOFTWARE', 'Infotainment: Head Unit', 'Infotainment update: improved navigation and voice control.'),
+  (11000004, 'service_bulletin', '2024-02-01', '2024-01-20', 'TSB 24-BR-001', NULL, NULL, 'SERVICE BRAKES, HYDRAULIC:FOUNDATION COMPONENTS:DISC:PADS', NULL, 'Brake squeal noise at low speed. Replace the front brake pads.'),
+  (11000005, 'service_bulletin', '2024-02-01', NULL, NULL, NULL, NULL, 'UNKNOWN OR OTHER', NULL, 'Maintenance schedule update: the oil change service interval is now 8,000 miles.'),
+  (11000006, 'emissions', '2023-07-07', '2023-07-01', 'EM-23', NULL, NULL, 'ENGINE AND ENGINE COOLING:EXHAUST SYSTEM:EMISSION CONTROL:CATALYTIC CONVERTOR', NULL, 'Emissions recall: catalytic converter. DTC P0420 may set.'),
+  (11000007, 'service_campaign', '2026-04-23', '2026-04-23', 'N262548050', 'N262548050', NULL, 'ENGINE', NULL, 'Certain vehicles may have a condition that could cause the catalytic converter to fail.'),
+  (10100001, 'service_bulletin', '2017-03-01', '2017-02-20', 'sb2652', NULL, '95-011', 'EQUIPMENT', NULL, 'DT12 PTO Upfit'),
+  (11000009, 'other', '2022-09-22', '2022-09-16', 'A2090B', NULL, NULL, 'VISIBILITY', NULL, 'Dealer message: washer pumps were 100% tested.'),
+  (11000010, 'service_bulletin', '2025-03-10', '2025-03-02', '"><img src=x onerror=alert(1)>', NULL, NULL, '<b>Bold</b> SYSTEM:PART', NULL, 'A part named <script>alert(1)</script> may fail.');
+INSERT INTO bulletin_model VALUES
+  (1, 'HYUNDAI', 'KONA', 498, 900, 'exact'),
+  (2, 'HYUNDAI', 'KONA ELECTRIC', 498, 900, 'base'),
+  (3, 'HYUNDAI', 'KONA', 498, NULL, NULL),
+  (4, 'CHEVROLET', 'SILVERADO 1500', 467, 1850, 'base'),
+  (5, 'GMC', 'SIERRA 1500', NULL, NULL, NULL),
+  (6, 'FREIGHTLINER', 'CASCADIA', NULL, NULL, NULL),
+  (7, 'HYUNDAI', 'HYUNDAI', 498, NULL, NULL);
+INSERT INTO bulletin_vehicle VALUES
+  (11000001, 1, 2022, 2023),
+  (11000002, 1, 2023, 2023),
+  (11000002, 2, 2023, 2023),
+  (11000003, 1, 2023, 2023),
+  (11000003, 3, 2024, 2025),
+  (11000004, 1, 2023, 2023),
+  (11000005, 1, 2023, 2023),
+  (11000006, 1, 2022, 2022),
+  (11000006, 4, 2019, 2019),
+  (11000007, 4, 2019, 2020),
+  (11000007, 5, 2019, 2020),
+  (10100001, 6, 2020, 2020),
+  (11000009, 7, 0, 0),
+  (11000010, 1, 2023, 2023);
+INSERT INTO component VALUES
+  ('brakes', 'Brakes', NULL),
+  ('brake-pad', 'Brake pads', 'brakes'),
+  ('electrical', 'Electrical system', NULL),
+  ('software', 'Software', 'electrical'),
+  ('engine', 'Engine', NULL),
+  ('exhaust-emissions', 'Exhaust and emissions', NULL),
+  ('catalytic-converter', 'Catalytic converter', 'exhaust-emissions'),
+  ('powertrain', 'Transmission and driveline', NULL),
+  ('automatic-transmission', 'Automatic transmission', 'powertrain'),
+  ('visibility', 'Glass, wipers and mirrors', NULL),
+  ('equipment', 'Equipment and accessories', NULL);
+INSERT INTO bulletin_component VALUES
+  (11000001, 'engine'), (11000001, 'electrical'), (11000001, 'software'),
+  (11000002, 'powertrain'), (11000002, 'automatic-transmission'),
+  (11000003, 'electrical'), (11000003, 'software'),
+  (11000004, 'brakes'), (11000004, 'brake-pad'),
+  (11000006, 'engine'), (11000006, 'exhaust-emissions'), (11000006, 'catalytic-converter'),
+  (11000007, 'engine'),
+  (10100001, 'equipment'),
+  (11000009, 'visibility');
+INSERT INTO bulletin_code VALUES
+  (11000001, 'P0300'), (11000001, 'P0420'), (11000006, 'P0420');
+INSERT INTO bulletin_topic VALUES
+  (11000005, 'maintenance');
+INSERT INTO bulletin_year (year)
+  WITH RECURSIVE years(year) AS (SELECT 1900 UNION ALL SELECT year + 1 FROM years WHERE year < 2100)
+  SELECT year FROM years;
+"#;
+
+/// The recall tables and rows of [`recall_rows`], then the bulletin
+/// tables and [`BULLETIN_INSERTS`], as `rows` for [`app_with_shop`].
+pub fn bulletin_rows() -> String {
+    use wenmar_shopdata::schema;
+    format!(
+        "{}{}{}{}{}{BULLETIN_INSERTS}",
+        recall_rows(),
+        schema::BULLETINS,
+        schema::COMPONENTS,
+        schema::BULLETIN_COMPONENTS,
+        schema::BULLETIN_TEXT
+    )
+}
+
+/// The application over the small data file and a shop file holding
+/// recalls and bulletins.
+pub async fn bulletins_app() -> TestApp {
+    app_with_shop(BULLETIN_DATASETS, &bulletin_rows()).await
+}
+
 // ----- helpers for the pages -----
 
 /// `GET`s a page and reads its body as text.

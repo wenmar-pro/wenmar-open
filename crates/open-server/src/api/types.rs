@@ -1463,3 +1463,196 @@ pub struct PartsCard {
     pub attribution: Vec<String>,
     pub warnings: Vec<Warning>,
 }
+
+/// Where NHTSA's copy of a bulletin's document is expected to be.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct BulletinDocument {
+    /// The likelier address of NHTSA's copy (a PDF).
+    #[schema(example = "https://static.nhtsa.gov/odi/tsbs/2018/MC-10152456-0001.pdf")]
+    pub url: String,
+    /// The address to try when `url` answers "not found": NHTSA files
+    /// documents under one of two endings, and the data does not say
+    /// which.
+    #[schema(example = "https://static.nhtsa.gov/odi/tsbs/2018/MC-10152456-9999.pdf")]
+    pub alternate_url: String,
+    /// Always `false`. The addresses are built from a rule that held for
+    /// a sample of documents; this API has not asked NHTSA for this one.
+    pub confirmed: bool,
+}
+
+/// One manufacturer communication in a list: a service bulletin, a
+/// service campaign, a warranty extension or an over-the-air update.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct Bulletin {
+    /// NHTSA's id number for the communication.
+    #[schema(example = 10152456)]
+    pub nhtsa_id: i64,
+    /// `service_bulletin`, `service_campaign`, `warranty_extension`,
+    /// `over_the_air`, `emissions` or `other`.
+    #[serde(rename = "type")]
+    #[schema(example = "service_bulletin")]
+    pub kind: String,
+    /// The type in words.
+    #[schema(example = "Service bulletin")]
+    pub type_name: String,
+    /// The day NHTSA published it. Lists are ordered by it.
+    #[schema(example = "2019-01-07")]
+    pub date_added: String,
+    /// The manufacturer's own date.
+    #[schema(example = "2018-11-02")]
+    pub date: Option<String>,
+    /// The manufacturer's own number for the document, which a dealer
+    /// looks it up by.
+    #[schema(example = "TSB 18-2324")]
+    pub document_id: Option<String>,
+    /// The manufacturer's campaign id or software version.
+    pub mfr_campaign: Option<String>,
+    /// NHTSA's components, in its words, separated by `; `.
+    #[schema(example = "ENGINE AND ENGINE COOLING:EXHAUST SYSTEM")]
+    pub component: Option<String>,
+    /// NHTSA's summary of the communication. The document itself is the
+    /// manufacturer's and is not here.
+    pub summary: Option<String>,
+    /// Where NHTSA's copy of the document is expected to be. `null` when
+    /// no address can be built for it: a communication with no
+    /// manufacturer's date, or one NHTSA received before July 2017.
+    pub document: Option<BulletinDocument>,
+    /// The bulletin's page on this site.
+    #[schema(example = "https://open.wenmarpro.com/bulletins/10152456")]
+    pub url: String,
+}
+
+/// How many bulletins have one type, component, code or topic.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct BulletinCount {
+    /// What to pass as `type`, `component`, `code` or `topic`.
+    #[schema(example = "brake-pad")]
+    pub id: String,
+    #[schema(example = "Brake pads")]
+    pub name: String,
+    pub count: u64,
+}
+
+/// What the bulletins of one model year are, in numbers. They count every
+/// bulletin of the model year, whatever the list is narrowed by.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, ToSchema)]
+pub struct BulletinCounts {
+    pub count: u64,
+    /// Every type with at least one bulletin.
+    pub by_type: Vec<BulletinCount>,
+    /// Every component with at least one, commonest first. A bulletin
+    /// about a part is counted under the part and under its system.
+    pub components: Vec<BulletinCount>,
+    /// The trouble codes the summaries name most, up to 20.
+    pub codes: Vec<BulletinCount>,
+    /// `maintenance`, when a bulletin is about a schedule or an interval.
+    pub topics: Vec<BulletinCount>,
+}
+
+/// Bulletins that list one model year.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct VehicleBulletins {
+    pub vehicle: RecallVehicle,
+    /// The day the bulletins were current.
+    #[schema(example = "2026-10-11")]
+    pub as_of: Option<String>,
+    pub counts: BulletinCounts,
+    /// One page, newest first.
+    pub bulletins: Vec<Bulletin>,
+    /// Pass it back as `cursor` for the next page. `null` on the last.
+    pub next_cursor: Option<String>,
+    /// What a bulletin is and is not.
+    pub note: String,
+    /// The credit lines the data's licences ask for.
+    pub attribution: Vec<String>,
+}
+
+/// Bulletins that list the year, make and model a VIN decodes to.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct VinBulletins {
+    pub decode: RecallDecode,
+    /// `null` when the VIN decodes to no vehicle in the catalog.
+    pub vehicle: Option<RecallVehicle>,
+    pub as_of: Option<String>,
+    pub counts: BulletinCounts,
+    pub bulletins: Vec<Bulletin>,
+    pub next_cursor: Option<String>,
+    pub note: String,
+    pub attribution: Vec<String>,
+    pub warnings: Vec<Warning>,
+}
+
+/// A component a bulletin is about.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct BulletinComponent {
+    #[schema(example = "brake-pad")]
+    pub id: String,
+    #[schema(example = "Brake pads")]
+    pub name: String,
+    /// The system a part belongs to. `null` for a system.
+    #[schema(example = "brakes")]
+    pub parent: Option<String>,
+}
+
+/// The model years of one name a bulletin lists.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct BulletinVehicle {
+    /// The make and model as the source words them.
+    #[schema(example = "FORD")]
+    pub make: String,
+    #[schema(example = "F-150")]
+    pub model: String,
+    /// The first and last model year of a run, inclusive. Both `null`
+    /// when the bulletin gave no model year.
+    pub year_from: Option<u16>,
+    pub year_to: Option<u16>,
+    /// `exact`, `base` or `curated`; `null` when the model is not in the
+    /// catalog for these years.
+    #[serde(rename = "match")]
+    pub matched: Option<String>,
+    /// The vehicle id of each model year in the run, when it matched.
+    pub vehicle_ids: Vec<String>,
+}
+
+/// One bulletin with every vehicle it lists.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct BulletinDetail {
+    #[schema(example = 10152456)]
+    pub nhtsa_id: i64,
+    #[serde(rename = "type")]
+    #[schema(example = "service_bulletin")]
+    pub kind: String,
+    pub type_name: String,
+    pub date_added: String,
+    pub date: Option<String>,
+    pub document_id: Option<String>,
+    pub mfr_campaign: Option<String>,
+    /// The number of the bulletin this one replaces. NHTSA no longer
+    /// fills it.
+    pub replaces: Option<String>,
+    pub component: Option<String>,
+    /// The manufacturer's own words for the system.
+    pub mfr_system: Option<String>,
+    pub summary: Option<String>,
+    pub document: Option<BulletinDocument>,
+    pub url: String,
+    /// The components it is about, systems first.
+    pub components: Vec<BulletinComponent>,
+    /// The trouble codes the summary names.
+    pub codes: Vec<String>,
+    pub topics: Vec<String>,
+    pub vehicles: Vec<BulletinVehicle>,
+    pub as_of: Option<String>,
+    pub note: String,
+    pub attribution: Vec<String>,
+}
+
+/// One page of bulletins, newest first.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct BulletinList {
+    pub as_of: Option<String>,
+    pub bulletins: Vec<Bulletin>,
+    pub next_cursor: Option<String>,
+    pub note: String,
+    pub attribution: Vec<String>,
+}

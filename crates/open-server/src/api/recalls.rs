@@ -177,11 +177,11 @@ pub fn model_slugs(
 }
 
 /// The make and the model ids a list is narrowed by.
-type NamedIds = (Option<i64>, Option<i64>);
+pub type NamedIds = (Option<i64>, Option<i64>);
 
 /// The catalog ids a make and a model in words mean. `Ok(None)` when the
 /// make, or the model, is not in the catalog: nothing can then be listed.
-fn named(
+pub fn named(
     worker: &Worker,
     make: Option<&str>,
     model: Option<&str>,
@@ -318,7 +318,7 @@ fn for_vehicle(base: &str, found: shopdata::VehicleRecall) -> Recall {
 }
 
 /// Text a caller gave, or `None` when it is blank.
-fn given(value: Option<String>) -> Option<String> {
+pub fn given(value: Option<String>) -> Option<String> {
     value
         .map(|value| value.trim().to_owned())
         .filter(|value| !value.is_empty())
