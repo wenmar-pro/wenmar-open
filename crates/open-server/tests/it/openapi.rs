@@ -35,6 +35,8 @@ fn the_description_lists_every_route_and_no_others() {
     assert_eq!(
         paths,
         [
+            "/v1/bulletins",
+            "/v1/bulletins/{nhtsa_id}",
             "/v1/makes/{make}",
             "/v1/meta",
             "/v1/models/{make}/{model}",
@@ -50,6 +52,7 @@ fn the_description_lists_every_route_and_no_others() {
             "/v1/vehicles/trims",
             "/v1/vehicles/years",
             "/v1/vehicles/{id}",
+            "/v1/vehicles/{id}/bulletins",
             "/v1/vehicles/{id}/fluids",
             "/v1/vehicles/{id}/fuel",
             "/v1/vehicles/{id}/investigations",
@@ -59,6 +62,7 @@ fn the_description_lists_every_route_and_no_others() {
             "/v1/vehicles/{id}/specs",
             "/v1/vin/batch",
             "/v1/vin/{vin}",
+            "/v1/vin/{vin}/bulletins",
             "/v1/vin/{vin}/fluids",
             "/v1/vin/{vin}/fuel",
             "/v1/vin/{vin}/overview",
@@ -104,6 +108,13 @@ fn the_description_lists_every_route_and_no_others() {
         "VinFluids",
         "EngineOil",
         "PartsCard",
+        "VehicleBulletins",
+        "VinBulletins",
+        "BulletinDetail",
+        "BulletinList",
+        "Bulletin",
+        "BulletinDocument",
+        "BulletinCounts",
     ] {
         assert!(schemas.contains_key(name), "no schema for {name}");
     }

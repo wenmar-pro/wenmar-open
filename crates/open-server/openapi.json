@@ -15,6 +15,193 @@
     }
   ],
   "paths": {
+    "/v1/bulletins": {
+      "get": {
+        "tags": [
+          "Bulletins"
+        ],
+        "summary": "Manufacturer communications, newest first: every one, or those\nnarrowed by make, model, year, type, component, trouble code, topic or\nfree text.",
+        "description": "A make or a model the catalog does not have gives an empty list.",
+        "operationId": "bulletin_search",
+        "parameters": [
+          {
+            "name": "make",
+            "in": "query",
+            "description": "Only bulletins that list a vehicle of this make: a name, an alias\nor an id, as in `/v1/vehicles/models`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "ford"
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "description": "Only bulletins that list this model: a name or an id. Needs `make`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "f-150"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "Only bulletins that list this model year.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "example": 2018
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Only this type: `service_bulletin`, `service_campaign`,\n`warranty_extension`, `over_the_air`, `emissions` or `other`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "warranty_extension"
+          },
+          {
+            "name": "component",
+            "in": "query",
+            "description": "Only bulletins about this component: an id such as `brakes` or\n`brake-pad`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "brakes"
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "description": "Only bulletins whose summary names this trouble code.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "P0420"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Only bulletins with this text in them, in either case. At most 100\ncharacters are read.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "noise"
+          },
+          {
+            "name": "topic",
+            "in": "query",
+            "description": "Only bulletins with this topic. `maintenance` is the only one.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "At most this many, up to 100. The default is 25.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "`next_cursor` from the page before, unchanged.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of bulletins.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulletinList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: a query value is wrong, or `model` was given without `make`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`dataset_unavailable`: this server holds no bulletins.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/bulletins/{nhtsa_id}": {
+      "get": {
+        "tags": [
+          "Bulletins"
+        ],
+        "summary": "One manufacturer communication, by NHTSA's id number, with every\nvehicle it lists, the components it is about and the trouble codes its\nsummary names.",
+        "operationId": "bulletin",
+        "parameters": [
+          {
+            "name": "nhtsa_id",
+            "in": "path",
+            "description": "NHTSA's id number for the communication.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "10152456"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The bulletin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulletinDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no bulletin has that id. `dataset_unavailable`: this server holds no bulletins.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/makes/{make}": {
       "get": {
         "tags": [
@@ -1020,6 +1207,129 @@
         }
       }
     },
+    "/v1/vehicles/{id}/bulletins": {
+      "get": {
+        "tags": [
+          "Bulletins"
+        ],
+        "summary": "Manufacturer communications that list a model year: service bulletins,\nservice campaigns, warranty extensions and over-the-air updates.",
+        "description": "One page, newest first; `counts` says how many there are in all and of\nwhat kind, so a caller can offer the narrowings that have something.",
+        "operationId": "vehicle_bulletins",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A vehicle id. Bulletins are listed by year, make and model; a submodel or an engine in the id is set aside.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2018_ford_f-150"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Only this type: `service_bulletin`, `service_campaign`,\n`warranty_extension`, `over_the_air`, `emissions` or `other`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "warranty_extension"
+          },
+          {
+            "name": "component",
+            "in": "query",
+            "description": "Only bulletins about this component: an id from `counts.components`,\nsuch as `brakes` or `brake-pad`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "brakes"
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "description": "Only bulletins whose summary names this trouble code. Letters may\nbe in either case.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "P0420"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Only bulletins with this text in them, in either case: in the\nsummary, the manufacturer's document number or campaign id, or the\ncomponent. At most 100 characters are read.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "noise"
+          },
+          {
+            "name": "topic",
+            "in": "query",
+            "description": "Only bulletins with this topic. `maintenance` is the only one.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "maintenance"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "At most this many, up to 100. The default is 25.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "`next_cursor` from the page before, unchanged.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of bulletins, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleBulletins"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: `type`, `component`, `code`, `topic`, `limit` or `cursor` is wrong.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no bulletins.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vehicles/{id}/fluids": {
       "get": {
         "tags": [
@@ -1550,6 +1860,140 @@
         }
       }
     },
+    "/v1/vin/{vin}/bulletins": {
+      "get": {
+        "tags": [
+          "Bulletins"
+        ],
+        "summary": "Manufacturer communications that list the year, make and model a VIN\ndecodes to.",
+        "description": "A VIN that decodes to no vehicle in the catalog gets an empty list and\nthe warning `no_catalog_vehicle`, not an error.",
+        "operationId": "vin_bulletins",
+        "parameters": [
+          {
+            "name": "vin",
+            "in": "path",
+            "description": "A 17-character VIN.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "KM8K2CAB4PU001140"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "Use this model year instead of working it out from the VIN.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "example": 2023
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Only this type: `service_bulletin`, `service_campaign`,\n`warranty_extension`, `over_the_air`, `emissions` or `other`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "warranty_extension"
+          },
+          {
+            "name": "component",
+            "in": "query",
+            "description": "Only bulletins about this component: an id such as `brakes` or\n`brake-pad`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "brakes"
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "description": "Only bulletins whose summary names this trouble code.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "P0420"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Only bulletins with this text in them, in either case. At most 100\ncharacters are read.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "noise"
+          },
+          {
+            "name": "topic",
+            "in": "query",
+            "description": "Only bulletins with this topic. `maintenance` is the only one.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "At most this many, up to 100. The default is 25.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "`next_cursor` from the page before, unchanged.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of bulletins, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinBulletins"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`invalid_vin`, or `validation_failed` for a query value.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no bulletins.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vin/{vin}/fluids": {
       "get": {
         "tags": [
@@ -1992,6 +2436,437 @@
               "1HGCM82633A004352"
             ],
             "maxItems": 50
+          }
+        }
+      },
+      "Bulletin": {
+        "type": "object",
+        "description": "One manufacturer communication in a list: a service bulletin, a\nservice campaign, a warranty extension or an over-the-air update.",
+        "required": [
+          "nhtsa_id",
+          "type",
+          "type_name",
+          "date_added",
+          "url"
+        ],
+        "properties": {
+          "component": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "NHTSA's components, in its words, separated by `; `.",
+            "example": "ENGINE AND ENGINE COOLING:EXHAUST SYSTEM"
+          },
+          "date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The manufacturer's own date.",
+            "example": "2018-11-02"
+          },
+          "date_added": {
+            "type": "string",
+            "description": "The day NHTSA published it. Lists are ordered by it.",
+            "example": "2019-01-07"
+          },
+          "document": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BulletinDocument",
+                "description": "Where NHTSA's copy of the document is expected to be. `null` when\nno address can be built for it: a communication with no\nmanufacturer's date, or one NHTSA received before July 2017."
+              }
+            ]
+          },
+          "document_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The manufacturer's own number for the document, which a dealer\nlooks it up by.",
+            "example": "TSB 18-2324"
+          },
+          "mfr_campaign": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The manufacturer's campaign id or software version."
+          },
+          "nhtsa_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "NHTSA's id number for the communication.",
+            "example": 10152456
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "NHTSA's summary of the communication. The document itself is the\nmanufacturer's and is not here."
+          },
+          "type": {
+            "type": "string",
+            "description": "`service_bulletin`, `service_campaign`, `warranty_extension`,\n`over_the_air`, `emissions` or `other`.",
+            "example": "service_bulletin"
+          },
+          "type_name": {
+            "type": "string",
+            "description": "The type in words.",
+            "example": "Service bulletin"
+          },
+          "url": {
+            "type": "string",
+            "description": "The bulletin's page on this site.",
+            "example": "https://open.wenmarpro.com/bulletins/10152456"
+          }
+        }
+      },
+      "BulletinComponent": {
+        "type": "object",
+        "description": "A component a bulletin is about.",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "brake-pad"
+          },
+          "name": {
+            "type": "string",
+            "example": "Brake pads"
+          },
+          "parent": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The system a part belongs to. `null` for a system.",
+            "example": "brakes"
+          }
+        }
+      },
+      "BulletinCount": {
+        "type": "object",
+        "description": "How many bulletins have one type, component, code or topic.",
+        "required": [
+          "id",
+          "name",
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "id": {
+            "type": "string",
+            "description": "What to pass as `type`, `component`, `code` or `topic`.",
+            "example": "brake-pad"
+          },
+          "name": {
+            "type": "string",
+            "example": "Brake pads"
+          }
+        }
+      },
+      "BulletinCounts": {
+        "type": "object",
+        "description": "What the bulletins of one model year are, in numbers. They count every\nbulletin of the model year, whatever the list is narrowed by.",
+        "required": [
+          "count",
+          "by_type",
+          "components",
+          "codes",
+          "topics"
+        ],
+        "properties": {
+          "by_type": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BulletinCount"
+            },
+            "description": "Every type with at least one bulletin."
+          },
+          "codes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BulletinCount"
+            },
+            "description": "The trouble codes the summaries name most, up to 20."
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BulletinCount"
+            },
+            "description": "Every component with at least one, commonest first. A bulletin\nabout a part is counted under the part and under its system."
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BulletinCount"
+            },
+            "description": "`maintenance`, when a bulletin is about a schedule or an interval."
+          }
+        }
+      },
+      "BulletinDetail": {
+        "type": "object",
+        "description": "One bulletin with every vehicle it lists.",
+        "required": [
+          "nhtsa_id",
+          "type",
+          "type_name",
+          "date_added",
+          "url",
+          "components",
+          "codes",
+          "topics",
+          "vehicles",
+          "note",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The trouble codes the summary names."
+          },
+          "component": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BulletinComponent"
+            },
+            "description": "The components it is about, systems first."
+          },
+          "date": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "date_added": {
+            "type": "string"
+          },
+          "document": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BulletinDocument"
+              }
+            ]
+          },
+          "document_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mfr_campaign": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mfr_system": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The manufacturer's own words for the system."
+          },
+          "nhtsa_id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 10152456
+          },
+          "note": {
+            "type": "string"
+          },
+          "replaces": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The number of the bulletin this one replaces. NHTSA no longer\nfills it."
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "type": {
+            "type": "string",
+            "example": "service_bulletin"
+          },
+          "type_name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "vehicles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BulletinVehicle"
+            }
+          }
+        }
+      },
+      "BulletinDocument": {
+        "type": "object",
+        "description": "Where NHTSA's copy of a bulletin's document is expected to be.",
+        "required": [
+          "url",
+          "alternate_url",
+          "confirmed"
+        ],
+        "properties": {
+          "alternate_url": {
+            "type": "string",
+            "description": "The address to try when `url` answers \"not found\": NHTSA files\ndocuments under one of two endings, and the data does not say\nwhich.",
+            "example": "https://static.nhtsa.gov/odi/tsbs/2018/MC-10152456-9999.pdf"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "description": "Always `false`. The addresses are built from a rule that held for\na sample of documents; this API has not asked NHTSA for this one."
+          },
+          "url": {
+            "type": "string",
+            "description": "The likelier address of NHTSA's copy (a PDF).",
+            "example": "https://static.nhtsa.gov/odi/tsbs/2018/MC-10152456-0001.pdf"
+          }
+        }
+      },
+      "BulletinList": {
+        "type": "object",
+        "description": "One page of bulletins, newest first.",
+        "required": [
+          "bulletins",
+          "note",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bulletins": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bulletin"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "BulletinVehicle": {
+        "type": "object",
+        "description": "The model years of one name a bulletin lists.",
+        "required": [
+          "make",
+          "model",
+          "vehicle_ids"
+        ],
+        "properties": {
+          "make": {
+            "type": "string",
+            "description": "The make and model as the source words them.",
+            "example": "FORD"
+          },
+          "match": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`exact`, `base` or `curated`; `null` when the model is not in the\ncatalog for these years."
+          },
+          "model": {
+            "type": "string",
+            "example": "F-150"
+          },
+          "vehicle_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The vehicle id of each model year in the run, when it matched."
+          },
+          "year_from": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "The first and last model year of a run, inclusive. Both `null`\nwhen the bulletin gave no model year.",
+            "minimum": 0
+          },
+          "year_to": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
           }
         }
       },
@@ -4885,6 +5760,58 @@
           }
         }
       },
+      "VehicleBulletins": {
+        "type": "object",
+        "description": "Bulletins that list one model year.",
+        "required": [
+          "vehicle",
+          "counts",
+          "bulletins",
+          "note",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The day the bulletins were current.",
+            "example": "2026-10-11"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The credit lines the data's licences ask for."
+          },
+          "bulletins": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bulletin"
+            },
+            "description": "One page, newest first."
+          },
+          "counts": {
+            "$ref": "#/components/schemas/BulletinCounts"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pass it back as `cursor` for the next page. `null` on the last."
+          },
+          "note": {
+            "type": "string",
+            "description": "What a bulletin is and is not."
+          },
+          "vehicle": {
+            "$ref": "#/components/schemas/RecallVehicle"
+          }
+        }
+      },
       "VehicleFluids": {
         "type": "object",
         "description": "The fluids of one model year.",
@@ -5104,6 +6031,70 @@
           },
           "vehicle": {
             "$ref": "#/components/schemas/RecallVehicle"
+          }
+        }
+      },
+      "VinBulletins": {
+        "type": "object",
+        "description": "Bulletins that list the year, make and model a VIN decodes to.",
+        "required": [
+          "decode",
+          "counts",
+          "bulletins",
+          "note",
+          "attribution",
+          "warnings"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bulletins": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bulletin"
+            }
+          },
+          "counts": {
+            "$ref": "#/components/schemas/BulletinCounts"
+          },
+          "decode": {
+            "$ref": "#/components/schemas/RecallDecode"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "note": {
+            "type": "string"
+          },
+          "vehicle": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecallVehicle",
+                "description": "`null` when the VIN decodes to no vehicle in the catalog."
+              }
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            }
           }
         }
       },
@@ -5630,6 +6621,10 @@
     {
       "name": "Investigations",
       "description": "NHTSA defect investigations that list a model year or led to a recall. An investigation is not a finding of a defect."
+    },
+    {
+      "name": "Bulletins",
+      "description": "Manufacturer communications NHTSA publishes: service bulletins, service campaigns, warranty extensions and over-the-air updates, by model year. NHTSA's index and summary only; the document is linked at NHTSA."
     },
     {
       "name": "Data",

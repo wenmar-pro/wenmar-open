@@ -91,6 +91,13 @@ pub const LICENCES: &[Licence] = &[
         attribution: "None required. This site credits NHTSA.",
     },
     Licence {
+        dataset: "Manufacturer communications: service bulletins, service campaigns, warranty extensions and over-the-air updates. The index and summaries NHTSA publishes; hosted service only",
+        source: "NHTSA manufacturer communications flat files, https://static.nhtsa.gov/odi/ffdd/tsbs/",
+        licence: "Public domain (United States government work). The documents belong to the manufacturers and are not held here.",
+        licence_id: "public-domain",
+        attribution: "None required. This site credits NHTSA.",
+    },
+    Licence {
         dataset: "Index of the VIN guides manufacturers file under 49 CFR Part 565",
         source: "NHTSA vPIC, the GetParts list of manufacturer filings, https://vpic.nhtsa.dot.gov/api/",
         licence: "Public domain (United States government work) for the index. The letters it links to belong to the manufacturers and are not copied.",
