@@ -8,7 +8,7 @@ Wenmar Open is built and hosted by [Wenmar Pro](https://wenmarpro.com), shop man
 
 ## What it will be
 
-- **A website** at `open.wenmarpro.com` where a service advisor or tech can paste a VIN and get the vehicle back, and where a shop owner can use free calculators: a parts markup matrix, a labor rate, gross profit, a tire size comparison, a refrigerant pressure-temperature chart, a battery state of charge reader, a wire gauge calculator, and Canadian invoice tax and tire fees.
+- **A website** at `open.wenmarpro.com` where a service advisor or tech can paste a VIN and get the vehicle back, and where a shop owner can use free calculators: a parts markup matrix, a labor rate, gross profit, a tire size comparison, a refrigerant pressure-temperature chart, a battery state of charge reader, a wire gauge calculator, and Canadian invoice tax and tire fees. It also has a page for each Canadian province and territory on what the law asks of a repair shop, each rule with its source; a province that has not been checked shows no rule.
 - **A JSON API** at `open.wenmarpro.com/v1`, open to any origin, with no key and no account.
 - **A Rust crate**, `wenmar-vin`, for decoding VINs in-process and offline.
 - **An npm package**, [`wenmar-open`](clients/js/README.md): a small typed client for the hosted API, and an offline mode, `wenmar-open/offline`, that runs the same decoder as WebAssembly over the data file. The data file is its own package, [`wenmar-open-data`](clients/data/README.md).
