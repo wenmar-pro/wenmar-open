@@ -1,0 +1,28 @@
+# Curated files for the shop data
+
+`open-data build-shop` reads these when it matches a source's vehicle names to the catalog. They are written by hand for this project.
+
+## `models.yaml`
+
+Recall, bulletin and fuel files name vehicles in their own words. The build matches a name to a catalog model in this order, and records which step matched in the `match` column:
+
+1. `exact`: the make, then a model of that make with the same name. Case and punctuation are ignored, so `F-150`, `F150` and `f 150` are one name.
+2. `base`: the longest model name of that make that the source's name starts with, if it has at least three letters or digits. `SILVERADO 1500` is the catalog's `Silverado`.
+3. `curated`: an entry in this file.
+4. Otherwise the row is kept unmatched, with the source's own text.
+
+A model only matches for a model year the catalog lists it in.
+
+| Field | Meaning |
+|---|---|
+| `make` | The source's make text. It must be a make in the catalog, or one of its aliases in `data/catalog/makes.yaml`. |
+| `model` | The source's model text. |
+| `to` | One or more catalog model names of that make, as `open-data catalog --data <data file> models --make <make>` prints them. A family name lists every model in the family. |
+
+Put every `model` and `to` name in double quotes. YAML reads a bare `1500` or `330e` as a number, and the build then refuses the file.
+
+An entry is needed only when steps 1 and 2 fail. Run `open-data coverage` to see the commonest unmatched names; that list is where entries come from.
+
+The build stops if an entry names a make or a model the catalog does not have, or if two entries have the same make and model.
+
+Do not copy text from any source into this file. Names are facts; descriptions are not needed here.

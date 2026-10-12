@@ -1,0 +1,44 @@
+# Model names the sources use that the catalog spells another way and that
+# the matcher cannot work out by itself. See README.md beside this file.
+#
+# make   The source's make text. Case and punctuation are ignored.
+# model  The source's model text. Case and punctuation are ignored.
+# to     One or more catalog model names of that make. A family name such
+#        as "3 SERIES" lists every model in the family.
+#
+# Put every model name in double quotes: YAML reads a bare 1500 or 330e as
+# a number.
+models:
+  - make: BMW
+    model: "3 SERIES"
+    to:
+      - "318i"
+      - "318iC"
+      - "318iS"
+      - "318ti"
+      - "320i"
+      - "323i"
+      - "323iC"
+      - "323is"
+      - "325Ci"
+      - "325i"
+      - "325iC"
+      - "325iS"
+      - "325ix"
+      - "325xi"
+      - "328Ci"
+      - "328d"
+      - "328i"
+      - "328iC"
+      - "328iS"
+      - "328xi"
+      - "330Ci"
+      - "330e"
+      - "330i"
+      - "330xi"
+      - "335d"
+      - "335i"
+      - "335is"
+      - "335xi"
+      - "340i"
+      - "M340i"

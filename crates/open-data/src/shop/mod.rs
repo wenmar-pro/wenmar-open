@@ -5,3 +5,4 @@
 //! (rows to tables).
 
 pub mod build;
+pub mod matcher;
