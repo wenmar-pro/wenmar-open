@@ -3179,6 +3179,7 @@
           "as_of": "2026-10-11",
           "attribution": [],
           "campaign": "19V888000",
+          "completion": null,
           "component": "ELECTRICAL SYSTEM:12V/24V/48V BATTERY:CABLES",
           "consequence": "A fire may start.",
           "country": "us",
@@ -3241,6 +3242,7 @@
             "Contains information licensed under the Open Government Licence - Canada."
           ],
           "campaign": "2023101",
+          "completion": null,
           "component": "Electrical",
           "consequence": null,
           "country": "ca",

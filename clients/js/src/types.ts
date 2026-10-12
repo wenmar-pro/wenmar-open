@@ -27,6 +27,8 @@ export type VehicleRecalls = Schemas["VehicleRecalls"];
 export type VinRecalls = Schemas["VinRecalls"];
 /** One recall campaign with every vehicle it lists. */
 export type RecallCampaign = Schemas["RecallCampaign"];
+/** The manufacturer's newest report of a campaign's remedy progress: totals for the whole campaign and a named period, never for one vehicle. */
+export type RecallCompletion = Schemas["RecallCompletion"];
 /** One page of recall campaigns, newest first. */
 export type RecallList = Schemas["RecallList"];
 /** One recall campaign in a list. */

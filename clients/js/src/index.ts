@@ -39,6 +39,7 @@ export type {
   Plant,
   Recall,
   RecallCampaign,
+  RecallCompletion,
   RecallCount,
   RecallInvestigations,
   RecallList,

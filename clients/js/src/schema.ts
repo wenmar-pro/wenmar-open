@@ -972,6 +972,7 @@ export interface components {
             attribution: string[];
             /** @example 19V888000 */
             campaign: string;
+            completion?: null | components["schemas"]["RecallCompletion"];
             component?: string | null;
             consequence?: string | null;
             /** @example us */
@@ -1026,6 +1027,77 @@ export interface components {
             vehicle_id?: string | null;
             /** Format: int32 */
             year?: number | null;
+        };
+        /**
+         * @description The newest report of remedy progress a manufacturer filed with NHTSA
+         *     for a campaign. The counts are totals for the whole campaign at the end
+         *     of the period named, which may be years past. They say nothing of one
+         *     vehicle: check a VIN at the addresses in `lookup`.
+         */
+        RecallCompletion: {
+            /**
+             * @description The day NHTSA's report files were current.
+             * @example 2026-10-12
+             */
+            as_of?: string | null;
+            /**
+             * Format: int32
+             * @description Vehicles in the campaign.
+             * @example 57591
+             */
+            involved: number;
+            /**
+             * @description `quarterly` or `annual`.
+             * @example annual
+             */
+            kind: string;
+            /**
+             * @description The first quarter the report covers, as a year and a quarter.
+             * @example 2025-2
+             */
+            period_from: string;
+            /**
+             * @description The last quarter it covers. The counts are as of the end of it. A
+             *     quarterly report has the same quarter in both.
+             * @example 2026-1
+             */
+            period_to: string;
+            /**
+             * Format: int32
+             * @description Of those, reported remedied.
+             * @example 38917
+             */
+            remedied: number;
+            /**
+             * Format: int32
+             * @description `remedied` as a share of `involved`, in whole percent, rounded
+             *     down. `null` when `involved` is 0.
+             * @example 67
+             */
+            remedied_percent?: number | null;
+            /**
+             * Format: int32
+             * @description NHTSA's "total removed", as reported.
+             * @example 23
+             */
+            removed: number;
+            /**
+             * Format: int32
+             * @description The report's number among those of its kind, from 1.
+             * @example 2
+             */
+            report_number: number;
+            /**
+             * @description The day the manufacturer filed the report.
+             * @example 2026-04-13
+             */
+            submitted?: string | null;
+            /**
+             * Format: int32
+             * @description NHTSA's "total unreachable", as reported.
+             * @example 1011
+             */
+            unreachable: number;
         };
         /**
          * @description How many recall campaigns list a model year, for each country. `null`
