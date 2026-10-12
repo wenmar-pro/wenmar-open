@@ -241,3 +241,91 @@ CREATE TABLE vin_guide_make (
     PRIMARY KEY (make_id, manufacturer_id)
 ) WITHOUT ROWID;
 ";
+
+/// Fuel ratings, the specifications that come with them, the certified
+/// engine oil grade and the emission standard. The datasets `fuel_us`,
+/// `fuel_ca`, `specs` and `oil_grade` share these tables. Every statement
+/// is `IF NOT EXISTS`, so either fuel shape step may run it.
+pub const FUEL: &str = "
+CREATE TABLE IF NOT EXISTS fuel_rating (
+    id               INTEGER PRIMARY KEY,
+    source           TEXT NOT NULL,    -- 'epa' | 'nrcan'
+    source_id        INTEGER,          -- EPA's vehicle id; NULL for nrcan
+    year             INTEGER NOT NULL,
+    make_id          INTEGER,          -- catalog_make.id; NULL when the make is not in the catalog
+    model_id         INTEGER,          -- catalog_model.id; NULL when the model did not match
+    make_text        TEXT NOT NULL,
+    model_text       TEXT NOT NULL,    -- as the source wrote it: 'F150 Pickup 2WD'
+    \"match\"          TEXT,             -- 'exact' | 'base' | 'curated'; NULL exactly when model_id is NULL
+    engine_id        INTEGER,          -- catalog_engine.id; NULL unless one engine was settled
+    submodel_id      INTEGER,          -- catalog_submodel.id; NULL unless the name spelled one
+    confidence       TEXT,             -- 'model' | 'engine' | 'submodel'; NULL exactly when model_id is NULL
+    drive_text       TEXT,             -- the drive word in the name: '2WD' | '4WD' | 'AWD' | 'FWD' | 'RWD'
+    body_text        TEXT,             -- the body words in the name: 'Pickup'
+    note_text        TEXT,             -- the text in parentheses in the name
+    displacement_l   REAL,
+    cylinders        INTEGER,
+    transmission     TEXT,             -- EPA 'Automatic (S10)' | NRCan 'AS10'
+    drive            TEXT,             -- EPA 'Rear-Wheel Drive'; NULL for nrcan
+    fuel             TEXT NOT NULL,    -- 'Regular Gasoline' | 'Midgrade Gasoline' | 'Premium Gasoline' | 'Diesel' | 'E85' | 'Electricity' | 'Natural Gas' | 'Hydrogen'
+    fuel2            TEXT,             -- EPA's second fuel: 'E85' | 'Electricity' | 'Natural Gas' | 'Propane'
+    city_l_100km     REAL,             -- NULL when the fuel is not a liquid
+    highway_l_100km  REAL,
+    combined_l_100km REAL,
+    city_mpg         INTEGER,          -- miles per US gallon
+    highway_mpg      INTEGER,
+    combined_mpg     INTEGER,
+    kwh_100km        REAL,             -- combined electricity use
+    range_km         INTEGER,          -- on a full battery
+    co2_g_km         INTEGER           -- tailpipe, combined
+);
+CREATE INDEX IF NOT EXISTS fuel_rating_ymm ON fuel_rating (make_id, model_id, year);
+CREATE INDEX IF NOT EXISTS fuel_rating_source ON fuel_rating (source, source_id);
+
+CREATE TABLE IF NOT EXISTS vehicle_spec (
+    epa_id                     INTEGER PRIMARY KEY,  -- fuel_rating.source_id where source = 'epa'
+    size_class                 TEXT NOT NULL,        -- EPA's class: 'Standard Pickup Trucks 2WD'
+    turbo                      INTEGER NOT NULL,     -- 0 or 1
+    supercharger               INTEGER NOT NULL,
+    start_stop                 INTEGER,              -- 0, 1, or NULL where EPA does not say
+    electrification            TEXT,                 -- EPA atvType: 'Hybrid' | 'Plug-in Hybrid' | 'EV' | 'FFV' | 'Diesel' | ...
+    ev_motor                   TEXT,                 -- '259V Li-Ion', '211 kW AC 3-Phase'
+    charge_240v_h              REAL,
+    passenger_ft3_2door        INTEGER,
+    passenger_ft3_4door        INTEGER,
+    passenger_ft3_hatch        INTEGER,
+    luggage_ft3_2door          INTEGER,
+    luggage_ft3_4door          INTEGER,
+    luggage_ft3_hatch          INTEGER,
+    -- The rest are from the yearly guide file and NULL without it.
+    gears                      INTEGER,
+    transmission_type          TEXT,                 -- 'Automatic' | 'Semi-Automatic' | 'Manual' | 'Continuously Variable' | ...
+    fuel_usage                 TEXT,                 -- 'Gasoline (Premium Unleaded Required)'
+    cylinder_deactivation      INTEGER,
+    cylinder_deactivation_name TEXT,
+    variable_valve_timing      INTEGER,
+    variable_valve_lift        INTEGER,
+    intake_valves              INTEGER,              -- per cylinder
+    exhaust_valves             INTEGER,
+    battery_type               TEXT,                 -- 'Lithium Ion' | 'NiMH'
+    battery_voltage            INTEGER,
+    motor_kw                   TEXT                  -- as written: '135', '8 and 30'
+);
+
+CREATE TABLE IF NOT EXISTS oil_grade (
+    epa_id     INTEGER NOT NULL,   -- fuel_rating.source_id where source = 'epa'
+    grades     TEXT NOT NULL,      -- '5W-30', or several joined by ', '
+    grade_text TEXT NOT NULL       -- as the maker wrote it for EPA: '5W30 GF-5'
+);
+CREATE INDEX IF NOT EXISTS oil_grade_epa ON oil_grade (epa_id);
+
+CREATE TABLE IF NOT EXISTS emission_standard (
+    epa_id        INTEGER NOT NULL,  -- fuel_rating.source_id where source = 'epa'
+    sales_area    INTEGER NOT NULL,  -- EPA's code: 1, 3, 5, 7, 8 or 9
+    standard      TEXT NOT NULL,     -- 'T3B70'
+    standard_text TEXT,              -- 'Federal Tier 3 Bin 70'
+    smog_score    INTEGER,           -- 1 (worst) to 10 (best)
+    engine_family TEXT NOT NULL      -- 'JFMXT02.73JK'
+);
+CREATE INDEX IF NOT EXISTS emission_standard_epa ON emission_standard (epa_id);
+";

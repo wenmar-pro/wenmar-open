@@ -8,6 +8,7 @@
 pub mod answer;
 pub mod dataset;
 pub mod error;
+pub mod fuel;
 pub mod investigations;
 pub mod licence;
 pub mod ratings;
