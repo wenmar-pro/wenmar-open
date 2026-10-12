@@ -19,6 +19,7 @@ use crate::site::tools::target::source_links;
 use crate::site::{self, Page, jsonld, seo};
 use crate::state::AppState;
 
+pub mod battery_groups;
 mod diagnostics;
 mod fluids;
 
@@ -590,7 +591,14 @@ pub const NOT_WRITTEN: &str = "This section has not been written yet.";
 
 /// Guides whose text is not written and approved. Nothing serves or lists
 /// them. A guide is published by moving its entry from here to [`GUIDES`].
-pub static DRAFTS: [Guide; 7] = [
+pub static DRAFTS: [Guide; 8] = [
+    Guide {
+        slug: "battery-group-sizes",
+        title: battery_groups::TITLE,
+        description: battery_groups::DESCRIPTION,
+        topic: Topic::Shop,
+        doc: battery_groups::battery_groups,
+    },
     Guide {
         slug: "engine-oil-specifications",
         title: "Engine oil specifications explained",
