@@ -34,6 +34,8 @@ env:
     # in docs/deploy.md.
     OPEN_SHOP_DATA: /app/data/wenmar-open-shop.sqlite3
     OPEN_BASE_URL: https://open.wenmarpro.com
+    # Shown in the "report an error by email" link. Public by nature.
+    OPEN_FEEDBACK_EMAIL: hey@wenmarpro.com
     # One proxy, the Kamal proxy, is in front. Its X-Forwarded-For entry is
     # the client's address.
     OPEN_TRUSTED_PROXIES: "1"
