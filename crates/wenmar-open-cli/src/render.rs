@@ -9,6 +9,8 @@ use serde_json::Value;
 
 use crate::request::{Action, BulletinAction, RecallAction, Request, Topic};
 
+use crate::request::CodeAction;
+
 /// A value with every control character replaced, so that data cannot move
 /// the cursor, change colours or ring the bell.
 pub fn clean(text: &str) -> String {
@@ -1237,6 +1239,105 @@ fn facts(topic: Topic, value: &Value) -> String {
     text
 }
 
+/// A code's description, top to bottom. Nothing when there is none.
+fn code_description(value: &Value) -> String {
+    if !value.is_object() {
+        return String::new();
+    }
+    let mut text = format!(
+        "{}  {}\n{}\n\n{}\n",
+        cell(value, "code"),
+        cell(value, "title"),
+        cell(value, "system_name"),
+        cell(value, "meaning")
+    );
+    for (heading, key) in [
+        ("Common causes", "common_causes"),
+        ("Check first", "checks"),
+    ] {
+        let entries = value[key].as_array().map(Vec::as_slice).unwrap_or_default();
+        if !entries.is_empty() {
+            text.push_str(&format!("\n{heading}\n"));
+            for entry in entries {
+                text.push_str(&format!("  - {}\n", scalar(entry).unwrap_or_default()));
+            }
+        }
+    }
+    let related: Vec<String> = value["related"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .map(|other| cell(other, "code"))
+        .collect();
+    if !related.is_empty() {
+        text.push_str(&format!("\nRelated codes: {}\n", related.join(", ")));
+    }
+    text.push_str(&format!(
+        "\nReviewed by {} on {}.\n{}\n",
+        cell(value, "reviewer"),
+        cell(value, "checked"),
+        cell(value, "note")
+    ));
+    text
+}
+
+/// A trouble code answer, as text.
+fn codes(action: CodeAction, value: &Value) -> String {
+    match action {
+        CodeAction::Get => code_description(value),
+        CodeAction::Search => list(&value["codes"], &["CODE", "SYSTEM", "TITLE"], |code| {
+            vec![
+                cell(code, "code"),
+                cell(code, "system"),
+                cell(code, "title"),
+            ]
+        }),
+        CodeAction::Vehicle => {
+            let vehicle = &value["vehicle"];
+            let mut text = format!(
+                "{} on a {} {} {}\n\n",
+                cell(value, "code"),
+                cell(vehicle, "year"),
+                cell(vehicle, "make"),
+                cell(vehicle, "model")
+            );
+            let description = code_description(&value["description"]);
+            if description.is_empty() {
+                text.push_str(if value["generic"] == true {
+                    "Nobody has written a description of this code yet.\n"
+                } else {
+                    "This code is specific to a manufacturer and is not described here.\n"
+                });
+            } else {
+                text.push_str(&description);
+            }
+            text.push_str(&match value["bulletins"]["count"].as_u64() {
+                None => "\nBulletins: on the hosted service only (ask with --online).\n".to_owned(),
+                Some(0) => "\nBulletins: none of this model year names the code.\n".to_owned(),
+                Some(1) => "\nBulletins: 1 of this model year names the code.\n".to_owned(),
+                Some(all) => format!("\nBulletins: {all} of this model year name the code.\n"),
+            });
+            if let Some(recalls) = value["related"]["recalls"]["recalls"].as_array() {
+                text.push_str(&match recalls.len() {
+                    0 => "Recalls: none found about the same components.\n".to_owned(),
+                    1 => "Recalls: 1 about the same components may apply.\n".to_owned(),
+                    all => format!("Recalls: {all} about the same components may apply.\n"),
+                });
+                for recall in recalls {
+                    text.push_str(&format!(
+                        "  {} {}  {}\n",
+                        cell(recall, "source"),
+                        cell(recall, "campaign"),
+                        cell(recall, "component")
+                    ));
+                }
+            }
+            text.push_str(&format!("\n{}\n", cell(value, "note")));
+            text
+        }
+    }
+}
+
 /// The answer to a request, as text.
 pub fn text(request: &Request, value: &Value) -> String {
     let action = match request {
@@ -1247,6 +1348,7 @@ pub fn text(request: &Request, value: &Value) -> String {
             return facts(*topic, value);
         }
         Request::Recalls { action, .. } => return recalls(*action, value),
+        Request::Codes { action, .. } => return codes(*action, value),
         Request::Bulletins { action, .. } => return bulletins(*action, value),
         Request::Vehicles { action, .. } => *action,
     };

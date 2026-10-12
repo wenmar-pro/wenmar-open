@@ -116,6 +116,79 @@ pub struct Lookup {
     pub limit: Option<usize>,
 }
 
+/// A question about trouble codes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CodeAction {
+    /// What one generic code means.
+    Get,
+    /// The codes that are described, by code.
+    Search,
+    /// A code on one model year.
+    Vehicle,
+}
+
+impl CodeAction {
+    pub const ALL: [CodeAction; 3] = [CodeAction::Get, CodeAction::Search, CodeAction::Vehicle];
+
+    /// The name of the action in the `wenmar_codes` tool.
+    pub fn name(self) -> &'static str {
+        match self {
+            CodeAction::Get => "get",
+            CodeAction::Search => "search",
+            CodeAction::Vehicle => "vehicle",
+        }
+    }
+
+    fn parse(name: &str) -> Option<CodeAction> {
+        CodeAction::ALL
+            .into_iter()
+            .find(|action| action.name() == name)
+    }
+}
+
+/// What a question about trouble codes is asked with. Which fields are
+/// used depends on the [`CodeAction`].
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct CodeLookup {
+    pub code: Option<String>,
+    pub id: Option<String>,
+    pub query: Option<String>,
+    pub system: Option<String>,
+    pub limit: Option<usize>,
+    pub cursor: Option<String>,
+}
+
+/// The fields an action uses, each present. What a code or a system may
+/// be is judged where the answer is made, as the API does it.
+fn checked_codes(action: CodeAction, lookup: CodeLookup) -> Result<CodeLookup, CliError> {
+    let needed = |field: &'static str, value: Option<&String>| {
+        present(value).ok_or_else(|| {
+            CliError::validation(
+                field,
+                format!("{field} is required for action={}", action.name()),
+            )
+        })
+    };
+    Ok(match action {
+        CodeAction::Get => CodeLookup {
+            code: Some(needed("code", lookup.code.as_ref())?),
+            ..CodeLookup::default()
+        },
+        CodeAction::Search => CodeLookup {
+            query: present(lookup.query.as_ref()),
+            system: present(lookup.system.as_ref()),
+            limit: lookup.limit,
+            cursor: present(lookup.cursor.as_ref()),
+            ..CodeLookup::default()
+        },
+        CodeAction::Vehicle => CodeLookup {
+            id: Some(needed("id", lookup.id.as_ref())?),
+            code: Some(needed("code", lookup.code.as_ref())?),
+            ..CodeLookup::default()
+        },
+    })
+}
+
 /// A question about recalls.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RecallAction {
@@ -317,6 +390,11 @@ pub enum Request {
     Recalls {
         action: RecallAction,
         lookup: RecallLookup,
+    },
+    /// Trouble codes, as this project describes them.
+    Codes {
+        action: CodeAction,
+        lookup: CodeLookup,
     },
     /// Manufacturer bulletins. Served by the hosted API only.
     Bulletins {
@@ -619,6 +697,10 @@ impl Request {
                 action,
                 lookup: checked_recalls(action, lookup, current_year)?,
             }),
+            Request::Codes { action, lookup } => Ok(Request::Codes {
+                action,
+                lookup: checked_codes(action, lookup)?,
+            }),
             Request::Bulletins { action, lookup } => Ok(Request::Bulletins {
                 action,
                 lookup: checked_bulletins(action, lookup, current_year)?,
@@ -753,6 +835,25 @@ impl Request {
                     "action must be decode, batch, overview, fuel, specs, fluids or tires",
                 )),
             };
+        }
+        if tool == "wenmar_codes" {
+            let Some(action) = CodeAction::parse(action) else {
+                return Err(CliError::validation(
+                    "action",
+                    "action must be get, search or vehicle",
+                ));
+            };
+            return Ok(Request::Codes {
+                action,
+                lookup: CodeLookup {
+                    code: text(arguments, "code")?,
+                    id: text(arguments, "id")?,
+                    query: text(arguments, "query")?,
+                    system: text(arguments, "system")?,
+                    limit: number(arguments, "limit")?,
+                    cursor: text(arguments, "cursor")?,
+                },
+            });
         }
         if tool == "wenmar_recalls" {
             let Some(action) = RecallAction::parse(action) else {

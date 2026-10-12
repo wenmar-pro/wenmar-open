@@ -11,6 +11,8 @@ use crate::request::{
     current_year,
 };
 
+use crate::request::{CodeAction, CodeLookup};
+
 /// The longest answer read from the API, in bytes.
 const LONGEST_ANSWER: u64 = 4 * 1024 * 1024;
 /// How long a request may take in all.
@@ -205,6 +207,7 @@ impl Remote {
             }
             Request::Vehicles { action, lookup } => self.vehicles(*action, lookup),
             Request::Recalls { action, lookup } => self.recalls(*action, lookup),
+            Request::Codes { action, lookup } => self.codes(*action, lookup),
             Request::Bulletins { action, lookup } => self.bulletins(*action, lookup),
         }
     }
@@ -225,6 +228,50 @@ impl Remote {
     fn overview(&self, path: &str, query: &[(&str, String)]) -> Result<Value, CliError> {
         let answer = self.get(path, query)?;
         if answer.get("links").is_some_and(Value::is_object) {
+            Ok(answer)
+        } else {
+            Err(self.not_the_api(200))
+        }
+    }
+
+    /// The code routes. Only text with the form of a code or of a vehicle
+    /// id is put in a path. Every answer has the field named last: one
+    /// without it did not come from the API.
+    fn codes(&self, action: CodeAction, lookup: &CodeLookup) -> Result<Value, CliError> {
+        use wenmar_shopdata::bulletins::code_form;
+        use wenmar_shopdata::codes::NOT_A_CODE;
+
+        let code = || {
+            code_form(lookup.code.as_deref().unwrap_or_default())
+                .ok_or_else(|| CliError::new(NOT_FOUND, NOT_A_CODE))
+        };
+        let mut query: Vec<(&str, String)> = Vec::new();
+        let (path, field) = match action {
+            CodeAction::Get => (format!("/v1/codes/{}", code()?), "meaning"),
+            CodeAction::Search => {
+                for (name, value) in [
+                    ("q", lookup.query.clone()),
+                    ("system", lookup.system.clone()),
+                    ("limit", lookup.limit.map(|limit| limit.to_string())),
+                    ("cursor", lookup.cursor.clone()),
+                ] {
+                    if let Some(value) = value {
+                        query.push((name, value));
+                    }
+                }
+                ("/v1/codes".to_owned(), "codes")
+            }
+            CodeAction::Vehicle => {
+                let code = code()?;
+                let id = lookup.id.clone().unwrap_or_default();
+                if VehicleId::parse(&id).is_none() {
+                    return Err(CliError::new(NOT_FOUND, "No vehicle has that id."));
+                }
+                (format!("/v1/vehicles/{id}/codes/{code}"), "related")
+            }
+        };
+        let answer = self.get(&path, &query)?;
+        if answer.get(field).is_some() {
             Ok(answer)
         } else {
             Err(self.not_the_api(200))

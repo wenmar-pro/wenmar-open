@@ -146,6 +146,7 @@ fn execute(
         Some(Command::Vin { command }) => command.request(),
         Some(Command::Vehicles { command }) => command.request(),
         Some(Command::Recalls { command }) => command.request(),
+        Some(Command::Codes { command }) => command.request(),
         Some(Command::Bulletins { command }) => command.request(),
         Some(Command::Data { command }) => {
             let directory = env.data_directory(cli.global.data_dir.as_deref())?;

@@ -7,6 +7,7 @@ use clap::{Args, Parser, Subcommand};
 use crate::request::{
     Action, BulletinAction, BulletinLookup, Lookup, RecallAction, RecallLookup, Request, Topic,
 };
+use crate::request::{CodeAction, CodeLookup};
 use crate::setup::Agent;
 
 /// Free vehicle data for auto repair shops: decode a VIN, or look a vehicle
@@ -80,6 +81,16 @@ pub enum Command {
     Bulletins {
         #[command(subcommand)]
         command: BulletinsCommand,
+    },
+    /// Generic OBD-II trouble codes, described in Wenmar Open's own words.
+    ///
+    /// Only codes every maker uses the same way are described. A
+    /// description is general: it is not a diagnosis. Offline, the codes
+    /// come from the shop data file (see `wenmar-open data pull --shop`),
+    /// and the bulletins that name a code are on the hosted service only.
+    Codes {
+        #[command(subcommand)]
+        command: CodesCommand,
     },
     /// The local data file, for answers without a connection.
     Data {
@@ -412,6 +423,77 @@ pub struct CountryArg {
     /// us (NHTSA) or ca (Transport Canada). The default is both.
     #[arg(long, value_name = "COUNTRY")]
     pub country: Option<String>,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum CodesCommand {
+    /// What one generic trouble code means.
+    Get {
+        /// The code, such as P0420. Either case.
+        code: String,
+    },
+    /// The codes that are described, by code.
+    Search {
+        /// Only codes with this text in the code, the title or the meaning.
+        #[arg(long)]
+        query: Option<String>,
+        /// Only this system: powertrain, body, chassis, network, or an
+        /// area such as powertrain/emissions.
+        #[arg(long)]
+        system: Option<String>,
+        /// At most this many, up to 200.
+        #[arg(long)]
+        limit: Option<usize>,
+        /// `next_cursor` from the page before.
+        #[arg(long)]
+        cursor: Option<String>,
+    },
+    /// A code on one model year: its description and the recalls about
+    /// the same components. Online, also the bulletins that name it.
+    Vehicle {
+        /// The vehicle id, such as 2018_ford_f-150.
+        id: String,
+        /// Any trouble code, a manufacturer-specific one included.
+        code: String,
+    },
+}
+
+impl CodesCommand {
+    pub fn request(self) -> Request {
+        let (action, lookup) = match self {
+            CodesCommand::Get { code } => (
+                CodeAction::Get,
+                CodeLookup {
+                    code: Some(code),
+                    ..CodeLookup::default()
+                },
+            ),
+            CodesCommand::Search {
+                query,
+                system,
+                limit,
+                cursor,
+            } => (
+                CodeAction::Search,
+                CodeLookup {
+                    query,
+                    system,
+                    limit,
+                    cursor,
+                    ..CodeLookup::default()
+                },
+            ),
+            CodesCommand::Vehicle { id, code } => (
+                CodeAction::Vehicle,
+                CodeLookup {
+                    id: Some(id),
+                    code: Some(code),
+                    ..CodeLookup::default()
+                },
+            ),
+        };
+        Request::Codes { action, lookup }
+    }
 }
 
 #[derive(Debug, Subcommand)]

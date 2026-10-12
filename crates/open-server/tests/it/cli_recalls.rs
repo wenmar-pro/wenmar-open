@@ -1046,3 +1046,128 @@ async fn the_tool_answers_fuel_specs_fluids_and_tires_as_the_api_does_from_files
         let _ = serving.await;
     }
 }
+
+#[tokio::test(flavor = "multi_thread")]
+async fn the_tool_answers_code_questions_as_the_api_does_from_files_and_over_http() {
+    // The shop file as offline users have it, with codes and recalls; the
+    // recalls alone; and no shop file.
+    for held in ["codes", "recalls", "nothing"] {
+        let shop = match held {
+            "codes" => Some((common::CODE_DATASETS_OFFLINE, common::code_rows_offline())),
+            "recalls" => Some((common::RECALL_DATASETS, common::recall_rows())),
+            _ => None,
+        };
+        let app = match held {
+            "codes" => common::codes_offline_app_at(SITE).await,
+            "recalls" => common::recalls_app_at(SITE).await,
+            _ => common::app_with(|config| config.base_url = SITE.to_owned()).await,
+        };
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address: SocketAddr = listener.local_addr().unwrap();
+        let (stop, stopped) = oneshot::channel::<()>();
+        let serving = tokio::spawn(serve(
+            listener,
+            app.router.clone(),
+            async move {
+                let _ = stopped.await;
+            },
+            Limits::default(),
+        ));
+        let api = format!("http://{address}");
+
+        let fixture = common::data_file();
+        let directory = tempfile::tempdir().unwrap();
+        std::fs::copy(fixture.path(), directory.path().join(DATA_FILE)).unwrap();
+        if let Some((datasets, rows)) = &shop {
+            common::add_shop_file(
+                &fixture,
+                wenmar_shopdata::schema::SCHEMA_VERSION,
+                "2026.09",
+                datasets,
+                rows,
+            );
+            std::fs::copy(fixture.shop_path(), directory.path().join(SHOP_FILE)).unwrap();
+        }
+
+        let questions: [(&str, Vec<&'static str>); 9] = [
+            ("/v1/codes/P0420", vec!["codes", "get", "p0420"]),
+            ("/v1/codes/P1234", vec!["codes", "get", "P1234"]),
+            ("/v1/codes/P0001", vec!["codes", "get", "P0001"]),
+            ("/v1/codes", vec!["codes", "search"]),
+            (
+                "/v1/codes?q=title&system=powertrain&limit=1",
+                vec![
+                    "codes",
+                    "search",
+                    "--query",
+                    "title",
+                    "--system",
+                    "powertrain",
+                    "--limit",
+                    "1",
+                ],
+            ),
+            (
+                "/v1/codes?system=engine",
+                vec!["codes", "search", "--system", "engine"],
+            ),
+            (
+                "/v1/vehicles/2023_hyundai_kona/codes/P0420",
+                vec!["codes", "vehicle", "2023_hyundai_kona", "P0420"],
+            ),
+            (
+                "/v1/vehicles/2023_hyundai_kona/codes/C1234",
+                vec!["codes", "vehicle", "2023_hyundai_kona", "c1234"],
+            ),
+            (
+                "/v1/vehicles/2019_honda_nothing/codes/P0420",
+                vec!["codes", "vehicle", "2019_honda_nothing", "P0420"],
+            ),
+        ];
+        for (path, args) in questions {
+            let (status, served) = app.json(path).await;
+            let ask = |source: &'static str| {
+                let directory = directory.path().to_path_buf();
+                let api = api.clone();
+                let mut args = args.clone();
+                args.push(source);
+                tokio::task::spawn_blocking(move || tool(&directory, &api, &args))
+            };
+            let (local_code, local) = ask("--offline").await.unwrap();
+            let (remote_code, remote) = ask("--online").await.unwrap();
+            if status == StatusCode::OK {
+                assert_eq!(held, "codes", "{path}");
+                assert_eq!((local_code, remote_code), (0, 0), "{path}");
+                assert_eq!(remote, served, "{path}");
+                // The files cannot give the maker's own recall lookup.
+                // Nothing else is set aside: this server holds no
+                // bulletins, so its bulletin parts are null too.
+                let mut expected = served.clone();
+                if let Some(maker) = expected.pointer_mut("/related/recalls/lookup/maker") {
+                    *maker = Value::Null;
+                }
+                assert_eq!(local, expected, "{path}");
+            } else {
+                assert_eq!(local_code, remote_code, "{path} {held}");
+                assert_ne!(local_code, 0, "{path}");
+                for told in [&local, &remote] {
+                    assert_eq!(told["error"]["code"], served["error"]["code"], "{path}");
+                    assert_eq!(
+                        told["error"]["message"], served["error"]["message"],
+                        "{path} {held}"
+                    );
+                }
+                if held != "codes" {
+                    assert_eq!(served["error"]["code"], "dataset_unavailable", "{path}");
+                    assert_eq!(
+                        served["error"]["message"],
+                        "The codes dataset is not available."
+                    );
+                }
+            }
+        }
+
+        let _ = stop.send(());
+        let _ = serving.await;
+    }
+}

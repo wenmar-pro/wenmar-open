@@ -20,6 +20,8 @@ use crate::request::{
     Action, Lookup, MOST, RecallAction, RecallLookup, Request, SEARCH_DEFAULT, Topic, current_year,
 };
 
+use crate::request::{CodeAction, CodeLookup};
+
 /// What to do about a data file that cannot be used.
 pub const PULL_HINT: &str = "Run `wenmar-open data pull` to download the current data file.";
 
@@ -210,6 +212,44 @@ impl Local {
         json(answers.complaints(id).map_err(answer_error)?)
     }
 
+    /// Trouble codes, from the shop file beside the data file, worded as
+    /// the hosted API words them. The bulletin parts of a vehicle's answer
+    /// are always `null` here: bulletins are on the hosted service only.
+    fn codes(&self, action: CodeAction, lookup: &CodeLookup) -> Result<Value, CliError> {
+        let Some(shop) = &self.shop else {
+            return Err(if self.shop_status.installed {
+                shop_unusable(&self.shop_status)
+            } else {
+                dataset_unavailable(Dataset::Codes)
+            });
+        };
+        let answers = Answers {
+            shop,
+            catalog: &self.catalog,
+            core: &self.core,
+            base: SITE,
+        };
+        let text = |field: &Option<String>| field.clone().unwrap_or_default();
+        match action {
+            CodeAction::Get => json(answers.code(&text(&lookup.code)).map_err(answer_error)?),
+            CodeAction::Search => json(
+                answers
+                    .codes(&answer::CodeSearch {
+                        q: lookup.query.clone(),
+                        system: lookup.system.clone(),
+                        limit: lookup.limit,
+                        cursor: lookup.cursor.clone(),
+                    })
+                    .map_err(answer_error)?,
+            ),
+            CodeAction::Vehicle => json(
+                answers
+                    .vehicle_code(&text(&lookup.id), &text(&lookup.code))
+                    .map_err(answer_error)?,
+            ),
+        }
+    }
+
     /// The recalls that may apply, from the shop file beside the data
     /// file, worded as the hosted API words them.
     fn recalls(&self, action: RecallAction, lookup: &RecallLookup) -> Result<Value, CliError> {
@@ -340,6 +380,7 @@ impl Local {
             }
             Request::Vehicles { action, lookup } => self.vehicles(*action, lookup),
             Request::Recalls { action, lookup } => self.recalls(*action, lookup),
+            Request::Codes { action, lookup } => self.codes(*action, lookup),
             // The files do not hold bulletins: the hosted API answers them.
             Request::Bulletins { .. } => Err(dataset_unavailable(Dataset::Bulletins)),
         }

@@ -108,6 +108,21 @@ NHTSA's crash test ratings for a model year, from its New Car Assessment Program
 
 Offline, the ratings are in the shop data file. Without it the error is `dataset_unavailable` and `details.hint` is `Run: wenmar-open data pull --shop`.
 
+## Trouble codes
+
+```bash
+wenmar-open codes get P0420
+wenmar-open codes search --system powertrain/emissions --query sensor
+wenmar-open codes vehicle 2018_ford_f-150 P0420
+```
+
+Generic OBD-II trouble codes, described in Wenmar Open's own words. `codes get` gives `title`, `meaning`, `common_causes`, `checks`, the `components` it concerns and `related` codes. `codes search` lists the described codes by code; pass `next_cursor` back as `--cursor`. `codes vehicle` takes a vehicle id and any code and gives the `description` (or `null`), the `bulletins` of that model year whose NHTSA summary names the code, and under `related` the bulletins and recalls of that model year about the same components.
+
+- Only codes every maker uses the same way are described: `P0`, `P2`, `P3400` and up, `B0`, `C0`, `U0`, `U3`. For any other code `codes get` fails with `not_found`, and `codes vehicle` still answers, with `description: null`.
+- A description is general. It is not a diagnosis and does not say which part to replace. A recall under `related` may apply to the model year; confirm by VIN with the manufacturer.
+- Bulletins are on the hosted service only. Offline, `bulletins` and `related.bulletins` are `null`; that is not an error. Ask again with `--online` for them.
+- Offline, the codes are in the shop data file. Without it the error is `dataset_unavailable` and `details.hint` is `Run: wenmar-open data pull --shop`.
+
 ## Recalls
 
 Recall campaigns from NHTSA (United States) and Transport Canada. A campaign lists a year, a make and a model, so every answer is about a model year and has `"may_apply": true`. A recall listed may apply to a vehicle; it is never a statement about one VIN. Neither government publishes recalls by VIN as data. To confirm, check the VIN with the manufacturer or at the addresses in `lookup` (`lookup.nhtsa` for the United States, `lookup.tc` for Canada). Say "may apply" when you report these.
