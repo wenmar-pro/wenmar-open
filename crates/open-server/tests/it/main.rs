@@ -38,6 +38,7 @@ mod site_bulletin_lines;
 mod site_bulletins;
 mod site_canada_invoice_tax;
 mod site_catalog;
+mod site_complaints;
 mod site_cross_links;
 mod site_design;
 mod site_feedback;

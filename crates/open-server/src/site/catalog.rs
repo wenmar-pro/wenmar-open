@@ -682,6 +682,96 @@ async fn sibling_lines(state: &AppState, vehicle_id: &str) -> Vec<SiblingLine> {
     }
 }
 
+/// One component in "What owners report".
+pub struct ReportedLine {
+    pub name: String,
+    pub complaints: u32,
+    /// `62,764 km (39,000 miles)`, or empty when too few owners gave one.
+    pub median: String,
+}
+
+/// What the model-year page says owners reported.
+pub struct OwnersReport {
+    /// `60 complaints filed with NHTSA, as of 2026-10-11.`
+    pub lead: String,
+    /// `3 report a crash, 1 a fire and 2 an injury.`
+    pub harm: String,
+    /// The median mileage of all of them, or empty.
+    pub median: String,
+    pub lines: Vec<ReportedLine>,
+    pub note: &'static str,
+    pub report_url: &'static str,
+}
+
+/// A whole number with commas: `48,280`.
+fn grouped(number: u32) -> String {
+    let digits = number.to_string();
+    let mut text = String::new();
+    for (index, digit) in digits.chars().enumerate() {
+        if index != 0 && (digits.len() - index) % 3 == 0 {
+            text.push(',');
+        }
+        text.push(digit);
+    }
+    text
+}
+
+fn mileage(km: Option<u32>, miles: Option<u32>) -> String {
+    match (km, miles) {
+        (Some(km), Some(miles)) => format!("{} km ({} miles)", grouped(km), grouped(miles)),
+        _ => String::new(),
+    }
+}
+
+/// What owners reported about the model year `vehicle_id` names. `None`
+/// on a server that holds no complaints, for a model year with fewer
+/// than five, and when they could not be read.
+async fn owners_report(state: &AppState, vehicle_id: &str) -> Option<OwnersReport> {
+    use wenmar_shopdata::complaints::{FEWEST_SHOWN, NHTSA_COMPLAINTS, NOTE};
+    let shop = state.dataset(wenmar_shopdata::Dataset::Complaints).ok()?;
+    let id = vehicle_id.to_owned();
+    let found = state
+        .db()
+        .run(move |worker| crate::api::recalls::model_year(worker, &id))
+        .await
+        .ok()?
+        .ok()??;
+    let answer = crate::api::complaints::complaints_of(shop, &found)
+        .await
+        .ok()?;
+    if answer.complaints < FEWEST_SHOWN {
+        return None;
+    }
+    let dated = answer
+        .as_of
+        .as_ref()
+        .map_or_else(String::new, |day| format!(", as of {day}"));
+    Some(OwnersReport {
+        lead: format!(
+            "{} complaints filed with NHTSA{dated}.",
+            grouped(answer.complaints)
+        ),
+        harm: format!(
+            "{} report a crash, {} a fire and {} an injury.",
+            grouped(answer.crashes),
+            grouped(answer.fires),
+            grouped(answer.injuries)
+        ),
+        median: mileage(answer.median_km, answer.median_miles),
+        lines: answer
+            .components
+            .iter()
+            .map(|entry| ReportedLine {
+                name: entry.name.clone(),
+                complaints: entry.complaints,
+                median: mileage(entry.median_km, entry.median_miles),
+            })
+            .collect(),
+        note: NOTE,
+        report_url: NHTSA_COMPLAINTS,
+    })
+}
+
 #[derive(Template)]
 #[template(path = "model_year.html")]
 struct ModelYearPage {
@@ -712,6 +802,9 @@ struct ModelYearPage {
     /// The maker's own maintenance schedule, when the make has one on file.
     maintenance_url: Option<String>,
     maintenance_note: &'static str,
+    /// What owners reported to NHTSA. `None` on a server that holds no
+    /// complaints, and for a model year with fewer than five.
+    owners: Option<OwnersReport>,
 }
 
 fn model_year_markdown(view: &ModelYearView, report: &report::ReportLinks) -> String {
@@ -909,6 +1002,7 @@ pub async fn model_year(
     let safety = site::safety::section(&state, &view.entry.id).await;
     let investigations = site::investigations::open_for(&state, &view.entry.id).await;
     let siblings = sibling_lines(&state, &view.entry.id).await;
+    let owners = owners_report(&state, &view.entry.id).await;
     if format == Format::Markdown {
         let canonical = format!("{}{path}", state.config().base_url);
         let mut text = model_year_markdown(&view, &report);
@@ -966,6 +1060,27 @@ pub async fn model_year(
                 ));
             }
             text.push_str(&format!("\n{SIBLING_CAVEAT}\n"));
+        }
+        if let Some(report) = &owners {
+            text.push_str(&format!(
+                "\n## What owners report\n\n{} {}\n",
+                report.lead, report.harm
+            ));
+            if !report.median.is_empty() {
+                text.push_str(&format!(
+                    "\nThe median mileage owners gave: {}.\n",
+                    report.median
+                ));
+            }
+            text.push('\n');
+            for line in &report.lines {
+                text.push_str(&format!("- {}: {}", escape(&line.name), line.complaints));
+                if !line.median.is_empty() {
+                    text.push_str(&format!(", median {}", line.median));
+                }
+                text.push('\n');
+            }
+            text.push_str(&format!("\n{}\n", report.note));
         }
         if let Some(notice) = &investigations {
             text.push_str(&site::investigations::notice_markdown(notice));
@@ -1028,6 +1143,7 @@ pub async fn model_year(
             maintenance,
             maintenance_url,
             maintenance_note: site::bulletins::MAINTENANCE_NOTE,
+            owners,
         },
     )
 }
