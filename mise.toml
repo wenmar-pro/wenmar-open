@@ -98,6 +98,16 @@ for source in nhtsa-recalls tc-recalls nhtsa-investigations nhtsa-recall-reports
 done
 # The flags are separate words, so $sources is not quoted.
 cargo run --release -q -p open-data -- build-shop --catalog "$data" --out "$out" --offline-out "$offline" --data-version "$version" $sources
+# The image is built from the shop file config/deploy.yml names, so name the
+# one just built. Nothing is deployed here.
+before=$(sed -n 's/^ *SHOP_VERSION: "\(.*\)"$/\1/p' config/deploy.yml)
+if [ "$before" = "$version" ]; then
+  echo "config/deploy.yml already names SHOP_VERSION $version."
+else
+  sed -i "s/^\( *SHOP_VERSION: \).*$/\1\"$version\"/" config/deploy.yml
+  echo "config/deploy.yml: SHOP_VERSION $before -> $version"
+fi
+echo "Next: bin/coverage, then commit config/deploy.yml and run kamal deploy."
 '''
 
 [tasks.shop-pull]

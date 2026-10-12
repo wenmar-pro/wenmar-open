@@ -7,7 +7,7 @@ This is the procedure for putting Wenmar Open on the internet and keeping it up 
 - One container, `wenmar-open`, on the same server as `app.wenmarpro.com`.
 - The Kamal proxy already on that server terminates TLS and routes `open.wenmarpro.com` to it.
 - The container is limited to half a CPU and 256 MB of memory. It uses about 125 MB.
-- The image holds the server binary and two data files: the data file (VIN patterns and the catalog) and the shop file (recalls, bulletins and the other datasets) that was built against it. It is the full shop file of a release, not the smaller one people download. There is no volume, no database to back up, and no secret.
+- The image holds the server binary and two data files: the data file (VIN patterns and the catalog) and the shop file (recalls, bulletins and the other datasets) that was built against it. It is the full shop file of a release, not the smaller one people download. There is no volume and no database to back up. Its one secret is the GitHub token of the feedback form, which `.kamal/secrets` fetches from Bitwarden Secrets Manager at deploy time: set `BWS_ACCESS_TOKEN` in the shell that runs `kamal deploy`.
 
 ## Before the first deploy
 
@@ -275,7 +275,7 @@ The same holds for a deploy that changes the server and not the data. The `ETag`
 | `OPEN_GITHUB_API` | `https://api.github.com` | Where GitHub's API is. Change it only in tests. |
 | `RUST_LOG` | `info` | Log level. |
 
-With `OPEN_GITHUB_TOKEN` set the service makes one kind of outbound request: `POST {OPEN_GITHUB_API}/repos/{OPEN_GITHUB_REPO}/issues`. The token is the service's only secret. To turn the form on, fetch the token in `.kamal/secrets` from a secret manager and list `OPEN_GITHUB_TOKEN` under `env: secret:` in `config/deploy.yml`. At most 3 reports a minute are filed from one address, and 20 a minute in all.
+With `OPEN_GITHUB_TOKEN` set the service makes one kind of outbound request: `POST {OPEN_GITHUB_API}/repos/{OPEN_GITHUB_REPO}/issues`. The token is the service's only secret. `config/deploy.yml` lists it under `env: secret:`, and `.kamal/secrets` fetches it with `bws`. At most 3 reports a minute are filed from one address, and 20 a minute in all.
 
 ## Limits that are not settings
 

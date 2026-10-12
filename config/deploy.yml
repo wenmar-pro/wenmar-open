@@ -1,5 +1,6 @@
 # Kamal configuration for open.wenmarpro.com. See docs/deploy.md.
-# This service has no secrets, no volumes and no accessories.
+# This service has one secret (the GitHub token of the feedback form, fetched
+# in .kamal/secrets), no volumes and no accessories.
 service: wenmar-open
 
 image: wenmar-open
@@ -40,6 +41,12 @@ env:
     # the client's address.
     OPEN_TRUSTED_PROXIES: "1"
     RUST_LOG: info
+  # Read from .kamal/secrets at deploy time, never written here: this
+  # repository is public.
+  secret:
+    # Lets /feedback file a GitHub issue for a visitor. A fine-grained token
+    # with only "Issues: read and write" on this repository.
+    - OPEN_GITHUB_TOKEN
 
 aliases:
   logs: app logs -f
