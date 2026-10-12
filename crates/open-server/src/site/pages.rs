@@ -235,6 +235,25 @@ pub fn docs(state: &AppState) -> Doc {
             .unwrap_or(doc.sections.len());
         doc.sections.insert(before_errors, facts);
     }
+    // Said only by a server that holds the complaints: without them the
+    // address below answers 404.
+    if crate::llms::holds_complaints(state) {
+        let complaints = with_code(
+            section(
+                "What owners report",
+                &[
+                    "What owners reported to NHTSA about a model year, as counts by component with the median mileage they gave: these are owners' reports, not verified, and a count is not a rate. A server run without the complaints answers this address with 404 and the code dataset_unavailable.",
+                ],
+            ),
+            format!("curl {base}/v1/vehicles/2019_honda_civic/complaints"),
+        );
+        let before_errors = doc
+            .sections
+            .iter()
+            .position(|section| section.heading == "Errors")
+            .unwrap_or(doc.sections.len());
+        doc.sections.insert(before_errors, complaints);
+    }
     doc
 }
 

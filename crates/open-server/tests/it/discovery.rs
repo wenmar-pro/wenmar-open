@@ -737,3 +737,45 @@ async fn a_server_with_fuel_specs_fluids_and_tires_says_so_where_a_model_looks()
         assert!(!docs.contains(heading));
     }
 }
+
+#[tokio::test]
+async fn a_server_with_complaints_says_so_where_a_model_looks() {
+    let app = common::complaints_app().await;
+    let text = body_text(app.get("/llms.txt").await).await;
+    assert!(
+        text.contains(
+            "](https://open.example/v1/vehicles/2019_honda_civic/complaints): `GET /v1/vehicles/{id}/complaints`"
+        ),
+        "{text}"
+    );
+    assert!(text.contains("owners' reports, not verified"), "{text}");
+    // The address listed answers, on this very server.
+    assert_eq!(
+        app.get("/v1/vehicles/2019_honda_civic/complaints")
+            .await
+            .status(),
+        StatusCode::OK
+    );
+    // The lines of the file hold no heading of their own.
+    let sections = text.lines().filter(|line| line.starts_with("## ")).count();
+    assert_eq!(sections, 6);
+
+    let (_, docs) = page(&app, "/docs").await;
+    assert!(
+        docs.contains(r#"<h2 id="what-owners-report">What owners report</h2>"#),
+        "{docs}"
+    );
+    assert!(docs.contains("curl https://open.example/v1/vehicles/2019_honda_civic/complaints"));
+    let full = body_text(app.get("/llms-full.txt").await).await;
+    assert!(full.contains("### What owners report"), "{full}");
+
+    // A server without the complaints names no address and no section.
+    for app in [common::app().await, common::recalls_app().await] {
+        let text = body_text(app.get("/llms.txt").await).await;
+        assert!(!text.contains("/complaints"), "{text}");
+        let (_, docs) = page(&app, "/docs").await;
+        assert!(!docs.contains(r#"<h2 id="what-owners-report">"#));
+        let full = body_text(app.get("/llms-full.txt").await).await;
+        assert!(!full.contains("### What owners report"));
+    }
+}

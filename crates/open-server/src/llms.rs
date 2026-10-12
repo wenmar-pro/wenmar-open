@@ -81,7 +81,8 @@ fn bulletin_text(base: &str) -> (String, String, String) {
 /// `ratings` says whether it holds NHTSA's crash test ratings, and the
 /// address of those is left out in the same way. `bulletins` says the same
 /// of the manufacturer's bulletins. `facts` names which of [`FACTS`] the
-/// server holds, and only their addresses are given.
+/// server holds, and only their addresses are given. `complaints` says the
+/// same of what owners reported.
 pub fn text(
     base: &str,
     data_version: &str,
@@ -90,7 +91,20 @@ pub fn text(
     ratings: bool,
     bulletins: bool,
     facts: &[&str],
+    complaints: bool,
 ) -> String {
+    let (complaint_prose, complaint_api) = if complaints {
+        (
+            format!(
+                "What owners reported to NHTSA about a model year, as counts by component with the median mileage they gave, is listed at `{base}/v1/vehicles/` followed by a vehicle id and `/complaints`: these are owners' reports, not verified, and a count is not a rate.\n\n"
+            ),
+            format!(
+                "- [What owners reported about a model year]({base}/v1/vehicles/2019_honda_civic/complaints): `GET /v1/vehicles/{{id}}/complaints`\n"
+            ),
+        )
+    } else {
+        Default::default()
+    };
     let facts_api: String = FACTS
         .iter()
         .filter(|(topic, _)| facts.contains(topic))
@@ -152,7 +166,7 @@ An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenma
 
 The calculators under `{base}/tools` are web pages with forms, for people. An agent does the arithmetic itself: the Markdown version of each calculator states its formula and one worked example.
 
-{recall_prose}{bulletin_prose}Vehicle ids such as `2019_honda_civic_si` are built from the year and the names, and stay the same between data releases for as long as the names do. Every reference page has a Markdown version at the same address with `.md` added. The data is what manufacturers reported to NHTSA. It can be incomplete, especially for vehicles never sold in the United States.
+{recall_prose}{bulletin_prose}{complaint_prose}Vehicle ids such as `2019_honda_civic_si` are built from the year and the names, and stay the same between data releases for as long as the names do. Every reference page has a Markdown version at the same address with `.md` added. The data is what manufacturers reported to NHTSA. It can be incomplete, especially for vehicles never sold in the United States.
 
 ## API
 
@@ -169,7 +183,7 @@ The calculators under `{base}/tools` are web pages with forms, for people. An ag
 - [Everything held for one model year]({base}/v1/vehicles/2019_honda_civic/overview): `GET /v1/vehicles/{{id}}/overview`
 - [Everything held for the vehicle a VIN decodes to]({base}/v1/vin/KM8K2CAB4PU001140/overview): `GET /v1/vin/{{vin}}/overview`
 - [Every model year of one model]({base}/v1/models/honda/civic): `GET /v1/models/{{make}}/{{model}}`
-{rating_api}{facts_api}{recall_api}{bulletin_api}- [Data version]({base}/v1/meta): `GET /v1/meta`
+{rating_api}{facts_api}{complaint_api}{recall_api}{bulletin_api}- [Data version]({base}/v1/meta): `GET /v1/meta`
 
 ## Docs
 
@@ -297,6 +311,11 @@ pub fn holds_ratings(state: &AppState) -> bool {
     state.dataset(wenmar_shopdata::Dataset::Ratings).is_ok()
 }
 
+/// Whether this server holds what owners reported to NHTSA.
+pub fn holds_complaints(state: &AppState) -> bool {
+    state.dataset(wenmar_shopdata::Dataset::Complaints).is_ok()
+}
+
 pub async fn llms_txt(State(state): State<AppState>) -> Response {
     plain(text(
         &state.config().base_url,
@@ -306,6 +325,7 @@ pub async fn llms_txt(State(state): State<AppState>) -> Response {
         holds_ratings(&state),
         holds_bulletins(&state),
         &held_facts(&state),
+        holds_complaints(&state),
     ))
 }
 
