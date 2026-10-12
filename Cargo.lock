@@ -1320,6 +1320,7 @@ dependencies = [
  "serde-saphyr",
  "serde_json",
  "ureq",
+ "wenmar-shopdata",
  "wenmar-vehicles",
  "wenmar-vin",
  "zip",

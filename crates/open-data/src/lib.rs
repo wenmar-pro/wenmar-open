@@ -7,4 +7,5 @@ pub mod dump;
 pub mod fetch;
 pub mod inspect;
 pub mod parity;
+pub mod shop;
 pub mod sources;
