@@ -8,6 +8,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 - `open-data fetch` takes a source. `fetch` and `fetch vpic` are unchanged. `fetch nhtsa-recalls` and `fetch tc-recalls` download NHTSA's and Transport Canada's recall files to `data/build/sources/<source>/` and write a `source.json` there recording each file's address, its `Last-Modified` header and the time fetched. Nothing reads these files yet.
 - `open-data build-shop --catalog <data file> --out <shop file>` creates a shop file: a second SQLite file, `wenmar-open-shop-YYYY.MM.DD.sqlite3`, that will hold recalls and other datasets matched to the catalog of the data file it was built against. For now it holds only its `meta` table, with no datasets. `bin/shop-data` builds one into `data/build/shop/`. The data file itself is not changed.
+- `open-data build-shop` matches a source's make and model names to the catalog: by name, then by the longest catalog model the name starts with (`SILVERADO 1500` is `Silverado`), then through the new curated file `data/shop/models.yaml`, where a family name such as BMW `3 SERIES` lists its models. A model matches only for a model year the catalog has it in. Rows that match nothing are kept with the source's own text. No dataset uses it yet.
 
 ### Internal
 

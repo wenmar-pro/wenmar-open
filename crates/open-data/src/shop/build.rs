@@ -6,6 +6,8 @@ use anyhow::{Context, Result, bail};
 use rusqlite::{Connection, OpenFlags, OptionalExtension, Transaction};
 use wenmar_shopdata::{Dataset, DatasetEntry, Datasets, licence, schema};
 
+use crate::shop::matcher::{CuratedModels, Matcher};
+
 /// What gets stamped into the shop file.
 #[derive(Debug, Clone)]
 pub struct ShopBuildInfo {
@@ -37,6 +39,8 @@ pub struct ShapeContext<'a> {
     pub catalog: &'a Connection,
     /// The directory of curated files.
     pub curated: &'a Path,
+    /// Matches a source's make and model text to the catalog.
+    pub matcher: &'a Matcher,
     pub info: &'a ShopBuildInfo,
     datasets: Datasets,
 }
@@ -192,12 +196,14 @@ fn build_into(
         Connection::open(output).with_context(|| format!("creating {}", output.display()))?;
     connection.execute_batch("PRAGMA journal_mode = OFF; PRAGMA synchronous = OFF;")?;
     connection.execute_batch(schema::META)?;
+    let matcher = Matcher::load(catalog, &CuratedModels::load(curated)?)?;
 
     let transaction = connection.transaction()?;
     let mut context = ShapeContext {
         transaction: &transaction,
         catalog,
         curated,
+        matcher: &matcher,
         info,
         datasets: Datasets::default(),
     };

@@ -78,6 +78,12 @@ fn a_shape_step_adds_its_table_and_its_datasets_entry() {
                     .query_row("SELECT COUNT(*) FROM catalog_make", [], |row| row.get(0))?;
             assert_eq!(makes, 12);
             assert_eq!(context.info.data_version, "2026.10.12");
+            // A step matches the source's names through the context.
+            let resolved = context
+                .matcher
+                .resolve(Some(2019), "CHEVROLET", "SILVERADO 1500");
+            assert_eq!(resolved.model_ids, [1850]);
+            assert_eq!(resolved.match_text(), Some("base"));
             context.transaction.execute_batch(
                 "CREATE TABLE thing (name TEXT); INSERT INTO thing VALUES ('a'), ('b');",
             )?;
@@ -213,4 +219,22 @@ fn reads_the_core_files_data_version() {
     );
     assert!(is_data_version("2026.10.12"));
     assert!(!is_data_version("2026.09"));
+}
+
+#[test]
+fn a_build_without_the_curated_models_is_refused() {
+    let scratch = Scratch::new("no-curated");
+    let error = build_shop(
+        &scratch.core(),
+        &scratch.out(),
+        &scratch.path("nowhere"),
+        &info(),
+        &ShopInputs::default(),
+    )
+    .unwrap_err();
+    assert!(
+        format!("{error:#}").contains("shop/models.yaml"),
+        "{error:#}"
+    );
+    assert!(!scratch.out().exists());
 }
