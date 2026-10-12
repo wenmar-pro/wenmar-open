@@ -25,6 +25,7 @@ export type {
   Entry,
   ErrorBody,
   Make,
+  MakeDetail,
   MakesQuery,
   Manufacturer,
   Meta,

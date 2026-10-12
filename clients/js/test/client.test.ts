@@ -45,6 +45,11 @@ const calls: Record<string, { call: () => Promise<unknown>; method: string; url:
     method: "GET",
     url: "/v1/vehicles/makes?year=2019&term=mer&limit=5",
   },
+  make: {
+    call: () => client.make("honda"),
+    method: "GET",
+    url: "/v1/makes/honda",
+  },
   models: {
     call: () => client.models({ make: "honda", year: 2019 }),
     method: "GET",

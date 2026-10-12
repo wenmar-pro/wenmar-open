@@ -15,6 +15,8 @@ export type Selection = Schemas["Selection"];
 /** One vehicle of the catalog. */
 export type Entry = Schemas["Entry"];
 export type Make = Schemas["Make"];
+/** One make with the maker's own links. */
+export type MakeDetail = Schemas["MakeDetail"];
 export type Model = Schemas["Model"];
 export type Submodel = Schemas["Submodel"];
 export type EngineOption = Schemas["EngineOption"];

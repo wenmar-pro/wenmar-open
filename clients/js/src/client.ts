@@ -6,6 +6,7 @@ import type {
   EnginesQuery,
   Entry,
   Make,
+  MakeDetail,
   MakesQuery,
   Meta,
   Model,
@@ -174,6 +175,11 @@ export class WenmarOpen {
   /** One catalog entry by its id, such as `2019_honda_civic_si`. */
   async vehicle(id: string, options: RequestOptions = {}): Promise<Entry> {
     return this.#request("GET", `/v1/vehicles/${segment("id", id)}`, undefined, options);
+  }
+
+  /** One make by its id, name or alias, such as `honda`, with the maker's own links. */
+  async make(make: string, options: RequestOptions = {}): Promise<MakeDetail> {
+    return this.#request("GET", `/v1/makes/${segment("make", make)}`, undefined, options);
   }
 
   /** The data version, the vPIC release it came from, and the build time. */
