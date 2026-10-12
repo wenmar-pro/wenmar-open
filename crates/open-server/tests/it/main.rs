@@ -11,6 +11,7 @@ mod discovery;
 mod fts5;
 mod http;
 mod limit;
+mod limit_routes;
 mod log;
 mod mcp;
 mod offline;
