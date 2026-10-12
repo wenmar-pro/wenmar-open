@@ -128,6 +128,14 @@ export type Client = Pick<
   | "recall"
   | "searchRecalls"
   | "safety"
+  | "fuel"
+  | "vinFuel"
+  | "specs"
+  | "vinSpecs"
+  | "fluids"
+  | "vinFluids"
+  | "tires"
+  | "vinTires"
   | "overview"
   | "vinOverview"
   | "modelYears"
@@ -170,6 +178,22 @@ export function ask(client: Client, { op, args }: Case): Promise<unknown> {
       return client.searchRecalls(query);
     case "safety":
       return client.safety(String(args["id"]));
+    case "fuel_vehicle":
+      return client.fuel(String(args["id"]), args["country"] === undefined ? {} : { country: String(args["country"]) });
+    case "fuel_vin":
+      return client.vinFuel(String(args["vin"]), args["country"] === undefined ? {} : { country: String(args["country"]) });
+    case "specs_vehicle":
+      return client.specs(String(args["id"]));
+    case "specs_vin":
+      return client.vinSpecs(String(args["vin"]));
+    case "fluids_vehicle":
+      return client.fluids(String(args["id"]));
+    case "fluids_vin":
+      return client.vinFluids(String(args["vin"]));
+    case "tires_vehicle":
+      return client.tires(String(args["id"]));
+    case "tires_vin":
+      return client.vinTires(String(args["vin"]));
     case "overview_vehicle":
       return client.overview(String(args["id"]));
     case "overview_vin":

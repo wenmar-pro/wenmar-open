@@ -351,7 +351,9 @@ open.close();
 
 `overview`, `vinOverview` and `modelYears` answer with no shop file too: `recalls` is then `null`, in the overview and in each year of `modelYears`. `recentRecalls` needs the shop file, as the other recall methods do. A block the files do not give is `null`, as it is from a server that does not hold it: see the list below.
 
-### Crash test ratings offline
+### Fuel, specifications, fluids and tires offline
+
+`fuel`, `specs`, `fluids` and `tires`, and `vinFuel`, `vinSpecs`, `vinFluids` and `vinTires`, are those of `WenmarOpen`, read from the shop file.
 
 `safety(id)` is that of `WenmarOpen`: NHTSA's crash test ratings for a model year, read from the shop file.
 
@@ -396,7 +398,7 @@ What differs offline:
 - `meta().server_version` is the version of this package.
 - `meta().datasets` lists what the shop file holds, and is `{}` when no shop file is open: the data file holds the VIN decoder and the catalog only.
 - `lookup.maker` in a recall answer is always `null`. The makers' own recall lookups are part of the hosted service and are in neither file. `lookup.nhtsa` and `lookup.tc` are always there.
-- `links.maker` in an overview is always `null`, for the same reason. `specs`, `fuel` and `fluids` in an overview are `null` offline for now, whatever the shop file holds: the hosted API fills them. `safety` is what `safety(id)` gives when the shop file holds the ratings, and `null` otherwise.
+- `links.maker` in an overview is always `null`, for the same reason. `specs`, `fuel`, `fluids` and `tires` in an overview are what `specs(id)`, `fuel(id)`, `fluids(id)` and `tires(id)` give when the shop file holds them, and `null` otherwise. `safety` is what `safety(id)` gives when the shop file holds the ratings, and `null` otherwise.
 - A recall's `url` is its page on `https://open.wenmarpro.com`, whichever server you would otherwise ask. So are `links.page` and every other address in an overview or in `modelYears`.
 - `decodeVins` takes no `include`: the recall count of a batch is the hosted API's alone. Ask `vinOverview` for each VIN instead.
 - `timeoutMs` and `signal` are checked each time the client goes back to the database, not while the database is working. There is no time limit unless you set one.
@@ -453,7 +455,7 @@ A version of `wenmar-open` reads data files of one schema version, and `wenmar-o
 
 ### Size
 
-The decoder is 542 kB of WebAssembly (195 kB compressed). The package holds it twice, as a file and as text inside a module, so the package is 1.4 MB unpacked. None of it is loaded by `import "wenmar-open"`.
+The decoder is 703 kB of WebAssembly (238 kB compressed). The package holds it twice, as a file and as text inside a module, so the package is 1.9 MB unpacked. None of it is loaded by `import "wenmar-open"`.
 
 In a browser the page's content security policy must allow WebAssembly (`'wasm-unsafe-eval'`). The data file is too large to send to a browser; use the hosted API there.
 

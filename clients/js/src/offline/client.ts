@@ -21,12 +21,23 @@ import type {
   SearchQuery,
   Submodel,
   SubmodelsQuery,
+  VehicleFluids,
+  VehicleFuel,
+  VehicleFuelQuery,
   VehicleRecalls,
   VehicleRecallsQuery,
   VehicleSafety,
+  VehicleSpecs,
+  VehicleTires,
   VinDecode,
+  VinFluids,
+  VinFuel,
+  VinFuelQuery,
   VinRecalls,
   VinRecallsQuery,
+  VinSpecs,
+  VinTires,
+  VinYearQuery,
   YearsQuery,
 } from "../types.js";
 import { Engine, compile } from "./engine.js";
@@ -81,7 +92,11 @@ const keyOf = (statement: Statement): string =>
 const READS_SHOP = new Set(["meta", "overview_vehicle", "overview_vin", "model_years"]);
 
 /** Whether a question reads the shop file, when there is one. */
-const needsShop = (question: Question): boolean => READS_SHOP.has(question.op) || question.op.startsWith("recall") || question.op === "safety";
+const needsShop = (question: Question): boolean =>
+  READS_SHOP.has(question.op) || question.op.startsWith("recall") || question.op === "safety" || FACTS.test(question.op);
+
+/** The operations for fuel, specifications, fluids and tire fitments, such as `fuel_vin`. */
+const FACTS = /^(fuel|specs|fluids|tires)_(vehicle|vin)$/;
 
 function thrown(failure: Failure): WenmarOpenError {
   return new WenmarOpenError({ code: failure.code, message: failure.message, details: failure.details });
@@ -213,6 +228,58 @@ export class WenmarOpenOffline {
    */
   async safety(id: string, options: RequestOptions = {}): Promise<VehicleSafety> {
     return this.#one({ op: "safety", args: { id: String(id) } }, options);
+  }
+
+  /**
+   * Fuel consumption ratings of a model year, from EPA and Natural
+   * Resources Canada. Each says in `confidence` how far it was matched:
+   * `model`, `engine` or `submodel`. Needs a shop file that holds them:
+   * without one it fails with `dataset_unavailable`.
+   */
+  async fuel(id: string, query: VehicleFuelQuery = {}, options: RequestOptions = {}): Promise<VehicleFuel> {
+    return this.#one({ op: "fuel_vehicle", args: { ...query, id: String(id) } }, options);
+  }
+
+  /** Fuel ratings for the vehicle a VIN decodes to: one engine's when the decode settles it. */
+  async vinFuel(vin: string, query: VinFuelQuery = {}, options: RequestOptions = {}): Promise<VinFuel> {
+    return this.#one({ op: "fuel_vin", args: { ...query, vin: String(vin) } }, options);
+  }
+
+  /** Specifications of a model year from EPA's files, one entry per EPA rating. */
+  async specs(id: string, options: RequestOptions = {}): Promise<VehicleSpecs> {
+    return this.#one({ op: "specs_vehicle", args: { id: String(id) } }, options);
+  }
+
+  /** Specifications for the vehicle a VIN decodes to: one engine's when the decode settles it. */
+  async vinSpecs(vin: string, query: VinYearQuery = {}, options: RequestOptions = {}): Promise<VinSpecs> {
+    return this.#one({ op: "specs_vin", args: { ...query, vin: String(vin) } }, options);
+  }
+
+  /**
+   * Fluids of a model year: the engine oil viscosity grade the maker
+   * certified each engine with, per EPA, and the records a person read from
+   * the maker's own documents, each with its source and the day it was checked.
+   */
+  async fluids(id: string, options: RequestOptions = {}): Promise<VehicleFluids> {
+    return this.#one({ op: "fluids_vehicle", args: { id: String(id) } }, options);
+  }
+
+  /** Fluids for the vehicle a VIN decodes to: one engine's when the decode settles it. */
+  async vinFluids(vin: string, query: VinYearQuery = {}, options: RequestOptions = {}): Promise<VinFluids> {
+    return this.#one({ op: "fluids_vin", args: { ...query, vin: String(vin) } }, options);
+  }
+
+  /**
+   * Original-equipment tire fitments of a model year. Every size on record
+   * is listed with the trims it covers; none is picked.
+   */
+  async tires(id: string, options: RequestOptions = {}): Promise<VehicleTires> {
+    return this.#one({ op: "tires_vehicle", args: { id: String(id) } }, options);
+  }
+
+  /** Tire fitments of the model year a VIN decodes to. Never narrowed: a VIN does not name the wheels. */
+  async vinTires(vin: string, query: VinYearQuery = {}, options: RequestOptions = {}): Promise<VinTires> {
+    return this.#one({ op: "tires_vin", args: { ...query, vin: String(vin) } }, options);
   }
 
   /**

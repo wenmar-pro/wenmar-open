@@ -749,3 +749,87 @@ test("close closes both stores", () => {
   client.close();
   assert.deepEqual(closed, ["data", "shop"]);
 });
+
+// ----- fuel, specifications, fluids and tire fitments, from the shop file -----
+
+test("fuel, specs, fluids and tires are read from the shop file, and a VIN gets only what is for its engine", async () => {
+  const { client, store, shop } = withShop();
+  const fuel = await client.fuel("2023_hyundai_kona");
+  assert.deepEqual(fuel.as_of, { us: "2026-09-29", ca: "2026-10-06" });
+  assert.equal(fuel.ratings.length, 4);
+  // Matched to the model year only: no engine is named.
+  assert.equal(fuel.ratings[0]?.confidence, "model");
+  assert.equal(fuel.ratings[0]?.engine, null);
+  assert.equal((await client.fuel("2023_hyundai_kona", { country: "ca" })).ratings.length, 1);
+  const byVin = await client.vinFuel(KONA);
+  assert.equal(byVin.engine_settled, true);
+  assert.equal(byVin.engine?.id, "2-0l");
+  assert.equal(byVin.ratings.length, 2);
+
+  assert.equal((await client.specs("2023_hyundai_kona")).specs.length, 3);
+  assert.equal((await client.vinSpecs(KONA)).specs.length, 1);
+
+  const fluids = await client.fluids("2023_hyundai_kona");
+  assert.equal(fluids.engine_oil[0]?.source, "EPA fuel economy certification");
+  assert.equal(fluids.engine_oil_checked.length, 2);
+  assert.equal(fluids.checked_as_of, "2026-10-09");
+  const forVin = await client.vinFluids(KONA);
+  assert.deepEqual(
+    forVin.engine_oil_checked.map((record) => record.source),
+    ["Test manual K, page 1"],
+  );
+  // Recorded for every engine, so it stays.
+  assert.equal(forVin.brake.length, 1);
+
+  const tires = await client.tires("2023_hyundai_kona");
+  assert.deepEqual(tires.fitments.map((fitment) => fitment.size), ["996/96R96"]);
+  assert.deepEqual(tires.fitments[0]?.trims, ["SE"]);
+  // Never narrowed.
+  assert.deepEqual((await client.vinTires(KONA)).fitments, tires.fitments);
+
+  // Read from the shop file's store, and nothing of it from the data file's.
+  for (const table of ["fuel_rating", "FROM fluid", "FROM tire_fitment"]) {
+    assert.ok(shop.statements.some((statement) => statement.sql.includes(table)), table);
+    assert.ok(store.statements.every((statement) => !statement.sql.includes(table)), table);
+  }
+  // A model year with nothing is an empty list, not an error.
+  assert.deepEqual((await client.tires("2019_honda_civic")).fitments, []);
+  assert.equal((await failure(client.fluids("2019_honda_nothing"))).code, "not_found");
+  assert.equal((await failure(client.fuel("2023_hyundai_kona", { country: "mx" }))).code, "validation_failed");
+});
+
+test("an overview has the four blocks when the shop file holds them", async () => {
+  const { client } = withShop();
+  const overview = await client.overview("2023_hyundai_kona");
+  assert.deepEqual(overview.fuel, (await client.fuel("2023_hyundai_kona")).ratings);
+  assert.deepEqual(overview.specs, (await client.specs("2023_hyundai_kona")).specs);
+  assert.deepEqual(overview.tires, (await client.tires("2023_hyundai_kona")).fitments);
+  const fluids = overview.fluids as { brake: unknown[] } | null;
+  assert.equal(fluids?.brake.length, 1);
+  // With no shop store every one of them is null, as `recalls` is.
+  const bare = await offline().overview("2023_hyundai_kona");
+  for (const block of ["fuel", "specs", "fluids", "tires"] as const) assert.equal(bare[block], null, block);
+});
+
+test("with no shop store each of the eight is dataset_unavailable, and nothing is read for it", async () => {
+  const store = new RecordedStore();
+  const client = offline(store);
+  const asked: [string, Promise<unknown>][] = [
+    ["fuel_us", client.fuel("2023_hyundai_kona")],
+    ["fuel_ca", client.vinFuel(KONA, { country: "ca" })],
+    ["specs", client.specs("2023_hyundai_kona")],
+    ["specs", client.vinSpecs(KONA)],
+    ["oil_grade", client.fluids("2023_hyundai_kona")],
+    ["oil_grade", client.vinFluids(KONA)],
+    ["tires", client.tires("2023_hyundai_kona")],
+    ["tires", client.vinTires(KONA)],
+  ];
+  for (const [dataset, call] of asked) {
+    const error = await failure(call);
+    assert.equal(error.code, "dataset_unavailable", dataset);
+    assert.equal(error.message, `The ${dataset} dataset is not available.`);
+    assert.deepEqual(error.details, { dataset });
+  }
+  // Only the data file was opened.
+  assert.equal(store.steps, 2);
+});
