@@ -1,0 +1,573 @@
+# [REVIEW] Drafted on 2026-10-12 from the component texts in NHTSA's and Transport Canada's files. Not yet read by a person who knows repair work.
+# Components: the parts and systems a recall, a bulletin, a trouble code or a
+# job is about. Written by hand for this project; see components.md beside
+# this file for the fields and the rules.
+#
+# The first block is the broad systems. The second is parts a job acts on,
+# each under one system. `nhtsa` lists NHTSA component paths: an entry
+# covers that path and everything below it. `tc` lists Transport Canada
+# system names.
+components:
+  - id: air-bags
+    name: "Air bags"
+    nhtsa:
+      - "AIR BAGS"
+    tc: ["Airbag"]
+  - id: brakes
+    name: "Brakes"
+    nhtsa:
+      - "SERVICE BRAKES"
+      - "SERVICE BRAKES, HYDRAULIC"
+      - "SERVICE BRAKES, AIR"
+      - "SERVICE BRAKES, ELECTRIC"
+      - "PARKING BRAKE"
+      - "AUTOHOLD BRAKE SYSTEM/BRAKE HOLD"
+    tc: ["Brakes"]
+  - id: driver-assistance
+    name: "Driver assistance"
+    nhtsa:
+      - "BACK OVER PREVENTION"
+      - "LANE DEPARTURE"
+      - "FORWARD COLLISION AVOIDANCE"
+      - "ELECTRONIC STABILITY CONTROL"
+      - "ELECTRONIC STABILITY CONTROL (ESC)"
+      - "TRACTION CONTROL SYSTEM"
+      - "ELECTRICAL SYSTEM:ADAS"
+  - id: electrical
+    name: "Electrical system"
+    nhtsa:
+      - "ELECTRICAL SYSTEM"
+    tc: ["Electrical"]
+  - id: engine
+    name: "Engine"
+    nhtsa:
+      - "ENGINE"
+      - "ENGINE AND ENGINE COOLING"
+    tc: ["Engine"]
+  - id: equipment
+    name: "Equipment and accessories"
+    nhtsa:
+      - "EQUIPMENT"
+      - "EQUIPMENT ADAPTIVE/MOBILITY"
+    tc: ["Accessories"]
+  - id: exhaust-emissions
+    name: "Exhaust and emissions"
+    nhtsa:
+      - "ENGINE AND ENGINE COOLING:EXHAUST SYSTEM"
+    tc: ["Emissions"]
+  - id: fuel-system
+    name: "Fuel system"
+    nhtsa:
+      - "FUEL SYSTEM, GASOLINE"
+      - "FUEL SYSTEM, DIESEL"
+      - "FUEL SYSTEM, OTHER"
+      - "FUEL/PROPULSION SYSTEM"
+    tc: ["Fuel System"]
+  - id: hvac
+    name: "Heating and air conditioning"
+    nhtsa:
+      - "VISIBILITY:DEFROSTER/DEFOGGER/HVAC SYSTEM"
+      - "EQUIPMENT:APPLIANCE:AIR CONDITIONER"
+    tc: ["Heater And Defroster"]
+  - id: hybrid-ev
+    name: "Hybrid and electric drive"
+    nhtsa:
+      - "HYBRID PROPULSION SYSTEM"
+      - "ELECTRICAL SYSTEM:PROPULSION SYSTEM"
+    tc: ["High Voltage"]
+  - id: labels-manuals
+    name: "Labels and manuals"
+    nhtsa:
+      - "EQUIPMENT:OTHER:LABELS"
+      - "EQUIPMENT:OTHER:OWNERS/SERVICE/OTHER MANUAL"
+    tc: ["Label"]
+  - id: latches-locks
+    name: "Latches and locks"
+    nhtsa:
+      - "LATCHES/LOCKS/LINKAGES"
+  - id: lighting
+    name: "Lighting"
+    nhtsa:
+      - "EXTERIOR LIGHTING"
+      - "INTERIOR LIGHTING"
+    tc: ["Lights And Instruments"]
+  - id: powertrain
+    name: "Transmission and driveline"
+    nhtsa:
+      - "POWER TRAIN"
+    tc: ["Powertrain"]
+  - id: seat-belts
+    name: "Seat belts"
+    nhtsa:
+      - "SEAT BELTS"
+    tc: ["Seats And Restraints"]
+  - id: seats
+    name: "Seats"
+    nhtsa:
+      - "SEATS"
+    tc: ["Seats And Restraints"]
+  - id: speed-control
+    name: "Throttle and cruise control"
+    nhtsa:
+      - "VEHICLE SPEED CONTROL"
+  - id: steering
+    name: "Steering"
+    nhtsa:
+      - "STEERING"
+    tc: ["Steering"]
+  - id: structure-body
+    name: "Body and frame"
+    nhtsa:
+      - "STRUCTURE"
+    tc: ["Structure"]
+  - id: suspension
+    name: "Suspension"
+    nhtsa:
+      - "SUSPENSION"
+    tc: ["Suspension"]
+  - id: tires
+    name: "Tires"
+    nhtsa:
+      - "TIRES"
+    tc: ["Tires"]
+  - id: trailer-hitch
+    name: "Trailer hitch"
+    nhtsa:
+      - "TRAILER HITCHES"
+      - "TRAILER HARDWARE"
+  - id: visibility
+    name: "Glass, wipers and mirrors"
+    nhtsa:
+      - "VISIBILITY"
+      - "VISIBILITY/WIPER"
+    tc: ["Visual System"]
+  - id: wheels
+    name: "Wheels"
+    nhtsa:
+      - "WHEELS"
+    tc: ["Wheels"]
+
+  # Parts.
+  - id: air-bag-inflator
+    name: "Air bag inflator"
+    parent: air-bags
+    nhtsa:
+      - "AIR BAGS:FRONTAL:DRIVER SIDE:INFLATOR MODULE"
+      - "AIR BAGS:FRONTAL:PASSENGER SIDE:INFLATOR MODULE"
+      - "AIR BAGS:SIDE/WINDOW:CURTAIN:INFLATOR"
+  - id: air-bag-module
+    name: "Air bag control module"
+    parent: air-bags
+    nhtsa:
+      - "AIR BAGS:AIR BAG/RESTRAINT CONTROL MODULE"
+      - "AIR BAGS:FRONTAL:SENSOR/CONTROL MODULE-INACTIVE"
+  - id: abs
+    name: "Anti-lock brakes"
+    parent: brakes
+    nhtsa:
+      - "SERVICE BRAKES, HYDRAULIC:ANTILOCK/TRACTION CONTROL/ELECTRONIC LIMITED SLIP"
+      - "SERVICE BRAKES, AIR:ANTILOCK"
+  - id: brake-caliper
+    name: "Brake caliper"
+    parent: brakes
+    nhtsa:
+      - "SERVICE BRAKES, HYDRAULIC:FOUNDATION COMPONENTS:DISC:CALIPER"
+      - "SERVICE BRAKES, AIR:DISC:CALIPER"
+  - id: brake-drum-shoe
+    name: "Brake drums and shoes"
+    parent: brakes
+    nhtsa:
+      - "SERVICE BRAKES, HYDRAULIC:FOUNDATION COMPONENTS:DRUM"
+      - "SERVICE BRAKES, AIR:DRUM"
+  - id: brake-fluid
+    name: "Brake fluid"
+    parent: brakes
+    nhtsa:
+      - "SERVICE BRAKES, HYDRAULIC:FLUID"
+  - id: brake-hose-line
+    name: "Brake hoses and lines"
+    parent: brakes
+    nhtsa:
+      - "SERVICE BRAKES, HYDRAULIC:FOUNDATION COMPONENTS:HOSES, LINES/PIPING, AND FITTINGS"
+      - "SERVICE BRAKES, AIR:SUPPLY:HOSES, LINES/PIPING, AND FITTINGS"
+  - id: brake-master-cylinder
+    name: "Brake master cylinder"
+    parent: brakes
+    nhtsa:
+      - "SERVICE BRAKES, HYDRAULIC:FOUNDATION COMPONENTS:MASTER CYLINDER"
+  - id: brake-pad
+    name: "Brake pads"
+    parent: brakes
+    nhtsa:
+      - "SERVICE BRAKES, HYDRAULIC:FOUNDATION COMPONENTS:DISC:PADS"
+      - "SERVICE BRAKES, AIR:DISC:PADS"
+  - id: brake-rotor
+    name: "Brake rotor"
+    parent: brakes
+    nhtsa:
+      - "SERVICE BRAKES, HYDRAULIC:FOUNDATION COMPONENTS:DISC:ROTOR"
+      - "SERVICE BRAKES, AIR:DISC:ROTOR"
+  - id: parking-brake
+    name: "Parking brake"
+    parent: brakes
+    nhtsa:
+      - "PARKING BRAKE"
+  - id: wheel-speed-sensor
+    name: "Wheel speed sensor"
+    parent: brakes
+    nhtsa:
+      - "SERVICE BRAKES, HYDRAULIC:ANTILOCK/TRACTION CONTROL/ELECTRONIC LIMITED SLIP:WHEEL SPEED SENSOR/TONE RING"
+      - "SERVICE BRAKES, AIR:ANTILOCK:WHEEL SPEED SENSOR"
+  - id: adaptive-cruise
+    name: "Adaptive cruise control"
+    parent: driver-assistance
+    nhtsa:
+      - "FORWARD COLLISION AVOIDANCE:ADAPTIVE CRUISE CONTROL"
+  - id: backup-camera
+    name: "Backup camera"
+    parent: driver-assistance
+    nhtsa:
+      - "BACK OVER PREVENTION"
+  - id: blind-spot
+    name: "Blind spot detection"
+    parent: driver-assistance
+    nhtsa:
+      - "LANE DEPARTURE:BLIND SPOT DETECTION"
+      - "ELECTRICAL SYSTEM:ADAS:BLINDSPOT"
+  - id: lane-keeping
+    name: "Lane departure and lane keeping"
+    parent: driver-assistance
+    nhtsa:
+      - "LANE DEPARTURE:ASSIST"
+      - "LANE DEPARTURE:LANE KEEP"
+      - "LANE DEPARTURE:WARNING"
+  - id: alternator
+    name: "Alternator"
+    parent: electrical
+    nhtsa:
+      - "ELECTRICAL SYSTEM:ALTERNATOR/GENERATOR/REGULATOR"
+  - id: battery
+    name: "12-volt battery"
+    parent: electrical
+    nhtsa:
+      - "ELECTRICAL SYSTEM:12V/24V/48V BATTERY"
+  - id: body-control-module
+    name: "Body control module"
+    parent: electrical
+    nhtsa:
+      - "ELECTRICAL SYSTEM:BODY CONTROL MODULE/BCM"
+      - "ELECTRICAL SYSTEM:BODY CONTROL MODULE"
+  - id: ignition
+    name: "Ignition"
+    parent: electrical
+    nhtsa:
+      - "ELECTRICAL SYSTEM:IGNITION"
+  - id: instrument-cluster
+    name: "Instrument cluster"
+    parent: electrical
+    nhtsa:
+      - "ELECTRICAL SYSTEM:INSTRUMENT CLUSTER/PANEL"
+      - "ELECTRICAL SYSTEM:INSTRUMENT PANEL"
+  - id: software
+    name: "Software"
+    parent: electrical
+    nhtsa:
+      - "ELECTRICAL SYSTEM:SOFTWARE"
+  - id: spark-plug
+    name: "Spark plugs"
+    parent: electrical
+    nhtsa:
+      - "ELECTRICAL SYSTEM:IGNITION:COIL:SPARK PLUGS"
+  - id: starter
+    name: "Starter"
+    parent: electrical
+    nhtsa:
+      - "ELECTRICAL SYSTEM:STARTER ASSEMBLY"
+  - id: wiring
+    name: "Wiring and fuses"
+    parent: electrical
+    nhtsa:
+      - "ELECTRICAL SYSTEM:WIRING"
+  - id: cooling-fan
+    name: "Cooling fan"
+    parent: engine
+    nhtsa:
+      - "ENGINE AND ENGINE COOLING:COOLING SYSTEM:FAN"
+  - id: cooling-system
+    name: "Cooling system"
+    parent: engine
+    nhtsa:
+      - "ENGINE AND ENGINE COOLING:COOLING SYSTEM"
+  - id: drive-belt
+    name: "Drive belts"
+    parent: engine
+    nhtsa:
+      - "ENGINE AND ENGINE COOLING:ENGINE:GASOLINE:BELTS AND ASSOCIATED PULLEYS"
+  - id: engine-control-module
+    name: "Engine control module"
+    parent: engine
+    nhtsa:
+      - "ENGINE AND ENGINE COOLING:ENGINE:ENGINE CONTROL MODULE (ECU/ECM)"
+  - id: engine-oil
+    name: "Engine oil and lubrication"
+    parent: engine
+    nhtsa:
+      - "ENGINE AND ENGINE COOLING:ENGINE:OIL/LUBRICATION"
+  - id: radiator
+    name: "Radiator"
+    parent: engine
+    nhtsa:
+      - "ENGINE AND ENGINE COOLING:COOLING SYSTEM:RADIATOR ASSEMBLY"
+  - id: timing-belt
+    name: "Timing belt or chain"
+    parent: engine
+  - id: turbocharger
+    name: "Turbocharger or supercharger"
+    parent: engine
+    nhtsa:
+      - "ENGINE AND ENGINE COOLING:ENGINE:GASOLINE:TURBO/SUPERCHARGER"
+      - "ENGINE AND ENGINE COOLING:ENGINE:OTHER FUEL TYPES:TURBO/SUPERCHARGER"
+  - id: water-pump
+    name: "Water pump"
+    parent: engine
+    nhtsa:
+      - "ENGINE AND ENGINE COOLING:COOLING SYSTEM:PUMP"
+  - id: catalytic-converter
+    name: "Catalytic converter"
+    parent: exhaust-emissions
+    nhtsa:
+      - "ENGINE AND ENGINE COOLING:EXHAUST SYSTEM:EMISSION CONTROL:CATALYTIC CONVERTOR"
+  - id: egr-valve
+    name: "EGR valve"
+    parent: exhaust-emissions
+    nhtsa:
+      - "ENGINE AND ENGINE COOLING:EXHAUST SYSTEM:EMISSION CONTROL:GAS RECIRCULATION VALVE (EGR VALVE)"
+  - id: exhaust-pipe
+    name: "Exhaust manifold, pipes and muffler"
+    parent: exhaust-emissions
+    nhtsa:
+      - "ENGINE AND ENGINE COOLING:EXHAUST SYSTEM:MANIFOLD/HEADER/MUFFLER/TAIL PIPE"
+  - id: oxygen-sensor
+    name: "Oxygen or air-fuel sensor"
+    parent: exhaust-emissions
+  - id: pcv
+    name: "Crankcase ventilation (PCV)"
+    parent: exhaust-emissions
+    nhtsa:
+      - "ENGINE AND ENGINE COOLING:EXHAUST SYSTEM:EMISSION CONTROL:CRANKCASE (PCV)"
+  - id: evap
+    name: "Evaporative emissions"
+    parent: fuel-system
+    nhtsa:
+      - "FUEL SYSTEM, GASOLINE:STORAGE:EVAPORATIVE EMISSIONS"
+  - id: fuel-filter
+    name: "Fuel filter"
+    parent: fuel-system
+    nhtsa:
+      - "FUEL SYSTEM, OTHER:FUEL FILTER"
+  - id: fuel-injector
+    name: "Fuel injection"
+    parent: fuel-system
+    nhtsa:
+      - "FUEL SYSTEM, GASOLINE:FUEL INJECTION SYSTEM"
+      - "FUEL SYSTEM, DIESEL:FUEL INJECTION SYSTEM"
+  - id: fuel-line
+    name: "Fuel hoses and lines"
+    parent: fuel-system
+    nhtsa:
+      - "FUEL SYSTEM, GASOLINE:DELIVERY:HOSES, LINES/PIPING, AND FITTINGS"
+      - "FUEL SYSTEM, OTHER:DELIVERY:HOSES, LINES/PIPING, AND FITTINGS"
+  - id: fuel-pump
+    name: "Fuel pump"
+    parent: fuel-system
+    nhtsa:
+      - "FUEL SYSTEM, GASOLINE:DELIVERY:FUEL PUMP"
+      - "FUEL SYSTEM, DIESEL:DELIVERY:FUEL PUMP"
+      - "FUEL SYSTEM, OTHER:DELIVERY:FUEL PUMP"
+  - id: fuel-tank
+    name: "Fuel tank"
+    parent: fuel-system
+    nhtsa:
+      - "FUEL SYSTEM, GASOLINE:STORAGE:TANK ASSEMBLY"
+      - "FUEL SYSTEM, DIESEL:STORAGE:TANK ASSEMBLY"
+      - "FUEL SYSTEM, OTHER:STORAGE:TANK ASSEMBLY"
+  - id: ac-compressor
+    name: "A/C compressor"
+    parent: hvac
+    nhtsa:
+      - "VISIBILITY:DEFROSTER/DEFOGGER/HVAC SYSTEM:COMPRESSOR"
+  - id: traction-battery
+    name: "High-voltage battery"
+    parent: hybrid-ev
+    nhtsa:
+      - "ELECTRICAL SYSTEM:PROPULSION SYSTEM:TRACTION BATTERY"
+  - id: door-latch
+    name: "Door latch"
+    parent: latches-locks
+    nhtsa:
+      - "LATCHES/LOCKS/LINKAGES:DOORS:LATCH"
+  - id: hood-latch
+    name: "Hood latch"
+    parent: latches-locks
+    nhtsa:
+      - "LATCHES/LOCKS/LINKAGES:HOOD:LATCH"
+  - id: brake-light
+    name: "Brake lights"
+    parent: lighting
+    nhtsa:
+      - "EXTERIOR LIGHTING:BRAKE LIGHTS"
+  - id: headlight
+    name: "Headlights"
+    parent: lighting
+    nhtsa:
+      - "EXTERIOR LIGHTING:HEADLIGHTS"
+  - id: tail-light
+    name: "Tail lights"
+    parent: lighting
+    nhtsa:
+      - "EXTERIOR LIGHTING:TAIL LIGHTS"
+  - id: turn-signal
+    name: "Turn signals"
+    parent: lighting
+    nhtsa:
+      - "EXTERIOR LIGHTING:TURN SIGNAL"
+  - id: automatic-transmission
+    name: "Automatic transmission"
+    parent: powertrain
+    nhtsa:
+      - "POWER TRAIN:AUTOMATIC TRANSMISSION"
+  - id: axle
+    name: "Axle"
+    parent: powertrain
+    nhtsa:
+      - "POWER TRAIN:AXLE ASSEMBLY"
+      - "POWER TRAIN:AXLE HUBS"
+  - id: clutch
+    name: "Clutch"
+    parent: powertrain
+    nhtsa:
+      - "POWER TRAIN:CLUTCH ASSEMBLY"
+  - id: differential
+    name: "Differential"
+    parent: powertrain
+    nhtsa:
+      - "POWER TRAIN:DRIVELINE:DIFFERENTIAL UNIT"
+  - id: driveshaft
+    name: "Driveshaft"
+    parent: powertrain
+    nhtsa:
+      - "POWER TRAIN:DRIVELINE:DRIVESHAFT"
+  - id: manual-transmission
+    name: "Manual transmission"
+    parent: powertrain
+    nhtsa:
+      - "POWER TRAIN:MANUAL TRANSMISSION"
+  - id: torque-converter
+    name: "Torque converter"
+    parent: powertrain
+    nhtsa:
+      - "POWER TRAIN:AUTOMATIC TRANSMISSION:TORQUE CONVERTER"
+  - id: transfer-case
+    name: "Transfer case"
+    parent: powertrain
+    nhtsa:
+      - "POWER TRAIN:TRANSFER CASE (4-WHEEL DRIVE)"
+  - id: transmission-control-module
+    name: "Transmission control module"
+    parent: powertrain
+    nhtsa:
+      - "POWER TRAIN:AUTOMATIC TRANSMISSION:CONTROL MODULE (TCM/PCM/TECM)"
+      - "POWER TRAIN:AUTOMATIC TRANSMISSION:CONTROL MODULE"
+      - "POWER TRAIN:MANUAL TRANSMISSION:CONTROL MODULE (TCM/PCM/TECM)"
+  - id: power-steering
+    name: "Power steering"
+    parent: steering
+    nhtsa:
+      - "STEERING:ELECTRIC POWER ASSIST SYSTEM"
+      - "STEERING:HYDRAULIC POWER ASSIST SYSTEM"
+      - "STEERING:HYDRAULIC POWER ASSIST"
+  - id: steering-column
+    name: "Steering column and wheel"
+    parent: steering
+    nhtsa:
+      - "STEERING:COLUMN"
+      - "STEERING:STEERING WHEEL/HANDLE BAR"
+  - id: steering-gear
+    name: "Steering gear"
+    parent: steering
+    nhtsa:
+      - "STEERING:GEAR BOX (OTHER THAN RACK AND PINION)"
+      - "STEERING:GEAR BOX"
+      - "STEERING:RACK AND PINION"
+  - id: tie-rod
+    name: "Tie rods and steering linkage"
+    parent: steering
+    nhtsa:
+      - "STEERING:LINKAGES"
+  - id: air-suspension
+    name: "Air suspension"
+    parent: suspension
+    nhtsa:
+      - "SUSPENSION:FRONT:SPRINGS:AIR SUSPENSION SYSTEM"
+      - "SUSPENSION:FRONT:SPRINGS:AIR SUSPENSION"
+      - "SUSPENSION:REAR:SPRINGS:AIR SUSPENSION SYSTEM"
+  - id: ball-joint
+    name: "Ball joint"
+    parent: suspension
+    nhtsa:
+      - "SUSPENSION:FRONT:CONTROL ARM:LOWER BALL JOINT"
+      - "SUSPENSION:FRONT:CONTROL ARM:UPPER BALL JOINT"
+  - id: control-arm
+    name: "Control arm"
+    parent: suspension
+    nhtsa:
+      - "SUSPENSION:FRONT:CONTROL ARM"
+  - id: shock-strut
+    name: "Shocks and struts"
+    parent: suspension
+    nhtsa:
+      - "SUSPENSION:FRONT:SHOCK ABSORBER"
+      - "SUSPENSION:REAR:SHOCK ABSORBER"
+      - "SUSPENSION:FRONT:MACPHERSON STRUT"
+  - id: wheel-bearing
+    name: "Wheel bearing"
+    parent: suspension
+    nhtsa:
+      - "SUSPENSION:FRONT:WHEEL BEARING"
+      - "WHEELS:HUB"
+  - id: tpms
+    name: "Tire pressure monitoring"
+    parent: tires
+    nhtsa:
+      - "TIRES:PRESSURE MONITORING AND REGULATING SYSTEMS"
+  - id: mirror
+    name: "Mirrors"
+    parent: visibility
+    nhtsa:
+      - "VISIBILITY:REARVIEW MIRRORS/DEVICES"
+  - id: power-window
+    name: "Power windows"
+    parent: visibility
+    nhtsa:
+      - "VISIBILITY:POWER WINDOW DEVICES AND CONTROLS"
+  - id: sunroof
+    name: "Sunroof"
+    parent: visibility
+    nhtsa:
+      - "VISIBILITY:SUN/MOON ROOF ASSEMBLY"
+  - id: windshield
+    name: "Windshield"
+    parent: visibility
+    nhtsa:
+      - "VISIBILITY:WINDSHIELD"
+  - id: wiper
+    name: "Wipers and washers"
+    parent: visibility
+    nhtsa:
+      - "VISIBILITY:WINDSHIELD WIPER/WASHER"
+      - "VISIBILITY/WIPER"
+  - id: lug-nut
+    name: "Wheel nuts and studs"
+    parent: wheels
+    nhtsa:
+      - "WHEELS:LUGS/NUTS/BOLTS/STUDS"
