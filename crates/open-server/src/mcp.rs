@@ -11,7 +11,7 @@
 //! as 2026-07-28 does, is answered without one, and must say the same in
 //! its headers.
 //!
-//! Two tools, one per noun, each taking an `action`. They call the same
+//! Three tools, one per noun, each taking an `action`. They call the same
 //! functions as the `/v1` routes and return the same JSON.
 
 use axum::Json;
@@ -28,7 +28,7 @@ use serde::Deserialize;
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 
-use crate::api::{vehicles, vin};
+use crate::api::{recalls, vehicles, vin};
 use crate::error::ApiError;
 use crate::state::AppState;
 
@@ -137,6 +137,62 @@ async fn vehicles_tool(state: &AppState, action: &str, given: &Value) -> Result<
     }
 }
 
+#[derive(Debug, Deserialize)]
+struct RecallArguments {
+    id: Option<String>,
+    vin: Option<String>,
+    source: Option<String>,
+    campaign: Option<String>,
+    query: Option<String>,
+    country: Option<String>,
+    #[serde(default, deserialize_with = "crate::api::blank_is_none")]
+    year: Option<u16>,
+}
+
+/// The recalls that may apply. Each action is the function behind a `/v1`
+/// recall route, so a server with no recall data answers with the same
+/// `dataset_unavailable` error, as a tool error the model can read.
+async fn recalls_tool(state: &AppState, action: &str, given: &Value) -> Result<Value, ApiError> {
+    let asked: RecallArguments = arguments(given)?;
+    match action {
+        "vehicle" => {
+            let Some(id) = asked.id else {
+                return Err(ApiError::validation("id is required for action=vehicle"));
+            };
+            let query = recalls::VehicleRecallsQuery {
+                country: asked.country,
+            };
+            to_value(recalls::vehicle_recalls_op(state, id, query).await?)
+        }
+        "vin" => {
+            let Some(vin) = asked.vin else {
+                return Err(ApiError::validation("vin is required for action=vin"));
+            };
+            let query = recalls::VinRecallsQuery {
+                country: asked.country,
+                year: asked.year,
+            };
+            to_value(recalls::vin_recalls_op(state, vin, query).await?)
+        }
+        "campaign" => {
+            let (Some(source), Some(campaign)) = (asked.source, asked.campaign) else {
+                return Err(ApiError::validation(
+                    "source and campaign are required for action=campaign",
+                ));
+            };
+            to_value(recalls::recall_campaign_op(state, &source, &campaign).await?)
+        }
+        "search" => {
+            let mut query: recalls::RecallSearchQuery = arguments(given)?;
+            query.q = asked.query.or(query.q);
+            to_value(recalls::recall_search_op(state, query).await?)
+        }
+        _ => Err(ApiError::validation(
+            "action must be vehicle, vin, campaign or search",
+        )),
+    }
+}
+
 /// Runs one `tools/call`. `Err` is a protocol error; a tool that fails
 /// answers `Ok` with `isError`.
 async fn call(state: &AppState, params: &Value) -> Result<Value, (i64, String)> {
@@ -157,6 +213,7 @@ async fn call(state: &AppState, params: &Value) -> Result<Value, (i64, String)> 
     let outcome = match name {
         "wenmar_vin" => vin_tool(state, action, given).await,
         "wenmar_vehicles" => vehicles_tool(state, action, given).await,
+        "wenmar_recalls" => recalls_tool(state, action, given).await,
         _ => return Err((INVALID_PARAMS, format!("Unknown tool: {name:.60}"))),
     };
     Ok(match outcome {

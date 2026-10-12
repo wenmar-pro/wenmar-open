@@ -80,7 +80,7 @@ async fn a_client_can_initialize_and_list_the_tools() {
         .map(|tool| tool["name"].as_str().unwrap())
         .collect();
     // A few gateway tools, one per noun: not one per endpoint.
-    assert_eq!(names, ["wenmar_vin", "wenmar_vehicles"]);
+    assert_eq!(names, ["wenmar_vin", "wenmar_vehicles", "wenmar_recalls"]);
     for tool in tools {
         assert_eq!(tool["inputSchema"]["type"], "object");
         assert_eq!(tool["inputSchema"]["required"], json!(["action"]));
@@ -349,6 +349,8 @@ async fn llms_txt_points_at_the_api_and_the_mcp_endpoint() {
     assert!(text.contains("https://open.example/mcp"));
     assert!(text.contains("Data version 2026.09"));
     assert!(text.contains("600 requests a minute"));
+    assert!(text.contains("`wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`)"));
+    assert!(text.contains("confirm by VIN with the manufacturer"));
 }
 
 const MODERN: &str = "2026-07-28";
@@ -426,7 +428,7 @@ async fn a_client_with_no_handshake_discovers_lists_and_calls() {
         .iter()
         .map(|tool| tool["name"].as_str().unwrap())
         .collect();
-    assert_eq!(names, ["wenmar_vin", "wenmar_vehicles"]);
+    assert_eq!(names, ["wenmar_vin", "wenmar_vehicles", "wenmar_recalls"]);
     assert_eq!(answer["result"]["resultType"], "complete");
     assert_eq!(answer["result"]["ttlMs"], 3_600_000);
 
@@ -608,7 +610,7 @@ async fn a_client_that_shakes_hands_is_answered_as_before() {
     for headers in [&[][..], &[("mcp-protocol-version", "2025-06-18")][..]] {
         let (status, answer) = raw(&app, headers, &list).await;
         assert_eq!(status, StatusCode::OK, "{headers:?}");
-        assert_eq!(answer["result"]["tools"].as_array().unwrap().len(), 2);
+        assert_eq!(answer["result"]["tools"].as_array().unwrap().len(), 3);
         assert!(answer["result"].get("resultType").is_none(), "{answer}");
         assert!(answer["result"].get("_meta").is_none());
     }
@@ -649,4 +651,190 @@ async fn a_request_from_any_origin_is_answered() {
     assert_eq!(status, StatusCode::OK);
     let (status, _) = modern(&app, "tools/list", json!({})).await;
     assert_eq!(status, StatusCode::OK);
+}
+
+#[tokio::test]
+async fn the_recalls_tool_gives_what_the_api_gives() {
+    let app = common::recalls_app().await;
+    let cases = [
+        (
+            json!({ "action": "vehicle", "id": "2023_hyundai_kona" }),
+            "/v1/vehicles/2023_hyundai_kona/recalls",
+        ),
+        (
+            json!({ "action": "vehicle", "id": "2023_hyundai_kona", "country": "ca" }),
+            "/v1/vehicles/2023_hyundai_kona/recalls?country=ca",
+        ),
+        (
+            json!({ "action": "vin", "vin": common::KONA }),
+            "/v1/vin/KM8K2CAB4PU001140/recalls",
+        ),
+        (
+            json!({ "action": "vin", "vin": common::KONA, "year": 2023, "country": "us" }),
+            "/v1/vin/KM8K2CAB4PU001140/recalls?year=2023&country=us",
+        ),
+        (
+            json!({ "action": "vin", "vin": common::COACH }),
+            "/v1/vin/1M8PDMPA9SP000001/recalls",
+        ),
+        (
+            json!({ "action": "campaign", "source": "nhtsa", "campaign": "19V888000" }),
+            "/v1/recalls/nhtsa/19V888000",
+        ),
+        (
+            json!({ "action": "campaign", "source": "tc", "campaign": "2023101" }),
+            "/v1/recalls/tc/2023101",
+        ),
+        (json!({ "action": "search" }), "/v1/recalls"),
+        (
+            json!({ "action": "search", "make": "hyundai", "year": 2023, "limit": 2 }),
+            "/v1/recalls?make=hyundai&year=2023&limit=2",
+        ),
+        (
+            json!({ "action": "search", "query": "harness", "country": "ca" }),
+            "/v1/recalls?q=harness&country=ca",
+        ),
+        (
+            json!({ "action": "search", "make": "chevy", "model": "silverado", "component": "battery" }),
+            "/v1/recalls?make=chevy&model=silverado&component=battery",
+        ),
+    ];
+    for (arguments, path) in cases {
+        let result = call(&app, "wenmar_recalls", arguments.clone()).await;
+        assert_eq!(result["isError"], false, "{arguments}");
+        let (status, served) = app.json(path).await;
+        assert_eq!(status, StatusCode::OK, "{path}");
+        assert_eq!(text(&result), served, "{arguments}");
+        assert_eq!(result["structuredContent"], served, "{arguments}");
+        // Every answer says "may apply" and where a VIN can be checked.
+        assert_eq!(served["may_apply"], true, "{path}");
+        assert_eq!(served["lookup"]["nhtsa"], "https://www.nhtsa.gov/recalls");
+        assert!(served["lookup"]["tc"].is_string(), "{path}");
+    }
+    // The second page of a list is asked for with the cursor of the first.
+    let first = call(
+        &app,
+        "wenmar_recalls",
+        json!({ "action": "search", "limit": 2 }),
+    )
+    .await;
+    let cursor = text(&first)["next_cursor"].as_str().unwrap().to_owned();
+    let second = call(
+        &app,
+        "wenmar_recalls",
+        json!({ "action": "search", "limit": 2, "cursor": cursor }),
+    )
+    .await;
+    let (_, served) = app
+        .json(&format!("/v1/recalls?limit=2&cursor={cursor}"))
+        .await;
+    assert_eq!(text(&second), served);
+}
+
+#[tokio::test]
+async fn the_recalls_tool_fails_as_the_api_does() {
+    let app = common::recalls_app().await;
+    let cases = [
+        (json!({ "action": "vehicle" }), "validation_failed"),
+        (json!({ "action": "vin" }), "validation_failed"),
+        (
+            json!({ "action": "campaign", "source": "nhtsa" }),
+            "validation_failed",
+        ),
+        (json!({ "action": "recall" }), "validation_failed"),
+        (json!({}), "validation_failed"),
+        (
+            json!({ "action": "vehicle", "id": "2023_hyundai_kona", "country": "mx" }),
+            "validation_failed",
+        ),
+        (
+            json!({ "action": "vehicle", "id": "2023_hyundai_nothing" }),
+            "not_found",
+        ),
+        (
+            json!({ "action": "vin", "vin": "KM8K2CAB4PUO01140" }),
+            "invalid_vin",
+        ),
+        (
+            json!({ "action": "campaign", "source": "epa", "campaign": "19V888000" }),
+            "not_found",
+        ),
+        (
+            json!({ "action": "campaign", "source": "nhtsa", "campaign": "00V000000" }),
+            "not_found",
+        ),
+        (
+            json!({ "action": "search", "model": "kona" }),
+            "validation_failed",
+        ),
+        (
+            json!({ "action": "search", "cursor": "nonsense" }),
+            "validation_failed",
+        ),
+    ];
+    for (arguments, code) in cases {
+        let result = call(&app, "wenmar_recalls", arguments.clone()).await;
+        assert_eq!(result["isError"], true, "{arguments}");
+        assert_eq!(
+            result["structuredContent"]["error"]["code"], code,
+            "{arguments}"
+        );
+        assert_eq!(text(&result), result["structuredContent"], "{arguments}");
+    }
+}
+
+#[tokio::test]
+async fn a_server_with_no_recall_data_answers_the_recalls_tool_with_a_tool_error() {
+    // No shop file at all.
+    let app = common::app().await;
+    for arguments in [
+        json!({ "action": "vehicle", "id": "2023_hyundai_kona" }),
+        json!({ "action": "vin", "vin": common::KONA }),
+        json!({ "action": "campaign", "source": "nhtsa", "campaign": "19V888000" }),
+        json!({ "action": "search" }),
+    ] {
+        let result = call(&app, "wenmar_recalls", arguments.clone()).await;
+        assert_eq!(result["isError"], true, "{arguments}");
+        assert_eq!(
+            result["structuredContent"],
+            json!({
+                "error": {
+                    "code": "dataset_unavailable",
+                    "message": "The recalls_us dataset is not available.",
+                    "details": { "dataset": "recalls_us" }
+                }
+            }),
+            "{arguments}"
+        );
+    }
+    // The other two tools are as they were.
+    let decoded = call(
+        &app,
+        "wenmar_vin",
+        json!({ "action": "decode", "vin": common::KONA }),
+    )
+    .await;
+    assert_eq!(decoded["isError"], false);
+
+    // A server with one country's recalls names the other when it is asked for.
+    let app = common::app_with_shop(common::RECALL_DATASETS_US, &common::recall_rows()).await;
+    let result = call(
+        &app,
+        "wenmar_recalls",
+        json!({ "action": "vehicle", "id": "2023_hyundai_kona", "country": "ca" }),
+    )
+    .await;
+    assert_eq!(result["isError"], true);
+    assert_eq!(
+        result["structuredContent"]["error"]["message"],
+        "The recalls_ca dataset is not available."
+    );
+    let result = call(
+        &app,
+        "wenmar_recalls",
+        json!({ "action": "vehicle", "id": "2023_hyundai_kona" }),
+    )
+    .await;
+    assert_eq!(result["isError"], false);
+    assert_eq!(text(&result)["as_of"]["ca"], Value::Null);
 }
