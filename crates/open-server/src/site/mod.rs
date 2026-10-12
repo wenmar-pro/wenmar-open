@@ -16,6 +16,7 @@ pub mod markdown;
 pub mod pages;
 pub mod recalls;
 pub mod report;
+pub mod rules;
 pub mod seo;
 pub mod tokens;
 pub mod tools;
