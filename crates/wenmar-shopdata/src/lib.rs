@@ -5,6 +5,7 @@
 //! care which SQLite engine holds the file. [`sqlite::ShopSource`] is the
 //! `rusqlite` one, behind the `sqlite` feature.
 
+pub mod answer;
 pub mod dataset;
 pub mod error;
 pub mod licence;
