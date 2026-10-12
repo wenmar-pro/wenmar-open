@@ -24,8 +24,8 @@ use wenmar_vehicles::text::{is_slug, normalize};
 use wenmar_vehicles::{CatalogError, Scope, Source, Value, VehicleId};
 
 use crate::api::types::{
-    Recall, RecallAsOf, RecallCampaign, RecallCampaignVehicle, RecallDecode, RecallFrench,
-    RecallList, RecallLookup, RecallVehicle, VehicleRecalls, VinRecalls, Warning,
+    Recall, RecallAsOf, RecallCampaign, RecallCampaignVehicle, RecallCompletion, RecallDecode,
+    RecallFrench, RecallList, RecallLookup, RecallVehicle, VehicleRecalls, VinRecalls, Warning,
 };
 use crate::api::vin::decode_many;
 use crate::api::{bad_query, blank_is_none};
@@ -486,6 +486,43 @@ pub async fn vin_recalls_op(
     })
 }
 
+/// The newest report of remedy progress for an NHTSA campaign. `None` for
+/// a Canadian campaign, for a campaign with no report, and on a server
+/// that holds no reports: the campaign is then answered without it.
+pub async fn completion_of(
+    state: &AppState,
+    source: RecallSource,
+    campaign: &str,
+) -> Result<Option<RecallCompletion>, ApiError> {
+    if source != RecallSource::Nhtsa {
+        return Ok(None);
+    }
+    let Ok(shop) = state.dataset(Dataset::RecallReports) else {
+        return Ok(None);
+    };
+    let number = campaign.to_owned();
+    let found = shop
+        .run(move |reader| reader.recall_report(&number))
+        .await??;
+    let as_of = shop
+        .datasets()
+        .get(Dataset::RecallReports)
+        .map(|entry| entry.as_of.clone());
+    Ok(found.map(|report| RecallCompletion {
+        remedied_percent: report.remedied_percent(),
+        kind: report.kind,
+        report_number: report.report_number,
+        period_from: report.period_from,
+        period_to: report.period_to,
+        submitted: report.submitted,
+        involved: report.involved,
+        remedied: report.remedied,
+        unreachable: report.unreachable,
+        removed: report.removed,
+        as_of,
+    }))
+}
+
 pub async fn recall_campaign_op(
     state: &AppState,
     source: &str,
@@ -567,6 +604,7 @@ pub async fn campaign_and_reach(
         summary: detail.summary_fr,
     });
     let recall = detail.recall;
+    let completion = completion_of(state, source, &recall.campaign).await?;
     let found = RecallCampaign {
         url: campaign_url(&state.config().base_url, &recall.source, &recall.campaign),
         source: recall.source,
@@ -583,6 +621,7 @@ pub async fn campaign_and_reach(
         mfr_campaign: recall.mfr_campaign,
         part_number: detail.part_number,
         units: recall.units,
+        completion,
         do_not_drive: recall.do_not_drive,
         park_outside: recall.park_outside,
         notification: recall.notification,

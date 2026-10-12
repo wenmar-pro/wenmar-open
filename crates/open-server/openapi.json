@@ -2668,6 +2668,17 @@
             "type": "string",
             "example": "19V888000"
           },
+          "completion": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecallCompletion",
+                "description": "How far the remedy had got when the manufacturer last reported to\nNHTSA. `null` for a Canadian campaign, for a campaign with no\nreport on file, and on a server that holds no reports."
+              }
+            ]
+          },
           "component": {
             "type": [
               "string",
@@ -2846,6 +2857,98 @@
               "null"
             ],
             "format": "int32",
+            "minimum": 0
+          }
+        }
+      },
+      "RecallCompletion": {
+        "type": "object",
+        "description": "The newest report of remedy progress a manufacturer filed with NHTSA\nfor a campaign. The counts are totals for the whole campaign at the end\nof the period named, which may be years past. They say nothing of one\nvehicle: check a VIN at the addresses in `lookup`.",
+        "required": [
+          "kind",
+          "report_number",
+          "period_from",
+          "period_to",
+          "involved",
+          "remedied",
+          "unreachable",
+          "removed"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The day NHTSA's report files were current.",
+            "example": "2026-10-12"
+          },
+          "involved": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Vehicles in the campaign.",
+            "example": 57591,
+            "minimum": 0
+          },
+          "kind": {
+            "type": "string",
+            "description": "`quarterly` or `annual`.",
+            "example": "annual"
+          },
+          "period_from": {
+            "type": "string",
+            "description": "The first quarter the report covers, as a year and a quarter.",
+            "example": "2025-2"
+          },
+          "period_to": {
+            "type": "string",
+            "description": "The last quarter it covers. The counts are as of the end of it. A\nquarterly report has the same quarter in both.",
+            "example": "2026-1"
+          },
+          "remedied": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Of those, reported remedied.",
+            "example": 38917,
+            "minimum": 0
+          },
+          "remedied_percent": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "`remedied` as a share of `involved`, in whole percent, rounded\ndown. `null` when `involved` is 0.",
+            "example": 67,
+            "minimum": 0
+          },
+          "removed": {
+            "type": "integer",
+            "format": "int32",
+            "description": "NHTSA's \"total removed\", as reported.",
+            "example": 23,
+            "minimum": 0
+          },
+          "report_number": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The report's number among those of its kind, from 1.",
+            "example": 2,
+            "minimum": 0
+          },
+          "submitted": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The day the manufacturer filed the report.",
+            "example": "2026-04-13"
+          },
+          "unreachable": {
+            "type": "integer",
+            "format": "int32",
+            "description": "NHTSA's \"total unreachable\", as reported.",
+            "example": 1011,
             "minimum": 0
           }
         }

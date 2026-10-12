@@ -694,6 +694,49 @@ pub struct RecallFrench {
     pub summary: Option<String>,
 }
 
+/// The newest report of remedy progress a manufacturer filed with NHTSA
+/// for a campaign. The counts are totals for the whole campaign at the end
+/// of the period named, which may be years past. They say nothing of one
+/// vehicle: check a VIN at the addresses in `lookup`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct RecallCompletion {
+    /// `quarterly` or `annual`.
+    #[schema(example = "annual")]
+    pub kind: String,
+    /// The report's number among those of its kind, from 1.
+    #[schema(example = 2)]
+    pub report_number: u32,
+    /// The first quarter the report covers, as a year and a quarter.
+    #[schema(example = "2025-2")]
+    pub period_from: String,
+    /// The last quarter it covers. The counts are as of the end of it. A
+    /// quarterly report has the same quarter in both.
+    #[schema(example = "2026-1")]
+    pub period_to: String,
+    /// The day the manufacturer filed the report.
+    #[schema(example = "2026-04-13")]
+    pub submitted: Option<String>,
+    /// Vehicles in the campaign.
+    #[schema(example = 57591)]
+    pub involved: u32,
+    /// Of those, reported remedied.
+    #[schema(example = 38917)]
+    pub remedied: u32,
+    /// NHTSA's "total unreachable", as reported.
+    #[schema(example = 1011)]
+    pub unreachable: u32,
+    /// NHTSA's "total removed", as reported.
+    #[schema(example = 23)]
+    pub removed: u32,
+    /// `remedied` as a share of `involved`, in whole percent, rounded
+    /// down. `null` when `involved` is 0.
+    #[schema(example = 67)]
+    pub remedied_percent: Option<u8>,
+    /// The day NHTSA's report files were current.
+    #[schema(example = "2026-10-12")]
+    pub as_of: Option<String>,
+}
+
 /// One campaign with every vehicle it lists.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
 pub struct RecallCampaign {
@@ -716,6 +759,10 @@ pub struct RecallCampaign {
     /// The manufacturer's part numbers, separated by commas.
     pub part_number: Option<String>,
     pub units: Option<u32>,
+    /// How far the remedy had got when the manufacturer last reported to
+    /// NHTSA. `null` for a Canadian campaign, for a campaign with no
+    /// report on file, and on a server that holds no reports.
+    pub completion: Option<RecallCompletion>,
     pub do_not_drive: Option<bool>,
     pub park_outside: Option<bool>,
     pub notification: Option<String>,

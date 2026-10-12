@@ -192,6 +192,24 @@ pub struct French {
     pub summary: Option<String>,
 }
 
+/// The newest report of remedy progress a manufacturer filed with NHTSA
+/// for a campaign: the API's `completion`. Totals for the whole campaign at
+/// the end of the period named, never a statement about one vehicle.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct Completion {
+    pub kind: String,
+    pub report_number: u32,
+    pub period_from: String,
+    pub period_to: String,
+    pub submitted: Option<String>,
+    pub involved: u32,
+    pub remedied: u32,
+    pub unreachable: u32,
+    pub removed: u32,
+    pub remedied_percent: Option<u8>,
+    pub as_of: Option<String>,
+}
+
 /// One recall campaign with every vehicle it lists.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Campaign {
@@ -209,6 +227,7 @@ pub struct Campaign {
     pub mfr_campaign: Option<String>,
     pub part_number: Option<String>,
     pub units: Option<u32>,
+    pub completion: Option<Completion>,
     pub do_not_drive: Option<bool>,
     pub park_outside: Option<bool>,
     pub notification: Option<String>,
@@ -331,6 +350,33 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
             .map(|entry| entry.attribution.clone())
             .filter(|credit| !credit.is_empty())
             .collect()
+    }
+
+    /// The newest report of remedy progress for an NHTSA campaign. `None`
+    /// for a Canadian campaign, for a campaign with no report, and when
+    /// the shop file holds no reports.
+    fn completion(
+        &self,
+        source: RecallSource,
+        campaign: &str,
+    ) -> Result<Option<Completion>, AnswerError> {
+        if source != RecallSource::Nhtsa || self.shop.require(Dataset::RecallReports).is_err() {
+            return Ok(None);
+        }
+        let as_of = self.shop.recall_reports_as_of().map(str::to_owned);
+        Ok(self.shop.recall_report(campaign)?.map(|report| Completion {
+            remedied_percent: report.remedied_percent(),
+            kind: report.kind,
+            report_number: report.report_number,
+            period_from: report.period_from,
+            period_to: report.period_to,
+            submitted: report.submitted,
+            involved: report.involved,
+            remedied: report.remedied,
+            unreachable: report.unreachable,
+            removed: report.removed,
+            as_of,
+        }))
     }
 
     fn listed(&self, recall: RecallSummary) -> Recall {
@@ -600,6 +646,7 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
             summary: detail.summary_fr,
         });
         let recall = detail.recall;
+        let completion = self.completion(source, &recall.campaign)?;
         Ok(Campaign {
             url: format!(
                 "{}/recalls/{}/{}",
@@ -619,6 +666,7 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
             mfr_campaign: recall.mfr_campaign,
             part_number: detail.part_number,
             units: recall.units,
+            completion,
             do_not_drive: recall.do_not_drive,
             park_outside: recall.park_outside,
             notification: recall.notification,

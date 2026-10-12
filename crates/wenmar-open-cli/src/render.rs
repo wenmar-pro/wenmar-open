@@ -544,6 +544,30 @@ fn recall_campaign(value: &Value) -> String {
             text.push_str(&format!("\n{heading}\n{}\n", clean_lines(words)));
         }
     }
+    let completion = &value["completion"];
+    if completion.is_object() {
+        let rows = fields(
+            completion,
+            &[
+                "kind",
+                "report_number",
+                "period_from",
+                "period_to",
+                "submitted",
+                "involved",
+                "remedied",
+                "remedied_percent",
+                "unreachable",
+                "removed",
+                "as_of",
+            ],
+            &[],
+        );
+        text.push_str(&format!(
+            "\nRemedy progress the manufacturer reported\n{}Totals for the whole campaign at the end of that period, as filed with NHTSA. They do not say whether one vehicle has been remedied.\n",
+            table(&rows)
+        ));
+    }
     let vehicles = value["vehicles"]
         .as_array()
         .map(Vec::as_slice)
