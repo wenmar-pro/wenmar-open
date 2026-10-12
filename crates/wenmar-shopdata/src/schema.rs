@@ -540,3 +540,74 @@ pub const COMPLAINT_COLUMNS: [&str; 10] = [
     "with_miles",
     "median_miles",
 ];
+
+/// Fluids read by hand from the maker's own documents: the `fluids`
+/// dataset, built from `data/fluids/*.yaml`.
+///
+/// One row for each model year a record covers, so a reader asks for one
+/// year and joins nothing. `engine_id` is the engine of that model year
+/// the record names, and NULL when the record is for every engine. A
+/// capacity or a charge is stored in both units: the one in
+/// `capacity_unit` or `charge_unit` is the figure the source printed, and
+/// the other was worked out from it at build time.
+pub const FLUIDS: &str = "
+CREATE TABLE IF NOT EXISTS fluid (
+    id            INTEGER PRIMARY KEY,
+    make_id       INTEGER NOT NULL,   -- catalog_make.id
+    model_id      INTEGER NOT NULL,   -- catalog_model.id
+    year          INTEGER NOT NULL,
+    kind          TEXT NOT NULL,      -- 'engine_oil' | 'transmission' | 'coolant' | 'refrigerant' | 'brake'
+    engine_id     INTEGER,            -- catalog_engine.id; NULL when the record names no engine
+    applies_to    TEXT,               -- which transmission or system, in our words; NULL for all
+    grade         TEXT,               -- engine oil viscosity, as the source gives it
+    specification TEXT,               -- the maker's specification or the type of fluid
+    capacity_l    REAL,
+    capacity_qt   REAL,               -- US liquid quarts
+    capacity_unit TEXT,               -- the unit the source printed: 'l' | 'qt'
+    with_filter   INTEGER,            -- 0 or 1; NULL when there is no capacity
+    charge_g      INTEGER,            -- refrigerant charge
+    charge_oz     REAL,
+    charge_unit   TEXT,               -- 'g' | 'kg' | 'oz' | 'lb'
+    market        TEXT,               -- 'us' | 'ca'; NULL when the source is for both
+    source        TEXT NOT NULL,      -- the document read
+    checked       TEXT NOT NULL,      -- the day it was read, 2026-10-12
+    reviewer      TEXT NOT NULL       -- the GitHub name of who compared it with the source
+);
+CREATE INDEX IF NOT EXISTS fluid_ymm ON fluid (make_id, model_id, year);
+";
+
+/// Original-equipment tire fitments read by hand from the door placard
+/// and the owner's manual: the `tires` dataset, built from
+/// `data/tires/*.yaml`.
+///
+/// One row for each fitment and each model year its record covers. A
+/// model year has as many rows as the maker fitted sizes. `trims` is a
+/// JSON list of the trims the source ties the size to, as the source
+/// names them, and `[]` when it names none. Pressures and torque are
+/// whole numbers in both units; `pressure_unit` and `lug_torque_unit`
+/// say which the source printed.
+pub const TIRES: &str = "
+CREATE TABLE IF NOT EXISTS tire_fitment (
+    id                 INTEGER PRIMARY KEY,
+    make_id            INTEGER NOT NULL,
+    model_id           INTEGER NOT NULL,
+    year               INTEGER NOT NULL,
+    size               TEXT NOT NULL,   -- the front size, and the rear when size_rear is NULL
+    size_rear          TEXT,            -- only when the rear differs
+    trims              TEXT NOT NULL,   -- JSON list of text
+    pressure_front_kpa INTEGER,         -- cold
+    pressure_rear_kpa  INTEGER,
+    pressure_front_psi INTEGER,
+    pressure_rear_psi  INTEGER,
+    pressure_unit      TEXT,            -- 'kpa' | 'bar' | 'psi'
+    lug_torque_nm      INTEGER,
+    lug_torque_lbft    INTEGER,
+    lug_torque_unit    TEXT,            -- 'nm' | 'lbft'
+    bolt_pattern       TEXT,            -- studs x pitch circle in millimetres, as the source gives it
+    market             TEXT,
+    source             TEXT NOT NULL,
+    checked            TEXT NOT NULL,
+    reviewer           TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS tire_fitment_ymm ON tire_fitment (make_id, model_id, year);
+";

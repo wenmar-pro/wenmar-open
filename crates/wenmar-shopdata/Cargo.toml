@@ -33,6 +33,10 @@ name = "fuel"
 required-features = ["sqlite"]
 
 [[test]]
+name = "hand"
+required-features = ["sqlite"]
+
+[[test]]
 name = "investigations"
 required-features = ["sqlite"]
 
