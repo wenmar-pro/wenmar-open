@@ -14,8 +14,13 @@ const manifest = JSON.parse(readFileSync(new URL("package.json", ROOT), "utf8"))
 const HOSTED = ["batch.js", "client.js", "errors.js", "index.js", "schema.js", "types.js"];
 const OFFLINE = ["client.js", "engine.js", "index.js", "node.js", "store.js"];
 
-/** The most the WebAssembly may weigh. It was 449,772 bytes before recalls and 542,281 with them. */
-const WASM_BUDGET = 600_000;
+/**
+ * The most the WebAssembly may weigh. It was 449,772 bytes before recalls,
+ * 542,281 with them and 592,497 with the overview and the crash test
+ * ratings. Fuel, specifications, fluids and tire fitments did not fit under
+ * 600,000, and the budget was raised to 800,000 for them.
+ */
+const WASM_BUDGET = 800_000;
 
 function wasmBytes(): Buffer {
   return readFileSync(new URL("dist/offline/wenmar_open.wasm", ROOT));
