@@ -1,0 +1,43 @@
+name: Data correction
+description: A page shows something about a vehicle that is wrong or out of date.
+labels: ["data"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when a page of Wenmar Open shows a wrong or outdated fact. For a VIN that decodes to the wrong vehicle, use the "Wrong decode" form instead.
+
+        This issue is public. Do not include an owner's name, plate or address. The first 11 characters of a VIN are usually enough.
+  - type: input
+    id: page
+    attributes:
+      label: Page address
+      description: The page that shows the error. A link from the site fills this in. For a VIN page only the first 11 characters of the VIN are filled in.
+    validations:
+      required: true
+  - type: input
+    id: vehicle
+    attributes:
+      label: Vehicle
+      description: Year, make and model, and the trim or engine if it matters.
+    validations:
+      required: true
+  - type: input
+    id: field
+    attributes:
+      label: Which figure, if it is one figure
+      description: For example "Drive" or "Engines". Leave empty if it is more than one.
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What is wrong
+      description: What the page shows.
+    validations:
+      required: true
+  - type: textarea
+    id: correct
+    attributes:
+      label: What it should be, and how you know
+      description: Name the source, such as the door placard, the under-hood label, a page of the owner's manual or the manufacturer's site. Describe it in your own words. Do not paste text from a manual, a labour guide or a paid service.
+    validations:
+      required: true
