@@ -18,6 +18,9 @@
 {% if let Some(brief) = recalls -%}
 <tr><th scope="row">Recalls</th><td><a href="{{ brief.href }}">{{ brief.text }}</a></td></tr>
 {% endif -%}
+{% if let Some(brief) = bulletins -%}
+<tr><th scope="row">Bulletins</th><td><a href="{{ brief.href }}">{{ brief.text }}</a></td></tr>
+{% endif -%}
 </tbody>
 </table>
 {% include "investigations_open.html" %}

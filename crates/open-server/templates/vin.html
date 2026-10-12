@@ -68,6 +68,26 @@
 <li><a href="{{ brief.lookup.tc }}">Transport Canada recall search (Canada)</a></li>
 </ul>
 {% endif -%}
+{% if let Some(brief) = bulletins -%}
+<h2 id="bulletins">Manufacturer bulletins</h2>
+{% if brief.count == 0 -%}
+<p>{{ brief.text }} for the {{ brief.name }}, {{ brief.dated }}.</p>
+{% else -%}
+<p>{{ brief.text }} list the {{ brief.name }}. This is a list for the model year, not a check of this VIN: the document says which vehicles a bulletin concerns.</p>
+<p class="note">{% for (name, count) in brief.by_type %}{% if !loop.first %}; {% endif %}{{ name }}: {{ count }}{% endfor %}.</p>
+<table class="prose">
+<caption>Newest bulletins for the {{ brief.name }}, {{ brief.dated }}</caption>
+<tbody>
+{% for line in brief.newest -%}
+<tr><th scope="row"><a class="mono" href="{{ line.href }}">{{ line.label }}</a></th><td>{{ line.date }}. {{ line.kind }}{% if !line.component.is_empty() %}. {{ line.component }}{% endif %}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<ul class="plain links">
+<li><a href="{{ brief.href }}">All bulletins for the {{ brief.name }}</a></li>
+</ul>
+{% endif -%}
+{% endif -%}
 {% include "investigations_open.html" %}
 <ul class="plain links screen">
 {% if let Some(link) = model_year -%}

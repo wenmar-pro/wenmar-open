@@ -601,6 +601,8 @@ struct ModelYearPage {
     links: Option<links::LinkList>,
     /// The line about recalls. `None` on a server that holds none.
     recalls: Option<site::recalls::Brief>,
+    /// The line about bulletins. `None` on a server that holds none.
+    bulletins: Option<site::bulletins::Brief>,
     /// The open NHTSA investigations that list this model year. `None`
     /// when there is none, and on a server that holds none.
     investigations: Option<site::investigations::Notice>,
@@ -792,6 +794,8 @@ pub async fn model_year(
     // On a server that holds recalls, a line about this model year's.
     // Without them the page is as it always was.
     let recalls = site::recalls::brief(&state, &view.entry.id).await;
+    // The same for the manufacturer's bulletins.
+    let bulletins = site::bulletins::brief(&state, &view.entry.id).await;
     // The same for fuel consumption and engine oil.
     let fuel = site::fuel::brief(&state, &view.entry.id).await;
     // On a server that holds crash test ratings, this model year's.
@@ -809,6 +813,12 @@ pub async fn model_year(
         if let Some(brief) = &recalls {
             text.push_str(&format!(
                 "\n## Recalls\n\n[{}]({}.md)\n",
+                brief.text, brief.href
+            ));
+        }
+        if let Some(brief) = &bulletins {
+            text.push_str(&format!(
+                "\n## Bulletins\n\n[{}]({}.md)\n",
                 brief.text, brief.href
             ));
         }
@@ -864,6 +874,7 @@ pub async fn model_year(
             report,
             links,
             recalls,
+            bulletins,
             investigations,
             safety,
             fuel,

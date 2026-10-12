@@ -32,6 +32,7 @@ mod shop;
 mod site;
 mod site_assets;
 mod site_battery_soc;
+mod site_bulletin_lines;
 mod site_bulletins;
 mod site_canada_invoice_tax;
 mod site_catalog;

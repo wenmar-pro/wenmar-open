@@ -854,3 +854,87 @@ pub async fn bulletin(
         },
     )
 }
+
+// ----- a model year's bulletins, in brief -----
+
+/// Bulletins shown where a page says of a model year's bulletins in brief.
+const BRIEF: usize = 3;
+
+/// What another page says of a model year's bulletins: how many there
+/// are, of which types, the newest, and where the whole list is.
+pub struct Brief {
+    /// `2023 Hyundai Kona`.
+    pub name: String,
+    /// The model year's bulletin page.
+    pub href: String,
+    /// `6 manufacturer bulletins on file`, or that none is.
+    pub text: String,
+    pub count: u64,
+    /// Each type with at least one, as `(name, count)`.
+    pub by_type: Vec<(String, u64)>,
+    /// The newest, at most three.
+    pub newest: Vec<Line>,
+    /// `as of 2026-10-11`.
+    pub dated: String,
+}
+
+/// The bulletins of the model year `vehicle_id` names, in brief.
+///
+/// `None` on a server that holds no bulletins, for an id that names no
+/// model year, and when the bulletins could not be read. The page that
+/// asked is then shown exactly as it is without them: they are an addition
+/// to it, never a reason for it to fail.
+pub async fn brief(state: &AppState, vehicle_id: &str) -> Option<Brief> {
+    let shop = state.dataset(Dataset::Bulletins).ok()?;
+    let id = vehicle_id.to_owned();
+    let found = match state.db().run(move |worker| model_year(worker, &id)).await {
+        Ok(Ok(found)) => found?,
+        Ok(Err(error)) => {
+            tracing::warn!(%error, "bulletins left off a page");
+            return None;
+        }
+        Err(error) => {
+            tracing::warn!(%error, "bulletins left off a page");
+            return None;
+        }
+    };
+    // A failure here is logged where it is turned into an `ApiError`.
+    let asked = narrowed(BulletinFilter {
+        limit: Some(BRIEF),
+        ..BulletinFilter::default()
+    })
+    .ok()?;
+    let answer = bulletins_of(state, shop, &found, asked).await.ok()?;
+    let count = answer.counts.count;
+    let text = if count == 0 {
+        "None on file from NHTSA".to_owned()
+    } else {
+        format!(
+            "{} on file",
+            seo::count(
+                usize::try_from(count).unwrap_or(usize::MAX),
+                "manufacturer bulletin"
+            )
+        )
+    };
+    Some(Brief {
+        name: format!(
+            "{} {} {}",
+            answer.vehicle.year, answer.vehicle.make, answer.vehicle.model
+        ),
+        href: format!(
+            "/makes/{}/{}/{}/bulletins",
+            found.make_slug, found.model_slug, answer.vehicle.year
+        ),
+        text,
+        count,
+        by_type: answer
+            .counts
+            .by_type
+            .iter()
+            .map(|entry| (entry.name.clone(), entry.count))
+            .collect(),
+        newest: answer.bulletins.iter().map(line).collect(),
+        dated: dated(answer.as_of.as_ref()),
+    })
+}

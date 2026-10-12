@@ -59,6 +59,9 @@ struct Result {
     /// Recalls that may apply to the model year the VIN decodes to. `None`
     /// on a server that holds none, and for a VIN the catalog cannot place.
     recalls: Option<site::recalls::Brief>,
+    /// The manufacturer's bulletins that list that model year. `None` on a
+    /// server that holds none, and for a VIN the catalog cannot place.
+    bulletins: Option<site::bulletins::Brief>,
     /// The open NHTSA investigations that list that model year. `None`
     /// when there is none, and on a server that holds none.
     investigations: Option<site::investigations::Notice>,
@@ -389,6 +392,10 @@ pub async fn result(
         Some(selection) => site::recalls::brief(&state, &selection.vehicle_id).await,
         None => None,
     };
+    let bulletins = match decode.catalog.as_ref() {
+        Some(selection) => site::bulletins::brief(&state, &selection.vehicle_id).await,
+        None => None,
+    };
     let investigations = match decode.catalog.as_ref() {
         Some(selection) => site::investigations::open_for(&state, &selection.vehicle_id).await,
         None => None,
@@ -420,6 +427,7 @@ pub async fn result(
             pro: site::pro_link("vin-result"),
             report,
             recalls,
+            bulletins,
             card,
             investigations,
         },
