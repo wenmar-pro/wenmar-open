@@ -31,7 +31,7 @@ struct Cli {
 enum Command {
     /// Download a source's files. With no source: a vPIC plain-text dump, extracted.
     Fetch {
-        /// vpic (the default), nhtsa-recalls, tc-recalls, nhtsa-investigations, nhtsa-recall-reports, nhtsa-ratings, nhtsa-vin-guides, epa-vehicles, epa-guide, epa-emissions, nrcan-fuel or nhtsa-mfr-comms.
+        /// vpic (the default), nhtsa-recalls, tc-recalls, nhtsa-investigations, nhtsa-recall-reports, nhtsa-ratings, nhtsa-vin-guides, epa-vehicles, epa-guide, epa-emissions, nrcan-fuel, nhtsa-mfr-comms or nhtsa-complaints.
         source: Option<String>,
         /// vpic only. Release such as 2026_09. Defaults to the newest on NHTSA's page.
         #[arg(long)]
@@ -102,6 +102,9 @@ enum Command {
         /// The fetched nhtsa-mfr-comms directory. Adds the bulletins dataset.
         #[arg(long)]
         nhtsa_mfr_comms: Option<PathBuf>,
+        /// The fetched nhtsa-complaints directory. Adds the complaints dataset.
+        #[arg(long)]
+        nhtsa_complaints: Option<PathBuf>,
         /// Also write a copy for offline use at this path, without the
         /// datasets only the hosted service carries (bulletins).
         #[arg(long)]
@@ -340,6 +343,7 @@ fn main() -> Result<()> {
             epa_emissions,
             nrcan_fuel,
             nhtsa_mfr_comms,
+            nhtsa_complaints,
             offline_out,
         } => {
             let built_at = now();
@@ -366,6 +370,7 @@ fn main() -> Result<()> {
                 epa_emissions,
                 nrcan_fuel,
                 nhtsa_mfr_comms,
+                nhtsa_complaints,
             };
             let summary = build_shop(&catalog, &out, &curated, &info, &inputs)?;
             println!(

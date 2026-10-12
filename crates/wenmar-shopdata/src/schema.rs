@@ -498,3 +498,45 @@ pub const SIBLING_MOST_MODELS: i64 = 4;
 pub const SIBLING_FEWEST_SHARED: i64 = 5;
 /// A pair needs shared documents at least a fifth of the model's total.
 pub const SIBLING_SHARE: i64 = 5;
+
+/// Owner complaints to NHTSA, as counts only: the `complaints` dataset.
+///
+/// One row for each catalog model year and component of
+/// `data/components.yaml` that has a complaint, and one row with
+/// `component_id = ''` that counts every complaint of the model year.
+/// `crashes`, `fires` and `injuries` are how many of the complaints
+/// report one. `median_miles` is the middle mileage at failure among the
+/// `with_miles` complaints that gave one.
+///
+/// Nothing an owner wrote, no place, no VIN and no name is in the file:
+/// these ten columns are everything kept.
+pub const COMPLAINTS: &str = "
+CREATE TABLE complaint_count (
+    make_id      INTEGER NOT NULL,
+    model_id     INTEGER NOT NULL,
+    year         INTEGER NOT NULL,
+    component_id TEXT NOT NULL,
+    complaints   INTEGER NOT NULL,
+    crashes      INTEGER NOT NULL,
+    fires        INTEGER NOT NULL,
+    injuries     INTEGER NOT NULL,
+    with_miles   INTEGER NOT NULL,
+    median_miles INTEGER,
+    PRIMARY KEY (model_id, year, component_id)
+) WITHOUT ROWID;
+";
+
+/// The columns of `complaint_count`, in order. A test holds the table to
+/// exactly these.
+pub const COMPLAINT_COLUMNS: [&str; 10] = [
+    "make_id",
+    "model_id",
+    "year",
+    "component_id",
+    "complaints",
+    "crashes",
+    "fires",
+    "injuries",
+    "with_miles",
+    "median_miles",
+];

@@ -43,6 +43,8 @@ pub struct ShopInputs {
     pub nrcan_fuel: Option<PathBuf>,
     /// `data/build/sources/nhtsa-mfr-comms`.
     pub nhtsa_mfr_comms: Option<PathBuf>,
+    /// `data/build/sources/nhtsa-complaints`.
+    pub nhtsa_complaints: Option<PathBuf>,
 }
 
 /// What the finished file holds.
@@ -164,6 +166,7 @@ fn shape_all(context: &mut ShapeContext<'_>, inputs: &ShopInputs) -> Result<()> 
         epa_emissions,
         nrcan_fuel,
         nhtsa_mfr_comms,
+        nhtsa_complaints,
     } = inputs;
     if let Some(directory) = nhtsa_recalls {
         crate::shop::nhtsa_recalls::shape(context, directory)?;
@@ -201,6 +204,9 @@ fn shape_all(context: &mut ShapeContext<'_>, inputs: &ShopInputs) -> Result<()> 
     if let Some(directory) = nhtsa_mfr_comms {
         crate::shop::mfr_comms::shape(context, directory)?;
     }
+    if let Some(directory) = nhtsa_complaints {
+        crate::shop::complaints::shape(context, directory)?;
+    }
     after_sources(context)
 }
 
@@ -211,7 +217,8 @@ pub fn after_sources(context: &mut ShapeContext<'_>) -> Result<()> {
     let datasets = context.datasets();
     let recalls = datasets.contains(Dataset::RecallsUs) || datasets.contains(Dataset::RecallsCa);
     let bulletins = datasets.contains(Dataset::Bulletins);
-    if recalls || bulletins {
+    let complaints = datasets.contains(Dataset::Complaints);
+    if recalls || bulletins || complaints {
         crate::shop::components::shape(context)?;
     }
     if bulletins {

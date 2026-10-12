@@ -1,0 +1,19 @@
+{
+  "source": "nhtsa-complaints",
+  "fetched_at": "2026-10-12 09:29:00",
+  "as_of": "2026-10-11",
+  "files": [
+    {
+      "name": "FLAT_CMPL.zip",
+      "url": "https://static.nhtsa.gov/odi/ffdd/cmpl/FLAT_CMPL.zip",
+      "last_modified": "Sun, 11 Oct 2026 10:19:00 GMT",
+      "bytes": 1
+    },
+    {
+      "name": "CMPL.txt",
+      "url": "https://static.nhtsa.gov/odi/ffdd/cmpl/CMPL.txt",
+      "last_modified": "Sun, 11 Oct 2026 10:19:00 GMT",
+      "bytes": 1
+    }
+  ]
+}

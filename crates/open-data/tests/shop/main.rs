@@ -3,6 +3,7 @@
 mod build;
 mod bulletins;
 mod common;
+mod complaints;
 mod components;
 mod coverage;
 mod epa_emissions;

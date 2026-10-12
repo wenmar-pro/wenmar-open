@@ -120,6 +120,19 @@ pub const SOURCES: &[FetchSource] = &[
             name: "emissions.csv.zip",
         }],
     },
+    FetchSource {
+        id: "nhtsa-complaints",
+        files: &[
+            FetchFile {
+                url: "https://static.nhtsa.gov/odi/ffdd/cmpl/FLAT_CMPL.zip",
+                name: "FLAT_CMPL.zip",
+            },
+            FetchFile {
+                url: "https://static.nhtsa.gov/odi/ffdd/cmpl/CMPL.txt",
+                name: "CMPL.txt",
+            },
+        ],
+    },
 ];
 
 pub fn find(id: &str) -> Option<&'static FetchSource> {
@@ -438,7 +451,8 @@ mod tests {
                 "nhtsa-recall-reports",
                 "nhtsa-ratings",
                 "epa-vehicles",
-                "epa-emissions"
+                "epa-emissions",
+                "nhtsa-complaints"
             ]
         );
         let names = |id: &str| -> Vec<&str> {
@@ -461,6 +475,7 @@ mod tests {
         assert_eq!(names("nhtsa-investigations"), ["FLAT_INV.zip", "INV.txt"]);
         assert_eq!(names("epa-vehicles"), ["vehicles.csv.zip"]);
         assert_eq!(names("epa-emissions"), ["emissions.csv.zip"]);
+        assert_eq!(names("nhtsa-complaints"), ["FLAT_CMPL.zip", "CMPL.txt"]);
         assert_eq!(
             names("nhtsa-recall-reports"),
             [
@@ -743,6 +758,7 @@ mod tests {
                 "nhtsa-ratings",
                 "epa-vehicles",
                 "epa-emissions",
+                "nhtsa-complaints",
                 "nhtsa-mfr-comms"
             ]
         );

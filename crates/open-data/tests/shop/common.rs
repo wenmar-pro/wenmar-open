@@ -690,3 +690,25 @@ pub fn mfr_comms_dir(scratch: &Scratch) -> PathBuf {
     }
     directory
 }
+
+/// A fetched `nhtsa-complaints` directory made from the fixture, under
+/// `scratch`: the text file zipped under the name `open-data fetch` saves,
+/// with `CMPL.txt` and `source.json` beside it.
+pub fn complaints_dir(scratch: &Scratch) -> PathBuf {
+    use std::io::Write;
+
+    let directory = scratch.path("sources/nhtsa-complaints");
+    std::fs::create_dir_all(&directory).unwrap();
+    let bytes = std::fs::read(fixture("nhtsa-complaints").join("FLAT_CMPL.txt")).unwrap();
+    let file = std::fs::File::create(directory.join("FLAT_CMPL.zip")).unwrap();
+    let mut archive = zip::ZipWriter::new(file);
+    archive
+        .start_file("FLAT_CMPL.txt", zip::write::SimpleFileOptions::default())
+        .unwrap();
+    archive.write_all(&bytes).unwrap();
+    archive.finish().unwrap();
+    for name in ["CMPL.txt", "source.json"] {
+        std::fs::copy(fixture("nhtsa-complaints").join(name), directory.join(name)).unwrap();
+    }
+    directory
+}
