@@ -23,3 +23,7 @@ sqlite = ["dep:rusqlite"]
 [[test]]
 name = "shop"
 required-features = ["sqlite"]
+
+[[test]]
+name = "recalls"
+required-features = ["sqlite"]
