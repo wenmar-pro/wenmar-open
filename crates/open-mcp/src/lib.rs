@@ -50,7 +50,7 @@ pub enum Era {
 pub const SERVER_NAME: &str = "wenmar-open";
 
 /// What a model is told about the server as a whole.
-pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. Use wenmar_recalls to list the recall campaigns from NHTSA and Transport Canada that may apply to a model year. A recall listed may apply: only the manufacturer can confirm it for one VIN. Every call is read-only and needs no key.";
+pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. The overview action of either gives everything held for one vehicle in one answer. Use wenmar_recalls to list the recall campaigns from NHTSA and Transport Canada that may apply to a model year. A recall listed may apply: only the manufacturer can confirm it for one VIN. Every call is read-only and needs no key.";
 
 /// The names of the tools, in the order `tools/list` gives them.
 pub const TOOL_NAMES: [&str; 3] = ["wenmar_vin", "wenmar_vehicles", "wenmar_recalls"];
@@ -118,11 +118,11 @@ pub fn tools() -> Value {
         {
             "name": "wenmar_vin",
             "title": "VIN decoder",
-            "description": "Decode vehicle identification numbers into year, make, model, trim, engine, drivetrain, safety equipment and the matching catalog entry. action=decode takes `vin` (and optionally `year` to override the model year). action=batch takes `vins`, at most 50, and returns one result per VIN in order. A wrong check digit is not an error: the result has valid=false and a warning.",
+            "description": "Decode vehicle identification numbers into year, make, model, trim, engine, drivetrain, safety equipment and the matching catalog entry. action=decode takes `vin` (and optionally `year` to override the model year). action=batch takes `vins`, at most 50, and returns one result per VIN in order. A wrong check digit is not an error: the result has valid=false and a warning. action=overview takes `vin` (and optionally `year`) and gives everything held for the model year the VIN decodes to in one answer: the decode in brief, a count of the recall campaigns that may apply to that year, make and model with the three newest, and links. A block with no data is null.",
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "action": { "type": "string", "enum": ["decode", "batch"] },
+                    "action": { "type": "string", "enum": ["decode", "batch", "overview"] },
                     "vin": { "type": "string", "description": "A 17-character VIN. Spaces and dashes are ignored." },
                     "vins": { "type": "array", "items": { "type": "string" }, "maxItems": 50 },
                     "year": { "type": "integer", "description": "Model year to use instead of the one worked out from the VIN." }
@@ -134,11 +134,11 @@ pub fn tools() -> Value {
         {
             "name": "wenmar_vehicles",
             "title": "Vehicle catalog",
-            "description": "Look up vehicles by year, make, model, submodel and engine. Actions: years; makes (optional `year`); models (`make`, optional `year`); submodels (`make`, `model`, `year`); engines (`make`, `model`, `year`, optional `submodel`); search (`query`, such as \"2019 civic si\" or \"chevy 1500\"); entry (`id`, such as \"2019_honda_civic_si\"). `make` and `model` take a name, an alias or an id. `term` narrows a list to names starting with it. `scope` is light (cars, MPVs and trucks; the default), all, or a vPIC vehicle type id.",
+            "description": "Look up vehicles by year, make, model, submodel and engine. Actions: years; makes (optional `year`); models (`make`, optional `year`); submodels (`make`, `model`, `year`); engines (`make`, `model`, `year`, optional `submodel`); search (`query`, such as \"2019 civic si\" or \"chevy 1500\"); entry (`id`, such as \"2019_honda_civic_si\"); overview (`id`: everything held for that model year in one answer, with a count of the recall campaigns that may apply and the three newest; a block with no data is null); model_years (`make`, `model`: every model year of one model, newest first, each with its vehicle id and the number of recall campaigns that may apply). `make` and `model` take a name, an alias or an id. `term` narrows a list to names starting with it. `scope` is light (cars, MPVs and trucks; the default), all, or a vPIC vehicle type id.",
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "action": { "type": "string", "enum": ["years", "makes", "models", "submodels", "engines", "search", "entry"] },
+                    "action": { "type": "string", "enum": ["years", "makes", "models", "submodels", "engines", "search", "entry", "overview", "model_years"] },
                     "year": { "type": "integer" },
                     "make": { "type": "string" },
                     "model": { "type": "string" },
@@ -156,11 +156,11 @@ pub fn tools() -> Value {
         {
             "name": "wenmar_recalls",
             "title": "Recalls",
-            "description": "Recall campaigns from NHTSA (United States) and Transport Canada that may apply to a vehicle. A campaign lists a year, a make and a model, so every answer has may_apply: true. It may apply; confirm by VIN with the manufacturer, or at the addresses in `lookup`. This is never a lookup by VIN. action=vehicle takes `id`, a vehicle id such as \"2018_ford_f-150\". action=vin takes `vin` (and optionally `year`): it decodes the VIN and lists the recalls of its model year. action=campaign takes `source` (nhtsa or tc) and `campaign`, such as \"19V888000\", and gives that campaign with every vehicle it lists. action=search lists campaigns newest first, narrowed by any of `make`, `model` (needs `make`), `year`, `component` and `query` (free text); `limit` is at most 100 and 25 when left out; `cursor` is `next_cursor` of the page before. `country` is us or ca on every action but campaign; left out, both.",
+            "description": "Recall campaigns from NHTSA (United States) and Transport Canada that may apply to a vehicle. A campaign lists a year, a make and a model, so every answer has may_apply: true. It may apply; confirm by VIN with the manufacturer, or at the addresses in `lookup`. This is never a lookup by VIN. action=vehicle takes `id`, a vehicle id such as \"2018_ford_f-150\". action=vin takes `vin` (and optionally `year`): it decodes the VIN and lists the recalls of its model year. action=campaign takes `source` (nhtsa or tc) and `campaign`, such as \"19V888000\", and gives that campaign with every vehicle it lists. action=search lists campaigns newest first, narrowed by any of `make`, `model` (needs `make`), `year`, `component` and `query` (free text); `limit` is at most 100 and 25 when left out; `cursor` is `next_cursor` of the page before. action=recent takes `since`, a day such as \"2026-09-01\", and lists the campaigns reported on or after it, newest first, each with the vehicles it lists; it also takes `make`, `limit` and `cursor`. `country` is us or ca on every action but campaign; left out, both.",
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "action": { "type": "string", "enum": ["vehicle", "vin", "campaign", "search"] },
+                    "action": { "type": "string", "enum": ["vehicle", "vin", "campaign", "search", "recent"] },
                     "id": { "type": "string", "description": "A vehicle id, such as 2018_ford_f-150." },
                     "vin": { "type": "string", "description": "A 17-character VIN. Spaces and dashes are ignored." },
                     "year": { "type": "integer", "description": "For vin: the model year to use. For search: only campaigns that list this model year." },
@@ -172,7 +172,8 @@ pub fn tools() -> Value {
                     "query": { "type": "string" },
                     "country": { "type": "string", "enum": ["us", "ca"] },
                     "limit": { "type": "integer" },
-                    "cursor": { "type": "string" }
+                    "cursor": { "type": "string" },
+                    "since": { "type": "string", "description": "For recent: a day, such as 2026-09-01. Campaigns reported on or after it are listed." }
                 },
                 "required": ["action"]
             },
@@ -402,10 +403,52 @@ mod tests {
         }
         assert_eq!(
             tool["inputSchema"]["properties"]["action"]["enum"],
-            json!(["vehicle", "vin", "campaign", "search"])
+            json!(["vehicle", "vin", "campaign", "search", "recent"])
         );
         assert!(INSTRUCTIONS.contains("wenmar_recalls"));
         assert!(INSTRUCTIONS.contains("may apply"));
+    }
+
+    #[test]
+    fn the_overview_actions_are_on_the_three_tools_and_no_tool_was_added() {
+        let tools = tools();
+        let tool = |name: &str| {
+            tools
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|tool| tool["name"] == name)
+                .unwrap()
+                .clone()
+        };
+        let actions = |name: &str| {
+            tool(name)["inputSchema"]["properties"]["action"]["enum"]
+                .as_array()
+                .unwrap()
+                .clone()
+        };
+        assert_eq!(TOOL_NAMES.len(), 3);
+        assert!(actions("wenmar_vin").contains(&json!("overview")));
+        for action in ["entry", "overview", "model_years"] {
+            assert!(
+                actions("wenmar_vehicles").contains(&json!(action)),
+                "{action}"
+            );
+        }
+        assert_eq!(
+            tool("wenmar_recalls")["inputSchema"]["properties"]["since"]["type"],
+            "string"
+        );
+        // An overview counts the recalls that may apply. It says no more.
+        for name in ["wenmar_vin", "wenmar_vehicles"] {
+            let described = tool(name);
+            let description = described["description"].as_str().unwrap();
+            assert!(description.contains("overview"), "{name}");
+            assert!(description.contains("may apply"), "{name}");
+            for claim in ["applies to", "is affected", "open recall", "your vehicle"] {
+                assert!(!description.contains(claim), "{name}: {claim}");
+            }
+        }
     }
 
     #[test]
