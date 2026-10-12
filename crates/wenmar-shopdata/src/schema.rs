@@ -135,3 +135,72 @@ CREATE TABLE IF NOT EXISTS recall_report (
     removed       INTEGER NOT NULL
 );
 ";
+
+/// NHTSA's crash test ratings, the `ratings` dataset.
+///
+/// `rating` holds one row for each vehicle NHTSA rated or listed: a make,
+/// a model, a model year, a body style and a drive, in NHTSA's words. One
+/// model year often has several. A star column holds 1 to 5, or NULL where
+/// NHTSA gave no rating. A feature column holds `standard`, `optional`,
+/// `both` or `no`, and an evaluation column `meets`, `does_not_meet`,
+/// `standard_only`, `upgrade_only` or `pending`; NULL where the source
+/// does not say. `rollover_risk_permille` is in thousandths: 191 is 19.1%.
+/// `notes` holds NHTSA's safety concerns and footnotes, one to a line.
+///
+/// `rating_vehicle` ties a rating to the catalog: one row for each catalog
+/// model its name matched, or one with a NULL model when it matched none.
+/// `\"match\"` is `exact`, `base` or `curated`, and NULL exactly when
+/// `model_id` is NULL.
+pub const RATINGS: &str = "
+CREATE TABLE IF NOT EXISTS rating (
+    id                     INTEGER PRIMARY KEY,
+    year                   INTEGER NOT NULL,
+    make_text              TEXT NOT NULL,
+    model_text             TEXT NOT NULL,
+    body_style             TEXT,
+    vehicle_type           TEXT,
+    drive                  TEXT,
+    release                INTEGER NOT NULL,
+    overall                INTEGER,
+    frontal                INTEGER,
+    frontal_driver         INTEGER,
+    frontal_passenger      INTEGER,
+    side                   INTEGER,
+    side_driver            INTEGER,
+    side_passenger         INTEGER,
+    side_barrier           INTEGER,
+    side_front_seat        INTEGER,
+    side_rear_seat         INTEGER,
+    side_pole              INTEGER,
+    rollover               INTEGER,
+    rollover_risk_permille INTEGER,
+    rollover_tip           INTEGER,
+    curb_weight_lb         INTEGER,
+    esc                    TEXT,
+    fcw                    TEXT,
+    fcw_evaluation         TEXT,
+    ldw                    TEXT,
+    ldw_evaluation         TEXT,
+    cib                    TEXT,
+    cib_evaluation         TEXT,
+    dbs                    TEXT,
+    dbs_evaluation         TEXT,
+    backup_camera          TEXT,
+    blind_spot_detection   TEXT,
+    head_side_airbag       TEXT,
+    torso_side_airbag      TEXT,
+    notes                  TEXT
+);
+
+CREATE TABLE IF NOT EXISTS rating_vehicle (
+    rating_id  INTEGER NOT NULL,
+    year       INTEGER,
+    make_id    INTEGER,
+    model_id   INTEGER,
+    make_text  TEXT NOT NULL,
+    model_text TEXT NOT NULL,
+    \"match\"    TEXT
+);
+CREATE INDEX IF NOT EXISTS rating_vehicle_ymm ON rating_vehicle (make_id, model_id, year);
+CREATE INDEX IF NOT EXISTS rating_vehicle_rating ON rating_vehicle (rating_id);
+";

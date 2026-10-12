@@ -303,3 +303,15 @@ pub fn nhtsa_recall_reports_dir(scratch: &Scratch) -> PathBuf {
     }
     directory
 }
+
+/// A fetched `nhtsa-ratings` directory made from the fixture, under
+/// `scratch`: the CSV under the name `open-data fetch` saves, and
+/// `source.json`.
+pub fn nhtsa_ratings_dir(scratch: &Scratch) -> PathBuf {
+    let directory = scratch.path("sources/nhtsa-ratings");
+    std::fs::create_dir_all(&directory).unwrap();
+    for name in ["Safercar_data.csv", "source.json"] {
+        std::fs::copy(fixture("nhtsa-ratings").join(name), directory.join(name)).unwrap();
+    }
+    directory
+}

@@ -56,6 +56,10 @@ pub const TABLES: &[CoverageTable] = &[
         dataset: Dataset::Investigations,
         table: "investigation_vehicle",
     },
+    CoverageTable {
+        dataset: Dataset::Ratings,
+        table: "rating_vehicle",
+    },
 ];
 
 /// A name that matched no catalog model, and how many rows carry it.

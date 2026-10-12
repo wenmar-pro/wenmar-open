@@ -186,7 +186,8 @@ jobs:
             --nhtsa-recalls data/build/sources/nhtsa-recalls \
             --tc-recalls data/build/sources/tc-recalls \
             --nhtsa-investigations data/build/sources/nhtsa-investigations \
-            --nhtsa-recall-reports data/build/sources/nhtsa-recall-reports | tee build.txt
+            --nhtsa-recall-reports data/build/sources/nhtsa-recall-reports \
+            --nhtsa-ratings data/build/sources/nhtsa-ratings | tee build.txt
 
       - name: Check how much matched the catalog
         if: steps.pick.outputs.exists == 'false'

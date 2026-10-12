@@ -5,6 +5,7 @@ mod common;
 mod coverage;
 mod matcher;
 mod nhtsa_investigations;
+mod nhtsa_ratings;
 mod nhtsa_recall_reports;
 mod nhtsa_recalls;
 mod recalls;
