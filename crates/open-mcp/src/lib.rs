@@ -134,11 +134,11 @@ pub fn tools() -> Value {
         {
             "name": "wenmar_vehicles",
             "title": "Vehicle catalog",
-            "description": "Look up vehicles by year, make, model, submodel and engine. Actions: years; makes (optional `year`); models (`make`, optional `year`); submodels (`make`, `model`, `year`); engines (`make`, `model`, `year`, optional `submodel`); search (`query`, such as \"2019 civic si\" or \"chevy 1500\"); entry (`id`, such as \"2019_honda_civic_si\"); overview (`id`: everything held for that model year in one answer, with a count of the recall campaigns that may apply and the three newest; a block with no data is null); model_years (`make`, `model`: every model year of one model, newest first, each with its vehicle id and the number of recall campaigns that may apply). `make` and `model` take a name, an alias or an id. `term` narrows a list to names starting with it. `scope` is light (cars, MPVs and trucks; the default), all, or a vPIC vehicle type id.",
+            "description": "Look up vehicles by year, make, model, submodel and engine. Actions: years; makes (optional `year`); models (`make`, optional `year`); submodels (`make`, `model`, `year`); engines (`make`, `model`, `year`, optional `submodel`); search (`query`, such as \"2019 civic si\" or \"chevy 1500\"); entry (`id`, such as \"2019_honda_civic_si\"); overview (`id`: everything held for that model year in one answer, with a count of the recall campaigns that may apply and the three newest; a block with no data is null); model_years (`make`, `model`: every model year of one model, newest first, each with its vehicle id and the number of recall campaigns that may apply); safety (`id`: NHTSA's crash test ratings for that model year, one entry for each vehicle NHTSA rated, by body style and drive, each with its stars; an entry with no stars is a vehicle NHTSA lists and has not tested). `make` and `model` take a name, an alias or an id. `term` narrows a list to names starting with it. `scope` is light (cars, MPVs and trucks; the default), all, or a vPIC vehicle type id.",
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "action": { "type": "string", "enum": ["years", "makes", "models", "submodels", "engines", "search", "entry", "overview", "model_years"] },
+                    "action": { "type": "string", "enum": ["years", "makes", "models", "submodels", "engines", "search", "entry", "overview", "model_years", "safety"] },
                     "year": { "type": "integer" },
                     "make": { "type": "string" },
                     "model": { "type": "string" },
@@ -449,6 +449,27 @@ mod tests {
                 assert!(!description.contains(claim), "{name}: {claim}");
             }
         }
+    }
+
+    #[test]
+    fn the_vehicles_tool_has_a_safety_action_for_nhtsas_ratings() {
+        let tools = tools();
+        let tool = tools
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|tool| tool["name"] == "wenmar_vehicles")
+            .unwrap();
+        let actions = tool["inputSchema"]["properties"]["action"]["enum"]
+            .as_array()
+            .unwrap();
+        assert!(actions.contains(&json!("safety")), "{actions:?}");
+        assert!(actions.contains(&json!("entry")), "{actions:?}");
+        let description = tool["description"].as_str().unwrap();
+        assert!(description.contains("safety (`id`"), "{description}");
+        assert!(description.contains("NHTSA"), "{description}");
+        // An action of a tool that exists: no tool was added.
+        assert_eq!(TOOL_NAMES.len(), 3);
     }
 
     #[test]
