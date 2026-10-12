@@ -516,3 +516,226 @@ impl From<vehicles::Selection> for Selection {
         }
     }
 }
+
+// ----- recalls -----
+
+/// Where to check one vehicle for open recalls. Neither government
+/// publishes recalls by VIN as data, so no answer here can say a recall
+/// applies to a VIN: these lookups can.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct RecallLookup {
+    /// NHTSA's lookup by VIN, for the United States.
+    #[schema(example = "https://www.nhtsa.gov/recalls")]
+    pub nhtsa: String,
+    /// Transport Canada's recall search, for Canada.
+    pub tc: String,
+    /// The maker's own lookup by VIN, where one is on file.
+    pub maker: Option<String>,
+}
+
+/// The day each country's recall data was current. `null` for a country
+/// this server holds no recalls for.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct RecallAsOf {
+    #[schema(example = "2026-10-11")]
+    pub us: Option<String>,
+    #[schema(example = "2026-10-11")]
+    pub ca: Option<String>,
+}
+
+/// The model year an answer is about.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct RecallVehicle {
+    /// The id of the year, make and model.
+    #[schema(example = "2018_ford_f-150")]
+    pub id: String,
+    pub year: u16,
+    #[schema(example = "Ford")]
+    pub make: String,
+    #[schema(example = "F-150")]
+    pub model: String,
+}
+
+/// One recall campaign in a list.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct Recall {
+    /// Who published it: `nhtsa` or `tc` (Transport Canada).
+    #[schema(example = "nhtsa")]
+    pub source: String,
+    /// `us` or `ca`.
+    #[schema(example = "us")]
+    pub country: String,
+    /// The publisher's campaign number.
+    #[schema(example = "21V983000")]
+    pub campaign: String,
+    /// The day the campaign was reported.
+    #[schema(example = "2021-12-16")]
+    pub date: Option<String>,
+    pub manufacturer: Option<String>,
+    /// The component, as the source words it.
+    #[schema(example = "LATCHES/LOCKS/LINKAGES:TAILGATE:LATCH")]
+    pub component: Option<String>,
+    /// What is wrong, in the source's words.
+    pub summary: Option<String>,
+    /// The manufacturer's own campaign number, which a dealer looks a
+    /// recall up by.
+    #[schema(example = "21S53")]
+    pub mfr_campaign: Option<String>,
+    /// Units potentially affected.
+    pub units: Option<u32>,
+    /// NHTSA's advisory not to drive the vehicle until it is repaired.
+    /// `null` for a Canadian campaign: Transport Canada publishes no such
+    /// field.
+    pub do_not_drive: Option<bool>,
+    /// NHTSA's advisory to park outside, away from buildings.
+    pub park_outside: Option<bool>,
+    /// Transport Canada's notification type, such as `Safety Mfr`.
+    pub notification: Option<String>,
+    /// In an answer about one model year: how the campaign's vehicle text
+    /// reached that model. `exact`, `base` (the campaign names a series or
+    /// trim of it) or `curated`. `null` in a list that is not about one
+    /// model year.
+    #[serde(rename = "match")]
+    #[schema(example = "exact")]
+    pub matched: Option<String>,
+    /// In an answer about one model year: the model names the campaign
+    /// lists that reached it.
+    pub models: Vec<String>,
+    /// In an answer about one model year: the first and last build date
+    /// the campaign gives. Compare them with the date on the door sticker.
+    pub built_from: Option<String>,
+    pub built_to: Option<String>,
+    /// The campaign's page on this site.
+    #[schema(example = "https://open.wenmarpro.com/recalls/nhtsa/21V983000")]
+    pub url: String,
+}
+
+/// Recalls that may apply to one model year.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct VehicleRecalls {
+    pub vehicle: RecallVehicle,
+    /// Always `true`. A campaign lists a year, make and model; only the
+    /// manufacturer can say whether one vehicle is in it. Check the VIN at
+    /// the addresses in `lookup`.
+    pub may_apply: bool,
+    pub as_of: RecallAsOf,
+    /// Newest first. Empty when none was found as of the dates in `as_of`.
+    pub recalls: Vec<Recall>,
+    pub lookup: RecallLookup,
+    /// The credit lines the data's licences ask for.
+    pub attribution: Vec<String>,
+}
+
+/// What a VIN decoded to, as far as recalls need it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct RecallDecode {
+    #[schema(example = "KM8K2CAB4PU001140")]
+    pub vin: String,
+    /// Whether the check digit is right.
+    pub valid: bool,
+    pub year: Option<u16>,
+    pub make: Option<String>,
+    pub model: Option<String>,
+    pub trim: Option<String>,
+}
+
+/// Recalls that may apply to the year, make and model a VIN decodes to.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct VinRecalls {
+    pub decode: RecallDecode,
+    /// The model year the recalls are for. `null` when the VIN does not
+    /// decode to a vehicle in the catalog; `recalls` is then empty and a
+    /// warning says so.
+    pub vehicle: Option<RecallVehicle>,
+    /// Always `true`. This is not a lookup by VIN: the list is for the
+    /// model year, and the VIN only names it.
+    pub may_apply: bool,
+    pub as_of: RecallAsOf,
+    pub recalls: Vec<Recall>,
+    pub lookup: RecallLookup,
+    pub attribution: Vec<String>,
+    /// The decode's warnings, and `no_catalog_vehicle` when the VIN names
+    /// no model year to list recalls for.
+    pub warnings: Vec<Warning>,
+}
+
+/// One vehicle a campaign lists.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct RecallCampaignVehicle {
+    pub year: Option<u16>,
+    /// The make and model as the source words them.
+    #[schema(example = "CHEVROLET")]
+    pub make: String,
+    #[schema(example = "SILVERADO 1500")]
+    pub model: String,
+    /// The catalog's id for the model year, when the model matched.
+    #[schema(example = "2019_chevrolet_silverado")]
+    pub vehicle_id: Option<String>,
+    /// `exact`, `base` or `curated`; `null` when the model is not in the
+    /// catalog, as for most heavy trucks, buses and trailers.
+    #[serde(rename = "match")]
+    #[schema(example = "base")]
+    pub matched: Option<String>,
+    pub built_from: Option<String>,
+    pub built_to: Option<String>,
+}
+
+/// Transport Canada's French text for a campaign.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct RecallFrench {
+    pub component: Option<String>,
+    pub notification: Option<String>,
+    pub summary: Option<String>,
+}
+
+/// One campaign with every vehicle it lists.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct RecallCampaign {
+    #[schema(example = "nhtsa")]
+    pub source: String,
+    #[schema(example = "us")]
+    pub country: String,
+    #[schema(example = "19V888000")]
+    pub campaign: String,
+    pub date: Option<String>,
+    /// The day owners were notified.
+    pub owner_notified: Option<String>,
+    pub manufacturer: Option<String>,
+    pub component: Option<String>,
+    pub summary: Option<String>,
+    pub consequence: Option<String>,
+    pub remedy: Option<String>,
+    pub notes: Option<String>,
+    pub mfr_campaign: Option<String>,
+    /// The manufacturer's part numbers, separated by commas.
+    pub part_number: Option<String>,
+    pub units: Option<u32>,
+    pub do_not_drive: Option<bool>,
+    pub park_outside: Option<bool>,
+    pub notification: Option<String>,
+    /// `null` for a US campaign and for a Canadian one with no French text.
+    pub french: Option<RecallFrench>,
+    /// Every vehicle the campaign lists, by make, model and year.
+    pub vehicles: Vec<RecallCampaignVehicle>,
+    /// Always `true`: the campaign may apply to a vehicle it lists.
+    pub may_apply: bool,
+    /// The day this publisher's data was current.
+    pub as_of: Option<String>,
+    pub lookup: RecallLookup,
+    pub attribution: Vec<String>,
+    /// The campaign's page on this site.
+    pub url: String,
+}
+
+/// One page of campaigns, newest first.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct RecallList {
+    /// Always `true`: a campaign may apply to the vehicles it lists.
+    pub may_apply: bool,
+    pub as_of: RecallAsOf,
+    pub recalls: Vec<Recall>,
+    /// Hand this back as `cursor` for the next page. `null` on the last.
+    pub next_cursor: Option<String>,
+    pub lookup: RecallLookup,
+    pub attribution: Vec<String>,
+}

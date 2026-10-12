@@ -536,6 +536,62 @@ impl Hold {
     }
 }
 
+// ----- recalls -----
+
+/// The credit line the Canadian recall fixture carries.
+pub const OGL_CANADA: &str =
+    "Contains information licensed under the Open Government Licence – Canada.";
+
+/// The `datasets` value of the recall fixture: both countries, then each
+/// country alone.
+pub const RECALL_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":7,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":2,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence – Canada."}}"#;
+pub const RECALL_DATASETS_US: &str =
+    r#"{"recalls_us":{"as_of":"2026-10-11","rows":7,"licence":"public-domain","attribution":""}}"#;
+pub const RECALL_DATASETS_CA: &str = r#"{"recalls_ca":{"as_of":"2026-10-06","rows":2,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence – Canada."}}"#;
+
+/// Nine campaigns against the small data file's catalog. The columns are
+/// those of `wenmar_shopdata::schema::RECALLS`, in order. The Kona of
+/// model year 2023, which [`KONA`] decodes to, has four: one with the "do
+/// not drive" advisory, one with "park outside" and one Canadian. A
+/// trailer has one, a campaign has HTML where its names should be, and one
+/// old campaign lists a vehicle with no year that matched nothing.
+pub const RECALL_INSERTS: &str = r#"
+INSERT INTO recall VALUES
+  (1, 'nhtsa', '19V888000', 'General Motors LLC', '2019-12-12', '2020-03-09', 'ELECTRICAL SYSTEM:12V/24V/48V BATTERY:CABLES', NULL, NULL, NULL, 'The battery cable nut may be loose.', 'A fire may start.', 'Dealers will tighten the nut.', NULL, NULL, 'N192273510', NULL, 350371, 0, 0),
+  (2, 'nhtsa', '22V789000', 'Hyundai Motor America', '2022-11-20', '2023-01-15', 'SEAT BELTS:FRONT:BUCKLE ASSEMBLY', NULL, NULL, NULL, 'The seat belt buckle may not latch.', 'An occupant may not be restrained.', 'Dealers will replace the buckle.', NULL, NULL, '232', NULL, 1200, 0, 0),
+  (3, 'nhtsa', '23V123000', 'Hyundai Motor America', '2023-03-02', '2023-04-20', 'ELECTRICAL SYSTEM:WIRING; EXTERIOR LIGHTING:HEADLIGHTS', NULL, NULL, NULL, 'A wiring harness may overheat.', 'A fire may start while the vehicle is parked.', 'Dealers will replace the harness.', 'Owners may call Hyundai.', NULL, '240', '91850-J9000, 91850-J9010', 5000, 0, 1),
+  (4, 'nhtsa', '24V456000', 'Hyundai Motor America', '2024-05-10', '2024-06-30', 'SERVICE BRAKES, HYDRAULIC:ANTILOCK/TRACTION CONTROL/ELECTRONIC LIMITED SLIP', NULL, NULL, NULL, 'The brake control unit may fail.', 'Braking distance may increase.', 'Dealers will replace the unit.', NULL, NULL, '257', NULL, 800, 1, 0),
+  (5, 'nhtsa', '19V500000', 'Ranger Trailer Works', '2019-07-01', NULL, 'TRAILER HITCHES', NULL, NULL, NULL, 'The hitch may crack.', 'The trailer may separate.', 'Dealers will replace the hitch.', NULL, NULL, NULL, NULL, 40, 0, 0),
+  (6, 'nhtsa', '19V600000', 'B&B <script>alert(1)</script>', '2019-08-01', NULL, '<b>Bold</b> SYSTEM:PART', NULL, NULL, NULL, 'A part named <script>alert(1)</script> may fail.', 'It may fail <img src=x onerror=alert(1)>.', 'Dealers will replace it.', NULL, NULL, '"><img src=x onerror=alert(1)>', NULL, 7, 0, 0),
+  (7, 'nhtsa', '68V023000', 'CHRYSLER CORPORATION', '1968-03-19', '1968-03-14', 'SERVICE BRAKES, HYDRAULIC:FOUNDATION COMPONENTS:HOSES, LINES/PIPING, AND FITTINGS', NULL, NULL, NULL, NULL, NULL, NULL, 'POSSIBILITY THE FRONT WHEEL FLEXIBLE BRAKE HOSE WAS IMPROPERLY INSTALLED.', NULL, NULL, NULL, 2800, 0, 0),
+  (8, 'tc', '2019631', NULL, '2019-12-12', NULL, 'Electrical', 'Circuit électrique', 'Safety Mfr', 'Sécurité - fabricant', 'Issue:' || char(10) || 'The nut may be loose.', NULL, NULL, NULL, 'Problème :' || char(10) || 'Un écrou peut être desserré.', 'N192273510', NULL, 24289, NULL, NULL),
+  (9, 'tc', '2023101', NULL, '2023-03-10', NULL, 'Electrical', 'Circuit électrique', 'Safety Mfr', 'Sécurité - fabricant', 'Issue:' || char(10) || 'A wiring harness may overheat.', NULL, NULL, NULL, 'Problème :' || char(10) || 'Un faisceau peut surchauffer.', '240', NULL, 410, NULL, NULL);
+INSERT INTO recall_vehicle VALUES
+  (1, 2019, 467, 1850, 'CHEVROLET', 'SILVERADO 1500', 'base', '2018-07-11', '2019-11-22'),
+  (1, 2019, NULL, NULL, 'GMC', 'SIERRA 1500', NULL, '2018-07-11', '2019-11-22'),
+  (2, 2022, 498, 900, 'HYUNDAI', 'KONA', 'exact', NULL, NULL),
+  (2, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact', NULL, NULL),
+  (3, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact', '2022-09-01', '2023-01-31'),
+  (4, 2023, 498, 900, 'HYUNDAI', 'KONA ELECTRIC', 'base', NULL, NULL),
+  (5, 2019, 5000, 9100, 'RANGER TRAILERS', 'TILT DECK', 'exact', NULL, NULL),
+  (6, 2019, 6000, 9500, 'B&B <script>alert(1)</script>', 'Model "<img src=x onerror=alert(1)>', 'exact', NULL, NULL),
+  (7, NULL, NULL, NULL, 'JEEP', 'WAGONEER', NULL, NULL, NULL),
+  (8, 2019, 467, 1850, 'CHEVROLET', 'SILVERADO', 'exact', NULL, NULL),
+  (9, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact', NULL, NULL);
+"#;
+
+/// The recall tables and [`RECALL_INSERTS`], as `rows` for
+/// [`app_with_shop`].
+pub fn recall_rows() -> String {
+    format!("{}{RECALL_INSERTS}", wenmar_shopdata::schema::RECALLS)
+}
+
+/// The application over the small data file and a shop file holding the
+/// recalls of both countries.
+pub async fn recalls_app() -> TestApp {
+    app_with_shop(RECALL_DATASETS, &recall_rows()).await
+}
+
 // ----- helpers for the pages -----
 
 /// `GET`s a page and reads its body as text.
