@@ -1,6 +1,6 @@
 # wenmar-open
 
-A typed client for the [Wenmar Open](https://open.wenmarpro.com) API: VIN decoding and a year, make, model, trim and engine catalog for auto repair shops. The API needs no key and no account.
+A typed client for the [Wenmar Open](https://open.wenmarpro.com) API: VIN decoding, a year, make, model, trim and engine catalog, and the recall campaigns that may apply to a model year, for auto repair shops. The API needs no key and no account.
 
 - No dependencies. It uses the platform's `fetch`.
 - An [offline mode](#offline) that decodes from a data file with no network.
@@ -72,6 +72,7 @@ try {
 | `invalid_vin` | 400 | Wrong length or characters. `details.suggestions` lists likely corrections. |
 | `validation_failed` | 400 | A parameter is missing or wrong. `details.field` names it. |
 | `not_found` | 404 | No manufacturer for the VIN, or no vehicle with that id. |
+| `dataset_unavailable` | 404 | The server holds no data of that kind, such as recalls. `details.dataset` names it. |
 | `rate_limited` | 429 | Over 600 requests a minute from one address. `retryAfter` is in seconds. |
 | `unavailable` | 503 | The server is busy. `retryAfter` is in seconds. |
 | `internal_error` | 500 | Something went wrong on the server. |
@@ -139,6 +140,65 @@ console.log(same.summary);
 ```
 
 A decoded VIN carries the same ids in `catalog`, so a VIN can fill in a vehicle form: `vehicle.catalog?.entry.id`.
+
+## Recalls
+
+Recall campaigns from NHTSA (United States) and Transport Canada. A campaign lists a year, a make and a model, so an answer is about a model year and never about one vehicle. Every answer has `may_apply: true`, and `lookup` gives the official addresses where a VIN can be checked. Neither government publishes recalls by VIN as data: say "may apply" where you show these, and send people to `lookup` to confirm.
+
+```ts
+import { WenmarOpen } from "wenmar-open";
+
+const open = new WenmarOpen();
+
+// By vehicle id, or by VIN. The VIN only names the model year.
+const byId = await open.recalls("2018_ford_f-150", { country: "us" });
+const byVin = await open.vinRecalls("KM8K2CAB4PU001140");
+
+for (const recall of byVin.recalls) {
+  console.log(recall.date, recall.source, recall.campaign, recall.component);
+  if (recall.do_not_drive) console.log("NHTSA advises not driving it until it is repaired.");
+}
+console.log(`${byVin.recalls.length} campaigns may apply. Check the VIN: ${byVin.lookup.nhtsa}`);
+console.log(byId.as_of.us, byId.attribution);
+```
+
+`country` is `us` or `ca`; left out, both. `as_of` is the day each country's data was current, so an empty list means none was found as of that day. `attribution` lists the credit lines the data's licences ask for: show them where you show the data. A VIN that decodes to no vehicle in the catalog is not an error: `vehicle` is `null`, the list is empty, and a warning has the code `no_catalog_vehicle`.
+
+One campaign with every vehicle it lists, and the list of campaigns, a page at a time:
+
+```ts
+import { WenmarOpen } from "wenmar-open";
+
+const open = new WenmarOpen();
+
+const campaign = await open.recall("nhtsa", "19V888000");
+console.log(campaign.summary, campaign.remedy, campaign.vehicles.length);
+
+let page = await open.searchRecalls({ make: "ford", year: 2018, q: "tailgate", limit: 25 });
+console.log(page.recalls.map((recall) => recall.campaign));
+if (page.next_cursor) {
+  page = await open.searchRecalls({ make: "ford", year: 2018, q: "tailgate", limit: 25, cursor: page.next_cursor });
+}
+```
+
+A server run without recall data answers these four methods with `dataset_unavailable`, and `details.dataset` names what is missing. `open.meta()` lists what a server holds in `datasets`.
+
+```ts
+import { WenmarOpen, WenmarOpenError } from "wenmar-open";
+
+const open = new WenmarOpen({ baseUrl: "http://localhost:3000" });
+
+try {
+  const answer = await open.recalls("2018_ford_f-150");
+  console.log(answer.recalls.length, "campaigns may apply");
+} catch (error) {
+  if (error instanceof WenmarOpenError && error.code === "dataset_unavailable") {
+    console.log(`This server does not hold ${String(error.details["dataset"])}.`); // recalls_us or recalls_ca
+  } else {
+    throw error;
+  }
+}
+```
 
 ## Options
 
@@ -318,7 +378,7 @@ The package is an ES module. `require("wenmar-open")` works in Node 20.19 and la
 
 ## Types
 
-Every response type is exported: `VinDecode`, `Entry`, `Make`, `Model`, `Submodel`, `EngineOption`, `Meta`, `BatchItem`, `ErrorBody`. The generated `paths`, `operations` and `components` types are exported as well.
+Every response type is exported: `VinDecode`, `Entry`, `Make`, `Model`, `Submodel`, `EngineOption`, `Meta`, `BatchItem`, `ErrorBody`, and for recalls `VehicleRecalls`, `VinRecalls`, `RecallCampaign`, `RecallList`, `Recall` and `RecallLookup`. So are the query types, such as `RecallSearchQuery`. The generated `paths`, `operations` and `components` types are exported as well.
 
 The API only ever adds fields and endpoints. A response may carry fields this version's types do not name; they are passed through untouched.
 
