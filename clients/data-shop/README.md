@@ -52,7 +52,7 @@ A new file is built each week, and again after each monthly data file. The versi
 
 So `1.20261012.0` is the file of 12 October 2026. A version of `wenmar-open` reads one schema version; its README says which.
 
-The same file is attached to each [shop data release](https://github.com/wenmar-pro/wenmar-open/releases) on GitHub, tagged `shop-YYYY.MM.DD`, gzipped, for use without npm. `wenmar-open data pull --shop` downloads it for the command-line tool.
+The same file is attached to each [shop data release](https://github.com/wenmar-pro/wenmar-open/releases) on GitHub, tagged `shop-YYYY.MM.DD`, gzipped, for use without npm. `wenmar-open data pull --shop` downloads it for the command-line tool. A release has a second, larger file with `full` in its name, which also holds NHTSA's manufacturer communications (service bulletins). It is what open.wenmarpro.com serves; this package never carries it, and bulletins are read from the hosted API.
 
 ## Cloudflare D1
 

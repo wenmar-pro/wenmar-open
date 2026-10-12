@@ -10,6 +10,7 @@ import { after, test } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { statements } from "../../data/lib/d1.mjs";
+import { HOSTED_ONLY, hostedOnlyIn } from "../lib/hosted-only.mjs";
 import { npmShopVersion, shopDataVersion } from "../lib/version.mjs";
 
 const sqlite = await import("node:sqlite").then(
@@ -133,4 +134,38 @@ test("the D1 exporter of wenmar-open-data writes the shop file too, and it reads
   assert.equal(indexes.found, 6);
   database.close();
   copy.close();
+});
+
+// ----- the package never carries a hosted-only dataset -----
+
+test("the hosted-only list is the one the Rust crate has", () => {
+  const schema = readFileSync(new URL("../../../crates/wenmar-shopdata/src/schema.rs", import.meta.url), "utf8");
+  const start = schema.indexOf("pub const HOSTED_ONLY_TABLES");
+  assert.ok(start >= 0, "schema.rs has no HOSTED_ONLY_TABLES");
+  const list = schema.slice(start, schema.indexOf(";", start));
+  // Each entry is `("dataset id", &["table", ...])`.
+  const ids = [...list.matchAll(/\(\s*"([a-z_]+)",\s*&\[/g)].map((match) => match[1]);
+  assert.ok(ids.length > 0, list);
+  assert.deepEqual([...HOSTED_ONLY].sort(), ids.sort());
+  assert.deepEqual(hostedOnlyIn({ recalls_us: {}, bulletins: {}, ratings: {} }), ["bulletins"]);
+  assert.deepEqual(hostedOnlyIn({ recalls_us: {} }), []);
+});
+
+test("prepare refuses the full file: one that holds a hosted-only dataset", { skip }, () => {
+  const fullSql = shopSql.replace(
+    `"ratings":{`,
+    `"bulletins":{"as_of":"2026-10-11","rows":2,"licence":"public-domain","attribution":""},"ratings":{`,
+  );
+  assert.notEqual(fullSql, shopSql);
+  const [full, core, out] = [file("full-shop.sqlite3", fullSql), file("full-core.sqlite3", coreSql), join(directory, "full-refused")];
+  const run = refused([full, core, out]);
+  assert.equal(run.status, 1, run.stderr);
+  assert.match(run.stderr, /full-shop\.sqlite3 holds bulletins, which only the hosted service carries\. Give the offline shop file/);
+  // Nothing was written.
+  assert.ok(!readdirSync(directory).includes("full-refused"));
+  // The same file without that dataset is the offline file, and is taken.
+  const taken = refused([file("offline-shop.sqlite3", shopSql), core, out]);
+  assert.equal(taken.status, 0, taken.stderr);
+  const built = JSON.parse(readFileSync(join(out, "package.json"), "utf8"));
+  assert.equal(built.version, "1.20261012.0");
 });

@@ -12,6 +12,10 @@
 // was built against is given too: this refuses a pair that do not go
 // together, and the package names that exact version of wenmar-open-data as
 // a peer, so that npm says so when the two installed do not match.
+//
+// The shop file given is the offline one. A release also has a full file,
+// which holds the datasets only the hosted service carries (bulletins); this
+// refuses it, by what its datasets value lists (see lib/hosted-only.mjs).
 // Nothing is published from here.
 import { copyFileSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
@@ -19,6 +23,7 @@ import { fileURLToPath } from "node:url";
 
 import { refuseOutput } from "../../data/lib/output.mjs";
 import { npmVersion } from "../../data/lib/version.mjs";
+import { hostedOnlyIn } from "../lib/hosted-only.mjs";
 import { npmShopVersion } from "../lib/version.mjs";
 
 /**
@@ -92,6 +97,15 @@ try {
 }
 if (datasets === null || typeof datasets !== "object" || Array.isArray(datasets) || Object.keys(datasets).length === 0) {
   console.error(`${source} holds no dataset. A shop file with nothing in it is not published.`);
+  process.exit(1);
+}
+// The package is for offline use. The full file, which the hosted server
+// reads, also holds what only the hosted service carries.
+const hosted = hostedOnlyIn(datasets);
+if (hosted.length > 0) {
+  console.error(
+    `${source} holds ${hosted.join(", ")}, which only the hosted service carries. Give the offline shop file: the one \`open-data build-shop --offline-out\` wrote, or the release's wenmar-open-shop-<version>.sqlite3.gz, never the one with "full" in its name.`,
+  );
   process.exit(1);
 }
 const bytes = statSync(source).size;
