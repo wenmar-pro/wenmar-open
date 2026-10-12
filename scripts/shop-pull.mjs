@@ -9,6 +9,16 @@
 // the name the Dockerfile copies, and the SHOP_VERSION line of
 // config/deploy.yml is set to its version. Nothing is committed or deployed.
 //
+// A release carries two shop files, and the server takes the full one: the
+// asset wenmar-open-shop-full-<version>.sqlite3.gz, which also holds the
+// datasets only the hosted service carries (bulletins). The manifest's
+// `full` gives its size and checksum. It is stored under the plain name,
+// wenmar-open-shop-<version>.sqlite3, which is where `mise run shop-data`
+// puts a full file too. The offline file, the asset without "full" in its
+// name, is for `wenmar-open data pull --shop` and the npm package and is
+// never fetched here. A release from before there were two files has no
+// `full` in its manifest: its one file held everything, and that is taken.
+//
 // A shop file holds the ids of one data file's catalog, so only a release
 // whose manifest names that data version will do: the server refuses to
 // start over any other pair.
@@ -103,7 +113,8 @@ for (const release of list) {
   const asset = (name) => (release.assets ?? []).find((found) => found?.name === name)?.browser_download_url;
   const [packed, manifest] = [asset(`${base}.sqlite3.gz`), asset(`${base}.json`)];
   if (typeof packed !== "string" || typeof manifest !== "string") continue;
-  candidates.push({ version, base, packed, manifest });
+  const fullName = `wenmar-open-shop-full-${version}.sqlite3.gz`;
+  candidates.push({ version, base, packed, manifest, fullName, full: asset(fullName) });
 }
 candidates.sort(newerFirst);
 if (candidates.length === 0) fail("no shop data release has been published yet.");
@@ -132,15 +143,32 @@ if (chosen === undefined) {
   );
 }
 
+// Which file of the release the server takes, and what the manifest says of it.
+let wanted;
+if (chosen.manifest.full === undefined) {
+  wanted = { url: chosen.packed, name: `${chosen.base}.sqlite3.gz`, bytes: chosen.manifest.bytes, sha256: chosen.manifest.sha256 };
+  console.log(`shop-${chosen.version} has one file, which holds every dataset of its day.`);
+} else {
+  const full = chosen.manifest.full;
+  if (typeof full?.sha256 !== "string" || !Number.isInteger(full?.bytes)) {
+    fail(`the manifest of shop-${chosen.version} has a full that does not give bytes and sha256. Nothing was changed.`);
+  }
+  if (typeof chosen.full !== "string") {
+    fail(`the manifest of shop-${chosen.version} describes a full file, and the release has no ${chosen.fullName}. Nothing was changed.`);
+  }
+  wanted = { url: chosen.full, name: chosen.fullName, bytes: full.bytes, sha256: full.sha256 };
+  console.log(`shop-${chosen.version}: taking the full file, ${chosen.fullName}.`);
+}
+
 const directory = join(root, "data/build/shop");
 const path = join(directory, `${chosen.base}.sqlite3`);
-if (existsSync(path) && statSync(path).size === chosen.manifest.bytes) {
+if (existsSync(path) && statSync(path).size === wanted.bytes) {
   console.log(`${path} is already here.`);
 } else {
-  const packed = await get(chosen.packed, `${chosen.base}.sqlite3.gz`);
+  const packed = await get(wanted.url, wanted.name);
   const sha256 = createHash("sha256").update(packed).digest("hex");
-  if (sha256 !== chosen.manifest.sha256) {
-    fail(`the download of shop-${chosen.version} has SHA-256 ${sha256}; its manifest says ${chosen.manifest.sha256}. Nothing was changed.`);
+  if (sha256 !== wanted.sha256) {
+    fail(`the download of shop-${chosen.version} has SHA-256 ${sha256}; its manifest says ${wanted.sha256}. Nothing was changed.`);
   }
   let unpacked;
   try {
@@ -148,8 +176,8 @@ if (existsSync(path) && statSync(path).size === chosen.manifest.bytes) {
   } catch (error) {
     fail(`the download of shop-${chosen.version} could not be unpacked: ${error.message}. Nothing was changed.`);
   }
-  if (unpacked.length !== chosen.manifest.bytes) {
-    fail(`the unpacked file is ${unpacked.length} bytes; its manifest says ${chosen.manifest.bytes}. Nothing was changed.`);
+  if (unpacked.length !== wanted.bytes) {
+    fail(`the unpacked file is ${unpacked.length} bytes; its manifest says ${wanted.bytes}. Nothing was changed.`);
   }
   mkdirSync(directory, { recursive: true });
   writeFileSync(`${path}.part`, unpacked);

@@ -9,7 +9,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
@@ -180,7 +180,7 @@ function world(name, releases) {
   mkdirSync(served, { recursive: true });
   writeFileSync(join(root, "config/deploy.yml"), DEPLOY);
   const list = [];
-  for (const { version, catalog, draft = false, files = ["gz", "json", "sha256"], corrupt = false } of releases) {
+  for (const { version, catalog, draft = false, files = ["gz", "json", "sha256"], corrupt = false, full = false, fullAsset = true, corruptFull = false } of releases) {
     const base = `wenmar-open-shop-${version}`;
     const unpacked = Buffer.from(`shop file ${version} for ${catalog}`);
     const packed = gzipSync(unpacked);
@@ -193,14 +193,28 @@ function world(name, releases) {
       sha256: createHash("sha256").update(packed).digest("hex"),
       datasets: { recalls_us: US },
     };
+    // A release with two files: the full one has a name of its own, and
+    // the manifest's `full` describes it.
+    const fullName = `wenmar-open-shop-full-${version}.sqlite3.gz`;
+    if (full) {
+      const whole = Buffer.from(`full shop file ${version} for ${catalog}`);
+      const wholePacked = gzipSync(whole);
+      manifest.full = {
+        bytes: whole.length,
+        sha256: createHash("sha256").update(wholePacked).digest("hex"),
+        datasets: { recalls_us: US, bulletins: { as_of: "2026-10-11", rows: 5, licence: "public-domain", attribution: "" } },
+      };
+      writeFileSync(join(served, fullName), corruptFull ? gzipSync("something else") : wholePacked);
+    }
     writeFileSync(join(served, `${base}.sqlite3.gz`), corrupt ? gzipSync("something else") : packed);
     writeFileSync(join(served, `${base}.json`), JSON.stringify(manifest));
-    const names = { gz: `${base}.sqlite3.gz`, json: `${base}.json`, sha256: `${base}.sqlite3.gz.sha256` };
+    const names = { gz: `${base}.sqlite3.gz`, json: `${base}.json`, sha256: `${base}.sqlite3.gz.sha256`, full: fullName };
+    const listed = full && fullAsset ? ["full", ...files] : files;
     list.push({
       tag_name: `shop-${version}`,
       draft,
       prerelease: false,
-      assets: files.map((kind) => ({ name: names[kind], browser_download_url: `https://example.invalid/${names[kind]}` })),
+      assets: listed.map((kind) => ({ name: names[kind], browser_download_url: `https://example.invalid/${names[kind]}` })),
     });
   }
   // Releases of other kinds are in the same list.
@@ -263,4 +277,170 @@ test("shop-pull changes nothing when no release pairs, or when the download is n
   assert.ok(!existsSync(join(bad.root, "data/build/shop/wenmar-open-shop-2026.10.12.sqlite3")));
 
   assert.equal(none.pull("--data-version", "soon").code, 1);
+});
+
+// ----- two files: the offline one and the full one -----
+
+const BULLETINS = { as_of: "2026-10-11", rows: 5, licence: "public-domain", attribution: "" };
+const OFFLINE = { recalls_us: US, recalls_ca: CA };
+const FULL_META = { ...META, datasets: JSON.stringify({ ...OFFLINE, bulletins: BULLETINS }) };
+
+test("the manifest of two files describes the offline one as before and adds the full one", { skip }, () => {
+  const offline = shopFile("two-offline.sqlite3", META);
+  const full = shopFile("two-full.sqlite3", FULL_META);
+  const [packed, fullPacked] = [join(directory, "two-offline.gz"), join(directory, "two-full.gz")];
+  writeFileSync(packed, gzipSync(readFileSync(offline)));
+  writeFileSync(fullPacked, gzipSync(readFileSync(full)));
+  const { code, out, err } = run("shop-manifest.mjs", [offline, packed, full, fullPacked]);
+  assert.equal(code, 0, err);
+  const manifest = JSON.parse(out);
+  // `full` is the eighth and last field.
+  assert.deepEqual(Object.keys(manifest), [
+    "data_version",
+    "catalog_data_version",
+    "schema_version",
+    "built_at",
+    "bytes",
+    "sha256",
+    "datasets",
+    "full",
+  ]);
+  assert.deepEqual(manifest.full, {
+    bytes: readFileSync(full).length,
+    sha256: createHash("sha256").update(readFileSync(fullPacked)).digest("hex"),
+    datasets: { ...OFFLINE, bulletins: BULLETINS },
+  });
+  // The first seven are what the offline file alone gives: an older
+  // command-line tool reads the same manifest it always did.
+  const alone = JSON.parse(run("shop-manifest.mjs", [offline, packed]).out);
+  const { full: added, ...first } = manifest;
+  assert.deepEqual(first, alone);
+  assert.deepEqual(manifest.datasets, OFFLINE);
+  assert.ok(added !== undefined);
+});
+
+test("the manifest refuses a full file given as the offline one, and two files that are not one build", { skip }, () => {
+  const packed = join(directory, "pair.gz");
+  writeFileSync(packed, gzipSync("x"));
+  const offline = shopFile("pair-offline.sqlite3", META);
+  const full = shopFile("pair-full.sqlite3", FULL_META);
+  const withDatasets = (name, datasets, more = {}) => shopFile(name, { ...META, ...more, datasets: JSON.stringify(datasets) });
+  const cases = [
+    [[full, packed], "holds bulletins, which only the hosted service carries"],
+    [[full, packed, full, packed], "holds bulletins, which only the hosted service carries"],
+    [[offline, packed, withDatasets("pair-day.sqlite3", { ...OFFLINE, bulletins: BULLETINS }, { data_version: "2026.10.13" }), packed], "has data_version 2026.10.13"],
+    [[offline, packed, withDatasets("pair-catalog.sqlite3", { ...OFFLINE, bulletins: BULLETINS }, { catalog_data_version: "2026.08" }), packed], "has catalog_data_version 2026.08"],
+    [[offline, packed, withDatasets("pair-rows.sqlite3", { recalls_us: { ...US, rows: 9 }, recalls_ca: CA, bulletins: BULLETINS }), packed], "recalls_us has 7 rows in"],
+    [[offline, packed, withDatasets("pair-lacks.sqlite3", { recalls_us: US, bulletins: BULLETINS }), packed], "recalls_ca has 2 rows in"],
+    [[withDatasets("pair-short.sqlite3", { recalls_us: US }), packed, full, packed], "holds recalls_ca, which"],
+  ];
+  for (const [args, message] of cases) {
+    const { code, out, err } = run("shop-manifest.mjs", args);
+    assert.equal(code, 1, message);
+    assert.equal(out, "", message);
+    assert.ok(err.includes(message), err);
+  }
+  // One file of a pair without the other is wrong usage.
+  assert.equal(run("shop-manifest.mjs", [offline, packed, full]).code, 2);
+  assert.equal(run("shop-manifest.mjs", [offline]).code, 2);
+});
+
+test("each file of a release is compared with its own kind", () => {
+  const two = (name, version, datasets, hosted) =>
+    manifestFile(name, { data_version: version, datasets, full: { bytes: 1, sha256: "", datasets: { ...datasets, ...hosted } } });
+  const check = (...args) => run("shop-datasets-check.mjs", args);
+  const one = manifestFile("kind-one.json", { data_version: "2026.10.05", datasets: OFFLINE });
+
+  // The first release with a full file: what the full file adds is new.
+  const first = two("kind-first.json", "2026.10.12", OFFLINE, { bulletins: BULLETINS });
+  const started = check(first, one);
+  assert.equal(started.code, 0, started.err);
+  assert.ok(started.out.includes("recalls_us: 7 rows, as of 2026-10-11 (was 7)\n"), started.out);
+  assert.ok(started.out.includes("bulletins: 5 rows, as of 2026-10-11 (new), full file only"), started.out);
+  assert.ok(started.out.includes("2026.10.12 holds everything 2026.10.05 held."), started.out);
+  assert.equal(check(first).code, 0);
+
+  // The next one: the full file's own datasets against the previous full file.
+  const next = two("kind-next.json", "2026.10.19", OFFLINE, { bulletins: { ...BULLETINS, rows: 6 } });
+  const grown = check(next, first);
+  assert.equal(grown.code, 0, grown.err);
+  assert.ok(grown.out.includes("bulletins: 6 rows, as of 2026-10-11 (was 5), full file only"), grown.out);
+
+  const refusals = [
+    // The full file lost its dataset, or there is no full file any more.
+    [two("kind-lost.json", "2026.10.19", OFFLINE, {}), "bulletins was in the full file of 2026.10.12 and is missing from the full file of 2026.10.19"],
+    [manifestFile("kind-single.json", { data_version: "2026.10.19", datasets: OFFLINE }), "bulletins was in the full file of 2026.10.12 and is missing from the full file of 2026.10.19"],
+    [two("kind-halved.json", "2026.10.19", OFFLINE, { bulletins: { ...BULLETINS, rows: 2 } }), "bulletins has 2 rows in the full file of 2026.10.19 and had 5 in 2026.10.12: fewer than half"],
+    [two("kind-empty.json", "2026.10.19", OFFLINE, { bulletins: { ...BULLETINS, rows: 0 } }), "bulletins has no rows in the full file of 2026.10.19"],
+    // The offline file lost a dataset. That the full file still has it does not help the people who download.
+    [two("kind-moved.json", "2026.10.19", { recalls_us: US }, { recalls_ca: CA, bulletins: BULLETINS }), "recalls_ca was in 2026.10.12 and is missing from 2026.10.19"],
+  ];
+  for (const [manifest, message] of refusals) {
+    const { code, err } = check(manifest, first);
+    assert.equal(code, 1, message);
+    assert.ok(err.includes(message), err);
+    assert.ok(err.includes("not released"), err);
+  }
+
+  // A release from before there were two files, whose one file held
+  // bulletins: they are in the full file now, and are not lost.
+  const mixed = manifestFile("kind-mixed.json", { data_version: "2026.10.05", datasets: { ...OFFLINE, bulletins: BULLETINS } });
+  const kept = check(first, mixed);
+  assert.equal(kept.code, 0, kept.err);
+  assert.ok(kept.out.includes("bulletins: 5 rows, as of 2026-10-11 (was 5), full file only"), kept.out);
+
+  // A full that is not an object with datasets is not a manifest.
+  const broken = manifestFile("kind-broken.json", { data_version: "2026.10.19", datasets: OFFLINE, full: { bytes: 1 } });
+  assert.equal(check(broken).code, 2);
+  assert.equal(check(first, broken).code, 2);
+});
+
+test("shop-pull takes the full file of a release that has one, under the name the image copies", () => {
+  const { root, pull, shopVersion } = world("full", [
+    { version: "2026.10.05", catalog: "2026.09" },
+    { version: "2026.10.12", catalog: "2026.09", full: true },
+  ]);
+  const { code, out, err } = pull();
+  assert.equal(code, 0, err);
+  const shop = join(root, "data/build/shop");
+  const path = join(shop, "wenmar-open-shop-2026.10.12.sqlite3");
+  assert.equal(readFileSync(path, "utf8"), "full shop file 2026.10.12 for 2026.09");
+  // One file, where the Dockerfile and `mise run serve` look for it: no
+  // second name and no offline directory.
+  assert.deepEqual(readdirSync(shop), ["wenmar-open-shop-2026.10.12.sqlite3"]);
+  assert.equal(shopVersion(), "2026.10.12");
+  assert.ok(out.includes("taking the full file, wenmar-open-shop-full-2026.10.12.sqlite3.gz"), out);
+  assert.equal(readFileSync(join(root, "config/deploy.yml"), "utf8"), DEPLOY.replace('"2026.10.05"', '"2026.10.12"'));
+  // A second run downloads nothing.
+  const again = pull();
+  assert.equal(again.code, 0, again.err);
+  assert.ok(again.out.includes("is already here"), again.out);
+  // The offline file left under that name is not taken for the full one.
+  writeFileSync(path, "shop file 2026.10.12 for 2026.09");
+  const replaced = pull();
+  assert.equal(replaced.code, 0, replaced.err);
+  assert.equal(readFileSync(path, "utf8"), "full shop file 2026.10.12 for 2026.09");
+
+  // A release from before there were two files: its one file is taken.
+  const older = world("one-file", [{ version: "2026.10.05", catalog: "2026.09" }]);
+  const whole = older.pull();
+  assert.equal(whole.code, 0, whole.err);
+  assert.ok(whole.out.includes("shop-2026.10.05 has one file"), whole.out);
+  assert.equal(readFileSync(join(older.root, "data/build/shop/wenmar-open-shop-2026.10.05.sqlite3"), "utf8"), "shop file 2026.10.05 for 2026.09");
+});
+
+test("shop-pull never takes the offline file in place of a full file that is missing or wrong", () => {
+  const missing = world("full-missing", [{ version: "2026.10.12", catalog: "2026.09", full: true, fullAsset: false }]);
+  const absent = missing.pull();
+  assert.equal(absent.code, 1);
+  assert.ok(absent.err.includes("the release has no wenmar-open-shop-full-2026.10.12.sqlite3.gz"), absent.err);
+  assert.equal(missing.shopVersion(), "2026.10.05");
+  assert.ok(!existsSync(join(missing.root, "data/build/shop")));
+
+  const bad = world("full-bad", [{ version: "2026.10.12", catalog: "2026.09", full: true, corruptFull: true }]);
+  const wrong = bad.pull();
+  assert.equal(wrong.code, 1);
+  assert.ok(wrong.err.includes("its manifest says"), wrong.err);
+  assert.equal(bad.shopVersion(), "2026.10.05");
+  assert.ok(!existsSync(join(bad.root, "data/build/shop/wenmar-open-shop-2026.10.12.sqlite3")));
 });
