@@ -61,6 +61,7 @@
 <ul class="plain links">
 <li><a href="/jobs/{{ job.id }}">{{ job.name }}: the job and its typical hours</a></li>
 <li><a href="{{ model_year_path }}">The {{ name }}</a></li>
+<li><a href="{{ suggest }}">Suggest a time for this job</a></li>
 {% if let Some(href) = recalls_href -%}
 <li><a href="{{ href }}">Recalls for the {{ name }}</a></li>
 {% endif -%}

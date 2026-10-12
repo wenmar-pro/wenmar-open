@@ -65,6 +65,7 @@ Some of the data here is written by hand: the lists under `data/` today, and in 
 - That reviewer's GitHub name goes in the record's `reviewer` field where the file has one. Where it has none, the approving review on the pull request is the record.
 - If there is no second person, the record waits.
 - A correction sent through "Report an error" is accepted the same way: a person edits the file in a pull request. Nothing a visitor sends changes data by itself.
+- A labour time sent through "Suggest a time" is an issue labelled `labour-time`, and nothing more. It is evidence for whoever next writes or reviews that estimate; it is never copied into `data/labor/` as it stands.
 
 ## Licensing of contributions
 

@@ -243,3 +243,23 @@ async fn the_page_exists_for_jobs_of_the_list_and_vehicles_of_the_catalog() {
     assert_eq!(status, StatusCode::OK);
     assert!(!html.contains("id=\"vehicle\""));
 }
+
+#[tokio::test]
+async fn every_labour_page_links_the_form_that_suggests_a_time() {
+    let app = common::labor_app().await;
+    let (_, html) = page(&app, "/jobs/test-job-a").await;
+    assert!(
+        html.contains("<a href=\"/feedback/labor?job=test-job-a&"),
+        "{html}"
+    );
+    assert!(html.contains("page=%2Fjobs%2Ftest-job-a\">Suggest a time for this job</a>"));
+    for job in ["test-job-a", "test-job-b", "test-job-c"] {
+        let (_, html) = page(&app, &format!("/makes/hyundai/kona/2023/labor/{job}")).await;
+        assert!(
+            html.contains(&format!("/feedback/labor?job={job}")),
+            "{job}"
+        );
+        assert!(html.contains("vehicle=2023%20Hyundai%20Kona"), "{job}");
+        assert!(html.contains("Suggest a time for this job"), "{job}");
+    }
+}

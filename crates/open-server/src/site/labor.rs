@@ -124,6 +124,8 @@ struct JobPage {
     missing: Option<String>,
     /// Code and title of the trouble codes about the job's components.
     codes: Vec<(String, String)>,
+    /// The form that suggests a time, with the job filled in.
+    suggest: String,
     report: report::ReportLinks,
 }
 
@@ -255,6 +257,11 @@ pub async fn job(
     } else {
         page
     };
+    let suggest = format!(
+        "/feedback/labor?job={}&page={}",
+        found.id,
+        report::encode(&path)
+    );
     let report = report::links(state.config(), &path, &found.name);
     let classes = found
         .estimates
@@ -275,6 +282,7 @@ pub async fn job(
             labor_held,
             missing,
             codes,
+            suggest,
             job: found,
             report,
         },
@@ -416,6 +424,8 @@ struct ModelYearLaborPage {
     /// Component name and the bulletin list narrowed to it.
     bulletin_links: Vec<(String, String)>,
     codes: Vec<(String, String)>,
+    /// The form that suggests a time, with the job and the vehicle filled in.
+    suggest: String,
     report: report::ReportLinks,
 }
 
@@ -603,6 +613,12 @@ pub async fn model_year_labor(
         (false, _) => page,
     };
     let indexed = page.index;
+    let suggest = format!(
+        "/feedback/labor?job={}&vehicle={}&page={}",
+        job.id,
+        report::encode(&name),
+        report::encode(&path)
+    );
     let report = report::links(state.config(), &path, &format!("{} {name}", job.name));
     let mut response = site::html(
         StatusCode::OK,
@@ -635,6 +651,7 @@ pub async fn model_year_labor(
             recalls_href,
             bulletin_links,
             codes,
+            suggest,
             job,
             report,
         },
