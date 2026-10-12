@@ -4,6 +4,8 @@
 //! carry `noindex`, and they are not blocked in `robots.txt`, because a
 //! crawler must be able to fetch a page to see that it is not to be indexed.
 
+use std::collections::HashSet;
+
 use axum::extract::rejection::PathRejection;
 use axum::extract::{Path, State};
 use axum::http::{HeaderValue, header};
@@ -11,6 +13,7 @@ use axum::response::{IntoResponse, Response};
 use wenmar_vehicles::text::is_slug;
 use wenmar_vehicles::{Scope, Source, SourceError, Value};
 
+use crate::api::recalls::recall_shop;
 use crate::error::ApiError;
 use crate::site;
 use crate::site::wmi::is_code;
@@ -18,6 +21,14 @@ use crate::state::AppState;
 
 const MODELS_SQL: &str = "
 SELECT mk.slug, md.slug
+FROM catalog_vehicle v
+JOIN catalog_make mk ON mk.id = v.make_id
+JOIN catalog_model md ON md.id = v.model_id
+WHERE v.year = ?1 AND v.light = 1";
+
+/// The same model years as [`MODELS_SQL`], each with its model id.
+const MODEL_IDS_SQL: &str = "
+SELECT mk.slug, md.slug, md.id
 FROM catalog_vehicle v
 JOIN catalog_make mk ON mk.id = v.make_id
 JOIN catalog_model md ON md.id = v.model_id
@@ -185,6 +196,20 @@ pub async fn index(State(state): State<AppState>) -> Response {
     let base = &state.config().base_url;
     let mut names = vec!["pages".to_owned(), "makes".to_owned(), "wmi".to_owned()];
     names.extend(years.iter().map(|year| format!("models-{year}")));
+    // One more per model year that has a recall page to list.
+    let with_recalls: Vec<u16> = match recall_shop(&state, None) {
+        Ok(shop) => match shop.run(|reader| reader.recall_years()).await {
+            Ok(Ok(found)) => found,
+            _ => Vec::new(),
+        },
+        Err(_) => Vec::new(),
+    };
+    names.extend(
+        years
+            .iter()
+            .filter(|year| with_recalls.contains(year))
+            .map(|year| format!("recalls-{year}")),
+    );
     let mut xml = String::from(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n",
     );
@@ -195,6 +220,55 @@ pub async fn index(State(state): State<AppState>) -> Response {
     }
     xml.push_str("</sitemapindex>\n");
     text("application/xml; charset=utf-8", xml)
+}
+
+/// The recall pages of one model year: the cars, MPVs and trucks with a
+/// campaign that year. `None` when there are none, or no recall data.
+async fn recall_paths(state: &AppState, year: u16) -> Result<Option<Vec<String>>, ApiError> {
+    let Ok(shop) = recall_shop(state, None) else {
+        return Ok(None);
+    };
+    let with_recalls: HashSet<i64> = shop
+        .run(move |reader| reader.recall_models(year))
+        .await??
+        .into_iter()
+        .map(|(_, model_id)| model_id)
+        .collect();
+    if with_recalls.is_empty() {
+        return Ok(None);
+    }
+    let rows = state
+        .db()
+        .run_slow(move |worker| {
+            worker
+                .source
+                .query(MODEL_IDS_SQL, &[i64::from(year).into()])
+        })
+        .await
+        .map_err(ApiError::from)?
+        .map_err(ApiError::internal)?;
+    let mut found: Vec<(String, String)> = rows
+        .iter()
+        .filter(|row| {
+            row.get(2)
+                .and_then(Value::integer)
+                .is_some_and(|id| with_recalls.contains(&id))
+        })
+        .filter_map(|row| {
+            let make = row.first().and_then(Value::text)?;
+            let model = row.get(1).and_then(Value::text)?;
+            // An id form is the only thing put into an address.
+            (is_slug(make) && is_slug(model)).then(|| (make.to_owned(), model.to_owned()))
+        })
+        .collect();
+    found.sort();
+    found.dedup();
+    Ok((!found.is_empty()).then(|| {
+        found
+            .into_iter()
+            .map(|(make, model)| format!("/makes/{make}/{model}/{year}/recalls"))
+            .collect()
+    }))
 }
 
 fn pairs(rows: Vec<Vec<Value>>) -> Vec<(String, String)> {
@@ -224,6 +298,9 @@ pub async fn sitemap(
             paths.extend(site::guides::GUIDES.iter().map(|guide| guide.path()));
             paths.push("/tools".to_owned());
             paths.extend(site::tools::TOOLS.iter().map(|tool| tool.path()));
+            if recall_shop(&state, None).is_ok() {
+                paths.push("/recalls".to_owned());
+            }
             paths.extend(["/docs", "/data", "/about"].map(str::to_owned));
             Ok(Some(paths))
         }
@@ -259,7 +336,10 @@ pub async fn sitemap(
                 Some(codes)
             }),
         other => match other.strip_prefix("models-").and_then(site::year_in) {
-            None => Ok(None),
+            None => match other.strip_prefix("recalls-").and_then(site::year_in) {
+                Some(year) => recall_paths(&state, year).await,
+                None => Ok(None),
+            },
             Some(year) => state
                 .db()
                 .run_slow(move |worker| worker.source.query(MODELS_SQL, &[i64::from(year).into()]))
