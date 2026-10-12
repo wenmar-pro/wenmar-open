@@ -15,6 +15,41 @@ const GUIDES: [(&str, &str); 5] = [
     ("check-digit", "What the VIN check digit is"),
 ];
 
+/// Guides whose text is not written yet. Publishing one takes it out of this list.
+const DRAFT_GUIDES: [&str; 5] = [
+    "engine-oil-specifications",
+    "transmission-fluids",
+    "coolant-types",
+    "brake-fluid-grades",
+    "refrigerants",
+];
+
+#[tokio::test]
+async fn a_guide_that_is_not_written_is_not_served_or_listed() {
+    let app = common::app().await;
+    let (_, sitemap) = page(&app, "/sitemaps/pages.xml").await;
+    let (_, llms) = page(&app, "/llms.txt").await;
+    let (_, full) = page(&app, "/llms-full.txt").await;
+    let (_, tools) = page(&app, "/tools").await;
+    let (_, guides) = page(&app, "/guides").await;
+    assert!(!full.contains("This section has not been written yet."));
+    for slug in DRAFT_GUIDES {
+        let address = format!("/guides/{slug}");
+        for path in [address.clone(), format!("{address}.md")] {
+            let (status, _) = page(&app, &path).await;
+            assert_eq!(status, StatusCode::NOT_FOUND, "{path}");
+        }
+        for (name, text) in [
+            ("sitemap", &sitemap),
+            ("llms.txt", &llms),
+            ("/tools", &tools),
+            ("/guides", &guides),
+        ] {
+            assert!(!text.contains(&address), "{name} names {address}");
+        }
+    }
+}
+
 #[tokio::test]
 async fn every_guide_is_a_page_with_a_markdown_version() {
     let app = common::app().await;
