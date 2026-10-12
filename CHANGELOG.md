@@ -4,6 +4,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Added
+
+- `open-data fetch` takes a source. `fetch` and `fetch vpic` are unchanged. `fetch nhtsa-recalls` and `fetch tc-recalls` download NHTSA's and Transport Canada's recall files to `data/build/sources/<source>/` and write a `source.json` there recording each file's address, its `Last-Modified` header and the time fetched. Nothing reads these files yet.
+
 ### Internal
 
 - A VIN decode already carried the rim diameter front and rear (`wheel_size_front`, `wheel_size_rear`, vPIC elements 119 and 120) and the tire-pressure monitor type (`safety.tpms`, element 168). Tests now hold them on the result page, in the API and in the command-line output, `safety.tpms` has a description in the OpenAPI document, and `docs/integrating.md` maps NHTSA's names to them.
