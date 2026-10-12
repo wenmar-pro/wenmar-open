@@ -36,10 +36,37 @@ pub struct Preset {
     pub engines: Vec<String>,
 }
 
+/// A make as `makes.yaml` writes it. The link fields belong to the server:
+/// its build reads and checks them (`crates/open-server/links_build.rs`).
+/// They are named here so that `deny_unknown_fields` lets them through and
+/// still refuses a misspelt key.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+#[allow(dead_code)]
+struct MakeEntry {
+    name: String,
+    #[serde(default)]
+    aliases: Vec<String>,
+    #[serde(default)]
+    links_checked: Option<String>,
+    #[serde(default)]
+    recall_lookup_url: Option<String>,
+    #[serde(default)]
+    manual_url: Option<String>,
+    #[serde(default)]
+    maintenance_url: Option<String>,
+    #[serde(default)]
+    service_info_url: Option<String>,
+    #[serde(default)]
+    parts_url: Option<String>,
+    #[serde(default)]
+    customer_line: Option<String>,
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct MakesFile {
-    makes: Vec<RankedMake>,
+    makes: Vec<MakeEntry>,
 }
 
 #[derive(Deserialize)]
@@ -87,8 +114,16 @@ impl Curated {
         let names: NamesFile = serde_saphyr::from_str(names_yaml).context("reading names.yaml")?;
         let presets: PresetsFile =
             serde_saphyr::from_str(presets_yaml).context("reading presets.yaml")?;
+        let ranked: Vec<RankedMake> = makes
+            .makes
+            .into_iter()
+            .map(|entry| RankedMake {
+                name: entry.name,
+                aliases: entry.aliases,
+            })
+            .collect();
         Ok(Curated {
-            makes: checked_makes(makes.makes)?,
+            makes: checked_makes(ranked)?,
             submodel_names: checked_names(names.submodels)?,
             presets: checked_presets(presets.presets)?,
         })
@@ -184,6 +219,22 @@ fn checked_presets(presets: Vec<Preset>) -> Result<Vec<Preset>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn link_fields_are_let_through_and_a_misspelt_one_is_not() {
+        let makes = "makes:\n  - name: Honda\n    links_checked: \"2026-10-12\"\n    recall_lookup_url: https://example.org/recalls\n    manual_url: https://example.org/manuals\n    maintenance_url: https://example.org/maintenance\n    service_info_url: https://example.org/service\n    parts_url: https://example.org/parts\n    customer_line: \"1-800-555-0100\"\n";
+        let curated = Curated::parse(makes, "submodels: {}\n", "presets: []\n").unwrap();
+        assert_eq!(
+            curated.makes,
+            vec![RankedMake {
+                name: "Honda".to_owned(),
+                aliases: Vec::new()
+            }]
+        );
+        let wrong = "makes:\n  - name: Honda\n    manuals_url: https://example.org\n";
+        let error = Curated::parse(wrong, "submodels: {}\n", "presets: []\n").unwrap_err();
+        assert!(format!("{error:#}").contains("makes.yaml"), "{error:#}");
+    }
 
     const MAKES: &str = "
 makes:
