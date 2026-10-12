@@ -291,9 +291,8 @@ async fn the_tool_answers_recall_questions_as_the_api_does_from_files_and_over_h
 /// The blocks of an overview that the hosted API fills where its server
 /// holds their data, and that the files do not give yet: from files they
 /// are `null` whatever the shop file holds. `specs`, `fuel` and `fluids`
-/// wait for the plan that brings the fuel data to the files, and `safety`
-/// for plan D3.
-const HOSTED_ONLY: [&str; 4] = ["specs", "fuel", "fluids", "safety"];
+/// wait for the plan that brings the fuel data to the files.
+const HOSTED_ONLY: [&str; 3] = ["specs", "fuel", "fluids"];
 
 /// An answer of the API as the files give it. What is set aside before
 /// two answers are compared, and why:
@@ -651,4 +650,87 @@ async fn the_tool_answers_safety_questions_as_the_api_does_from_files_and_over_h
         wenmar_shopdata::answer::kilograms(3225),
         open_server::api::safety::kilograms(3225)
     );
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn the_tool_gives_an_overview_its_crash_test_ratings_as_the_api_does() {
+    // A server and files that hold the ratings beside the recalls.
+    let app = common::ratings_and_recalls_app_at(SITE).await;
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let address: SocketAddr = listener.local_addr().unwrap();
+    let (stop, stopped) = oneshot::channel::<()>();
+    let serving = tokio::spawn(serve(
+        listener,
+        app.router.clone(),
+        async move {
+            let _ = stopped.await;
+        },
+        Limits::default(),
+    ));
+    let api = format!("http://{address}");
+    let fixture = common::data_file();
+    common::add_shop_file(
+        &fixture,
+        wenmar_shopdata::schema::SCHEMA_VERSION,
+        "2026.09",
+        common::RECALL_AND_RATING_DATASETS,
+        &format!("{}{}", common::recall_rows(), common::rating_rows()),
+    );
+    let directory = tempfile::tempdir().unwrap();
+    std::fs::copy(fixture.path(), directory.path().join(DATA_FILE)).unwrap();
+    std::fs::copy(fixture.shop_path(), directory.path().join(SHOP_FILE)).unwrap();
+
+    let ask = |args: &'static str, source: &'static str| {
+        let directory = directory.path().to_path_buf();
+        let api = api.clone();
+        tokio::task::spawn_blocking(move || {
+            let mut args: Vec<&str> = args.split(' ').collect();
+            args.push(source);
+            tool(&directory, &api, &args)
+        })
+    };
+    for (path, args) in [
+        (
+            "/v1/vehicles/2023_hyundai_kona/overview",
+            "vehicles overview 2023_hyundai_kona",
+        ),
+        (
+            "/v1/vehicles/2019_honda_civic/overview",
+            "vehicles overview 2019_honda_civic",
+        ),
+        (
+            "/v1/vin/KM8K2CAB4PU001140/overview",
+            "vin overview KM8K2CAB4PU001140",
+        ),
+        (
+            "/v1/vin/1M8PDMPA9SP000001/overview",
+            "vin overview 1M8PDMPA9SP000001",
+        ),
+    ] {
+        let (status, served) = app.json(path).await;
+        assert_eq!(status, StatusCode::OK, "{path}");
+        let (local_code, local) = ask(args, "--offline").await.unwrap();
+        let (remote_code, remote) = ask(args, "--online").await.unwrap();
+        assert_eq!((local_code, remote_code), (0, 0), "{path}");
+        assert_eq!(remote, served, "{path}");
+        // `safety` is compared, not set aside.
+        assert_eq!(local, as_the_files_give_it(served.clone()), "{path}");
+        assert_eq!(
+            local["safety"].is_object(),
+            served["vehicle"].is_object(),
+            "{path}"
+        );
+    }
+    // The block is what the safety command gives, whole.
+    let (_, overview) = ask("vehicles overview 2023_hyundai_kona", "--offline")
+        .await
+        .unwrap();
+    let (_, safety) = ask("vehicles safety 2023_hyundai_kona", "--offline")
+        .await
+        .unwrap();
+    assert_eq!(overview["safety"], safety);
+    assert_eq!(safety["ratings"].as_array().unwrap().len(), 3);
+
+    let _ = stop.send(());
+    let _ = serving.await;
 }

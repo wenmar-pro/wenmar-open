@@ -781,6 +781,25 @@ pub async fn vin_guides_app() -> TestApp {
     app_with_shop(VIN_GUIDE_DATASETS, &vin_guide_rows()).await
 }
 
+/// [`ratings_and_recalls_app`], saying its pages are at `base_url`.
+pub async fn ratings_and_recalls_app_at(base_url: &str) -> TestApp {
+    let fixture = data_file();
+    add_shop_file(
+        &fixture,
+        wenmar_shopdata::schema::SCHEMA_VERSION,
+        "2026.09",
+        RECALL_AND_RATING_DATASETS,
+        &format!("{}{}", recall_rows(), rating_rows()),
+    );
+    let shop = fixture.shop_path();
+    let base_url = base_url.to_owned();
+    app_over(fixture, |config| {
+        config.shop_data = Some(shop);
+        config.base_url = base_url;
+    })
+    .await
+}
+
 // ----- helpers for the pages -----
 
 /// `GET`s a page and reads its body as text.

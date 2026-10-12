@@ -674,6 +674,12 @@ fn overview(value: &Value) -> String {
     if let Some(page) = field(&value["links"], "page") {
         text.push_str(&format!("Page: {page}\n"));
     }
+    if let Some(ratings) = value["safety"]["ratings"].as_array() {
+        text.push_str(&match ratings.len() {
+            0 => "Crash test ratings: NHTSA lists none\n".to_owned(),
+            all => format!("Crash test ratings: {all} from NHTSA (wenmar-open vehicles safety)\n"),
+        });
+    }
     let recalls = &value["recalls"];
     if !recalls.is_object() {
         text.push_str("\nRecalls: no recall data is held where this was asked.\n");

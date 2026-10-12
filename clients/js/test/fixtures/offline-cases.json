@@ -4630,7 +4630,152 @@
             "park_outside": true,
             "url": "https://open.wenmarpro.com/makes/hyundai/kona/2023/recalls"
           },
-          "safety": null,
+          "safety": {
+            "as_of": "2026-08-07",
+            "attribution": [],
+            "ratings": [
+              {
+                "body_style": "SUV",
+                "curb_weight_kg": 1463,
+                "curb_weight_lb": 3225,
+                "description": "KONA, SUV, AWD",
+                "drive": "AWD",
+                "features": {
+                  "backup_camera": null,
+                  "blind_spot_detection": "optional",
+                  "crash_imminent_braking": "standard",
+                  "crash_imminent_braking_evaluation": "does_not_meet",
+                  "dynamic_brake_support": "standard",
+                  "dynamic_brake_support_evaluation": "pending",
+                  "esc": null,
+                  "forward_collision_warning": "standard",
+                  "forward_collision_warning_evaluation": "meets",
+                  "head_side_airbag": "standard",
+                  "lane_departure_warning": "standard",
+                  "lane_departure_warning_evaluation": "meets",
+                  "torso_side_airbag": "standard"
+                },
+                "match": "exact",
+                "model": "KONA",
+                "notes": [],
+                "release": 1,
+                "rollover_risk_percent": 14.8,
+                "rollover_tip": false,
+                "stars": {
+                  "frontal": 4,
+                  "frontal_driver": 4,
+                  "frontal_passenger": 4,
+                  "overall": 5,
+                  "rollover": 4,
+                  "side": 5,
+                  "side_barrier": 5,
+                  "side_driver": 5,
+                  "side_front_seat": 5,
+                  "side_passenger": 5,
+                  "side_pole": 5,
+                  "side_rear_seat": 5
+                },
+                "vehicle_type": "MPV"
+              },
+              {
+                "body_style": "SUV",
+                "curb_weight_kg": 1363,
+                "curb_weight_lb": 3005,
+                "description": "KONA, SUV, FWD",
+                "drive": "FWD",
+                "features": {
+                  "backup_camera": null,
+                  "blind_spot_detection": "optional",
+                  "crash_imminent_braking": "both",
+                  "crash_imminent_braking_evaluation": "upgrade_only",
+                  "dynamic_brake_support": "both",
+                  "dynamic_brake_support_evaluation": "standard_only",
+                  "esc": null,
+                  "forward_collision_warning": "standard",
+                  "forward_collision_warning_evaluation": "meets",
+                  "head_side_airbag": "standard",
+                  "lane_departure_warning": "standard",
+                  "lane_departure_warning_evaluation": "meets",
+                  "torso_side_airbag": "standard"
+                },
+                "match": "exact",
+                "model": "KONA",
+                "notes": [
+                  "These ratings do not apply to the N Line.",
+                  "The rear door opened in the side test."
+                ],
+                "release": 1,
+                "rollover_risk_percent": 15.5,
+                "rollover_tip": false,
+                "stars": {
+                  "frontal": 4,
+                  "frontal_driver": 4,
+                  "frontal_passenger": 4,
+                  "overall": 4,
+                  "rollover": 4,
+                  "side": 5,
+                  "side_barrier": 5,
+                  "side_driver": 5,
+                  "side_front_seat": 5,
+                  "side_passenger": 5,
+                  "side_pole": 5,
+                  "side_rear_seat": 5
+                },
+                "vehicle_type": "MPV"
+              },
+              {
+                "body_style": "SUV",
+                "curb_weight_kg": null,
+                "curb_weight_lb": null,
+                "description": "KONA ELECTRIC, SUV, FWD",
+                "drive": "FWD",
+                "features": {
+                  "backup_camera": null,
+                  "blind_spot_detection": null,
+                  "crash_imminent_braking": null,
+                  "crash_imminent_braking_evaluation": null,
+                  "dynamic_brake_support": null,
+                  "dynamic_brake_support_evaluation": null,
+                  "esc": null,
+                  "forward_collision_warning": "standard",
+                  "forward_collision_warning_evaluation": "pending",
+                  "head_side_airbag": "standard",
+                  "lane_departure_warning": "standard",
+                  "lane_departure_warning_evaluation": "pending",
+                  "torso_side_airbag": "standard"
+                },
+                "match": "base",
+                "model": "KONA ELECTRIC",
+                "notes": [],
+                "release": 1,
+                "rollover_risk_percent": null,
+                "rollover_tip": null,
+                "stars": {
+                  "frontal": null,
+                  "frontal_driver": null,
+                  "frontal_passenger": null,
+                  "overall": null,
+                  "rollover": null,
+                  "side": null,
+                  "side_barrier": null,
+                  "side_driver": null,
+                  "side_front_seat": null,
+                  "side_passenger": null,
+                  "side_pole": null,
+                  "side_rear_seat": null
+                },
+                "vehicle_type": "MPV"
+              }
+            ],
+            "source": "NHTSA New Car Assessment Program",
+            "source_url": "https://www.nhtsa.gov/ratings",
+            "vehicle": {
+              "id": "2023_hyundai_kona",
+              "make": "Hyundai",
+              "model": "Kona",
+              "year": 2023
+            }
+          },
           "specs": null,
           "tires": null,
           "vehicle": {
@@ -4684,7 +4829,19 @@
             "park_outside": false,
             "url": "https://open.wenmarpro.com/makes/honda/civic/2019/recalls"
           },
-          "safety": null,
+          "safety": {
+            "as_of": "2026-08-07",
+            "attribution": [],
+            "ratings": [],
+            "source": "NHTSA New Car Assessment Program",
+            "source_url": "https://www.nhtsa.gov/ratings",
+            "vehicle": {
+              "id": "2019_honda_civic",
+              "make": "Honda",
+              "model": "Civic",
+              "year": 2019
+            }
+          },
           "specs": null,
           "tires": null,
           "vehicle": {
@@ -4812,7 +4969,152 @@
             "park_outside": true,
             "url": "https://open.wenmarpro.com/makes/hyundai/kona/2023/recalls"
           },
-          "safety": null,
+          "safety": {
+            "as_of": "2026-08-07",
+            "attribution": [],
+            "ratings": [
+              {
+                "body_style": "SUV",
+                "curb_weight_kg": 1463,
+                "curb_weight_lb": 3225,
+                "description": "KONA, SUV, AWD",
+                "drive": "AWD",
+                "features": {
+                  "backup_camera": null,
+                  "blind_spot_detection": "optional",
+                  "crash_imminent_braking": "standard",
+                  "crash_imminent_braking_evaluation": "does_not_meet",
+                  "dynamic_brake_support": "standard",
+                  "dynamic_brake_support_evaluation": "pending",
+                  "esc": null,
+                  "forward_collision_warning": "standard",
+                  "forward_collision_warning_evaluation": "meets",
+                  "head_side_airbag": "standard",
+                  "lane_departure_warning": "standard",
+                  "lane_departure_warning_evaluation": "meets",
+                  "torso_side_airbag": "standard"
+                },
+                "match": "exact",
+                "model": "KONA",
+                "notes": [],
+                "release": 1,
+                "rollover_risk_percent": 14.8,
+                "rollover_tip": false,
+                "stars": {
+                  "frontal": 4,
+                  "frontal_driver": 4,
+                  "frontal_passenger": 4,
+                  "overall": 5,
+                  "rollover": 4,
+                  "side": 5,
+                  "side_barrier": 5,
+                  "side_driver": 5,
+                  "side_front_seat": 5,
+                  "side_passenger": 5,
+                  "side_pole": 5,
+                  "side_rear_seat": 5
+                },
+                "vehicle_type": "MPV"
+              },
+              {
+                "body_style": "SUV",
+                "curb_weight_kg": 1363,
+                "curb_weight_lb": 3005,
+                "description": "KONA, SUV, FWD",
+                "drive": "FWD",
+                "features": {
+                  "backup_camera": null,
+                  "blind_spot_detection": "optional",
+                  "crash_imminent_braking": "both",
+                  "crash_imminent_braking_evaluation": "upgrade_only",
+                  "dynamic_brake_support": "both",
+                  "dynamic_brake_support_evaluation": "standard_only",
+                  "esc": null,
+                  "forward_collision_warning": "standard",
+                  "forward_collision_warning_evaluation": "meets",
+                  "head_side_airbag": "standard",
+                  "lane_departure_warning": "standard",
+                  "lane_departure_warning_evaluation": "meets",
+                  "torso_side_airbag": "standard"
+                },
+                "match": "exact",
+                "model": "KONA",
+                "notes": [
+                  "These ratings do not apply to the N Line.",
+                  "The rear door opened in the side test."
+                ],
+                "release": 1,
+                "rollover_risk_percent": 15.5,
+                "rollover_tip": false,
+                "stars": {
+                  "frontal": 4,
+                  "frontal_driver": 4,
+                  "frontal_passenger": 4,
+                  "overall": 4,
+                  "rollover": 4,
+                  "side": 5,
+                  "side_barrier": 5,
+                  "side_driver": 5,
+                  "side_front_seat": 5,
+                  "side_passenger": 5,
+                  "side_pole": 5,
+                  "side_rear_seat": 5
+                },
+                "vehicle_type": "MPV"
+              },
+              {
+                "body_style": "SUV",
+                "curb_weight_kg": null,
+                "curb_weight_lb": null,
+                "description": "KONA ELECTRIC, SUV, FWD",
+                "drive": "FWD",
+                "features": {
+                  "backup_camera": null,
+                  "blind_spot_detection": null,
+                  "crash_imminent_braking": null,
+                  "crash_imminent_braking_evaluation": null,
+                  "dynamic_brake_support": null,
+                  "dynamic_brake_support_evaluation": null,
+                  "esc": null,
+                  "forward_collision_warning": "standard",
+                  "forward_collision_warning_evaluation": "pending",
+                  "head_side_airbag": "standard",
+                  "lane_departure_warning": "standard",
+                  "lane_departure_warning_evaluation": "pending",
+                  "torso_side_airbag": "standard"
+                },
+                "match": "base",
+                "model": "KONA ELECTRIC",
+                "notes": [],
+                "release": 1,
+                "rollover_risk_percent": null,
+                "rollover_tip": null,
+                "stars": {
+                  "frontal": null,
+                  "frontal_driver": null,
+                  "frontal_passenger": null,
+                  "overall": null,
+                  "rollover": null,
+                  "side": null,
+                  "side_barrier": null,
+                  "side_driver": null,
+                  "side_front_seat": null,
+                  "side_passenger": null,
+                  "side_pole": null,
+                  "side_rear_seat": null
+                },
+                "vehicle_type": "MPV"
+              }
+            ],
+            "source": "NHTSA New Car Assessment Program",
+            "source_url": "https://www.nhtsa.gov/ratings",
+            "vehicle": {
+              "id": "2023_hyundai_kona",
+              "make": "Hyundai",
+              "model": "Kona",
+              "year": 2023
+            }
+          },
           "specs": null,
           "tires": null,
           "vehicle": {

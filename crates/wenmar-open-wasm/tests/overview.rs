@@ -157,6 +157,26 @@ fn with_the_shop_file_an_overview_counts_the_recalls_that_may_apply() {
         json!({ "id": "2023_hyundai_kona" }),
     );
     assert_eq!(recalls["newest"], whole.answer["ok"]["recalls"]);
+    // The safety block is the answer of the `safety` operation, whole.
+    let safety = run_with_shop(
+        &mut engine,
+        &connection,
+        &shop,
+        "safety",
+        json!({ "id": "2023_hyundai_kona" }),
+    );
+    assert_eq!(answer["safety"], safety.answer["ok"]);
+    assert_eq!(answer["safety"]["ratings"].as_array().unwrap().len(), 3);
+    // A VIN that reaches no model year has no ratings to give.
+    let coach = run_with_shop(
+        &mut engine,
+        &connection,
+        &shop,
+        "overview_vin",
+        json!({ "vin": common::BUS_LATE }),
+    );
+    assert_eq!(coach.answer["ok"]["vehicle"], Value::Null);
+    assert_eq!(coach.answer["ok"]["safety"], Value::Null);
 
     let asked = run_with_shop(
         &mut engine,
@@ -223,10 +243,11 @@ fn overview_statements_say_which_file_they_are_for_and_fit_cloudflare_d1() {
     for statement in &all {
         let sql = statement["sql"].as_str().unwrap();
         let params = statement["params"].as_array().unwrap();
-        // The recall tables are in the shop file and nothing else is.
+        // The recall and rating tables are in the shop file and nothing
+        // else is.
         assert_eq!(
             statement.get("db").and_then(Value::as_str) == Some("shop"),
-            sql.contains("recall"),
+            sql.contains("recall") || sql.contains("rating"),
             "{sql}"
         );
         // D1: at most 100 bound parameters and 100,000 bytes a statement.

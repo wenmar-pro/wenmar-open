@@ -656,9 +656,8 @@ fn overview_questions() -> Vec<(&'static str, &'static str, Value)> {
 /// The blocks of an overview that the hosted API fills where its server
 /// holds their data, and that the files do not give yet: from files they
 /// are `null` whatever the shop file holds. `specs`, `fuel` and `fluids`
-/// wait for the plan that brings the fuel data to the files, and `safety`
-/// for plan D3.
-const HOSTED_ONLY: [&str; 4] = ["specs", "fuel", "fluids", "safety"];
+/// wait for the plan that brings the fuel data to the files.
+const HOSTED_ONLY: [&str; 3] = ["specs", "fuel", "fluids"];
 
 /// An answer of the API as the files give it. What is set aside before
 /// two answers are compared, and why:
@@ -829,4 +828,55 @@ async fn the_offline_engine_answers_safety_questions_as_the_api_does() {
             }
         }
     }
+}
+
+#[tokio::test]
+async fn the_offline_engine_gives_an_overview_its_crash_test_ratings_as_the_api_does() {
+    // A server and a shop file that hold the ratings beside the recalls.
+    let app = common::ratings_and_recalls_app_at(wenmar_shopdata::answer::SITE).await;
+    let fixture = common::data_file();
+    common::add_shop_file(
+        &fixture,
+        wenmar_shopdata::schema::SCHEMA_VERSION,
+        "2026.09",
+        common::RECALL_AND_RATING_DATASETS,
+        &format!("{}{}", common::recall_rows(), common::rating_rows()),
+    );
+    let connection = Connection::open(fixture.path()).unwrap();
+    let shop = Connection::open(fixture.shop_path()).unwrap();
+    let mut engine = Engine::new();
+    let opened = ask(&mut engine, &connection, "open", &json!({}));
+    assert!(opened.get("ok").is_some(), "{opened}");
+    let opened = ask_with_shop(&mut engine, &connection, &shop, "open_shop", &json!({}));
+    assert!(opened.get("ok").is_some(), "{opened}");
+
+    for (path, op, args) in &overview_questions() {
+        let (status, served) = app.json(path).await;
+        let answer = ask_with_shop(&mut engine, &connection, &shop, op, args);
+        if status == StatusCode::OK {
+            // `safety` is compared, not set aside.
+            assert_eq!(answer["ok"], as_the_files_give_it(served.clone()), "{path}");
+            if *op != "model_years" {
+                // The ratings come with a model year, and with nothing else.
+                assert_eq!(
+                    answer["ok"]["safety"].is_object(),
+                    served["vehicle"].is_object(),
+                    "{path}"
+                );
+            }
+        } else {
+            assert_eq!(json!({ "error": answer["error"] }), served, "{path}");
+        }
+    }
+    // The block is the answer of the route, whole.
+    let overview = ask_with_shop(
+        &mut engine,
+        &connection,
+        &shop,
+        "overview_vehicle",
+        &json!({ "id": "2023_hyundai_kona" }),
+    );
+    let (_, safety) = app.json("/v1/vehicles/2023_hyundai_kona/safety").await;
+    assert_eq!(overview["ok"]["safety"], safety);
+    assert_eq!(safety["ratings"].as_array().unwrap().len(), 3);
 }

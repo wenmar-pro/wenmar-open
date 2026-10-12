@@ -729,6 +729,17 @@ test("with no shop store safety is dataset_unavailable, and nothing is read for 
   assert.deepEqual({ ok: await client.decodeVin(KONA) }, caseNamed("decode").answer);
 });
 
+test("an overview has the crash test ratings when the shop file holds them", async () => {
+  const { client } = withShop();
+  const overview = await client.overview("2023_hyundai_kona_se");
+  const safety = await client.safety("2023_hyundai_kona");
+  assert.deepEqual(overview.safety, safety);
+  assert.equal(safety.ratings.length, 3);
+  assert.deepEqual((await client.vinOverview(KONA)).safety, safety);
+  // With no shop store the block is null, as `recalls` is.
+  assert.equal((await offline().overview("2023_hyundai_kona")).safety, null);
+});
+
 test("close closes both stores", () => {
   const closed: string[] = [];
   const client = new WenmarOpenOffline({

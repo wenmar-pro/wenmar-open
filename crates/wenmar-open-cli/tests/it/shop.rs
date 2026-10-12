@@ -1158,3 +1158,47 @@ NHTSA rates by body style and drive: each rating is for the vehicle named above 
         run.stdout
     );
 }
+
+#[test]
+fn an_overview_has_the_crash_test_ratings_when_the_shop_file_holds_them() {
+    let fixture = common::ratings_dir();
+    let overview = offline(&fixture, &["vehicles", "overview", "2023_hyundai_kona"]).json();
+    let safety = offline(&fixture, &["vehicles", "safety", "2023_hyundai_kona"]).json();
+    assert_eq!(overview["safety"], safety);
+    assert_eq!(overview["safety"]["ratings"].as_array().unwrap().len(), 3);
+    let by_vin = offline(&fixture, &["vin", "overview", KONA]).json();
+    assert_eq!(by_vin["safety"], safety);
+    // The ratings ask for no credit line: the recalls' own is all there is.
+    assert_eq!(
+        overview["attribution"],
+        json!(["Contains information licensed under the Open Government Licence - Canada."])
+    );
+    // A model year NHTSA lists nothing for: the block is there, with an
+    // empty list.
+    let civic = offline(&fixture, &["vehicles", "overview", "2019_honda_civic"]).json();
+    assert_eq!(civic["safety"]["ratings"], json!([]));
+    // A shop file with the recalls alone: null, and still there.
+    let recalls_only = common::shop_dir();
+    let overview = offline(
+        &recalls_only,
+        &["vehicles", "overview", "2023_hyundai_kona"],
+    )
+    .json();
+    assert_eq!(overview["safety"], Value::Null);
+    assert!(overview.as_object().unwrap().contains_key("safety"));
+    // At a terminal the overview says how many there are and where they are.
+    let terminal = Env {
+        stdout_terminal: true,
+        ..common::env(&fixture)
+    };
+    let run = common::run(
+        &terminal,
+        &["vehicles", "overview", "2023_hyundai_kona", "--offline"],
+    );
+    assert!(
+        run.stdout
+            .contains("\nCrash test ratings: 3 from NHTSA (wenmar-open vehicles safety)\n"),
+        "{}",
+        run.stdout
+    );
+}

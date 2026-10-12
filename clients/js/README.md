@@ -396,7 +396,7 @@ What differs offline:
 - `meta().server_version` is the version of this package.
 - `meta().datasets` lists what the shop file holds, and is `{}` when no shop file is open: the data file holds the VIN decoder and the catalog only.
 - `lookup.maker` in a recall answer is always `null`. The makers' own recall lookups are part of the hosted service and are in neither file. `lookup.nhtsa` and `lookup.tc` are always there.
-- `links.maker` in an overview is always `null`, for the same reason. `specs`, `fuel`, `fluids` and `safety` in an overview are `null` offline for now, whatever the shop file holds: the hosted API fills them.
+- `links.maker` in an overview is always `null`, for the same reason. `specs`, `fuel` and `fluids` in an overview are `null` offline for now, whatever the shop file holds: the hosted API fills them. `safety` is what `safety(id)` gives when the shop file holds the ratings, and `null` otherwise.
 - A recall's `url` is its page on `https://open.wenmarpro.com`, whichever server you would otherwise ask. So are `links.page` and every other address in an overview or in `modelYears`.
 - `decodeVins` takes no `include`: the recall count of a batch is the hosted API's alone. Ask `vinOverview` for each VIN instead.
 - `timeoutMs` and `signal` are checked each time the client goes back to the database, not while the database is working. There is no time limit unless you set one.

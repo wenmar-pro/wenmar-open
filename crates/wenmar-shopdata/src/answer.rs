@@ -348,8 +348,10 @@ pub struct Links {
 }
 
 /// Everything held for one model year, in one answer. A block with no
-/// data is `null`. `specs`, `fuel`, `fluids` and `safety` are always
-/// `null` here: the hosted API fills them and the files do not yet.
+/// data is `null`. `specs`, `fuel` and `fluids` are always `null` here:
+/// the hosted API fills them and the files do not yet. `safety` is the
+/// answer of `GET /v1/vehicles/{id}/safety` when the shop file holds the
+/// ratings.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Overview {
     pub vehicle: Option<Vehicle>,
@@ -359,7 +361,7 @@ pub struct Overview {
     pub fluids: Option<Json>,
     pub tires: Option<Json>,
     pub recalls: Option<OverviewRecalls>,
-    pub safety: Option<Json>,
+    pub safety: Option<VehicleSafety>,
     pub labor: Option<Json>,
     pub bulletins: Option<Json>,
     pub links: Links,
@@ -1175,6 +1177,24 @@ impl<'a, S: Source, C: Source> Overviews<'a, S, C> {
             }
             _ => (None, Vec::new()),
         };
+        // The ratings are an addition, as on the server: a shop file
+        // without them answers `null`, and so does a VIN that reaches no
+        // model year. They do not depend on the recalls.
+        let rated = self
+            .shop
+            .filter(|shop| shop.require(Dataset::Ratings).is_ok());
+        let safety = match (found, rated) {
+            (Some(found), Some(shop)) => {
+                let answers = Answers {
+                    shop,
+                    catalog: self.catalog,
+                    core: self.core,
+                    base: self.base,
+                };
+                Some(answers.safety_of(found)?)
+            }
+            _ => None,
+        };
         Ok(Overview {
             vehicle: found.map(|found| found.vehicle.clone()),
             decode,
@@ -1183,7 +1203,7 @@ impl<'a, S: Source, C: Source> Overviews<'a, S, C> {
             fluids: None,
             tires: None,
             recalls,
-            safety: None,
+            safety,
             labor: None,
             bulletins: None,
             links: Links {
