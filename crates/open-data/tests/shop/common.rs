@@ -192,3 +192,40 @@ pub fn rows(connection: &Connection, sql: &str) -> Vec<String> {
         .map(Result::unwrap)
         .collect()
 }
+
+/// The committed fixture of a source: `tests/fixtures/shop/<source>`.
+pub fn fixture(source: &str) -> PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/shop")
+        .join(source)
+}
+
+/// A fetched `nhtsa-recalls` directory made from the fixture, under
+/// `scratch`: the two text files zipped under the names `open-data fetch`
+/// saves, with the CR LF line ends NHTSA writes, and `RCL.txt` and
+/// `source.json` beside them.
+pub fn nhtsa_recalls_dir(scratch: &Scratch) -> PathBuf {
+    use std::io::Write;
+
+    let directory = scratch.path("sources/nhtsa-recalls");
+    std::fs::create_dir_all(&directory).unwrap();
+    for stem in ["FLAT_RCL_PRE_2010", "FLAT_RCL_POST_2010"] {
+        let text = std::fs::read_to_string(fixture("nhtsa-recalls").join(format!("{stem}.txt")))
+            .unwrap()
+            .replace('\n', "\r\n");
+        let file = std::fs::File::create(directory.join(format!("{stem}.zip"))).unwrap();
+        let mut archive = zip::ZipWriter::new(file);
+        archive
+            .start_file(
+                format!("{stem}.txt"),
+                zip::write::SimpleFileOptions::default(),
+            )
+            .unwrap();
+        archive.write_all(text.as_bytes()).unwrap();
+        archive.finish().unwrap();
+    }
+    for name in ["RCL.txt", "source.json"] {
+        std::fs::copy(fixture("nhtsa-recalls").join(name), directory.join(name)).unwrap();
+    }
+    directory
+}

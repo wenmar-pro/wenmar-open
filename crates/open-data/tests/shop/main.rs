@@ -4,3 +4,4 @@ mod build;
 mod common;
 mod coverage;
 mod matcher;
+mod nhtsa_recalls;
