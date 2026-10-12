@@ -112,6 +112,7 @@ async fn llms_full_txt_is_the_pages_themselves() {
         "/tools/gross-profit.md",
         "/tools/labor-rate.md",
         "/tools/tire-size.md",
+        "/tools/refrigerant-pt.md",
         "/data.md",
         "/about.md",
     ] {

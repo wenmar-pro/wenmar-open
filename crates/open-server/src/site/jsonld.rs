@@ -222,6 +222,7 @@ mod tests {
             include_str!("../../templates/gross_profit.html"),
             include_str!("../../templates/labor_rate.html"),
             include_str!("../../templates/tire_size.html"),
+            include_str!("../../templates/refrigerant_pt.html"),
         ];
         let uses: usize = templates
             .iter()

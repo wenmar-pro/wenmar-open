@@ -256,6 +256,26 @@ mod tests {
             ("tire_size/form.rs", include_str!("tire_size/form.rs")),
             ("tire_size/result.rs", include_str!("tire_size/result.rs")),
             ("tire_size/doc.rs", include_str!("tire_size/doc.rs")),
+            (
+                "refrigerant_pt.html",
+                include_str!("../../../templates/refrigerant_pt.html"),
+            ),
+            (
+                "refrigerant_pt/mod.rs",
+                include_str!("refrigerant_pt/mod.rs"),
+            ),
+            (
+                "refrigerant_pt/data.rs",
+                include_str!("refrigerant_pt/data.rs"),
+            ),
+            (
+                "refrigerant_pt/result.rs",
+                include_str!("refrigerant_pt/result.rs"),
+            ),
+            (
+                "refrigerant_pt/doc.rs",
+                include_str!("refrigerant_pt/doc.rs"),
+            ),
         ];
         for (name, text) in files {
             let code = text.split("#[cfg(test)]").next().unwrap();

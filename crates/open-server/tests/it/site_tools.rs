@@ -686,6 +686,23 @@ async fn the_calculators_are_reached_from_the_home_page_the_sitemap_and_llms_txt
     {
         assert!(all.contains(line), "missing: {line}");
     }
+    // The refrigerant chart is in each of the same places.
+    assert!(
+        home.contains(r#"<li><a href="/tools/refrigerant-pt">R-134a and R-1234yf pressure-temperature chart</a></li>"#)
+    );
+    assert!(sitemap.contains("<loc>https://open.example/tools/refrigerant-pt</loc>"));
+    assert!(text.contains(
+        "- [R-134a and R-1234yf pressure-temperature chart](https://open.example/tools/refrigerant-pt.md): Shows the pressure of the refrigerants"
+    ));
+    let (_, refrigerant_pt) = page(&app, "/tools/refrigerant-pt.md").await;
+    let (_, all) = page(&app, "/llms-full.txt").await;
+    assert!(all.contains("\n## R-134a and R-1234yf pressure-temperature chart\n"));
+    for line in refrigerant_pt
+        .lines()
+        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+    {
+        assert!(all.contains(line), "missing: {line}");
+    }
     // llms-full.txt holds the calculator's Markdown, line for line.
     let (_, full) = page(&app, "/llms-full.txt").await;
     assert!(full.contains("\n## Parts markup matrix calculator\n"));
