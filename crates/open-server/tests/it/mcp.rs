@@ -1116,6 +1116,50 @@ async fn a_server_with_no_shop_file_still_answers_the_overview_actions() {
 }
 
 #[tokio::test]
+async fn the_complaints_action_gives_what_the_api_gives() {
+    let app = common::complaints_app().await;
+    for id in ["2023_hyundai_kona", "2022_hyundai_kona", "2019_honda_civic"] {
+        let result = call(
+            &app,
+            "wenmar_vehicles",
+            json!({ "action": "complaints", "id": id }),
+        )
+        .await;
+        assert_eq!(result["isError"], false, "{id}");
+        let (status, served) = app.json(&format!("/v1/vehicles/{id}/complaints")).await;
+        assert_eq!(status, StatusCode::OK, "{id}");
+        assert_eq!(text(&result), served, "{id}");
+        assert_eq!(result["structuredContent"], served, "{id}");
+    }
+    let result = call(&app, "wenmar_vehicles", json!({ "action": "complaints" })).await;
+    assert_eq!(result["isError"], true);
+    assert_eq!(
+        result["structuredContent"]["error"]["code"],
+        "validation_failed"
+    );
+    // A server without complaints: the tool's result is the API's own error.
+    for app in [common::app().await, common::recalls_app().await] {
+        let result = call(
+            &app,
+            "wenmar_vehicles",
+            json!({ "action": "complaints", "id": "2023_hyundai_kona" }),
+        )
+        .await;
+        assert_eq!(result["isError"], true);
+        assert_eq!(
+            result["structuredContent"],
+            json!({
+                "error": {
+                    "code": "dataset_unavailable",
+                    "message": "The complaints dataset is not available.",
+                    "details": { "dataset": "complaints" }
+                }
+            })
+        );
+    }
+}
+
+#[tokio::test]
 async fn the_safety_action_gives_what_the_api_gives() {
     let app = common::ratings_app().await;
     for id in [

@@ -58,6 +58,8 @@ wenmar-open vehicles engines --make honda --model civic --year 2019 --submodel s
 wenmar-open vehicles entry 2019_honda_civic_si
 ```
 
+- `wenmar-open vehicles complaints <id>`: what owners reported to NHTSA about a model year, as counts by component with the median mileage owners gave. These are reports, not verified defects, and a count is not a rate.
+
 - `--make` and `--model` take a name, an alias or an id: `Chevrolet`, `chevy` and `chevrolet` are the same make, and `f150` finds `F-150`.
 - `--term TEXT` keeps names that start with the text.
 - `--scope` is `light` (cars, MPVs and trucks; the default), `all`, or a vPIC vehicle type id such as `6` for trailers.

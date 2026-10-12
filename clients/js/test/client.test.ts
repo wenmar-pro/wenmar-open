@@ -90,6 +90,11 @@ const calls: Record<string, { call: () => Promise<unknown>; method: string; url:
     method: "GET",
     url: "/v1/vehicles/2018_ford_f-150/safety",
   },
+  vehicle_complaints: {
+    call: () => client.complaints("2016_honda_civic"),
+    method: "GET",
+    url: "/v1/vehicles/2016_honda_civic/complaints",
+  },
   vehicle_recalls: {
     call: () => client.recalls("2018_ford_f-150", { country: "us" }),
     method: "GET",

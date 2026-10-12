@@ -298,6 +298,11 @@ pub enum VehiclesCommand {
         /// The vehicle id, such as 2018_ford_f-150.
         id: String,
     },
+    /// What owners reported to NHTSA about a model year, as counts by component. Reports, not verified defects.
+    Complaints {
+        /// The vehicle id, such as 2016_honda_civic.
+        id: String,
+    },
     /// Everything held for one model year, in one answer.
     ///
     /// A count of the recall campaigns that may apply, with the three
@@ -721,6 +726,13 @@ impl VehiclesCommand {
                     ..Lookup::default()
                 },
             ),
+            VehiclesCommand::Complaints { id } => (
+                Action::Complaints,
+                Lookup {
+                    id: Some(id),
+                    ..Lookup::default()
+                },
+            ),
             VehiclesCommand::Overview { id } => (
                 Action::Overview,
                 Lookup {
@@ -974,6 +986,21 @@ mod tests {
         assert_eq!(lookup.limit, Some(5));
         // The day is required: without it the command line is refused.
         assert!(Cli::try_parse_from(["wenmar-open", "recalls", "recent"]).is_err());
+    }
+
+    #[test]
+    fn the_complaints_command_becomes_a_request() {
+        let cli =
+            Cli::try_parse_from(["wenmar-open", "vehicles", "complaints", "2016_honda_civic"])
+                .unwrap();
+        let Some(Command::Vehicles { command }) = cli.command else {
+            panic!("a vehicles command");
+        };
+        let Request::Vehicles { action, lookup } = command.request() else {
+            panic!("a vehicles request");
+        };
+        assert_eq!(action, Action::Complaints);
+        assert_eq!(lookup.id.as_deref(), Some("2016_honda_civic"));
     }
 
     #[test]

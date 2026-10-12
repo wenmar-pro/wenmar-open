@@ -551,6 +551,123 @@ async fn the_tool_answers_overview_questions_as_the_api_does_from_files_and_over
 }
 
 #[tokio::test(flavor = "multi_thread")]
+async fn the_tool_answers_complaints_questions_as_the_api_does_from_files_and_over_http() {
+    // Three servers, and the files that go with each: the complaints beside
+    // the recalls, the recalls alone, and no shop file.
+    for held in ["complaints", "recalls", "nothing"] {
+        let shop = match held {
+            "complaints" => Some((common::COMPLAINT_DATASETS, common::complaint_rows())),
+            "recalls" => Some((common::RECALL_DATASETS, common::recall_rows())),
+            _ => None,
+        };
+        // The server's pages are at the address the tool names, as in the
+        // overview test below, so the overview's links are the same.
+        let app = match held {
+            "complaints" => common::complaints_app_at(SITE).await,
+            "recalls" => common::recalls_app().await,
+            _ => common::app().await,
+        };
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address: SocketAddr = listener.local_addr().unwrap();
+        let (stop, stopped) = oneshot::channel::<()>();
+        let serving = tokio::spawn(serve(
+            listener,
+            app.router.clone(),
+            async move {
+                let _ = stopped.await;
+            },
+            Limits::default(),
+        ));
+        let api = format!("http://{address}");
+
+        // The same files, under the names the tool looks for.
+        let fixture = common::data_file();
+        let directory = tempfile::tempdir().unwrap();
+        std::fs::copy(fixture.path(), directory.path().join(DATA_FILE)).unwrap();
+        if let Some((datasets, rows)) = &shop {
+            common::add_shop_file(
+                &fixture,
+                wenmar_shopdata::schema::SCHEMA_VERSION,
+                "2026.09",
+                datasets,
+                rows,
+            );
+            std::fs::copy(fixture.shop_path(), directory.path().join(SHOP_FILE)).unwrap();
+        }
+
+        for id in [
+            "2023_hyundai_kona",
+            "2023_hyundai_kona_se",
+            "2022_hyundai_kona",
+            "2019_honda_civic",
+            "2019_honda_nothing",
+        ] {
+            let (status, served) = app.json(&format!("/v1/vehicles/{id}/complaints")).await;
+            let ask = |source: &'static str| {
+                let directory = directory.path().to_path_buf();
+                let api = api.clone();
+                tokio::task::spawn_blocking(move || {
+                    tool(&directory, &api, &["vehicles", "complaints", id, source])
+                })
+            };
+            let (local_code, local) = ask("--offline").await.unwrap();
+            let (remote_code, remote) = ask("--online").await.unwrap();
+            if status == StatusCode::OK {
+                assert_eq!(held, "complaints", "{id}");
+                assert_eq!((local_code, remote_code), (0, 0), "{id}");
+                // Nothing is set aside: a complaints answer has no address
+                // of this site and no maker's link, so the files give every
+                // field of it.
+                assert_eq!(remote, served, "{id}");
+                assert_eq!(local, served, "{id}");
+            } else {
+                // The same code and the same sentence, and the same exit
+                // code both ways. The tool may add a hint to the details.
+                assert_eq!(local_code, remote_code, "{id} {held}");
+                assert_ne!(local_code, 0, "{id}");
+                for told in [&local, &remote] {
+                    assert_eq!(told["error"]["code"], served["error"]["code"], "{id}");
+                    assert_eq!(
+                        told["error"]["message"], served["error"]["message"],
+                        "{id} {held}"
+                    );
+                }
+                if held != "complaints" {
+                    assert_eq!(served["error"]["code"], "dataset_unavailable", "{id}");
+                }
+            }
+        }
+
+        // The overview's block is the same from the files and over HTTP,
+        // and is null where the files hold no complaints.
+        let (_, served) = app.json("/v1/vehicles/2023_hyundai_kona/overview").await;
+        let overview = tokio::task::spawn_blocking({
+            let directory = directory.path().to_path_buf();
+            let api = api.clone();
+            move || {
+                tool(
+                    &directory,
+                    &api,
+                    &["vehicles", "overview", "2023_hyundai_kona", "--offline"],
+                )
+            }
+        })
+        .await
+        .unwrap();
+        assert_eq!(overview.0, 0, "{held}");
+        assert_eq!(overview.1["complaints"], served["complaints"], "{held}");
+        assert_eq!(
+            overview.1["complaints"].is_object(),
+            held == "complaints",
+            "{held}"
+        );
+
+        let _ = stop.send(());
+        let _ = serving.await;
+    }
+}
+
+#[tokio::test(flavor = "multi_thread")]
 async fn the_tool_answers_safety_questions_as_the_api_does_from_files_and_over_http() {
     // Three servers, and the files that go with each: the ratings beside
     // the recalls, the recalls alone, and no shop file.

@@ -59,10 +59,12 @@ pub enum Action {
     ModelYears,
     /// NHTSA's crash test ratings for one model year, by its vehicle id.
     Safety,
+    /// What owners reported to NHTSA about one model year, by its vehicle id.
+    Complaints,
 }
 
 impl Action {
-    pub const ALL: [Action; 10] = [
+    pub const ALL: [Action; 11] = [
         Action::Years,
         Action::Makes,
         Action::Models,
@@ -73,6 +75,7 @@ impl Action {
         Action::Overview,
         Action::ModelYears,
         Action::Safety,
+        Action::Complaints,
     ];
 
     /// The name of the action in the `wenmar_vehicles` tool. For the first
@@ -89,6 +92,7 @@ impl Action {
             Action::Overview => "overview",
             Action::ModelYears => "model_years",
             Action::Safety => "safety",
+            Action::Complaints => "complaints",
         }
     }
 
@@ -582,10 +586,12 @@ impl Request {
                         model: required("model", lookup.model.as_ref())?,
                         ..Lookup::default()
                     },
-                    Action::Entry | Action::Overview | Action::Safety => Lookup {
-                        id: required("id", lookup.id.as_ref())?,
-                        ..Lookup::default()
-                    },
+                    Action::Entry | Action::Overview | Action::Safety | Action::Complaints => {
+                        Lookup {
+                            id: required("id", lookup.id.as_ref())?,
+                            ..Lookup::default()
+                        }
+                    }
                 };
                 Ok(Request::Vehicles {
                     action,
@@ -699,7 +705,7 @@ impl Request {
         let Some(action) = Action::parse(action) else {
             return Err(CliError::validation(
                 "action",
-                "action must be years, makes, models, submodels, engines, search, entry, overview, model_years or safety",
+                "action must be years, makes, models, submodels, engines, search, entry, overview, model_years, safety or complaints",
             ));
         };
         Ok(Request::Vehicles {
@@ -888,6 +894,7 @@ mod tests {
             ),
             (Action::Search, Lookup::default(), "query"),
             (Action::Entry, Lookup::default(), "id"),
+            (Action::Complaints, Lookup::default(), "id"),
             (
                 Action::Makes,
                 Lookup {
@@ -1422,6 +1429,32 @@ mod tests {
         );
         assert_eq!(Action::Safety.name(), "safety");
         assert!(Action::ALL.contains(&Action::Safety));
+    }
+
+    #[test]
+    fn the_complaints_question_needs_a_vehicle_id_and_is_read_from_a_tool_call() {
+        let error = vehicles(Action::Complaints, Lookup::default())
+            .checked(2026)
+            .unwrap_err();
+        assert_eq!(error.code, "validation_failed");
+        assert_eq!(error.details["field"], "id");
+        let asked = Request::from_tool(
+            "wenmar_vehicles",
+            &json!({ "action": "complaints", "id": " 2016_honda_civic ", "make": "dropped" }),
+        )
+        .unwrap();
+        assert_eq!(
+            asked.checked(2026).unwrap(),
+            vehicles(
+                Action::Complaints,
+                Lookup {
+                    id: text("2016_honda_civic"),
+                    ..Lookup::default()
+                }
+            )
+        );
+        assert_eq!(Action::Complaints.name(), "complaints");
+        assert!(Action::ALL.contains(&Action::Complaints));
     }
 
     #[test]

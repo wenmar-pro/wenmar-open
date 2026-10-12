@@ -67,6 +67,7 @@ export type {
   Submodel,
   SubmodelsQuery,
   VehicleBulletins,
+  VehicleComplaints,
   VehicleFluids,
   VehicleFuel,
   VehicleFuelQuery,

@@ -347,6 +347,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vehicles/{id}/complaints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What owners reported to NHTSA about a model year, as counts by
+         *     component.
+         * @description These are owners' reports. They are not verified, and a count is not a
+         *     rate. No complaint itself is available here: only how many there are.
+         */
+        get: operations["vehicle_complaints"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vehicles/{id}/fluids": {
         parameters: {
             query?: never;
@@ -932,6 +954,46 @@ export interface components {
             expected: string;
             valid: boolean;
         };
+        /** @description The complaints of a model year that name one component. */
+        ComponentComplaints: {
+            /** Format: int32 */
+            complaints: number;
+            /**
+             * Format: int32
+             * @description Complaints that report a crash.
+             */
+            crashes: number;
+            /**
+             * Format: int32
+             * @description Complaints that report a fire.
+             */
+            fires: number;
+            /**
+             * @description A component id, such as `steering` or `brake-pad`.
+             * @example steering
+             */
+            id: string;
+            /**
+             * Format: int32
+             * @description Complaints that report at least one person injured.
+             */
+            injuries: number;
+            /**
+             * Format: int32
+             * @description The median of the mileages owners gave, in kilometres. `null` when
+             *     fewer than five gave one.
+             */
+            median_km?: number | null;
+            /**
+             * Format: int32
+             * @description The same in miles, as NHTSA records it.
+             */
+            median_miles?: number | null;
+            /** @example Steering */
+            name: string;
+            /** @description The system a part belongs to. `null` for a system. */
+            parent?: string | null;
+        };
         /** @description City, highway and combined consumption in litres per 100 km. */
         Consumption: {
             /** Format: double */
@@ -1402,6 +1464,7 @@ export interface components {
             /** @description The credit lines the data's licences ask for. */
             attribution: string[];
             bulletins?: null | components["schemas"]["OverviewBulletins"];
+            complaints?: null | components["schemas"]["OverviewComplaints"];
             decode?: null | components["schemas"]["OverviewDecode"];
             fluids?: Record<string, unknown> | null;
             fuel?: Record<string, unknown> | null;
@@ -1435,6 +1498,28 @@ export interface components {
              * @example https://open.wenmarpro.com/makes/ford/f-150/2018/bulletins
              */
             url: string;
+        };
+        /** @description The complaints of a model year, in brief, in an overview. */
+        OverviewComplaints: {
+            as_of?: string | null;
+            /** Format: int32 */
+            complaints: number;
+            /** Format: int32 */
+            crashes: number;
+            /** Format: int32 */
+            fires: number;
+            /** Format: int32 */
+            injuries: number;
+            /** Format: int32 */
+            median_km?: number | null;
+            /** Format: int32 */
+            median_miles?: number | null;
+            /** @description The three most reported components. */
+            top: components["schemas"]["ComponentComplaints"][];
+            /** @description The section of the model year's page on this site. */
+            url: string;
+            /** @description Always `false`, as in `VehicleComplaints`. */
+            verified: boolean;
         };
         /** @description What the VIN of an overview decoded to. */
         OverviewDecode: {
@@ -2176,6 +2261,48 @@ export interface components {
             /** @description What a bulletin is and is not. */
             note: string;
             vehicle: components["schemas"]["RecallVehicle"];
+        };
+        /** @description What owners reported to NHTSA about one model year, as counts. */
+        VehicleComplaints: {
+            /**
+             * @description The day the complaints were current.
+             * @example 2026-10-11
+             */
+            as_of?: string | null;
+            attribution: string[];
+            /**
+             * Format: int32
+             * @description Every complaint about the model year. Not a rate: a model that
+             *     sold more has more.
+             */
+            complaints: number;
+            /**
+             * @description The components with at least five complaints, most first, at most
+             *     twelve. They do not add up to `complaints`: a complaint may name
+             *     several, and a part is counted under its system too.
+             */
+            components: components["schemas"]["ComponentComplaints"][];
+            /** Format: int32 */
+            crashes: number;
+            /** Format: int32 */
+            fires: number;
+            /** Format: int32 */
+            injuries: number;
+            /** Format: int32 */
+            median_km?: number | null;
+            /** Format: int32 */
+            median_miles?: number | null;
+            /** @description What these counts are and are not. */
+            note: string;
+            /** @description Where an owner files a complaint with NHTSA. */
+            report_url: string;
+            vehicle: components["schemas"]["RecallVehicle"];
+            /**
+             * @description Always `false`. A complaint is an owner's report. Nobody has
+             *     verified it, and a count of complaints is not a finding that
+             *     anything is wrong with the vehicle.
+             */
+            verified: boolean;
         };
         /** @description The fluids of one model year. */
         VehicleFluids: {
@@ -3253,6 +3380,41 @@ export interface operations {
                 };
             };
             /** @description `not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no bulletins. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    vehicle_complaints: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description A vehicle id. Complaints are counted by year, make and model; a submodel or an engine in the id is set aside.
+                 * @example 2016_honda_civic
+                 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The counts. All zero when no complaint names the model year. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleComplaints"];
+                };
+            };
+            /** @description `not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no complaints. */
             404: {
                 headers: {
                     [name: string]: unknown;

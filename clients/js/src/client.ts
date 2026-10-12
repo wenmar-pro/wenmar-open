@@ -35,6 +35,7 @@ import type {
   VehicleBulletins,
   VehicleRecalls,
   VehicleRecallsQuery,
+  VehicleComplaints,
   VehicleSafety,
   VehicleSpecs,
   VinDecode,
@@ -225,6 +226,14 @@ export class WenmarOpen {
    */
   async safety(id: string, options: RequestOptions = {}): Promise<VehicleSafety> {
     return this.#request("GET", `/v1/vehicles/${segment("id", id)}/safety`, undefined, options);
+  }
+
+  /**
+   * What owners reported to NHTSA about a model year, as counts by
+   * component. These are owners' reports: not verified, and not a rate.
+   */
+  async complaints(id: string, options: RequestOptions = {}): Promise<VehicleComplaints> {
+    return this.#request("GET", `/v1/vehicles/${segment("id", id)}/complaints`, undefined, options);
   }
 
   /** One make by its id, name or alias, such as `honda`, with the maker's own links. */

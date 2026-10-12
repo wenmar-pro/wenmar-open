@@ -100,6 +100,9 @@ export type VehicleSafety = Schemas["VehicleSafety"];
 /** One rating: the vehicle NHTSA tested, its stars and its safety features. */
 export type SafetyRating = Schemas["SafetyRating"];
 
+/** What owners reported to NHTSA about one model year, as counts. Reports, not verified defects. */
+export type VehicleComplaints = Schemas["VehicleComplaints"];
+
 /** The body of every error the API sends. */
 export type ErrorBody = Schemas["ErrorBody"];
 /** One answer of a batch: a decode, or the error for that VIN. */

@@ -898,7 +898,8 @@ fn without_the_shop_file_an_overview_still_answers_and_its_recalls_are_null() {
         answer["links"]["page"],
         format!("{SITE}/makes/hyundai/kona/2023")
     );
-    assert_eq!(answer.as_object().unwrap().len(), 13);
+    assert_eq!(answer.as_object().unwrap().len(), 14);
+    assert_eq!(answer["complaints"], Value::Null);
 
     let run = offline(&fixture, &["vin", "overview", KONA]);
     assert_eq!(run.code, 0, "{}", run.stderr);

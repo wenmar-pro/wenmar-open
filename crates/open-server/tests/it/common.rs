@@ -946,17 +946,42 @@ INSERT INTO complaint_count VALUES
   (498, 900, 2022, 'engine', 3, 0, 0, 0, 2, 8000);
 ";
 
-/// The application over the small data file and a shop file holding
-/// recalls and complaints.
-pub async fn complaints_app() -> TestApp {
+/// The recall tables, the complaint tables and [`COMPLAINT_INSERTS`], as
+/// `rows` for [`app_with_shop`]. The recalls are in as well, so the
+/// overview has both blocks.
+pub fn complaint_rows() -> String {
     use wenmar_shopdata::schema;
-    let rows = format!(
+    format!(
         "{}{}{}{COMPLAINT_INSERTS}",
         recall_rows(),
         schema::COMPONENTS,
         schema::COMPLAINTS
+    )
+}
+
+/// The application over the small data file and a shop file holding
+/// recalls and complaints.
+pub async fn complaints_app() -> TestApp {
+    app_with_shop(COMPLAINT_DATASETS, &complaint_rows()).await
+}
+
+/// [`complaints_app`], saying its pages are at `base_url`.
+pub async fn complaints_app_at(base_url: &str) -> TestApp {
+    let fixture = data_file();
+    add_shop_file(
+        &fixture,
+        wenmar_shopdata::schema::SCHEMA_VERSION,
+        "2026.09",
+        COMPLAINT_DATASETS,
+        &complaint_rows(),
     );
-    app_with_shop(COMPLAINT_DATASETS, &rows).await
+    let shop = fixture.shop_path();
+    let base_url = base_url.to_owned();
+    app_over(fixture, |config| {
+        config.shop_data = Some(shop);
+        config.base_url = base_url;
+    })
+    .await
 }
 
 // ----- helpers for the pages -----

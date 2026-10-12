@@ -191,6 +191,25 @@ impl Local {
         json(answers.safety(id).map_err(answer_error)?)
     }
 
+    /// What owners reported to NHTSA about a model year, from the shop file
+    /// beside the data file, worded as the hosted API words them.
+    fn complaints(&self, id: &str) -> Result<Value, CliError> {
+        let Some(shop) = &self.shop else {
+            return Err(if self.shop_status.installed {
+                shop_unusable(&self.shop_status)
+            } else {
+                dataset_unavailable(Dataset::Complaints)
+            });
+        };
+        let answers = Answers {
+            shop,
+            catalog: &self.catalog,
+            core: &self.core,
+            base: SITE,
+        };
+        json(answers.complaints(id).map_err(answer_error)?)
+    }
+
     /// The recalls that may apply, from the shop file beside the data
     /// file, worded as the hosted API words them.
     fn recalls(&self, action: RecallAction, lookup: &RecallLookup) -> Result<Value, CliError> {
@@ -382,6 +401,7 @@ impl Local {
                 None => Err(CliError::new(NOT_FOUND, "No vehicle has that id.")),
             },
             Action::Safety => self.safety(&text(&lookup.id)),
+            Action::Complaints => self.complaints(&text(&lookup.id)),
             Action::Overview => json(
                 self.overviews()
                     .vehicle_with_complaints(&text(&lookup.id))

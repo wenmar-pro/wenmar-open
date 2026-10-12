@@ -901,6 +901,42 @@ fn recent(value: &Value) -> String {
     text + &recall_footer(value)
 }
 
+/// What owners reported to NHTSA about a model year, as counts by component.
+/// These are reports, not verified defects, and a count is not a rate.
+fn complaints(value: &Value) -> String {
+    let vehicle = &value["vehicle"];
+    let mut text = format!(
+        "What owners reported to NHTSA about the {} {} {}, as of {}\n",
+        cell(vehicle, "year"),
+        cell(vehicle, "make"),
+        cell(vehicle, "model"),
+        cell(value, "as_of"),
+    );
+    text.push_str(&format!(
+        "{} complaints: {} report a crash, {} a fire, {} an injury\n",
+        cell(value, "complaints"),
+        cell(value, "crashes"),
+        cell(value, "fires"),
+        cell(value, "injuries"),
+    ));
+    for component in value["components"].as_array().into_iter().flatten() {
+        let mut line = format!(
+            "  {}: {}",
+            cell(component, "name"),
+            cell(component, "complaints")
+        );
+        if let (Some(km), Some(miles)) = (
+            field(component, "median_km"),
+            field(component, "median_miles"),
+        ) {
+            line.push_str(&format!(", median {km} km ({miles} miles)"));
+        }
+        text.push_str(&format!("{line}\n"));
+    }
+    text.push_str(&format!("\n{}\n", cell(value, "note")));
+    text
+}
+
 /// NHTSA's crash test ratings for a model year: a few lines for each
 /// vehicle NHTSA rated, under NHTSA's own words for it. None is picked.
 fn safety(value: &Value) -> String {
@@ -1073,6 +1109,7 @@ pub fn text(request: &Request, value: &Value) -> String {
         }),
         Action::Entry => entry(value),
         Action::Safety => safety(value),
+        Action::Complaints => complaints(value),
         Action::Overview => overview(value),
         Action::ModelYears => model_years(value),
     }
@@ -1413,6 +1450,36 @@ To add the MCP server as well, run:
             pulled(&json!({ "updated": false, "data_version": "2026.09", "path": "/d/f" })),
             "Data 2026.09 is already in place at /d/f.\n"
         );
+    }
+
+    #[test]
+    fn complaints_are_said_to_be_reports_and_not_verified() {
+        let value = json!({
+            "vehicle": { "id": "2016_honda_civic", "year": 2016, "make": "Honda", "model": "Civic" },
+            "as_of": "2026-10-11",
+            "verified": false,
+            "complaints": 1082, "crashes": 36, "fires": 4, "injuries": 13,
+            "median_km": 48280, "median_miles": 30000,
+            "components": [
+                { "id": "steering", "name": "Steering", "parent": null,
+                  "complaints": 445, "crashes": 4, "fires": 0, "injuries": 1,
+                  "median_km": 62764, "median_miles": 39000 },
+                { "id": "brakes", "name": "Brakes", "parent": null,
+                  "complaints": 96, "crashes": 1, "fires": 0, "injuries": 0,
+                  "median_km": null, "median_miles": null }
+            ],
+            "note": "These are counts of the complaints owners filed with NHTSA. A complaint is not verified, and a count is not a rate.",
+            "report_url": "https://www.nhtsa.gov/report-a-safety-problem",
+            "attribution": []
+        });
+        let text = text(&vehicles(Action::Complaints), &value);
+        assert!(text.starts_with(
+            "What owners reported to NHTSA about the 2016 Honda Civic, as of 2026-10-11\n"
+        ));
+        assert!(text.contains("1082 complaints: 36 report a crash, 4 a fire, 13 an injury\n"));
+        assert!(text.contains("  Steering: 445, median 62764 km (39000 miles)\n"));
+        assert!(text.contains("  Brakes: 96\n"));
+        assert!(text.contains("not verified"));
     }
 
     #[test]
