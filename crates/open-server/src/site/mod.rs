@@ -11,6 +11,7 @@ pub mod home;
 pub mod jsonld;
 pub mod markdown;
 pub mod pages;
+pub mod report;
 pub mod seo;
 pub mod tokens;
 pub mod tools;
