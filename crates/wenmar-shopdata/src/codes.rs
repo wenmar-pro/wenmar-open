@@ -375,3 +375,29 @@ pub const BAD_CURSOR: &str = "cursor is not one this API gave out";
 
 /// Codes in a list when `limit` is not given.
 pub const LIST_DEFAULT: usize = 50;
+
+impl<S: Source> ShopData<S> {
+    /// Those of `codes` that have a record, by code. A bulletin's page
+    /// asks this of the codes its summary names, to link only pages that
+    /// exist.
+    pub fn codes_described(&self, codes: &[String]) -> Result<Vec<String>, ShopError> {
+        self.require(Dataset::Codes)?;
+        if codes.is_empty() {
+            return Ok(Vec::new());
+        }
+        let marks: Vec<String> = (1..=codes.len())
+            .map(|number| format!("?{number}"))
+            .collect();
+        let params: Vec<Value> = codes.iter().map(|code| code.as_str().into()).collect();
+        self.query(
+            &format!(
+                "SELECT code FROM code WHERE code IN ({}) ORDER BY code",
+                marks.join(", ")
+            ),
+            &params,
+        )?
+        .iter()
+        .map(|row| text(row, 0))
+        .collect()
+    }
+}

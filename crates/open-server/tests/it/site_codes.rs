@@ -246,3 +246,55 @@ async fn a_page_with_nothing_to_show_answers_and_is_not_indexed() {
     assert!(html.contains("Nobody has written a description of this code yet."));
     assert!(!html.contains("href=\"/codes/P0420\""));
 }
+
+#[tokio::test]
+async fn a_bulletin_links_the_codes_it_names_that_are_described() {
+    let app = common::codes_app().await;
+    // 11000001 names P0300 and P0420; both have a record.
+    let (_, html) = page(&app, "/bulletins/11000001").await;
+    assert!(
+        html.contains("<a href=\"/codes/P0300\">P0300</a>, <a href=\"/codes/P0420\">P0420</a>")
+    );
+    // 11000004 names C1234, which is a manufacturer's own: plain text.
+    let (_, html) = page(&app, "/bulletins/11000004").await;
+    assert!(html.contains("<p class=\"mono\">C1234</p>"));
+    assert!(!html.contains("href=\"/codes/C1234\""));
+    // Without the codes dataset nothing is linked.
+    let app = common::bulletins_app().await;
+    let (_, html) = page(&app, "/bulletins/11000001").await;
+    assert!(html.contains("<p class=\"mono\">P0300, P0420</p>"));
+}
+
+#[tokio::test]
+async fn a_bulletin_list_narrowed_to_a_code_links_the_codes_page_for_that_vehicle() {
+    let app = common::codes_app().await;
+    let (_, html) = page(&app, "/makes/hyundai/kona/2023/bulletins?code=P0420").await;
+    assert!(html.contains("href=\"/makes/hyundai/kona/2023/codes/P0420\""));
+    let (_, html) = page(&app, "/makes/hyundai/kona/2023/bulletins").await;
+    assert!(!html.contains("/codes/P0420\""));
+}
+
+#[tokio::test]
+async fn the_sitemaps_list_the_index_and_every_described_code() {
+    let app = common::codes_app().await;
+    let (_, index) = page(&app, "/sitemap.xml").await;
+    assert!(index.contains("https://open.example/sitemaps/codes.xml"));
+    let (status, xml) = page(&app, "/sitemaps/codes.xml").await;
+    assert_eq!(status, StatusCode::OK);
+    for code in ["P0300", "P0420", "U0001"] {
+        assert!(xml.contains(&format!("<loc>https://open.example/codes/{code}</loc>")));
+    }
+    assert_eq!(xml.matches("<loc>").count(), 3);
+    // No page of a code on a vehicle is listed anywhere.
+    assert!(!xml.contains("/makes/"));
+    let (_, pages) = page(&app, "/sitemaps/pages.xml").await;
+    assert!(pages.contains("<loc>https://open.example/codes</loc>"));
+    // A server without the codes has neither.
+    let app = common::bulletins_app().await;
+    let (_, index) = page(&app, "/sitemap.xml").await;
+    assert!(!index.contains("sitemaps/codes.xml"));
+    let (status, _) = page(&app, "/sitemaps/codes.xml").await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    let (_, pages) = page(&app, "/sitemaps/pages.xml").await;
+    assert!(!pages.contains("/codes<"));
+}

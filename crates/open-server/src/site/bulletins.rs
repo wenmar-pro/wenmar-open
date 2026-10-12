@@ -191,6 +191,8 @@ struct ModelYearBulletinsPage {
     next: Option<String>,
     dated: String,
     recalls_path: Option<String>,
+    /// The code the list is narrowed to, and its page for this vehicle.
+    code_page: Option<(String, String)>,
     report: report::ReportLinks,
 }
 
@@ -326,6 +328,7 @@ pub async fn model_year_section(
         && asked.topic.is_none()
         && asked.q.is_none();
     let chosen_type = asked.kind.map(BulletinType::id);
+    let chosen_code = asked.code.clone();
     let chosen = (
         asked.component.clone(),
         asked.code.clone(),
@@ -493,6 +496,10 @@ pub async fn model_year_section(
         (false, _) => page,
     };
     let indexed = page.index;
+    let code_page = chosen_code.map(|code| {
+        let href = format!("{model_year_path}/codes/{code}");
+        (code, href)
+    });
     let recalls_path = crate::api::recalls::recall_shop(&state, None)
         .is_ok()
         .then(|| format!("{model_year_path}/recalls"));
@@ -512,6 +519,7 @@ pub async fn model_year_section(
             next,
             dated: dated(answer.as_of.as_ref()),
             recalls_path,
+            code_page,
             report,
         },
     );
@@ -553,7 +561,8 @@ struct BulletinPage {
     summary: Vec<String>,
     document: Option<(String, String)>,
     components: Vec<String>,
-    codes: Vec<String>,
+    /// Each code the summary names, with its page where it has one.
+    codes: Vec<(String, Option<String>)>,
     vehicles: Vec<VehicleLine>,
     more_vehicles: usize,
     related: Vec<Line>,
@@ -819,6 +828,26 @@ pub async fn bulletin(
     ];
     // Every bulletin's page is offered to search engines (master plan Q8).
     let page = page.describing(things).indexed(&state, &path);
+    // A code is linked only when it has a page: a generic code that
+    // someone has described, on a server that holds the descriptions.
+    let described: Vec<String> = match state.dataset(Dataset::Codes) {
+        Ok(shop) if !found.codes.is_empty() => {
+            let asked = found.codes.clone();
+            match shop.run(move |reader| reader.codes_described(&asked)).await {
+                Ok(Ok(described)) => described,
+                _ => Vec::new(),
+            }
+        }
+        _ => Vec::new(),
+    };
+    let codes: Vec<(String, Option<String>)> = found
+        .codes
+        .iter()
+        .map(|code| {
+            let href = described.contains(code).then(|| format!("/codes/{code}"));
+            (code.clone(), href)
+        })
+        .collect();
     let summary: Vec<String> = found
         .summary
         .iter()
@@ -844,7 +873,7 @@ pub async fn bulletin(
                 .iter()
                 .map(|component| component.name.clone())
                 .collect(),
-            codes: found.codes.clone(),
+            codes,
             vehicles,
             more_vehicles,
             related,

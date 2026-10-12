@@ -201,3 +201,14 @@ fn a_file_without_the_dataset_says_so() {
         assert_eq!(error.to_string(), "The codes dataset is not available.");
     }
 }
+
+#[test]
+fn the_codes_that_have_a_record_are_picked_out_of_a_list() {
+    let shop = shop(true);
+    let asked: Vec<String> = ["U0001", "P1234", "P0001", "P0003"]
+        .iter()
+        .map(|code| (*code).to_owned())
+        .collect();
+    assert_eq!(shop.codes_described(&asked).unwrap(), ["P0001", "U0001"]);
+    assert!(shop.codes_described(&[]).unwrap().is_empty());
+}

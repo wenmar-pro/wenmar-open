@@ -32,7 +32,7 @@
 {% endif -%}
 {% if !codes.is_empty() -%}
 <h2>Trouble codes named</h2>
-<p class="mono">{% for code in codes %}{% if !loop.first %}, {% endif %}{{ code }}{% endfor %}</p>
+<p class="mono">{% for (code, href) in codes %}{% if !loop.first %}, {% endif %}{% if let Some(href) = href %}<a href="{{ href }}">{{ code }}</a>{% else %}{{ code }}{% endif %}{% endfor %}</p>
 {% endif -%}
 <table class="prose">
 <caption>Vehicles listed</caption>

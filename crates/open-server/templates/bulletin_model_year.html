@@ -3,6 +3,9 @@
 <h1>Service bulletins for the {{ name }}</h1>
 <p>{{ note }}</p>
 <p>{{ total }} on file from NHTSA, {{ dated }}.</p>
+{% if let Some((code, href)) = code_page -%}
+<p><a href="{{ href }}">About <span class="mono">{{ code }}</span> on the {{ name }}</a>: what the code means, and the bulletins and recalls about the same components.</p>
+{% endif -%}
 {% if !warranty.is_empty() -%}
 <table class="prose">
 <caption>Warranty extensions</caption>

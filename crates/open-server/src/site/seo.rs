@@ -212,6 +212,9 @@ pub async fn index(State(state): State<AppState>) -> Response {
             .map(|year| format!("recalls-{year}")),
     );
     names.extend(bulletin_sitemaps(&state, years).await);
+    if state.dataset(Dataset::Codes).is_ok() {
+        names.push("codes".to_owned());
+    }
     let mut xml = String::from(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n",
     );
@@ -442,6 +445,9 @@ pub async fn sitemap(
             if state.dataset(Dataset::Bulletins).is_ok() {
                 paths.push("/bulletins".to_owned());
             }
+            if state.dataset(Dataset::Codes).is_ok() {
+                paths.push("/codes".to_owned());
+            }
             paths.push(site::rules::INDEX_PATH.to_owned());
             paths.extend(
                 site::rules::PROVINCES
@@ -452,6 +458,24 @@ pub async fn sitemap(
             paths.extend(["/docs", "/data", "/about"].map(str::to_owned));
             Ok(Some(paths))
         }
+        // Every described code. The pages of a code on a model year are
+        // in no sitemap: they are reached from the bulletin pages.
+        "codes" => match state.dataset(Dataset::Codes) {
+            Ok(shop) => shop
+                .run(|reader| reader.all_codes())
+                .await
+                .map_err(ApiError::from)
+                .and_then(|codes| codes.map_err(ApiError::from))
+                .map(|codes| {
+                    Some(
+                        codes
+                            .into_iter()
+                            .map(|code| format!("/codes/{}", code.code))
+                            .collect(),
+                    )
+                }),
+            Err(_) => Ok(None),
+        },
         "makes" => state
             .db()
             .run(|worker| worker.catalog.makes(None, Scope::Light, "", 500))
