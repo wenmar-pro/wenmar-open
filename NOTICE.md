@@ -33,6 +33,8 @@ Every dataset Wenmar Open serves, where it comes from, and what its licence asks
 | Fuel consumption ratings, Canada | Natural Resources Canada, Fuel consumption ratings, https://open.canada.ca/data/en/dataset/98f1a129-f628-4ce4-b24d-6f16bf24dd64 | Open Government Licence – Canada | Contains information licensed under the Open Government Licence – Canada. |
 | Vehicle specifications and emission standards | EPA fuel economy data, emissions file and Fuel Economy Guide files, https://www.fueleconomy.gov/feg/download.shtml | Public domain (United States government work) | None required. This site credits EPA. |
 | Engine oil viscosity grade, as certified for fuel economy | EPA Fuel Economy Guide files, https://www.fueleconomy.gov/feg/download.shtml | Public domain (United States government work) | None required. This site credits EPA. |
+| Fluid specifications and capacities, read by hand | Owner manuals and under-hood labels of the makers, each named in its record, collected in data/fluids/ | MIT for the collection. A figure is a fact. | Keep the copyright notice in LICENSE. |
+| Original-equipment tire sizes, pressures and wheel nut torque, read by hand | Door placards and owner manuals of the makers, each named in its record, collected in data/tires/ | MIT for the collection. A figure is a fact. | Keep the copyright notice in LICENSE. |
 <!-- Shop-data plans add one row per dataset above this line, and the same row in crates/open-server/src/site/licences.rs. -->
 
 ## Fonts

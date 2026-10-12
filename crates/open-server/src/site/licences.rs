@@ -139,6 +139,20 @@ pub const LICENCES: &[Licence] = &[
         licence_id: "public-domain",
         attribution: "None required. This site credits EPA.",
     },
+    Licence {
+        dataset: "Fluid specifications and capacities, read by hand",
+        source: "Owner manuals and under-hood labels of the makers, each named in its record, collected in data/fluids/",
+        licence: "MIT for the collection. A figure is a fact.",
+        licence_id: "mit",
+        attribution: "Keep the copyright notice in LICENSE.",
+    },
+    Licence {
+        dataset: "Original-equipment tire sizes, pressures and wheel nut torque, read by hand",
+        source: "Door placards and owner manuals of the makers, each named in its record, collected in data/tires/",
+        licence: "MIT for the collection. A figure is a fact.",
+        licence_id: "mit",
+        attribution: "Keep the copyright notice in LICENSE.",
+    },
 ];
 
 /// The row as `NOTICE.md` and the Markdown page write it.
