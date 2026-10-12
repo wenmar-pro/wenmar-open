@@ -93,6 +93,19 @@ pub const SOURCES: &[FetchSource] = &[
             },
         ],
     },
+    FetchSource {
+        id: "nhtsa-ratings",
+        files: &[
+            FetchFile {
+                url: "https://static.nhtsa.gov/nhtsa/downloads/Safercar/Safercar_data.csv",
+                name: "Safercar_data.csv",
+            },
+            FetchFile {
+                url: "https://static.nhtsa.gov/nhtsa/downloads/Safercar/Safercar_data_READ_ME_file.txt",
+                name: "Safercar_data_READ_ME_file.txt",
+            },
+        ],
+    },
 ];
 
 pub fn find(id: &str) -> Option<&'static FetchSource> {
@@ -264,7 +277,8 @@ mod tests {
                 "nhtsa-recalls",
                 "tc-recalls",
                 "nhtsa-investigations",
-                "nhtsa-recall-reports"
+                "nhtsa-recall-reports",
+                "nhtsa-ratings"
             ]
         );
         let names = |id: &str| -> Vec<&str> {
@@ -280,6 +294,10 @@ mod tests {
             ["FLAT_RCL_PRE_2010.zip", "FLAT_RCL_POST_2010.zip", "RCL.txt"]
         );
         assert_eq!(names("tc-recalls"), ["vrdb_full_monthly.csv"]);
+        assert_eq!(
+            names("nhtsa-ratings"),
+            ["Safercar_data.csv", "Safercar_data_READ_ME_file.txt"]
+        );
         assert_eq!(names("nhtsa-investigations"), ["FLAT_INV.zip", "INV.txt"]);
         assert_eq!(
             names("nhtsa-recall-reports"),

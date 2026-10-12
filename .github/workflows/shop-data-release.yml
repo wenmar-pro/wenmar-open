@@ -165,7 +165,7 @@ jobs:
         if: steps.pick.outputs.exists == 'false'
         run: |
           set -euo pipefail
-          for source in nhtsa-recalls tc-recalls nhtsa-investigations nhtsa-recall-reports; do
+          for source in nhtsa-recalls tc-recalls nhtsa-investigations nhtsa-recall-reports nhtsa-ratings; do
             ./target/release/open-data fetch "$source" --dir data/build
             cat "data/build/sources/$source/source.json"
           done
