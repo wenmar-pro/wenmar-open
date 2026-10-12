@@ -42,6 +42,7 @@ Some of the data here is written by hand: the lists under `data/` today, and in 
 - Not from another website's, app's or parts catalogue's compiled list, whatever it says about viewing.
 - Not from the wording of an owner's manual, a service manual or a bulletin. A fact read there may be recorded: a capacity, a size, a specification, an interval. Its sentences, a whole table, and its pictures may not.
 - Not from memory. If you cannot point to where it is printed, do not record it.
+- A labour estimate (`data/labor/`) is the one exception to "not from memory", and it has a rule of its own: it comes from work you have done, and from nowhere else. No labour guide, no maker's warranty time and no shop software may be open while you write one, and its `source` is you: your name is in `author`. Labour estimates are published under CC BY 4.0, not MIT; by contributing one you agree to that licence for it.
 
 ### What a record must carry
 

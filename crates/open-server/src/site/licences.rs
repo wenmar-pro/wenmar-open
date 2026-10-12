@@ -119,6 +119,13 @@ pub const LICENCES: &[Licence] = &[
         attribution: "Keep the copyright notice in LICENSE.",
     },
     Licence {
+        dataset: "Labour estimates: the hours a repair job takes",
+        source: "Wenmar Pro. Written by people who do the work, in data/labor/, and later measured from repair orders of shops that opt in. Never taken from a labour guide",
+        licence: "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+        licence_id: "cc-by-4.0",
+        attribution: "Labour estimates by Wenmar Pro, CC BY 4.0",
+    },
+    Licence {
         dataset: "Index of the VIN guides manufacturers file under 49 CFR Part 565",
         source: "NHTSA vPIC, the GetParts list of manufacturer filings, https://vpic.nhtsa.dot.gov/api/",
         licence: "Public domain (United States government work) for the index. The letters it links to belong to the manufacturers and are not copied.",
