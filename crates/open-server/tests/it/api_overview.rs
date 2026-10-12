@@ -30,7 +30,7 @@ fn campaigns(list: &Value) -> Vec<&str> {
 }
 
 /// Every key an overview has, in the order they are written.
-const KEYS: [&str; 13] = [
+const KEYS: [&str; 14] = [
     "vehicle",
     "decode",
     "specs",
@@ -41,6 +41,7 @@ const KEYS: [&str; 13] = [
     "safety",
     "labor",
     "bulletins",
+    "complaints",
     "links",
     "attribution",
     "warnings",

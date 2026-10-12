@@ -909,6 +909,9 @@ pub struct Overview {
     /// The bulletins of the model year, in brief. `null` when this server
     /// holds no bulletins, and when a VIN reaches no model year.
     pub bulletins: Option<OverviewBulletins>,
+    /// What owners reported to NHTSA, as counts. `null` when the server
+    /// holds no complaints, and when a VIN reaches no model year.
+    pub complaints: Option<OverviewComplaints>,
     pub links: OverviewLinks,
     /// The credit lines the data's licences ask for.
     pub attribution: Vec<String>,
@@ -1673,4 +1676,76 @@ pub struct BulletinList {
     pub next_cursor: Option<String>,
     pub note: String,
     pub attribution: Vec<String>,
+}
+
+/// The complaints of a model year that name one component.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct ComponentComplaints {
+    /// A component id, such as `steering` or `brake-pad`.
+    #[schema(example = "steering")]
+    pub id: String,
+    #[schema(example = "Steering")]
+    pub name: String,
+    /// The system a part belongs to. `null` for a system.
+    pub parent: Option<String>,
+    pub complaints: u32,
+    /// Complaints that report a crash.
+    pub crashes: u32,
+    /// Complaints that report a fire.
+    pub fires: u32,
+    /// Complaints that report at least one person injured.
+    pub injuries: u32,
+    /// The median of the mileages owners gave, in kilometres. `null` when
+    /// fewer than five gave one.
+    pub median_km: Option<u32>,
+    /// The same in miles, as NHTSA records it.
+    pub median_miles: Option<u32>,
+}
+
+/// What owners reported to NHTSA about one model year, as counts.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct VehicleComplaints {
+    pub vehicle: RecallVehicle,
+    /// The day the complaints were current.
+    #[schema(example = "2026-10-11")]
+    pub as_of: Option<String>,
+    /// Always `false`. A complaint is an owner's report. Nobody has
+    /// verified it, and a count of complaints is not a finding that
+    /// anything is wrong with the vehicle.
+    pub verified: bool,
+    /// Every complaint about the model year. Not a rate: a model that
+    /// sold more has more.
+    pub complaints: u32,
+    pub crashes: u32,
+    pub fires: u32,
+    pub injuries: u32,
+    pub median_km: Option<u32>,
+    pub median_miles: Option<u32>,
+    /// The components with at least five complaints, most first, at most
+    /// twelve. They do not add up to `complaints`: a complaint may name
+    /// several, and a part is counted under its system too.
+    pub components: Vec<ComponentComplaints>,
+    /// What these counts are and are not.
+    pub note: String,
+    /// Where an owner files a complaint with NHTSA.
+    pub report_url: String,
+    pub attribution: Vec<String>,
+}
+
+/// The complaints of a model year, in brief, in an overview.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct OverviewComplaints {
+    /// Always `false`, as in `VehicleComplaints`.
+    pub verified: bool,
+    pub complaints: u32,
+    pub crashes: u32,
+    pub fires: u32,
+    pub injuries: u32,
+    pub median_km: Option<u32>,
+    pub median_miles: Option<u32>,
+    /// The three most reported components.
+    pub top: Vec<ComponentComplaints>,
+    pub as_of: Option<String>,
+    /// The section of the model year's page on this site.
+    pub url: String,
 }

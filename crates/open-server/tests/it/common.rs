@@ -921,6 +921,44 @@ pub async fn cross_links_app() -> TestApp {
     app_with_shop(BULLETIN_DATASETS, &cross_link_rows()).await
 }
 
+// ----- complaints -----
+
+/// The `datasets` value of the complaint fixture: both countries' recalls
+/// and the complaints.
+pub const COMPLAINT_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":7,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":2,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence – Canada."},"complaints":{"as_of":"2026-10-11","rows":8,"licence":"public-domain","attribution":""}}"#;
+
+/// Made-up counts for the Kona of 2023 and of 2022.
+pub const COMPLAINT_INSERTS: &str = "
+INSERT INTO component VALUES
+  ('steering', 'Steering', NULL),
+  ('power-steering', 'Power steering', 'steering'),
+  ('electrical', 'Electrical system', NULL),
+  ('engine', 'Engine', NULL),
+  ('brakes', 'Brakes', NULL);
+INSERT INTO complaint_count VALUES
+  (498, 900, 2023, '', 60, 3, 1, 2, 40, 30000),
+  (498, 900, 2023, 'steering', 25, 1, 0, 1, 20, 39000),
+  (498, 900, 2023, 'power-steering', 12, 0, 0, 0, 4, 41000),
+  (498, 900, 2023, 'electrical', 25, 2, 1, 0, 12, 25500),
+  (498, 900, 2023, 'engine', 5, 0, 0, 1, 5, 61000),
+  (498, 900, 2023, 'brakes', 4, 1, 0, 0, 4, 12000),
+  (498, 900, 2022, '', 3, 0, 0, 0, 2, 8000),
+  (498, 900, 2022, 'engine', 3, 0, 0, 0, 2, 8000);
+";
+
+/// The application over the small data file and a shop file holding
+/// recalls and complaints.
+pub async fn complaints_app() -> TestApp {
+    use wenmar_shopdata::schema;
+    let rows = format!(
+        "{}{}{}{COMPLAINT_INSERTS}",
+        recall_rows(),
+        schema::COMPONENTS,
+        schema::COMPLAINTS
+    );
+    app_with_shop(COMPLAINT_DATASETS, &rows).await
+}
+
 // ----- helpers for the pages -----
 
 /// `GET`s a page and reads its body as text.

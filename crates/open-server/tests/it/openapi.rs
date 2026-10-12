@@ -53,6 +53,7 @@ fn the_description_lists_every_route_and_no_others() {
             "/v1/vehicles/years",
             "/v1/vehicles/{id}",
             "/v1/vehicles/{id}/bulletins",
+            "/v1/vehicles/{id}/complaints",
             "/v1/vehicles/{id}/fluids",
             "/v1/vehicles/{id}/fuel",
             "/v1/vehicles/{id}/investigations",
@@ -115,6 +116,8 @@ fn the_description_lists_every_route_and_no_others() {
         "Bulletin",
         "BulletinDocument",
         "BulletinCounts",
+        "VehicleComplaints",
+        "ComponentComplaints",
     ] {
         assert!(schemas.contains_key(name), "no schema for {name}");
     }

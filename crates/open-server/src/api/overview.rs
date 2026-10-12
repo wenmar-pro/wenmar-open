@@ -26,9 +26,10 @@ use crate::api::recalls::{
     lookup, model_slugs, model_year, recall_shop, recalls_of,
 };
 use crate::api::types::{
-    MakeLinks, ModelYearSummary, ModelYears, NamedId, Overview, OverviewBulletins, OverviewDecode,
-    OverviewLinks, OverviewRecalls, Recall, RecallAsOf, RecallCampaignVehicle, RecallCount,
-    RecentRecall, RecentRecalls, VinDecode, VinRecallCount, Warning,
+    MakeLinks, ModelYearSummary, ModelYears, NamedId, Overview, OverviewBulletins,
+    OverviewComplaints, OverviewDecode, OverviewLinks, OverviewRecalls, Recall, RecallAsOf,
+    RecallCampaignVehicle, RecallCount, RecentRecall, RecentRecalls, VinDecode, VinRecallCount,
+    Warning,
 };
 use crate::api::vin::{DecodeQuery, decode_many};
 use crate::api::{bad_query, blank_is_none};
@@ -141,6 +142,38 @@ pub async fn bulletin_block(
     )))
 }
 
+/// Components named in an overview's complaint block.
+const TOP_COMPLAINTS: usize = 3;
+
+/// The complaints block of a model year. `None` when the server holds no
+/// complaints.
+async fn complaint_block(
+    state: &AppState,
+    found: &ModelYear,
+) -> Result<Option<OverviewComplaints>, ApiError> {
+    let Ok(shop) = state.dataset(wenmar_shopdata::Dataset::Complaints) else {
+        return Ok(None);
+    };
+    let answer = crate::api::complaints::complaints_of(shop, found).await?;
+    let mut top = answer.components;
+    top.truncate(TOP_COMPLAINTS);
+    Ok(Some(OverviewComplaints {
+        verified: false,
+        complaints: answer.complaints,
+        crashes: answer.crashes,
+        fires: answer.fires,
+        injuries: answer.injuries,
+        median_km: answer.median_km,
+        median_miles: answer.median_miles,
+        top,
+        as_of: answer.as_of,
+        url: format!(
+            "{}#owners-report",
+            model_year_url(&state.config().base_url, found)
+        ),
+    }))
+}
+
 /// The overview of a model year, or of nothing when `found` is `None`.
 ///
 /// This is the one place a block is filled. A plan that brings a new
@@ -214,6 +247,11 @@ pub async fn overview_of(
         }
         _ => None,
     };
+    // What owners reported, for a server that holds the complaints.
+    let complaints = match found {
+        Some(found) => complaint_block(state, found).await?,
+        None => None,
+    };
     Ok(Overview {
         vehicle: found.map(|found| found.vehicle.clone()),
         decode,
@@ -225,6 +263,7 @@ pub async fn overview_of(
         safety,
         labor: None,
         bulletins,
+        complaints,
         links,
         attribution,
         warnings,

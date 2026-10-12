@@ -1330,6 +1330,50 @@
         }
       }
     },
+    "/v1/vehicles/{id}/complaints": {
+      "get": {
+        "tags": [
+          "Complaints"
+        ],
+        "summary": "What owners reported to NHTSA about a model year, as counts by\ncomponent.",
+        "description": "These are owners' reports. They are not verified, and a count is not a\nrate. No complaint itself is available here: only how many there are.",
+        "operationId": "vehicle_complaints",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A vehicle id. Complaints are counted by year, make and model; a submodel or an engine in the id is set aside.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2016_honda_civic"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The counts. All zero when no complaint names the model year.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleComplaints"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no complaints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vehicles/{id}/fluids": {
       "get": {
         "tags": [
@@ -2893,6 +2937,77 @@
           }
         }
       },
+      "ComponentComplaints": {
+        "type": "object",
+        "description": "The complaints of a model year that name one component.",
+        "required": [
+          "id",
+          "name",
+          "complaints",
+          "crashes",
+          "fires",
+          "injuries"
+        ],
+        "properties": {
+          "complaints": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "crashes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Complaints that report a crash.",
+            "minimum": 0
+          },
+          "fires": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Complaints that report a fire.",
+            "minimum": 0
+          },
+          "id": {
+            "type": "string",
+            "description": "A component id, such as `steering` or `brake-pad`.",
+            "example": "steering"
+          },
+          "injuries": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Complaints that report at least one person injured.",
+            "minimum": 0
+          },
+          "median_km": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "The median of the mileages owners gave, in kilometres. `null` when\nfewer than five gave one.",
+            "minimum": 0
+          },
+          "median_miles": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "The same in miles, as NHTSA records it.",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string",
+            "example": "Steering"
+          },
+          "parent": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The system a part belongs to. `null` for a system."
+          }
+        }
+      },
       "Consumption": {
         "type": "object",
         "description": "City, highway and combined consumption in litres per 100 km.",
@@ -3906,6 +4021,17 @@
               }
             ]
           },
+          "complaints": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/OverviewComplaints",
+                "description": "What owners reported to NHTSA, as counts. `null` when the server\nholds no complaints, and when a VIN reaches no model year."
+              }
+            ]
+          },
           "decode": {
             "oneOf": [
               {
@@ -4032,6 +4158,78 @@
             "type": "string",
             "description": "The model year's bulletin page on this site.",
             "example": "https://open.wenmarpro.com/makes/ford/f-150/2018/bulletins"
+          }
+        }
+      },
+      "OverviewComplaints": {
+        "type": "object",
+        "description": "The complaints of a model year, in brief, in an overview.",
+        "required": [
+          "verified",
+          "complaints",
+          "crashes",
+          "fires",
+          "injuries",
+          "top",
+          "url"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "complaints": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "crashes": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "fires": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "injuries": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "median_km": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "median_miles": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "top": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentComplaints"
+            },
+            "description": "The three most reported components."
+          },
+          "url": {
+            "type": "string",
+            "description": "The section of the model year's page on this site."
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "Always `false`, as in `VehicleComplaints`."
           }
         }
       },
@@ -5861,6 +6059,97 @@
           }
         }
       },
+      "VehicleComplaints": {
+        "type": "object",
+        "description": "What owners reported to NHTSA about one model year, as counts.",
+        "required": [
+          "vehicle",
+          "verified",
+          "complaints",
+          "crashes",
+          "fires",
+          "injuries",
+          "components",
+          "note",
+          "report_url",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The day the complaints were current.",
+            "example": "2026-10-11"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "complaints": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Every complaint about the model year. Not a rate: a model that\nsold more has more.",
+            "minimum": 0
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentComplaints"
+            },
+            "description": "The components with at least five complaints, most first, at most\ntwelve. They do not add up to `complaints`: a complaint may name\nseveral, and a part is counted under its system too."
+          },
+          "crashes": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "fires": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "injuries": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "median_km": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "median_miles": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "note": {
+            "type": "string",
+            "description": "What these counts are and are not."
+          },
+          "report_url": {
+            "type": "string",
+            "description": "Where an owner files a complaint with NHTSA."
+          },
+          "vehicle": {
+            "$ref": "#/components/schemas/RecallVehicle"
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "Always `false`. A complaint is an owner's report. Nobody has\nverified it, and a count of complaints is not a finding that\nanything is wrong with the vehicle."
+          }
+        }
+      },
       "VehicleFluids": {
         "type": "object",
         "description": "The fluids of one model year.",
@@ -6674,6 +6963,10 @@
     {
       "name": "Bulletins",
       "description": "Manufacturer communications NHTSA publishes: service bulletins, service campaigns, warranty extensions and over-the-air updates, by model year. NHTSA's index and summary only; the document is linked at NHTSA."
+    },
+    {
+      "name": "Complaints",
+      "description": "What owners reported to NHTSA about a model year, as counts by component. Reports, not verified defects; counts, not rates."
     },
     {
       "name": "Data",
