@@ -1,5 +1,5 @@
 use rusqlite::Connection;
-use wenmar_shopdata::schema::{FLUIDS, META, SCHEMA_VERSION, TIRES};
+use wenmar_shopdata::schema::{FLUIDS, MANUALS, META, SCHEMA_VERSION, TIRES};
 use wenmar_shopdata::sqlite::ShopSource;
 use wenmar_shopdata::{Dataset, ShopData, ShopError};
 
@@ -26,6 +26,19 @@ INSERT INTO tire_fitment VALUES
   (3, 7000, 7001, 2002, '999/99R99', NULL, '["Base"]', 990, 990, 144, 144, 'psi', NULL, NULL, NULL, NULL, NULL, 'Test door placard', '2026-10-12', 'test-reviewer');
 "#;
 
+const MANUALS_ENTRY: &str =
+    r#""manuals":{"as_of":"2026-10-12","rows":3,"licence":"mit","attribution":""}"#;
+
+/// Links for the same vehicle that does not exist. `example.org` is a
+/// name reserved for examples. The columns are those of
+/// `schema::MANUALS`, in order.
+const MANUAL_ROWS: &str = "
+INSERT INTO manual_link VALUES
+  (1, 7000, 7001, 2001, 'maintenance_schedule', 'https://example.org/testmake/sampler/2001/schedule', NULL, '2026-10-11', 'test-reviewer'),
+  (2, 7000, 7001, 2001, 'owner_manual', 'https://example.org/testmake/sampler/2001/manual-us.pdf', 'us', '2026-10-12', 'test-reviewer'),
+  (3, 7000, 7001, 2002, 'owner_manual', 'https://example.org/testmake/sampler/2002/manual.pdf', NULL, '2026-10-12', 'test-reviewer');
+";
+
 fn shop(datasets: &str, with_rows: bool) -> ShopData<ShopSource> {
     let connection = Connection::open_in_memory().unwrap();
     connection.execute_batch(META).unwrap();
@@ -47,6 +60,8 @@ fn shop(datasets: &str, with_rows: bool) -> ShopData<ShopSource> {
         connection.execute_batch(FLUIDS).unwrap();
         connection.execute_batch(TIRES).unwrap();
         connection.execute_batch(ROWS).unwrap();
+        connection.execute_batch(MANUALS).unwrap();
+        connection.execute_batch(MANUAL_ROWS).unwrap();
     }
     ShopData::new(ShopSource::from_connection(connection)).unwrap()
 }
@@ -152,5 +167,39 @@ fn a_file_without_the_dataset_says_so() {
     assert!(matches!(
         shop.fluids_for_vehicle(7000, 7001, 2001),
         Err(ShopError::DatasetUnavailable(Dataset::Fluids))
+    ));
+}
+
+#[test]
+fn a_model_year_gets_its_links_the_owners_manual_first() {
+    let shop = shop(MANUALS_ENTRY, true);
+    let links = shop.manuals_for_vehicle(7000, 7001, 2001).unwrap();
+    let lines: Vec<String> = links
+        .iter()
+        .map(|link| {
+            format!(
+                "{} {} {:?} {}",
+                link.kind, link.url, link.market, link.checked
+            )
+        })
+        .collect();
+    assert_eq!(
+        lines,
+        [
+            r#"owner_manual https://example.org/testmake/sampler/2001/manual-us.pdf Some("us") 2026-10-12"#,
+            "maintenance_schedule https://example.org/testmake/sampler/2001/schedule None 2026-10-11",
+        ]
+    );
+    assert_eq!(links[0].reviewer, "test-reviewer");
+    assert_eq!(shop.manuals_for_vehicle(7000, 7001, 2002).unwrap().len(), 1);
+    assert!(
+        shop.manuals_for_vehicle(7000, 7001, 2003)
+            .unwrap()
+            .is_empty()
+    );
+    let without = self::shop(FLUIDS_ENTRY, true);
+    assert!(matches!(
+        without.manuals_for_vehicle(7000, 7001, 2001),
+        Err(ShopError::DatasetUnavailable(Dataset::Manuals))
     ));
 }

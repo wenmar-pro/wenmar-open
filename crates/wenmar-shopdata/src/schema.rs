@@ -611,3 +611,24 @@ CREATE TABLE IF NOT EXISTS tire_fitment (
 );
 CREATE INDEX IF NOT EXISTS tire_fitment_ymm ON tire_fitment (make_id, model_id, year);
 ";
+
+/// Links to a model year's owner's manual and maintenance schedule on the
+/// maker's own site, found by a person: the `manuals` dataset, built from
+/// the `manuals` lists of `data/fluids/*.yaml`.
+///
+/// One row for each link and each model year its record covers. Only the
+/// address is held, never the document.
+pub const MANUALS: &str = "
+CREATE TABLE IF NOT EXISTS manual_link (
+    id       INTEGER PRIMARY KEY,
+    make_id  INTEGER NOT NULL,   -- catalog_make.id
+    model_id INTEGER NOT NULL,   -- catalog_model.id
+    year     INTEGER NOT NULL,
+    kind     TEXT NOT NULL,      -- 'owner_manual' | 'maintenance_schedule'
+    url      TEXT NOT NULL,      -- on the maker's own site
+    market   TEXT,               -- 'us' | 'ca'; NULL when the page is for both
+    checked  TEXT NOT NULL,      -- the day a person opened it, 2026-10-12
+    reviewer TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS manual_link_ymm ON manual_link (make_id, model_id, year);
+";

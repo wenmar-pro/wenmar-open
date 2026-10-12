@@ -1,5 +1,6 @@
-//! Readers for the facts collected by hand: fluids (`schema::FLUIDS`) and
-//! tire fitments (`schema::TIRES`).
+//! Readers for the facts collected by hand: fluids (`schema::FLUIDS`),
+//! tire fitments (`schema::TIRES`) and links to the makers' documents
+//! (`schema::MANUALS`).
 //!
 //! Every row was read from the maker's own document by a person, and
 //! carries the document, the day it was read and who compared it. A model
@@ -74,6 +75,29 @@ pub struct TireFitment {
     pub checked: String,
     pub reviewer: String,
 }
+
+/// The kinds of document a link may lead to, in the order they are listed.
+pub const MANUAL_KINDS: [&str; 2] = ["owner_manual", "maintenance_schedule"];
+
+/// A link to a document of one model year on the maker's own site.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ManualLink {
+    /// One of [`MANUAL_KINDS`].
+    pub kind: String,
+    pub url: String,
+    /// `us` or `ca`. None when the page is for both.
+    pub market: Option<String>,
+    /// The day a person opened the address.
+    pub checked: String,
+    pub reviewer: String,
+}
+
+/// `?1` make id, `?2` model id, `?3` year. Owner's manuals first.
+pub const MANUALS_FOR_VEHICLE: &str = "
+SELECT kind, url, market, checked, reviewer
+FROM manual_link
+WHERE make_id = ?1 AND model_id = ?2 AND year = ?3
+ORDER BY CASE kind WHEN 'owner_manual' THEN 0 ELSE 1 END, market, id";
 
 /// `?1` make id, `?2` model id, `?3` year. In the order of
 /// [`FLUID_KINDS`], then by engine.
@@ -154,6 +178,30 @@ impl<S: Source> ShopData<S> {
                     source: text(row, 13, "fluid")?,
                     checked: text(row, 14, "fluid")?,
                     reviewer: text(row, 15, "fluid")?,
+                })
+            })
+            .collect()
+    }
+
+    /// The links to one model year's documents on the maker's own site.
+    /// Empty when nobody has recorded one.
+    pub fn manuals_for_vehicle(
+        &self,
+        make_id: i64,
+        model_id: i64,
+        year: u16,
+    ) -> Result<Vec<ManualLink>, ShopError> {
+        self.require(Dataset::Manuals)?;
+        let rows = self.query(MANUALS_FOR_VEHICLE, &model_year(make_id, model_id, year))?;
+        rows.iter()
+            .map(|row| {
+                let table = "manual_link";
+                Ok(ManualLink {
+                    kind: text(row, 0, table)?,
+                    url: text(row, 1, table)?,
+                    market: optional_text(row, 2),
+                    checked: text(row, 3, table)?,
+                    reviewer: text(row, 4, table)?,
                 })
             })
             .collect()
