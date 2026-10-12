@@ -70,6 +70,29 @@ pub const SOURCES: &[FetchSource] = &[
             },
         ],
     },
+    FetchSource {
+        id: "nhtsa-recall-reports",
+        files: &[
+            FetchFile {
+                url: "https://static.nhtsa.gov/odi/ffdd/rcl/FLAT_RCL_Qrtly_Rpts.zip",
+                name: "FLAT_RCL_Qrtly_Rpts.zip",
+            },
+            FetchFile {
+                url: "https://static.nhtsa.gov/odi/ffdd/rcl/FLAT_RCL_Annual_Rpts.zip",
+                name: "FLAT_RCL_Annual_Rpts.zip",
+            },
+            // NHTSA spells the quarterly layout's name "Qtrly" and the
+            // archive's "Qrtly".
+            FetchFile {
+                url: "https://static.nhtsa.gov/odi/ffdd/rcl/RCL_Qtrly_Rpts.txt",
+                name: "RCL_Qtrly_Rpts.txt",
+            },
+            FetchFile {
+                url: "https://static.nhtsa.gov/odi/ffdd/rcl/RCL_Annual_Rpts.txt",
+                name: "RCL_Annual_Rpts.txt",
+            },
+        ],
+    },
 ];
 
 pub fn find(id: &str) -> Option<&'static FetchSource> {
@@ -237,7 +260,12 @@ mod tests {
     fn the_sources_are_the_ones_the_roadmap_names() {
         assert_eq!(
             ids(),
-            ["nhtsa-recalls", "tc-recalls", "nhtsa-investigations"]
+            [
+                "nhtsa-recalls",
+                "tc-recalls",
+                "nhtsa-investigations",
+                "nhtsa-recall-reports"
+            ]
         );
         let names = |id: &str| -> Vec<&str> {
             find(id)
@@ -253,6 +281,15 @@ mod tests {
         );
         assert_eq!(names("tc-recalls"), ["vrdb_full_monthly.csv"]);
         assert_eq!(names("nhtsa-investigations"), ["FLAT_INV.zip", "INV.txt"]);
+        assert_eq!(
+            names("nhtsa-recall-reports"),
+            [
+                "FLAT_RCL_Qrtly_Rpts.zip",
+                "FLAT_RCL_Annual_Rpts.zip",
+                "RCL_Qtrly_Rpts.txt",
+                "RCL_Annual_Rpts.txt"
+            ]
+        );
         assert!(find("vpic").is_none());
         assert!(find("").is_none());
         for source in SOURCES {
