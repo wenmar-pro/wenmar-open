@@ -226,6 +226,7 @@ fn both_sources_share_the_tables_and_coverage_measures_each() {
     let inputs = ShopInputs {
         nhtsa_recalls: Some(nhtsa_recalls_dir(&scratch)),
         tc_recalls: Some(tc_recalls_dir(&scratch)),
+        ..ShopInputs::default()
     };
     let summary = build_shop(
         &scratch.core(),

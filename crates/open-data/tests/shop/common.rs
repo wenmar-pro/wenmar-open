@@ -240,3 +240,31 @@ pub fn tc_recalls_dir(scratch: &Scratch) -> PathBuf {
     }
     directory
 }
+
+/// A fetched `nhtsa-investigations` directory made from the fixture, under
+/// `scratch`: the text file zipped under the name `open-data fetch` saves,
+/// with `INV.txt` and `source.json` beside it. As in NHTSA's file, lines
+/// end with LF and the last line has no line end.
+pub fn nhtsa_investigations_dir(scratch: &Scratch) -> PathBuf {
+    use std::io::Write;
+
+    let directory = scratch.path("sources/nhtsa-investigations");
+    std::fs::create_dir_all(&directory).unwrap();
+    let text =
+        std::fs::read_to_string(fixture("nhtsa-investigations").join("FLAT_INV.txt")).unwrap();
+    let file = std::fs::File::create(directory.join("FLAT_INV.zip")).unwrap();
+    let mut archive = zip::ZipWriter::new(file);
+    archive
+        .start_file("FLAT_INV.txt", zip::write::SimpleFileOptions::default())
+        .unwrap();
+    archive.write_all(text.trim_end().as_bytes()).unwrap();
+    archive.finish().unwrap();
+    for name in ["INV.txt", "source.json"] {
+        std::fs::copy(
+            fixture("nhtsa-investigations").join(name),
+            directory.join(name),
+        )
+        .unwrap();
+    }
+    directory
+}

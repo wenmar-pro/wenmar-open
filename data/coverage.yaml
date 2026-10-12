@@ -9,3 +9,4 @@
 datasets:
   recalls_us: 66.2
   recalls_ca: 69.8
+  investigations: 80.2

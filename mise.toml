@@ -84,7 +84,7 @@ rm -f "$out"
 # Each source that was fetched adds its dataset. One that was not is left
 # out, and this says so.
 sources=""
-for source in nhtsa-recalls tc-recalls; do
+for source in nhtsa-recalls tc-recalls nhtsa-investigations; do
   if [ -f "data/build/sources/$source/source.json" ]; then
     sources="$sources --$source data/build/sources/$source"
   else

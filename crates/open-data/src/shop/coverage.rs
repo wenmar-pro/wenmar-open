@@ -52,6 +52,10 @@ pub const TABLES: &[CoverageTable] = &[
         dataset: Dataset::RecallsCa,
         table: "(SELECT v.* FROM recall_vehicle v JOIN recall r ON r.id = v.recall_id WHERE r.source = 'tc')",
     },
+    CoverageTable {
+        dataset: Dataset::Investigations,
+        table: "investigation_vehicle",
+    },
 ];
 
 /// A name that matched no catalog model, and how many rows carry it.

@@ -25,6 +25,8 @@ pub struct ShopInputs {
     pub nhtsa_recalls: Option<PathBuf>,
     /// `data/build/sources/tc-recalls`.
     pub tc_recalls: Option<PathBuf>,
+    /// `data/build/sources/nhtsa-investigations`.
+    pub nhtsa_investigations: Option<PathBuf>,
 }
 
 /// What the finished file holds.
@@ -137,12 +139,16 @@ fn shape_all(context: &mut ShapeContext<'_>, inputs: &ShopInputs) -> Result<()> 
     let ShopInputs {
         nhtsa_recalls,
         tc_recalls,
+        nhtsa_investigations,
     } = inputs;
     if let Some(directory) = nhtsa_recalls {
         crate::shop::nhtsa_recalls::shape(context, directory)?;
     }
     if let Some(directory) = tc_recalls {
         crate::shop::tc_recalls::shape(context, directory)?;
+    }
+    if let Some(directory) = nhtsa_investigations {
+        crate::shop::nhtsa_investigations::shape(context, directory)?;
     }
     Ok(())
 }
