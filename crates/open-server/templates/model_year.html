@@ -45,6 +45,18 @@
 </tbody>
 </table>
 <p class="note">Position 8 of a VIN names the engine on many vehicles: <a href="/guides/how-to-read-a-vin">how to read a VIN</a>. Safety equipment depends on the trim, so decode a VIN to see what one vehicle has.</p>
+{% if let Some(section) = safety -%}
+<h2 id="safety">Crash test ratings</h2>
+<table class="prose">
+<caption>NHTSA crash test ratings for the {{ name }}</caption>
+<tbody>
+{% for line in section.lines -%}
+<tr><th scope="row">{{ line.description }}</th><td>{{ line.text }}{% for note in line.notes %} <span class="note">{{ note }}</span>{% endfor %}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">Stars are NHTSA's, from 1 to 5, each for the vehicle NHTSA names in its row: a model year can have several ratings, and they can differ. From NHTSA's file as of {{ section.as_of }}. See <a href="{{ section.source_url }}">NHTSA's ratings</a>, or <a href="{{ section.json_path }}">the JSON</a>, which also lists safety features.</p>
+{% endif -%}
 {% include "maker_links.html" %}
 {% if view.years.len() > 1 -%}
 <h2 id="years">Other years of the {{ view.entry.model }}</h2>
