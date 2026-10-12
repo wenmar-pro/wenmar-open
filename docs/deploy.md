@@ -214,6 +214,7 @@ The same holds for a deploy that changes the server and not the data. The `ETag`
 | Variable | Default | Meaning |
 |---|---|---|
 | `OPEN_DATA` | none | Path of the data file. Required. |
+| `OPEN_SHOP_DATA` | none | Path of the shop file: recalls and the other datasets beside the catalog. Optional. When set, the file must have been built against the data file in `OPEN_DATA`, or the server does not start. |
 | `PORT` | `3000` | Port to listen on. |
 | `OPEN_BASE_URL` | `https://open.wenmarpro.com` | The public address, used in links. |
 | `OPEN_TRUSTED_PROXIES` | `0` | Reverse proxies in front that add to `X-Forwarded-For`. `1` in production. |

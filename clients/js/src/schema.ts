@@ -236,6 +236,30 @@ export interface components {
             expected: string;
             valid: boolean;
         };
+        /** @description One dataset the server holds beside the catalog. */
+        DatasetInfo: {
+            /**
+             * @description The day the source was current.
+             * @example 2026-10-11
+             */
+            as_of: string;
+            /**
+             * @description The credit to show with this data. Empty when none is asked for.
+             * @example
+             */
+            attribution: string;
+            /**
+             * @description `public-domain`, `ogl-canada`, `cc-by-4.0` or `mit`.
+             * @example public-domain
+             */
+            licence: string;
+            /**
+             * Format: int64
+             * @description Rows in the dataset.
+             * @example 26394
+             */
+            rows: number;
+        };
         Engine: {
             configuration?: string | null;
             /** Format: int32 */
@@ -300,8 +324,9 @@ export interface components {
         ErrorDetail: {
             /**
              * @description A stable code to branch on. One of `invalid_vin`, `validation_failed`,
-             *     `not_found`, `method_not_allowed`, `payload_too_large`,
-             *     `uri_too_long`, `rate_limited`, `unavailable`, `internal_error`.
+             *     `not_found`, `dataset_unavailable`, `method_not_allowed`,
+             *     `payload_too_large`, `uri_too_long`, `rate_limited`, `unavailable`,
+             *     `internal_error`.
              * @example invalid_vin
              */
             code: string;
@@ -352,6 +377,14 @@ export interface components {
              * @example 2026.09
              */
             data_version: string;
+            /**
+             * @description The datasets served beside the catalog, such as `recalls_us`, by
+             *     id. Empty when the server has none. A route for a dataset that is
+             *     not listed answers `404` with the code `dataset_unavailable`.
+             */
+            datasets: {
+                [key: string]: components["schemas"]["DatasetInfo"];
+            };
             /**
              * @description The version of the server.
              * @example 0.2.0
