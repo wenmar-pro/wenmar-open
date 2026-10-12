@@ -250,6 +250,8 @@ These are fixed in the code. They keep one client, or a few, from using up the c
 
 `/health` is exempt from the request limit and from the abuse ceiling, so the proxy's check is answered while the service is refusing other requests. It is not exempt from the connection limit.
 
+No other address is exempt and none has a ceiling of its own: the recall routes, the overview routes, the recall pages and `/mcp` count against the same `OPEN_RATE_LIMIT` as a VIN decode. The test `tests/it/limit_routes.rs` walks every route of the OpenAPI description and holds that. `/feedback` has two further limits on top (see "Settings").
+
 The 120 seconds must stay longer than the time the proxy keeps an idle connection to the service open, so that the proxy closes first. If the proxy's log ever shows `502` for requests the service never logged, compare the two.
 
 Free-text search reaches model years through an index. On the 2026.09 data file, in a release build on a development machine with every core free, a search is answered in 1 to 8 ms, 50 searches sent at once are all answered within 100 ms, and VIN decodes sent during them take 3 ms. Years narrowed by `term` or by a vehicle type still read every model year: 60 to 110 ms. Neither has been measured in the release image under `--cpus 0.5`. Do that before announcing search, against the container from "Try the image first":
