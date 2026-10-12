@@ -809,3 +809,65 @@ pub fn json_ld(html: &str) -> Option<Value> {
     );
     Some(serde_json::from_str(block).unwrap_or_else(|error| panic!("{error}: {block}")))
 }
+
+// ----- investigations -----
+
+/// The `datasets` value of the investigation fixture: both countries'
+/// recalls and the investigations, then the investigations alone.
+pub const INVESTIGATION_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":7,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":2,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence – Canada."},"investigations":{"as_of":"2026-10-12","rows":9,"licence":"public-domain","attribution":""}}"#;
+pub const INVESTIGATION_DATASETS_ALONE: &str = r#"{"investigations":{"as_of":"2026-10-12","rows":9,"licence":"public-domain","attribution":""}}"#;
+
+/// Nine investigations against the small data file's catalog. The columns
+/// are those of `wenmar_shopdata::schema::INVESTIGATIONS`, in order; the
+/// numbers and texts are made up. The Kona of model year 2023 is listed by
+/// four: two open ones about the vehicle, an open audit query, and a
+/// closed one. Campaign `19V888000` of [`RECALL_INSERTS`] followed two,
+/// `24V456000` and `23V123000` one each. One has HTML where its texts
+/// should be.
+pub const INVESTIGATION_INSERTS: &str = r#"
+INSERT INTO investigation VALUES
+  (1, 'PE25010', 'PE', '2025-09-15', NULL, 1, 'Hyundai Motor America', 'ENGINE; FUEL SYSTEM, GASOLINE', 'Loss of motive power', 'The engine may stall while driving.'),
+  (2, 'EA24003', 'EA', '2024-08-01', NULL, 1, 'Hyundai Motor America', 'SERVICE BRAKES, HYDRAULIC', 'Brake control unit failure', 'The unit may fail after the recall repair.'),
+  (3, 'AQ22002', 'AQ', '2022-06-03', NULL, 1, 'Hyundai Motor America', NULL, 'Dealer sale of vehicles with open recalls', 'A dealer sold them.'),
+  (4, 'PE22001', 'PE', '2022-06-01', '2022-12-01', 0, 'Hyundai Motor America', 'ELECTRICAL SYSTEM:WIRING', 'Wiring harness overheating', 'A harness may overheat.'),
+  (5, 'RQ98022', 'RQ', '1998-11-13', NULL, 0, 'General Motors, LLC', 'SUSPENSION', 'REAR SUSPENSION SPRING BREAKAGE', NULL),
+  (6, 'PE19004', 'PE', '2019-02-11', '2019-06-20', 0, 'General Motors, LLC', 'ELECTRICAL SYSTEM:12V/24V/48V BATTERY:CABLES', 'Battery cable connection', 'The cable nut may be loose.'),
+  (7, 'EA19009', 'EA', '2019-06-20', '2019-12-20', 0, 'General Motors, LLC', 'ELECTRICAL SYSTEM:12V/24V/48V BATTERY:CABLES', 'Battery cable connection', NULL),
+  (8, 'DP19001', 'DP', '2019-03-01', NULL, 1, 'B&B <script>alert(1)</script>', '<b>Bold</b> SYSTEM', 'A part named <script>alert(1)</script>', 'It may fail <img src=x onerror=alert(1)>.'),
+  (9, 'ID94001', 'ID', NULL, NULL, 0, NULL, NULL, NULL, NULL);
+INSERT INTO investigation_vehicle VALUES
+  (1, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact'),
+  (1, 2023, 498, 900, 'HYUNDAI', 'KONA ELECTRIC', 'base'),
+  (2, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact'),
+  (3, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact'),
+  (4, 2022, 498, 900, 'HYUNDAI', 'KONA', 'exact'),
+  (4, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact'),
+  (5, 2019, 467, 1850, 'CHEVROLET', 'SILVERADO', 'exact'),
+  (6, 2019, 467, 1850, 'CHEVROLET', 'SILVERADO 1500', 'base'),
+  (6, 2019, NULL, NULL, 'GMC', 'SIERRA 1500', NULL),
+  (7, 2019, 467, 1850, 'CHEVROLET', 'SILVERADO 1500', 'base'),
+  (8, 2019, 6000, 9500, 'B&B <script>alert(1)</script>', 'Model "<img src=x onerror=alert(1)>', 'exact');
+INSERT INTO investigation_campaign VALUES
+  (2, '24V456000'),
+  (4, '23V123000'),
+  (6, '19V888000'),
+  (7, '19V888000'),
+  (8, '19V600000'),
+  (9, '94E013000');
+"#;
+
+/// The recall tables and rows, then the investigation tables and
+/// [`INVESTIGATION_INSERTS`], as `rows` for [`app_with_shop`].
+pub fn investigation_rows() -> String {
+    format!(
+        "{}{}{INVESTIGATION_INSERTS}",
+        recall_rows(),
+        wenmar_shopdata::schema::INVESTIGATIONS
+    )
+}
+
+/// The application over the small data file and a shop file holding the
+/// recalls of both countries and the investigations.
+pub async fn investigations_app() -> TestApp {
+    app_with_shop(INVESTIGATION_DATASETS, &investigation_rows()).await
+}

@@ -1,6 +1,7 @@
 //! One test binary for the whole crate: each binary links the database
 //! engine again, and disk space on the build machines is limited.
 
+mod api_investigations;
 mod api_overview;
 mod api_recalls;
 mod api_vehicles;

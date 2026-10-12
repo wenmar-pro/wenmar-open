@@ -401,6 +401,60 @@
         }
       }
     },
+    "/v1/recalls/{source}/{campaign}/investigations": {
+      "get": {
+        "tags": [
+          "Investigations"
+        ],
+        "summary": "The NHTSA investigations that led to a recall campaign.",
+        "description": "Open and closed, oldest first. Most campaigns followed no investigation\nand give an empty list, as every Transport Canada campaign does. The\ncampaign number is not checked against the recall data.",
+        "operationId": "recall_investigations",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "path",
+            "description": "Who published the campaign: `nhtsa` or `tc` (Transport Canada).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "nhtsa"
+          },
+          {
+            "name": "campaign",
+            "in": "path",
+            "description": "The publisher's campaign number. Letters may be in either case.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "18V568000"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The investigations, oldest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecallInvestigations"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: that is not a campaign number. `dataset_unavailable`: this server holds no investigations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vehicles/engines": {
       "get": {
         "tags": [
@@ -955,6 +1009,70 @@
           },
           "404": {
             "description": "`not_found`: no vehicle has that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vehicles/{id}/investigations": {
+      "get": {
+        "tags": [
+          "Investigations"
+        ],
+        "summary": "NHTSA investigations that list a model year.",
+        "description": "By default only the open ones about a possible defect in the vehicles\nlisted. An investigation is not a finding that a defect exists, and it\nlists a year, make and model, never one vehicle: `note` says so.",
+        "operationId": "vehicle_investigations",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A vehicle id. Investigations are listed by year, make and model; a submodel or an engine in the id is set aside.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2019_ram_1500"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "`open` (the default): only investigations that are open and about a\npossible defect in the vehicles they list. `all`: every\ninvestigation that lists the model year, closed ones and audit\nqueries included.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "open"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The investigations, newest first. An empty list when none lists the model year.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleInvestigations"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: `status` is not `open` or `all`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no investigations.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1671,6 +1789,107 @@
             "type": "string",
             "description": "A sentence for a person to read.",
             "example": "a VIN has 17 characters, this has 16"
+          }
+        }
+      },
+      "Investigation": {
+        "type": "object",
+        "description": "One NHTSA defect investigation. An investigation is not a finding that a\ndefect exists.",
+        "required": [
+          "action",
+          "kind",
+          "open",
+          "campaigns",
+          "models"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "NHTSA's action number.",
+            "example": "EA23001"
+          },
+          "campaigns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The recall campaigns it led to, as NHTSA numbers them. Empty when it\nled to none, or to none yet."
+          },
+          "closed": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The day it was closed. `null` while it is open, and for some old\ninvestigations whose closing NHTSA's file does not record."
+          },
+          "component": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The components it names, as NHTSA words them, separated by `; `."
+          },
+          "kind": {
+            "type": "string",
+            "description": "The letters the number starts with.",
+            "example": "EA"
+          },
+          "kind_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The kind in words. `null` for a kind with no name on file.",
+            "example": "Engineering analysis"
+          },
+          "manufacturer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The manufacturers it names, separated by `; `."
+          },
+          "match": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "In an answer about one model year: how the investigation's vehicle\ntext reached that model. `exact`, `base` (it names a series or trim\nof the model) or `curated`. `null` in an answer about a campaign.",
+            "example": "exact"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "In an answer about one model year: the model names the\ninvestigation lists that reached it."
+          },
+          "open": {
+            "type": "boolean",
+            "description": "Whether it was opened in 2010 or later and has no day closed."
+          },
+          "opened": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The day it was opened.",
+            "example": "2023-03-17"
+          },
+          "subject": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "NHTSA's one-line subject.",
+            "example": "High pressure fuel pump failure"
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "NHTSA's summary. It can be several thousand characters."
           }
         }
       },
@@ -2723,6 +2942,54 @@
           }
         }
       },
+      "RecallInvestigations": {
+        "type": "object",
+        "description": "The NHTSA investigations that led to one recall campaign.",
+        "required": [
+          "source",
+          "campaign",
+          "as_of",
+          "investigations",
+          "note",
+          "attribution",
+          "url"
+        ],
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "example": "2026-10-12"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "campaign": {
+            "type": "string",
+            "example": "18V568000"
+          },
+          "investigations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Investigation"
+            },
+            "description": "Oldest first. Empty when the campaign followed no investigation,\nand for every Transport Canada campaign."
+          },
+          "note": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "description": "`nhtsa` or `tc`.",
+            "example": "nhtsa"
+          },
+          "url": {
+            "type": "string",
+            "description": "The campaign's page on this site."
+          }
+        }
+      },
       "RecallList": {
         "type": "object",
         "description": "One page of campaigns, newest first.",
@@ -3077,6 +3344,45 @@
           "name": {
             "type": "string",
             "example": "EX-L"
+          }
+        }
+      },
+      "VehicleInvestigations": {
+        "type": "object",
+        "description": "NHTSA investigations that list one model year.",
+        "required": [
+          "vehicle",
+          "as_of",
+          "investigations",
+          "note",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "description": "The day NHTSA's investigation file was current.",
+            "example": "2026-10-12"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The credit lines the data's licence asks for."
+          },
+          "investigations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Investigation"
+            },
+            "description": "Newest first. Empty when none lists the model year."
+          },
+          "note": {
+            "type": "string",
+            "description": "That an investigation is not a finding of a defect and is not about\none vehicle. Show it wherever the list is shown."
+          },
+          "vehicle": {
+            "$ref": "#/components/schemas/RecallVehicle"
           }
         }
       },
@@ -3448,6 +3754,10 @@
     {
       "name": "Recalls",
       "description": "Recall campaigns from NHTSA and Transport Canada that may apply to a model year. Never a lookup by VIN: confirm with the manufacturer."
+    },
+    {
+      "name": "Investigations",
+      "description": "NHTSA defect investigations that list a model year or led to a recall. An investigation is not a finding of a defect."
     },
     {
       "name": "Data",

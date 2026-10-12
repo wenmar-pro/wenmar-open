@@ -1,5 +1,6 @@
 //! The JSON API under `/v1`.
 
+pub mod investigations;
 pub mod meta;
 pub mod overview;
 pub mod recalls;
@@ -32,6 +33,7 @@ use crate::state::AppState;
         (name = "VIN", description = "Decode vehicle identification numbers."),
         (name = "Vehicles", description = "Years, makes, models, submodels and engines, each step limited to what is valid for the steps before it."),
         (name = "Recalls", description = "Recall campaigns from NHTSA and Transport Canada that may apply to a model year. Never a lookup by VIN: confirm with the manufacturer."),
+        (name = "Investigations", description = "NHTSA defect investigations that list a model year or led to a recall. An investigation is not a finding of a defect."),
         (name = "Data", description = "About the data being served.")
     )
 )]
@@ -55,6 +57,8 @@ pub fn router() -> (axum::Router<AppState>, utoipa::openapi::OpenApi) {
         .routes(routes!(recalls::vin_recalls))
         .routes(routes!(recalls::recall_campaign))
         .routes(routes!(recalls::recall_search))
+        .routes(routes!(investigations::vehicle_investigations))
+        .routes(routes!(investigations::recall_investigations))
         .routes(routes!(overview::recent_recalls))
         .routes(routes!(overview::vehicle_overview))
         .routes(routes!(overview::vin_overview))

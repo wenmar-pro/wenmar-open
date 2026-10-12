@@ -929,3 +929,84 @@ pub struct RecentRecalls {
     pub lookup: RecallLookup,
     pub attribution: Vec<String>,
 }
+
+// ----- investigations -----
+
+/// One NHTSA defect investigation. An investigation is not a finding that a
+/// defect exists.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct Investigation {
+    /// NHTSA's action number.
+    #[schema(example = "EA23001")]
+    pub action: String,
+    /// The letters the number starts with.
+    #[schema(example = "EA")]
+    pub kind: String,
+    /// The kind in words. `null` for a kind with no name on file.
+    #[schema(example = "Engineering analysis")]
+    pub kind_name: Option<String>,
+    /// The day it was opened.
+    #[schema(example = "2023-03-17")]
+    pub opened: Option<String>,
+    /// The day it was closed. `null` while it is open, and for some old
+    /// investigations whose closing NHTSA's file does not record.
+    pub closed: Option<String>,
+    /// Whether it was opened in 2010 or later and has no day closed.
+    pub open: bool,
+    /// The manufacturers it names, separated by `; `.
+    pub manufacturer: Option<String>,
+    /// The components it names, as NHTSA words them, separated by `; `.
+    pub component: Option<String>,
+    /// NHTSA's one-line subject.
+    #[schema(example = "High pressure fuel pump failure")]
+    pub subject: Option<String>,
+    /// NHTSA's summary. It can be several thousand characters.
+    pub summary: Option<String>,
+    /// The recall campaigns it led to, as NHTSA numbers them. Empty when it
+    /// led to none, or to none yet.
+    pub campaigns: Vec<String>,
+    /// In an answer about one model year: how the investigation's vehicle
+    /// text reached that model. `exact`, `base` (it names a series or trim
+    /// of the model) or `curated`. `null` in an answer about a campaign.
+    #[serde(rename = "match")]
+    #[schema(example = "exact")]
+    pub matched: Option<String>,
+    /// In an answer about one model year: the model names the
+    /// investigation lists that reached it.
+    pub models: Vec<String>,
+}
+
+/// NHTSA investigations that list one model year.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct VehicleInvestigations {
+    pub vehicle: RecallVehicle,
+    /// The day NHTSA's investigation file was current.
+    #[schema(example = "2026-10-12")]
+    pub as_of: String,
+    /// Newest first. Empty when none lists the model year.
+    pub investigations: Vec<Investigation>,
+    /// That an investigation is not a finding of a defect and is not about
+    /// one vehicle. Show it wherever the list is shown.
+    pub note: String,
+    /// The credit lines the data's licence asks for.
+    pub attribution: Vec<String>,
+}
+
+/// The NHTSA investigations that led to one recall campaign.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct RecallInvestigations {
+    /// `nhtsa` or `tc`.
+    #[schema(example = "nhtsa")]
+    pub source: String,
+    #[schema(example = "18V568000")]
+    pub campaign: String,
+    #[schema(example = "2026-10-12")]
+    pub as_of: String,
+    /// Oldest first. Empty when the campaign followed no investigation,
+    /// and for every Transport Canada campaign.
+    pub investigations: Vec<Investigation>,
+    pub note: String,
+    pub attribution: Vec<String>,
+    /// The campaign's page on this site.
+    pub url: String,
+}
