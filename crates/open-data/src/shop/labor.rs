@@ -8,7 +8,7 @@ use std::path::Path;
 use anyhow::{Context, Result, bail};
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::Deserialize;
-use wenmar_shopdata::labor::{ATTRIBUTION, CLASSES, class_name, class_of_epa};
+use wenmar_shopdata::labor::{ATTRIBUTION, CLASSES, MIN_JOBS, MIN_SHOPS, class_name, class_of_epa};
 use wenmar_shopdata::{Dataset, DatasetEntry, licence, schema};
 use wenmar_vehicles::text::{is_slug, slug, squeeze};
 
@@ -373,6 +373,233 @@ pub fn load(curated: &Path, catalog: &Connection) -> Result<Vec<Estimate>> {
     Ok(estimates)
 }
 
+// ----- measured times, from Wenmar Pro -----
+
+/// What the build says of a field an observed table may not have.
+pub const NOTHING_ELSE: &str = "an observed table holds only generated and rows, and a row only job, scope, class, make, model, year_from, year_to, engine, median, low, high, jobs and shops: nothing that could identify a shop, a customer, a VIN or a date may be in it";
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ObservedRow {
+    pub job: String,
+    pub scope: String,
+    #[serde(default)]
+    pub class: Option<String>,
+    #[serde(default)]
+    pub make: Option<String>,
+    #[serde(default)]
+    pub model: Option<String>,
+    #[serde(default)]
+    pub year_from: Option<u16>,
+    #[serde(default)]
+    pub year_to: Option<u16>,
+    #[serde(default)]
+    pub engine: Option<String>,
+    /// Whole hundredths of an hour.
+    pub median: i64,
+    pub low: i64,
+    pub high: i64,
+    /// Repair orders counted, and the shops they came from.
+    pub jobs: i64,
+    pub shops: i64,
+}
+
+/// A table of measured times, checked for shape.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ObservedTable {
+    /// The day the table was produced, as `2027-02-01`.
+    pub generated: String,
+    pub rows: Vec<ObservedRow>,
+}
+
+/// Whether `text` is 17 characters a VIN may hold.
+fn looks_like_a_vin(text: &str) -> bool {
+    text.len() == 17
+        && text.bytes().all(|byte| {
+            byte.is_ascii_alphanumeric() && !matches!(byte.to_ascii_uppercase(), b'I' | b'O' | b'Q')
+        })
+}
+
+/// Reads the text of `observed.yaml` and checks everything that can be
+/// checked without the job list and the catalog: no field but the agreed
+/// ones, nothing that looks like a VIN, every row at or over the
+/// publishing threshold, and figures in order.
+pub fn parse_observed(yaml: &str) -> Result<ObservedTable> {
+    let table: ObservedTable = serde_saphyr::from_str(yaml)
+        .with_context(|| format!("reading data/labor/observed/observed.yaml; {NOTHING_ELSE}"))?;
+    if !is_day(&table.generated) {
+        bail!(
+            "data/labor/observed: generated must be a day like 2027-02-01, not {:?}",
+            table.generated
+        );
+    }
+    for (index, row) in table.rows.iter().enumerate() {
+        let place = format!("data/labor/observed: row {}", index + 1);
+        let texts = [
+            Some(&row.job),
+            Some(&row.scope),
+            row.class.as_ref(),
+            row.make.as_ref(),
+            row.model.as_ref(),
+            row.engine.as_ref(),
+        ];
+        if texts
+            .into_iter()
+            .flatten()
+            .any(|text| looks_like_a_vin(text))
+        {
+            bail!("{place} holds what looks like a VIN; {NOTHING_ELSE}");
+        }
+        if row.shops < MIN_SHOPS {
+            bail!(
+                "{place} has {} shops behind it; the least is {MIN_SHOPS}",
+                row.shops
+            );
+        }
+        if row.jobs < MIN_JOBS {
+            bail!(
+                "{place} has {} repair orders behind it; the least is {MIN_JOBS}",
+                row.jobs
+            );
+        }
+        if row.shops > row.jobs {
+            bail!("{place} has more shops than repair orders");
+        }
+        for (field, value) in [("low", row.low), ("median", row.median), ("high", row.high)] {
+            if !(1..=MOST_HUNDREDTHS).contains(&value) {
+                bail!("{place}: {field} must be hundredths of an hour from 1 to {MOST_HUNDREDTHS}");
+            }
+        }
+        if !(row.low <= row.median && row.median <= row.high) {
+            bail!("{place}: low, median and high must be in that order");
+        }
+        let vehicle = row.make.is_some() || row.model.is_some();
+        let years = row.year_from.is_some() || row.year_to.is_some();
+        let named =
+            row.make.as_deref().is_some_and(is_slug) && row.model.as_deref().is_some_and(is_slug);
+        let good = match row.scope.as_str() {
+            "class" => {
+                let Some(class) = row.class.as_deref() else {
+                    bail!("{place}: a class row needs class");
+                };
+                if class_name(class).is_none() {
+                    bail!("{place}: {class} is not a class");
+                }
+                !vehicle && !years && row.engine.is_none()
+            }
+            "model" => row.class.is_none() && named && !years && row.engine.is_none(),
+            "generation" | "engine" => {
+                let ordered =
+                    matches!((row.year_from, row.year_to), (Some(from), Some(to)) if from <= to);
+                let engine = row.engine.as_deref().is_some_and(is_slug);
+                row.class.is_none()
+                    && named
+                    && ordered
+                    && (engine == (row.scope == "engine"))
+                    && (row.engine.is_some() == (row.scope == "engine"))
+            }
+            other => bail!(
+                "{place}: the scope {other} is not one of class, model, generation and engine"
+            ),
+        };
+        if !good {
+            bail!(
+                "{place}: a {} row has the wrong fields; see data/labor/README.md",
+                row.scope
+            );
+        }
+    }
+    Ok(table)
+}
+
+/// A measured row with its make and model as catalog ids.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Observed {
+    pub row: ObservedRow,
+    pub make_id: Option<i64>,
+    pub model_id: Option<i64>,
+}
+
+/// The measured table of `<curated>/labor/observed`, checked against the
+/// job list and the catalog as an expert estimate is. `None` when there is
+/// no table. The directory may hold one: a new table replaces the old.
+pub fn load_observed(
+    curated: &Path,
+    catalog: &Connection,
+) -> Result<Option<(String, Vec<Observed>)>> {
+    let found = files(&curated.join("labor").join("observed"))?;
+    let yaml = match found.as_slice() {
+        [] => return Ok(None),
+        [(_, yaml)] => yaml,
+        several => bail!(
+            "data/labor/observed holds {} tables; a new table replaces the old one",
+            several.len()
+        ),
+    };
+    let table = parse_observed(yaml)?;
+    let components = Components::load(curated)?;
+    let jobs = Jobs::load(curated, &components)?;
+    let Some(jobs) = jobs.filter(|jobs| jobs.status == Status::Reviewed) else {
+        bail!("data/labor/observed has a table but data/jobs.yaml is still a draft");
+    };
+    let mut held: HashSet<String> = HashSet::new();
+    let mut rows = Vec::with_capacity(table.rows.len());
+    for row in table.rows {
+        let job = &row.job;
+        if !jobs.list.iter().any(|listed| &listed.id == job) {
+            bail!("data/labor/observed: {job} is not a job of jobs.yaml");
+        }
+        let scope = row.scope.as_str();
+        let (Some(make), Some(model)) = (row.make.as_deref(), row.model.as_deref()) else {
+            let class = row.class.clone().unwrap_or_default();
+            if !held.insert(format!("{job}|class|{class}")) {
+                bail!("data/labor/observed: {job} has two measured class rows for {class}");
+            }
+            rows.push(Observed {
+                row,
+                make_id: None,
+                model_id: None,
+            });
+            continue;
+        };
+        let (make_id, model_id) = model_ids(catalog, make, model).context("data/labor/observed")?;
+        match (row.year_from, row.year_to) {
+            (Some(from), Some(to)) => {
+                for year in from..=to {
+                    let Some(engines) = engines_of(catalog, model_id, year)? else {
+                        bail!("data/labor/observed: the catalog has no {year} {make} {model}");
+                    };
+                    let engine = row.engine.clone().unwrap_or_default();
+                    if scope == "engine" && !engines.contains(&engine) {
+                        bail!(
+                            "data/labor/observed: the {year} {make} {model} has no engine {engine}"
+                        );
+                    }
+                    if !held.insert(format!("{job}|{scope}|{model_id}|{year}|{engine}")) {
+                        bail!(
+                            "data/labor/observed: {job} has two measured {scope} rows that cover the {year} {make} {model}"
+                        );
+                    }
+                }
+            }
+            _ => {
+                if !held.insert(format!("{job}|model|{model_id}")) {
+                    bail!(
+                        "data/labor/observed: {job} has two measured model rows for {make} {model}"
+                    );
+                }
+            }
+        }
+        rows.push(Observed {
+            row,
+            make_id: Some(make_id),
+            model_id: Some(model_id),
+        });
+    }
+    Ok(Some((table.generated, rows)))
+}
+
 /// Fills `vehicle_class`: for each light model year of the catalog, the
 /// class EPA's size class puts it in (the one with the most EPA rows), or
 /// that of the nearest model year of the same model that has one. Does
@@ -452,9 +679,15 @@ fn shape_classes(context: &ShapeContext<'_>) -> Result<()> {
 /// the job list.
 pub fn shape(context: &mut ShapeContext<'_>) -> Result<()> {
     let estimates = load(context.curated, context.catalog)?;
+    let observed = load_observed(context.curated, context.catalog)?;
+    let (generated, measured) = match observed {
+        Some((generated, rows)) => (Some(generated), rows),
+        None => (None, Vec::new()),
+    };
     let Some(as_of) = estimates
         .iter()
         .map(|estimate| estimate.record.updated.clone())
+        .chain(generated.clone().filter(|_| !measured.is_empty()))
         .max()
     else {
         return Ok(());
@@ -487,12 +720,38 @@ pub fn shape(context: &mut ShapeContext<'_>) -> Result<()> {
             ])?;
         }
     }
+    if let Some(generated) = &generated {
+        // A measured row has no author: it is nobody's estimate.
+        let mut insert = transaction.prepare(
+            "INSERT INTO labor_estimate (job_id, scope, class, make_id, model_id, year_from, year_to, engine, hours_low, hours_typical, hours_high, basis, sample_jobs, sample_shops, updated)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, 'observed', ?12, ?13, ?14)",
+        )?;
+        for found in &measured {
+            let row = &found.row;
+            insert.execute(params![
+                row.job,
+                row.scope,
+                row.class,
+                found.make_id,
+                found.model_id,
+                row.year_from,
+                row.year_to,
+                row.engine,
+                row.low,
+                row.median,
+                row.high,
+                row.jobs,
+                row.shops,
+                generated,
+            ])?;
+        }
+    }
     shape_classes(context)?;
     context.register(
         Dataset::Labor,
         DatasetEntry {
             as_of,
-            rows: estimates.len() as u64,
+            rows: (estimates.len() + measured.len()) as u64,
             licence: licence::CC_BY_4.to_owned(),
             attribution: ATTRIBUTION.to_owned(),
         },

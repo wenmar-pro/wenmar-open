@@ -436,3 +436,240 @@ fn the_directory_in_the_repository_is_sound_and_its_example_is_a_good_file() {
         parse(&name, &text).unwrap();
     }
 }
+
+// ----- measured times -----
+
+fn observed_fixture() -> String {
+    std::fs::read_to_string(fixture("labor").join("observed.yaml")).unwrap()
+}
+
+/// A scratch directory with the expert fixtures and `table` as the
+/// measured table.
+fn with_observed(name: &str, table: &str) -> Scratch {
+    let files = fixtures();
+    let files: Vec<(&str, &str)> = files
+        .iter()
+        .map(|(name, text)| (*name, text.as_str()))
+        .collect();
+    let scratch = prepared(name, &files);
+    let directory = scratch.curated().join("labor/observed");
+    std::fs::create_dir_all(&directory).unwrap();
+    std::fs::write(directory.join("observed.yaml"), table).unwrap();
+    std::fs::write(directory.join("_example.yaml"), "rows: [nonsense").unwrap();
+    scratch
+}
+
+#[test]
+fn a_measured_table_is_built_beside_the_written_estimates() {
+    let scratch = with_observed("labor-observed", &observed_fixture());
+    let summary = build(&scratch, true).unwrap();
+    let entry = summary.datasets.get(Dataset::Labor).unwrap();
+    // Five written estimates and two measured rows; the newest day is the
+    // table's.
+    assert_eq!((entry.as_of.as_str(), entry.rows), ("2026-10-13", 7));
+    let connection = Connection::open(scratch.out()).unwrap();
+    assert_eq!(
+        rows(
+            &connection,
+            "SELECT job_id, scope, class, model_id, year_from, year_to, hours_low, hours_typical, hours_high, basis, sample_jobs, sample_shops, author, reviewer, updated FROM labor_estimate WHERE basis = 'observed' ORDER BY id"
+        ),
+        [
+            "test-job-a|class|compact-car|-|-|-|9500|9600|9700|observed|40|6|-|-|2026-10-13",
+            "test-job-b|generation|-|7001|2002|2003|4700|4800|4900|observed|20|5|-|-|2026-10-13",
+        ]
+    );
+    drop(connection);
+    let shop = ShopData::new(ShopSource::open(scratch.out()).unwrap()).unwrap();
+    let answer = |year: u16, engine: Option<&str>, job: &str| {
+        let found = shop
+            .labor_for_vehicle(7001, year, engine, Some(job))
+            .unwrap();
+        found.first().map(|estimate| {
+            (
+                estimate.scope.clone(),
+                estimate.basis.clone(),
+                estimate.hours_typical,
+            )
+        })
+    };
+    let one =
+        |scope: &str, basis: &str, hours: i64| Some((scope.to_owned(), basis.to_owned(), hours));
+    // The 2001 Sampler is a compact car. Job A has narrower written
+    // figures, and they still answer first.
+    assert_eq!(
+        answer(2001, None, "test-job-a"),
+        one("generation", "expert", 7800)
+    );
+    // Job B on the 2003: the measured generation figure, before the
+    // written figure for its class.
+    assert_eq!(
+        answer(2003, None, "test-job-b"),
+        one("generation", "observed", 4800)
+    );
+    // The class figure of job A: measured before written, same scope.
+    let class = shop.class_estimates_for_job("test-job-a").unwrap();
+    assert_eq!(
+        (
+            class[0].basis.as_str(),
+            class[0].hours_typical,
+            class[0].sample_jobs,
+            class[0].sample_shops
+        ),
+        ("observed", 9600, Some(40), Some(6))
+    );
+}
+
+#[test]
+fn a_measured_table_alone_is_a_dataset() {
+    let scratch = prepared("labor-observed-alone", &[]);
+    let directory = scratch.curated().join("labor/observed");
+    std::fs::create_dir_all(&directory).unwrap();
+    std::fs::write(directory.join("observed.yaml"), observed_fixture()).unwrap();
+    let summary = build(&scratch, true).unwrap();
+    let entry = summary.datasets.get(Dataset::Labor).unwrap();
+    assert_eq!((entry.as_of.as_str(), entry.rows), ("2026-10-13", 2));
+    assert_eq!(entry.licence, "cc-by-4.0");
+}
+
+#[test]
+fn a_table_that_is_not_fit_to_publish_stops_the_build() {
+    let table = observed_fixture();
+    let privacy = "nothing that could identify a shop, a customer, a VIN or a date";
+    let cases = [
+        // Under the threshold.
+        (
+            "shops: 6",
+            "shops: 4",
+            "row 1 has 4 shops behind it; the least is 5",
+        ),
+        (
+            "jobs: 20",
+            "jobs: 19",
+            "row 2 has 19 repair orders behind it; the least is 20",
+        ),
+        (
+            "jobs: 40\n    shops: 6",
+            "jobs: 40\n    shops: 41",
+            "row 1 has more shops than repair orders",
+        ),
+        // Anything that could identify someone or something.
+        ("    shops: 6\n", "    shops: 6\n    shop_id: 17\n", privacy),
+        (
+            "    shops: 6\n",
+            "    shops: 6\n    shop_name: Test Garage\n",
+            privacy,
+        ),
+        (
+            "    shops: 6\n",
+            "    shops: 6\n    customer: A. Person\n",
+            privacy,
+        ),
+        (
+            "    shops: 6\n",
+            "    shops: 6\n    vin: 1FTEW1EP5JFA00000\n",
+            privacy,
+        ),
+        (
+            "    shops: 6\n",
+            "    shops: 6\n    completed: 2026-09-30\n",
+            privacy,
+        ),
+        (
+            "    shops: 6\n",
+            "    shops: 6\n    hours: [9500, 9600]\n",
+            privacy,
+        ),
+        (
+            "generated: 2026-10-13\n",
+            "generated: 2026-10-13\nshop: Test Garage\n",
+            privacy,
+        ),
+        (
+            "model: sampler",
+            "model: 1ftew1ep5jfa00000",
+            "row 2 holds what looks like a VIN",
+        ),
+        // The figures.
+        (
+            "median: 9600",
+            "median: 9400",
+            "row 1: low, median and high must be in that order",
+        ),
+        (
+            "low: 9500",
+            "low: 0",
+            "row 1: low must be hundredths of an hour from 1 to 99999",
+        ),
+        ("median: 9600", "median: 96.5", "observed.yaml"),
+        (
+            "generated: 2026-10-13",
+            "generated: last month",
+            "generated must be a day",
+        ),
+        // The same checks an expert estimate gets.
+        (
+            "class: compact-car",
+            "class: half-ton-pickup",
+            "half-ton-pickup is not a class",
+        ),
+        (
+            "job: test-job-b",
+            "job: test-job-z",
+            "test-job-z is not a job of jobs.yaml",
+        ),
+        (
+            "year_to: 2003",
+            "year_to: 2004",
+            "the catalog has no 2004 testmake sampler",
+        ),
+    ];
+    for (index, (from, to, expected)) in cases.into_iter().enumerate() {
+        assert!(table.contains(from), "{from}");
+        let scratch = with_observed(
+            &format!("labor-observed-bad-{index}"),
+            &table.replacen(from, to, 1),
+        );
+        let message = format!("{:#}", build(&scratch, true).unwrap_err());
+        assert!(message.contains(expected), "{expected}: {message}");
+        assert!(!scratch.out().exists(), "{expected}");
+    }
+    // The same row twice, and two tables.
+    let twice = format!(
+        "{table}  - job: test-job-a\n    scope: class\n    class: compact-car\n    median: 9600\n    low: 9500\n    high: 9700\n    jobs: 40\n    shops: 6\n"
+    );
+    let scratch = with_observed("labor-observed-twice", &twice);
+    let message = format!("{:#}", build(&scratch, true).unwrap_err());
+    assert!(
+        message.contains("test-job-a has two measured class rows for compact-car"),
+        "{message}"
+    );
+    let scratch = with_observed("labor-observed-two", &table);
+    std::fs::write(scratch.curated().join("labor/observed/older.yaml"), &table).unwrap();
+    let message = format!("{:#}", build(&scratch, true).unwrap_err());
+    assert!(
+        message.contains("holds 2 tables; a new table replaces the old one"),
+        "{message}"
+    );
+}
+
+#[test]
+fn the_threshold_is_the_one_the_reader_names() {
+    assert_eq!(
+        (
+            wenmar_shopdata::labor::MIN_SHOPS,
+            wenmar_shopdata::labor::MIN_JOBS
+        ),
+        (5, 20)
+    );
+    let data = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data");
+    let example = std::fs::read_to_string(data.join("labor/observed/_example.yaml")).unwrap();
+    let table = labor::parse_observed(&example).unwrap();
+    assert_eq!(table.generated, "2026-10-12");
+    assert_eq!(table.rows.len(), 2);
+    assert!(
+        table
+            .rows
+            .iter()
+            .all(|row| row.shops >= 5 && row.jobs >= 20)
+    );
+}

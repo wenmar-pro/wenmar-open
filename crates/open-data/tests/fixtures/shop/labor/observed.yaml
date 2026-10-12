@@ -1,0 +1,23 @@
+# Test fixture. The jobs, the vehicle and every figure are made up; the
+# hours are impossible on purpose.
+generated: 2026-10-13
+rows:
+  - job: test-job-a
+    scope: class
+    class: compact-car
+    median: 9600
+    low: 9500
+    high: 9700
+    jobs: 40
+    shops: 6
+  - job: test-job-b
+    scope: generation
+    make: testmake
+    model: sampler
+    year_from: 2002
+    year_to: 2003
+    median: 4800
+    low: 4700
+    high: 4900
+    jobs: 20
+    shops: 5
