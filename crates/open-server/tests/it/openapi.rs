@@ -35,6 +35,7 @@ fn the_description_lists_every_route_and_no_others() {
     assert_eq!(
         paths,
         [
+            "/v1/makes/{make}",
             "/v1/meta",
             "/v1/vehicles/engines",
             "/v1/vehicles/makes",

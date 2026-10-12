@@ -37,6 +37,7 @@ GET  /v1/vehicles/submodels      Trims of a model year (also served as /v1/vehic
 GET  /v1/vehicles/engines        Engines of a model year
 GET  /v1/vehicles/search         Free text: ?q=2019+civic+si
 GET  /v1/vehicles/{id}           One vehicle by its id, such as 2019_honda_civic_si
+GET  /v1/makes/{make}            One make, with links to the maker's own pages
 GET  /v1/meta                    Data version, vPIC release, build time
 GET  /v1/openapi.json            OpenAPI description, generated from the code
 ```

@@ -299,3 +299,33 @@ async fn slow_searches_do_not_hold_up_a_vin_decode() {
     let (_, body) = app.json("/v1/vehicles/years?term=2").await;
     assert_eq!(body, json!([2023, 2022, 2020, 2019, 2018]));
 }
+
+#[tokio::test]
+async fn one_make_is_answered_with_its_links_or_null() {
+    let app = common::app().await;
+    for (asked, id, name) in [
+        ("honda", "honda", "Honda"),
+        ("chevy", "chevrolet", "Chevrolet"),
+        ("Ranger%20Trailers", "ranger-trailers", "Ranger Trailers"),
+    ] {
+        let (status, body) = app.json(&format!("/v1/makes/{asked}")).await;
+        assert_eq!(status, StatusCode::OK, "{asked}");
+        assert_eq!(
+            (body["id"].as_str(), body["name"].as_str()),
+            (Some(id), Some(name))
+        );
+        assert!(body["popular"].is_boolean());
+        // `links` is always there: `null`, or all seven members.
+        match open_server::site::links::for_make(name) {
+            None => assert_eq!(body["links"], Value::Null, "{asked}"),
+            Some(found) => {
+                assert_eq!(body["links"]["checked"], found.checked);
+                assert_eq!(body["links"].as_object().unwrap().len(), 7);
+                assert_eq!(body["links"]["manual_url"], json!(found.manual_url));
+            }
+        }
+    }
+    let (status, body) = app.json("/v1/makes/nothing").await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    assert_eq!(body["error"]["code"], "not_found");
+}

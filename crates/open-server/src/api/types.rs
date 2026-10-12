@@ -409,6 +409,53 @@ impl From<vehicles::Make> for Make {
     }
 }
 
+/// One make, with links to the maker's own pages.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct MakeDetail {
+    /// The make's id form.
+    #[schema(example = "honda")]
+    pub id: String,
+    #[schema(example = "Honda")]
+    pub name: String,
+    /// Whether it is on the list of popular makes.
+    pub popular: bool,
+    /// `null` when no link has been recorded for the make.
+    pub links: Option<MakeLinks>,
+}
+
+/// The maker's own pages, found by a person. An address that was not
+/// found is `null`. They lead off this service and can move.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct MakeLinks {
+    /// The day every link was last opened by a person.
+    #[schema(example = "2026-10-12")]
+    pub checked: String,
+    /// Where an owner checks a VIN for open recalls.
+    pub recall_lookup_url: Option<String>,
+    pub manual_url: Option<String>,
+    pub maintenance_url: Option<String>,
+    /// The maker's service information site, where it sells access.
+    pub service_info_url: Option<String>,
+    pub parts_url: Option<String>,
+    /// The maker's telephone line for customers.
+    pub customer_line: Option<String>,
+}
+
+impl From<&crate::site::links::MakeLinks> for MakeLinks {
+    fn from(links: &crate::site::links::MakeLinks) -> MakeLinks {
+        let text = |value: Option<&'static str>| value.map(str::to_owned);
+        MakeLinks {
+            checked: links.checked.to_owned(),
+            recall_lookup_url: text(links.recall_lookup_url),
+            manual_url: text(links.manual_url),
+            maintenance_url: text(links.maintenance_url),
+            service_info_url: text(links.service_info_url),
+            parts_url: text(links.parts_url),
+            customer_line: text(links.customer_line),
+        }
+    }
+}
+
 impl From<vehicles::Model> for Model {
     fn from(model: vehicles::Model) -> Model {
         Model {

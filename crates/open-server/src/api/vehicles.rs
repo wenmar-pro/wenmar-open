@@ -12,7 +12,7 @@ use serde_json::json;
 use utoipa::IntoParams;
 use wenmar_vehicles::Scope;
 
-use crate::api::types::{EngineOption, Entry, Make, Model, Submodel};
+use crate::api::types::{EngineOption, Entry, Make, MakeDetail, MakeLinks, Model, Submodel};
 use crate::api::{bad_query, blank_is_none};
 use crate::error::{ApiError, ErrorBody};
 use crate::search_index;
@@ -299,6 +299,27 @@ pub async fn search_op(state: &AppState, query: SearchQuery) -> Result<Vec<Entry
     Ok(entries)
 }
 
+pub async fn make_op(state: &AppState, make: String) -> Result<MakeDetail, ApiError> {
+    let found = state
+        .db()
+        .run(move |worker| {
+            let found = worker.catalog.index().resolve(&make, Scope::All);
+            Ok::<_, wenmar_vehicles::CatalogError>(
+                found.map(|make| (make.slug.clone(), make.name.clone(), make.rank.is_some())),
+            )
+        })
+        .await??;
+    let (id, name, popular) =
+        found.ok_or_else(|| ApiError::NotFound("No make has that id.".to_owned()))?;
+    let links = crate::site::links::for_make(&name).map(MakeLinks::from);
+    Ok(MakeDetail {
+        id,
+        name,
+        popular,
+        links,
+    })
+}
+
 pub async fn entry_op(state: &AppState, id: String) -> Result<Entry, ApiError> {
     let found = state
         .db()
@@ -464,4 +485,25 @@ pub async fn entry(
         return Err(ApiError::NotFound("No vehicle has that id.".to_owned()));
     };
     Ok(Json(entry_op(&state, id).await?))
+}
+
+/// One make, with links to the maker's own pages where they are recorded.
+#[utoipa::path(
+    get,
+    path = "/makes/{make}",
+    tag = "Vehicles",
+    params(("make" = String, Path, description = "A make's id, name or alias.", example = "honda")),
+    responses(
+        (status = 200, description = "The make. `links` is `null` when none are recorded.", body = MakeDetail),
+        (status = 404, description = "`not_found`: no make has that id.", body = ErrorBody)
+    )
+)]
+pub async fn make(
+    State(state): State<AppState>,
+    path: Result<Path<String>, PathRejection>,
+) -> Result<Json<MakeDetail>, ApiError> {
+    let Ok(Path(make)) = path else {
+        return Err(ApiError::NotFound("No make has that id.".to_owned()));
+    };
+    Ok(Json(make_op(&state, make).await?))
 }

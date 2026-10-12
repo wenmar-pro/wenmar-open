@@ -2,6 +2,23 @@
 // Do not edit. Run: npm run generate
 
 export interface paths {
+    "/v1/makes/{make}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One make, with links to the maker's own pages where they are recorded. */
+        get: operations["make"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/meta": {
         parameters: {
             query?: never;
@@ -353,6 +370,39 @@ export interface components {
             /** @description Whether it is on the list of popular makes, which are given first. */
             popular: boolean;
         };
+        /** @description One make, with links to the maker's own pages. */
+        MakeDetail: {
+            /**
+             * @description The make's id form.
+             * @example honda
+             */
+            id: string;
+            links?: null | components["schemas"]["MakeLinks"];
+            /** @example Honda */
+            name: string;
+            /** @description Whether it is on the list of popular makes. */
+            popular: boolean;
+        };
+        /**
+         * @description The maker's own pages, found by a person. An address that was not
+         *     found is `null`. They lead off this service and can move.
+         */
+        MakeLinks: {
+            /**
+             * @description The day every link was last opened by a person.
+             * @example 2026-10-12
+             */
+            checked: string;
+            /** @description The maker's telephone line for customers. */
+            customer_line?: string | null;
+            maintenance_url?: string | null;
+            manual_url?: string | null;
+            parts_url?: string | null;
+            /** @description Where an owner checks a VIN for open recalls. */
+            recall_lookup_url?: string | null;
+            /** @description The maker's service information site, where it sells access. */
+            service_info_url?: string | null;
+        };
         Manufacturer: {
             country?: string | null;
             /** @example Hyundai Motor Co */
@@ -555,6 +605,41 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    make: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description A make's id, name or alias.
+                 * @example honda
+                 */
+                make: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The make. `links` is `null` when none are recorded. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MakeDetail"];
+                };
+            };
+            /** @description `not_found`: no make has that id. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     meta: {
         parameters: {
             query?: never;

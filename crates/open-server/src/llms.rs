@@ -69,6 +69,7 @@ Vehicle ids such as `2019_honda_civic_si` are built from the year and the names,
 - [Decode a VIN]({base}/v1/vin/KM8K2CAB4PU001140): `GET /v1/vin/{{vin}}`, optional `?year=`
 - [Years]({base}/v1/vehicles/years): `GET /v1/vehicles/years`
 - [Makes]({base}/v1/vehicles/makes?year=2019): `GET /v1/vehicles/makes?year=`
+- [One make, with links to the maker's own pages]({base}/v1/makes/honda): `GET /v1/makes/{{make}}`
 - [Models]({base}/v1/vehicles/models?make=honda&year=2019): `GET /v1/vehicles/models?make=&year=`
 - [Submodels]({base}/v1/vehicles/submodels?make=honda&model=civic&year=2019): `GET /v1/vehicles/submodels?make=&model=&year=`
 - [Engines]({base}/v1/vehicles/engines?make=honda&model=civic&year=2019): `GET /v1/vehicles/engines?make=&model=&year=&submodel=`

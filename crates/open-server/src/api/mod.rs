@@ -48,6 +48,7 @@ pub fn router() -> (axum::Router<AppState>, utoipa::openapi::OpenApi) {
         .routes(routes!(vehicles::engines))
         .routes(routes!(vehicles::search))
         .routes(routes!(vehicles::entry))
+        .routes(routes!(vehicles::make))
         .routes(routes!(meta::meta));
     OpenApiRouter::with_openapi(ApiDoc::openapi())
         .nest("/v1", v1)

@@ -15,6 +15,49 @@
     }
   ],
   "paths": {
+    "/v1/makes/{make}": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "One make, with links to the maker's own pages where they are recorded.",
+        "operationId": "make",
+        "parameters": [
+          {
+            "name": "make",
+            "in": "path",
+            "description": "A make's id, name or alias.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "honda"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The make. `links` is `null` when none are recorded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MakeDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no make has that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/meta": {
       "get": {
         "tags": [
@@ -1058,6 +1101,94 @@
           "popular": {
             "type": "boolean",
             "description": "Whether it is on the list of popular makes, which are given first."
+          }
+        }
+      },
+      "MakeDetail": {
+        "type": "object",
+        "description": "One make, with links to the maker's own pages.",
+        "required": [
+          "id",
+          "name",
+          "popular"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The make's id form.",
+            "example": "honda"
+          },
+          "links": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MakeLinks",
+                "description": "`null` when no link has been recorded for the make."
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "example": "Honda"
+          },
+          "popular": {
+            "type": "boolean",
+            "description": "Whether it is on the list of popular makes."
+          }
+        }
+      },
+      "MakeLinks": {
+        "type": "object",
+        "description": "The maker's own pages, found by a person. An address that was not\nfound is `null`. They lead off this service and can move.",
+        "required": [
+          "checked"
+        ],
+        "properties": {
+          "checked": {
+            "type": "string",
+            "description": "The day every link was last opened by a person.",
+            "example": "2026-10-12"
+          },
+          "customer_line": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The maker's telephone line for customers."
+          },
+          "maintenance_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "manual_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "parts_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "recall_lookup_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Where an owner checks a VIN for open recalls."
+          },
+          "service_info_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The maker's service information site, where it sells access."
           }
         }
       },
