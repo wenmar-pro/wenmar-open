@@ -377,6 +377,8 @@ pub fn config(fixture: &Fixture) -> Config {
         base_url: "https://open.example".to_owned(),
         feedback_email: None,
         github_repo: "wenmar-pro/wenmar-open".to_owned(),
+        github_token: None,
+        github_api: "https://api.github.com".to_owned(),
     }
 }
 

@@ -2,6 +2,27 @@
 
 use std::path::PathBuf;
 
+/// A setting that must not be shown: a token. `{:?}` prints `Secret(..)`.
+#[derive(Clone, PartialEq, Eq)]
+pub struct Secret(String);
+
+impl Secret {
+    pub fn new(text: impl Into<String>) -> Secret {
+        Secret(text.into())
+    }
+
+    /// The setting itself, for the one place that sends it.
+    pub fn expose(&self) -> &str {
+        &self.0
+    }
+}
+
+impl std::fmt::Debug for Secret {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("Secret(..)")
+    }
+}
+
 /// How the server runs. Every value has a default except the data file.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Config {
@@ -29,6 +50,12 @@ pub struct Config {
     /// `OPEN_GITHUB_REPO`: the repository error reports are opened in, as
     /// `owner/name`. Default `wenmar-pro/wenmar-open`.
     pub github_repo: String,
+    /// `OPEN_GITHUB_TOKEN`: a fine-grained token with only "issues: write"
+    /// on `github_repo`. Unset: `/feedback` shows links and files nothing.
+    pub github_token: Option<Secret>,
+    /// `OPEN_GITHUB_API`: where GitHub's API is. Default
+    /// `https://api.github.com`. Tests point it at a stub.
+    pub github_api: String,
 }
 
 /// Whether `text` can follow `mailto:` in a link: one `@`, a dot inside the
@@ -116,6 +143,18 @@ impl Config {
                 "OPEN_GITHUB_REPO must be owner/name, but it is {github_repo:?}"
             ));
         }
+        let github_token = given("OPEN_GITHUB_TOKEN").map(Secret::new);
+        let github_api = given("OPEN_GITHUB_API")
+            .unwrap_or_else(|| "https://api.github.com".to_owned())
+            .trim_end_matches('/')
+            .to_owned();
+        if !(github_api.starts_with("http://") || github_api.starts_with("https://"))
+            || github_api.chars().any(char::is_whitespace)
+        {
+            return Err(format!(
+                "OPEN_GITHUB_API must start with http:// or https://, but it is {github_api:?}"
+            ));
+        }
         Ok(Config {
             data: PathBuf::from(data),
             shop_data: lookup("OPEN_SHOP_DATA")
@@ -128,6 +167,8 @@ impl Config {
             base_url,
             feedback_email,
             github_repo,
+            github_token,
+            github_api,
         })
     }
 }
@@ -226,6 +267,32 @@ mod tests {
         assert_eq!(
             with("OPEN_GITHUB_REPO", "").unwrap().github_repo,
             "wenmar-pro/wenmar-open"
+        );
+    }
+
+    #[test]
+    fn the_github_settings_are_read_and_the_token_is_never_printed() {
+        let config = with("PORT", "3000").unwrap();
+        assert_eq!(config.github_token, None);
+        assert_eq!(config.github_api, "https://api.github.com");
+        let config = with("OPEN_GITHUB_TOKEN", " github_pat_abc123 ").unwrap();
+        assert_eq!(
+            config.github_token.as_ref().map(Secret::expose),
+            Some("github_pat_abc123")
+        );
+        assert!(!format!("{config:?}").contains("abc123"));
+        assert!(format!("{config:?}").contains("Secret(..)"));
+        assert_eq!(with("OPEN_GITHUB_TOKEN", " ").unwrap().github_token, None);
+        assert_eq!(
+            with("OPEN_GITHUB_API", "http://127.0.0.1:9/")
+                .unwrap()
+                .github_api,
+            "http://127.0.0.1:9"
+        );
+        let error = with("OPEN_GITHUB_API", "api.github.com").unwrap_err();
+        assert!(
+            error.starts_with("OPEN_GITHUB_API must start with http:// or https://"),
+            "{error}"
         );
     }
 
