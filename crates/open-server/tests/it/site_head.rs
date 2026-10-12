@@ -256,6 +256,10 @@ async fn titles_and_descriptions_are_for_what_people_search_and_are_unique() {
             "Canadian invoice tax and tire fee calculator - Wenmar Open",
         ),
         (
+            "/tools/tire-size",
+            "Tire size comparison calculator - Wenmar Open",
+        ),
+        (
             "/makes",
             "Car and truck makes, with models by year - Wenmar Open",
         ),

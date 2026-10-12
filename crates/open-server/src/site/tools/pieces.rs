@@ -248,6 +248,14 @@ mod tests {
             ("labor_rate/form.rs", include_str!("labor_rate/form.rs")),
             ("labor_rate/result.rs", include_str!("labor_rate/result.rs")),
             ("labor_rate/doc.rs", include_str!("labor_rate/doc.rs")),
+            (
+                "tire_size.html",
+                include_str!("../../../templates/tire_size.html"),
+            ),
+            ("tire_size/mod.rs", include_str!("tire_size/mod.rs")),
+            ("tire_size/form.rs", include_str!("tire_size/form.rs")),
+            ("tire_size/result.rs", include_str!("tire_size/result.rs")),
+            ("tire_size/doc.rs", include_str!("tire_size/doc.rs")),
         ];
         for (name, text) in files {
             let code = text.split("#[cfg(test)]").next().unwrap();

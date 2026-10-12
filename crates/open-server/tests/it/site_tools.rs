@@ -670,6 +670,22 @@ async fn the_calculators_are_reached_from_the_home_page_the_sitemap_and_llms_txt
     {
         assert!(all.contains(line), "missing: {line}");
     }
+    // The tire size calculator is in each of the same places.
+    assert!(
+        home.contains(r#"<li><a href="/tools/tire-size">Tire size comparison calculator</a></li>"#)
+    );
+    assert!(sitemap.contains("<loc>https://open.example/tools/tire-size</loc>"));
+    assert!(!sitemap.contains("tire-size?"));
+    assert!(text.contains("- [Tire size comparison calculator](https://open.example/tools/tire-size.md): Compares two metric tire sizes"));
+    let (_, tire_size) = page(&app, "/tools/tire-size.md").await;
+    let (_, all) = page(&app, "/llms-full.txt").await;
+    assert!(all.contains("\n## Tire size comparison calculator\n"));
+    for line in tire_size
+        .lines()
+        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+    {
+        assert!(all.contains(line), "missing: {line}");
+    }
     // llms-full.txt holds the calculator's Markdown, line for line.
     let (_, full) = page(&app, "/llms-full.txt").await;
     assert!(full.contains("\n## Parts markup matrix calculator\n"));

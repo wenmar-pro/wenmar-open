@@ -7,7 +7,7 @@ use axum::http::StatusCode;
 use crate::common::{self, assert_basics, assert_head, assert_targets, page};
 
 /// One page of every kind that exists at this point of the plan.
-const PAGES: [&str; 16] = [
+const PAGES: [&str; 17] = [
     "/",
     "/makes",
     "/makes/honda",
@@ -23,6 +23,7 @@ const PAGES: [&str; 16] = [
     "/tools/canada-invoice-tax",
     "/tools/gross-profit",
     "/tools/labor-rate",
+    "/tools/tire-size",
     "/nothing",
 ];
 

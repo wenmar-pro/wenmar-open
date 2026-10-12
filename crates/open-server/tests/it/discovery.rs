@@ -111,6 +111,7 @@ async fn llms_full_txt_is_the_pages_themselves() {
         "/tools/canada-invoice-tax.md",
         "/tools/gross-profit.md",
         "/tools/labor-rate.md",
+        "/tools/tire-size.md",
         "/data.md",
         "/about.md",
     ] {

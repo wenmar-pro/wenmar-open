@@ -31,6 +31,7 @@ mod site_home;
 mod site_labor_rate;
 mod site_pages;
 mod site_seo;
+mod site_tire_size;
 mod site_tools;
 mod site_vin;
 mod site_wmi;
