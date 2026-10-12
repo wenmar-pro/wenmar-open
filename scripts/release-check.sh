@@ -82,6 +82,36 @@ if [ -n "${RELEASE_TAG:-}" ]; then
   echo "tag: $RELEASE_TAG"
 fi
 
+step "The shop data package"
+# wenmar-open-data-shop is published by shop-data-release.yml from
+# clients/data-shop/build, which clients/data-shop/scripts/prepare.mjs writes
+# from a shop file. The committed manifest's version is a placeholder that
+# must never reach npm. It is checked this early because it reads two files
+# and nothing else: a miss is reported before the slow steps.
+node <<'EOF' || fail "the shop data package is not as a release needs it"
+const fs = require("node:fs");
+const refuse = (message) => {
+  console.error(`release-check: ${message}`);
+  process.exit(1);
+};
+const file = "clients/data-shop/package.json";
+if (!fs.existsSync(file)) refuse(`${file} is not here`);
+const manifest = JSON.parse(fs.readFileSync(file, "utf8"));
+console.log(`${file}: ${manifest.name}@${manifest.version}, ships ${(manifest.files ?? []).join(", ")}`);
+if (manifest.name !== "wenmar-open-data-shop") refuse(`${file} is named ${manifest.name}, not wenmar-open-data-shop`);
+if (manifest.version !== "0.0.0") {
+  refuse(`${file} has version ${manifest.version}; the committed version is the placeholder 0.0.0, and the real one comes from the shop file`);
+}
+if (!(manifest.files ?? []).includes("wenmar-open-shop.sqlite3")) {
+  refuse(`${file} does not ship wenmar-open-shop.sqlite3`);
+}
+const prepare = fs.readFileSync("clients/data-shop/scripts/prepare.mjs", "utf8");
+if (!prepare.includes("manifest.version = version;")) {
+  refuse("clients/data-shop/scripts/prepare.mjs does not write the version it worked out into the package.json it publishes");
+}
+console.log("clients/data-shop/scripts/prepare.mjs gives the package.json it publishes its version.");
+EOF
+
 step "The release workflow's actions"
 # Every workflow a release runs through: release.yml publishes, and
 # monthly-release.yml pushes the tag that starts it. The jobs that publish may

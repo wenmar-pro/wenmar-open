@@ -19,6 +19,8 @@
 #                                 release-check.sh would publish
 #                                 wenmar-open-turso, which the workspace no
 #                                 longer has
+#   shop_package_ships_no_file    clients/data-shop/package.json no longer
+#                                 lists the shop file among its files
 set -euo pipefail
 cd "$(dirname "$0")/.."
 root=$PWD
@@ -207,12 +209,32 @@ fixture_version_disagrees() {
   refused "${FUNCNAME[0]}" "server_version has $new"
 }
 
+# The shop data package is published by its own workflow, from a directory
+# prepare.mjs writes. A manifest that stopped shipping the file would publish
+# an empty package, and an npm version cannot be taken back.
+shop_package_ships_no_file() {
+  restore
+  node -e '
+    const fs = require("node:fs");
+    const file = process.argv[1];
+    const manifest = JSON.parse(fs.readFileSync(file, "utf8"));
+    manifest.files = manifest.files.filter((name) => name !== "wenmar-open-shop.sqlite3");
+    fs.writeFileSync(file, JSON.stringify(manifest, null, 2) + "\n");
+  ' "$clone/clients/data-shop/package.json"
+  if grep -Fq '"wenmar-open-shop.sqlite3"' "$clone/clients/data-shop/package.json"; then
+    miss "${FUNCNAME[0]}" "the case did not change clients/data-shop/package.json"
+    return
+  fi
+  refused "${FUNCNAME[0]}" "clients/data-shop/package.json does not ship wenmar-open-shop.sqlite3"
+}
+
 action_at_a_moving_tag
 checkout_keeps_credentials
 server_json_version_disagrees
 fixture_version_disagrees
+shop_package_ships_no_file
 published_names_the_deleted_crate
 version_change_not_committed
 
 [ "$failed" = 0 ] || { echo "release-check-test: failed"; exit 1; }
-echo "release-check-test: 6 passed. Nothing was published, tagged or pushed."
+echo "release-check-test: 7 passed. Nothing was published, tagged or pushed."
