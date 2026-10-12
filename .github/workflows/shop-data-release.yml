@@ -3,7 +3,13 @@ name: Shop data release
 # Builds the shop file (recalls, and the datasets later plans add) from the
 # sources as they are today, matched against the newest released data file,
 # checks how much of it matched, and attaches it to a GitHub release tagged
-# shop-YYYY.MM.DD. It always builds the code on main, and it never builds a
+# shop-YYYY.MM.DD, as two files. The offline file, under the name every
+# release has had (wenmar-open-shop-YYYY.MM.DD.sqlite3.gz), is the one
+# people download. The full file (wenmar-open-shop-full-YYYY.MM.DD.sqlite3.gz)
+# also holds the datasets only the hosted service carries (bulletins), and
+# is what the server's image takes.
+#
+# It always builds the code on main, and it never builds a
 # data file: a shop file holds the catalog ids of one data file, so it is
 # built against the file of the newest data-YYYY.MM release, which is the one
 # people and the hosted server have.
@@ -15,7 +21,7 @@ name: Shop data release
 # A schedule, and a workflow_run trigger, only fire for the copy of this file
 # on the default branch.
 #
-# The same file is then published to npm as wenmar-open-data-shop, with
+# The offline file is then published to npm as wenmar-open-data-shop, with
 # trusted publishing: no token is stored. npm trusts this file, in this
 # repository, in the environment `shop-data-release`. See docs/releasing.md.
 
@@ -165,7 +171,7 @@ jobs:
         if: steps.pick.outputs.exists == 'false'
         run: |
           set -euo pipefail
-          for source in nhtsa-recalls tc-recalls nhtsa-investigations nhtsa-recall-reports nhtsa-ratings nhtsa-vin-guides epa-vehicles epa-guide epa-emissions nrcan-fuel; do
+          for source in nhtsa-recalls tc-recalls nhtsa-investigations nhtsa-recall-reports nhtsa-ratings nhtsa-vin-guides epa-vehicles epa-guide epa-emissions nrcan-fuel nhtsa-mfr-comms; do
             ./target/release/open-data fetch "$source" --dir data/build
             cat "data/build/sources/$source/source.json"
           done
@@ -177,14 +183,20 @@ jobs:
           VERSION: ${{ steps.pick.outputs.version }}
         run: |
           set -euo pipefail
-          mkdir -p data/build/shop
+          mkdir -p data/build/shop/offline
+          # Two files from one build. --out is the full file, with every
+          # dataset: the hosted server reads it. --offline-out is a copy
+          # without the datasets only the hosted service carries
+          # (bulletins): it is the one people download.
           ./target/release/open-data build-shop \
             --catalog "data/build/wenmar-open-$CORE.sqlite3" \
             --out "data/build/shop/wenmar-open-shop-$VERSION.sqlite3" \
+            --offline-out "data/build/shop/offline/wenmar-open-shop-$VERSION.sqlite3" \
             --data-version "$VERSION" \
             --curated data \
             --nhtsa-recalls data/build/sources/nhtsa-recalls \
             --tc-recalls data/build/sources/tc-recalls \
+            --nhtsa-mfr-comms data/build/sources/nhtsa-mfr-comms \
             --epa-vehicles data/build/sources/epa-vehicles \
             --epa-guide data/build/sources/epa-guide \
             --epa-emissions data/build/sources/epa-emissions \
@@ -201,6 +213,9 @@ jobs:
           VERSION: ${{ steps.pick.outputs.version }}
         run: |
           set -euo pipefail
+          # The full file: data/coverage.yaml has a minimum for every
+          # dataset, bulletins among them, and the offline file is a copy
+          # of this one with the same rows.
           ./target/release/open-data coverage \
             --shop "data/build/shop/wenmar-open-shop-$VERSION.sqlite3" \
             --catalog "data/build/wenmar-open-$CORE.sqlite3" | tee coverage.txt
@@ -212,20 +227,37 @@ jobs:
         run: |
           set -euo pipefail
           file="wenmar-open-shop-$VERSION.sqlite3"
+          full="wenmar-open-shop-full-$VERSION.sqlite3"
+          release=data/build/shop/release
+          mkdir -p "$release"
+          # The offline file keeps the name every shop release has had, so
+          # `wenmar-open data pull --shop` and the npm job below take it and
+          # never get a bulletin. The full file is published beside it under
+          # a name of its own, for the server's image (bin/shop-pull).
+          gzip -9 -c "data/build/shop/offline/$file" > "$release/$file.gz"
+          gzip -9 -c "data/build/shop/$file" > "$release/$full.gz"
           (
-            cd data/build/shop
-            gzip -9 -k "$file"
+            cd "$release"
             sha256sum "$file.gz" > "$file.gz.sha256"
-            ls -l "$file" "$file.gz"
+            sha256sum "$full.gz" > "$full.gz.sha256"
+            ls -l
           )
-          node scripts/shop-manifest.mjs "data/build/shop/$file" "data/build/shop/$file.gz" \
-            > "data/build/shop/wenmar-open-shop-$VERSION.json"
-          cat "data/build/shop/wenmar-open-shop-$VERSION.json"
-          # The manifest and the checksum file must agree, and the manifest
+          ls -l "data/build/shop/offline/$file" "data/build/shop/$file"
+          manifest="$release/wenmar-open-shop-$VERSION.json"
+          # It refuses an offline file that holds a hosted-only dataset, and
+          # two files that are not one build.
+          node scripts/shop-manifest.mjs \
+            "data/build/shop/offline/$file" "$release/$file.gz" \
+            "data/build/shop/$file" "$release/$full.gz" > "$manifest"
+          cat "$manifest"
+          # The manifest and the checksum files must agree, and the manifest
           # must name the version and the data file this run chose.
-          [ "$(jq -r .sha256 "data/build/shop/wenmar-open-shop-$VERSION.json")" = "$(cut -d' ' -f1 "data/build/shop/$file.gz.sha256")" ]
-          [ "$(jq -r .data_version "data/build/shop/wenmar-open-shop-$VERSION.json")" = "$VERSION" ]
-          [ "$(jq -r .catalog_data_version "data/build/shop/wenmar-open-shop-$VERSION.json")" = "${{ steps.pick.outputs.core }}" ]
+          [ "$(jq -r .sha256 "$manifest")" = "$(cut -d' ' -f1 "$release/$file.gz.sha256")" ]
+          [ "$(jq -r .full.sha256 "$manifest")" = "$(cut -d' ' -f1 "$release/$full.gz.sha256")" ]
+          [ "$(jq -r .data_version "$manifest")" = "$VERSION" ]
+          [ "$(jq -r .catalog_data_version "$manifest")" = "${{ steps.pick.outputs.core }}" ]
+          # What people download is never the larger of the two.
+          [ "$(jq -r .bytes "$manifest")" -le "$(jq -r .full.bytes "$manifest")" ]
 
       - name: No dataset of the previous release is missing
         if: steps.pick.outputs.exists == 'false'
@@ -235,7 +267,7 @@ jobs:
           ACCEPT: ${{ inputs.accept_dataset_changes }}
         run: |
           set -euo pipefail
-          new="data/build/shop/wenmar-open-shop-$VERSION.json"
+          new="data/build/shop/release/wenmar-open-shop-$VERSION.json"
           if [ -n "$PREVIOUS" ]; then
             gh release download "shop-$PREVIOUS" --pattern "wenmar-open-shop-$PREVIOUS.json" --output previous.json
             set -- "$new" previous.json
@@ -258,13 +290,14 @@ jobs:
           VERSION: ${{ steps.pick.outputs.version }}
         run: |
           set -euo pipefail
-          base="data/build/shop/wenmar-open-shop-$VERSION"
+          base="data/build/shop/release/wenmar-open-shop-$VERSION"
+          full="data/build/shop/release/wenmar-open-shop-full-$VERSION"
           {
             echo "Wenmar Open shop data $VERSION: recall campaigns from NHTSA and Transport Canada, matched to the catalog of data $CORE. It is used together with that data file and no other."
             echo
             echo "A campaign lists a year, a make and a model. It may apply to a vehicle of that model year; only the manufacturer can say whether it applies to one vehicle."
             echo
-            echo "Unpack it with \`gunzip\`. It is a plain SQLite file. \`wenmar-open data pull --shop\` downloads it and puts it in place."
+            echo "There are two files. \`wenmar-open-shop-$VERSION.sqlite3.gz\` is the one to download: \`wenmar-open data pull --shop\` fetches it and puts it in place, and the npm package \`wenmar-open-data-shop\` carries it. \`wenmar-open-shop-full-$VERSION.sqlite3.gz\` also holds NHTSA's manufacturer communications (service bulletins) and is more than twice the size; it is the file open.wenmarpro.com serves. Unpack either with \`gunzip\`. Each is a plain SQLite file, and the manifest describes both."
             echo
             echo '```'
             cat build.txt
@@ -275,7 +308,7 @@ jobs:
             cat datasets.txt
             echo '```'
           } > notes.md
-          gh release create "shop-$VERSION" "$base.sqlite3.gz" "$base.sqlite3.gz.sha256" "$base.json" \
+          gh release create "shop-$VERSION" "$base.sqlite3.gz" "$base.sqlite3.gz.sha256" "$full.sqlite3.gz" "$full.sqlite3.gz.sha256" "$base.json" \
             --target main \
             --title "Shop data $VERSION" \
             --notes-file notes.md \
@@ -320,6 +353,9 @@ jobs:
       - name: Test the package's scripts
         run: node --test clients/data-shop/test/data-shop.test.mjs
 
+      # The offline file, by its name: the asset with no word between "shop-"
+      # and the version. The package never carries a hosted-only dataset, and
+      # prepare.mjs refuses a file that does.
       - name: Download the released shop file and its data file, and check them
         id: files
         run: |

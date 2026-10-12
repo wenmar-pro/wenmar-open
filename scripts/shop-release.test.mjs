@@ -444,3 +444,35 @@ test("shop-pull never takes the offline file in place of a full file that is mis
   assert.equal(bad.shopVersion(), "2026.10.05");
   assert.ok(!existsSync(join(bad.root, "data/build/shop/wenmar-open-shop-2026.10.12.sqlite3")));
 });
+
+// ----- the workflow file -----
+
+test("the release workflow builds two files and publishes each under its own name", () => {
+  const workflow = readFileSync(join(scripts, "../.github/workflows/shop-data-release.yml"), "utf8");
+  const has = (text, within = workflow) => assert.ok(within.includes(text), `the workflow has no: ${text}`);
+  // Bulletins are fetched and built, and the offline copy is written.
+  assert.match(workflow, /for source in [^;\n]*\bnhtsa-mfr-comms\b[^;\n]*; do/);
+  has("--nhtsa-mfr-comms data/build/sources/nhtsa-mfr-comms");
+  has('--out "data/build/shop/wenmar-open-shop-$VERSION.sqlite3"');
+  has('--offline-out "data/build/shop/offline/wenmar-open-shop-$VERSION.sqlite3"');
+  // Coverage is measured on the full file.
+  has('--shop "data/build/shop/wenmar-open-shop-$VERSION.sqlite3"');
+  assert.ok(!workflow.includes('--shop "data/build/shop/offline'));
+  // The offline file keeps the published name; the full file has its own.
+  has('file="wenmar-open-shop-$VERSION.sqlite3"');
+  has('full="wenmar-open-shop-full-$VERSION.sqlite3"');
+  has('gzip -9 -c "data/build/shop/offline/$file" > "$release/$file.gz"');
+  has('gzip -9 -c "data/build/shop/$file" > "$release/$full.gz"');
+  has('sha256sum "$file.gz" > "$file.gz.sha256"');
+  has('sha256sum "$full.gz" > "$full.gz.sha256"');
+  has('"data/build/shop/offline/$file" "$release/$file.gz" \\\n            "data/build/shop/$file" "$release/$full.gz" > "$manifest"');
+  // Five files in the release.
+  has('gh release create "shop-$VERSION" "$base.sqlite3.gz" "$base.sqlite3.gz.sha256" "$full.sqlite3.gz" "$full.sqlite3.gz.sha256" "$base.json"');
+  // The npm job downloads by the offline name and never asks for the full file.
+  const npm = workflow.slice(workflow.indexOf("\n  npm:\n"));
+  assert.ok(npm.startsWith("\n  npm:\n"));
+  has('shop="wenmar-open-shop-$SHOP_VERSION"', npm);
+  has('--pattern "$shop.sqlite3.gz" --pattern "$shop.sqlite3.gz.sha256" --pattern "$shop.json"', npm);
+  assert.ok(!/--pattern "[^"]*full/.test(npm));
+  assert.ok(!npm.includes("wenmar-open-shop-full"));
+});
