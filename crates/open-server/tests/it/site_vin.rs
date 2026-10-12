@@ -360,3 +360,38 @@ async fn wheel_sizes_and_the_tire_pressure_monitor_are_on_the_sheet() {
     let (_, html) = page(&common::app_with_rows(odd).await, "/vin/KM8K2CAB4PU001140").await;
     assert!(!html.contains("Front wheels, inches"), "{html}");
 }
+
+#[tokio::test]
+async fn a_result_page_offers_a_report_that_leaves_the_serial_number_out() {
+    let app = common::app().await;
+    let (_, html) = page(&app, "/vin/KM8K2CAB4PU001140").await;
+    assert!(
+        html.contains(
+            r#"<li><a href="https://github.com/wenmar-pro/wenmar-open/issues/new?template=data_correction.yml&#38;title=Data%20correction%3A%202023%20Hyundai%20Kona%20SE%2C%20VIN%20KM8K2CAB4PU&#38;page=https%3A%2F%2Fopen.example%2Fvin%2FKM8K2CAB4PU&#38;vehicle=2023%20Hyundai%20Kona%20SE%2C%20VIN%20KM8K2CAB4PU">Report an error on this page</a></li>"#
+        ),
+        "{html}"
+    );
+    // No email address is set, so no email link is offered.
+    assert!(!html.contains("mailto:"));
+    assert_targets(&html, "/vin/KM8K2CAB4PU001140");
+
+    let app = common::app_with(|config| {
+        config.feedback_email = Some("data@open.example".to_owned());
+    })
+    .await;
+    let (_, html) = page(&app, "/vin/KM8K2CAB4PU001140").await;
+    assert!(
+        html.contains(">Report an error by email</a></li>"),
+        "{html}"
+    );
+    // No address that leaves the site holds the serial number.
+    for start in ["https://github.com", "mailto:"] {
+        for link in html.split(start).skip(1) {
+            let address = link.split('"').next().unwrap();
+            assert!(!address.contains("001140"), "{address}");
+        }
+    }
+    // Data that is markup is still text, inside an address too.
+    let (_, html) = page(&app, &format!("/vin/{}", common::HOSTILE)).await;
+    assert_no_injection(&html);
+}

@@ -33,6 +33,10 @@
 {% endif -%}
 <li><a href="/guides/how-to-read-a-vin">How to read a VIN</a></li>
 <li><a href="/">Decode another VIN</a></li>
+<li><a href="{{ report.issue }}">Report an error on this page</a></li>
+{% if let Some(mail) = report.mail -%}
+<li><a href="{{ mail }}">Report an error by email</a></li>
+{% endif -%}
 </ul>
 <p class="pro">Keep this vehicle's estimates, work orders and invoices in one place with <a href="{{ pro }}">Wenmar Pro</a>.</p>
 {% endblock %}

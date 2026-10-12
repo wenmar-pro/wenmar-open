@@ -13,7 +13,7 @@ use wenmar_vehicles::VehicleId;
 use crate::api::types::{VinDecode, Warning};
 use crate::api::vin::decode_many;
 use crate::error::ApiError;
-use crate::site::{self, Page, Problem};
+use crate::site::{self, Page, Problem, report};
 use crate::state::AppState;
 
 const CACHE_RESULT: &str = "private, max-age=3600";
@@ -55,6 +55,7 @@ struct Result {
     /// The address and the name of the model-year page.
     model_year: Option<(String, String)>,
     pro: String,
+    report: report::ReportLinks,
 }
 
 /// The year, make, model and trim, or what there is of them.
@@ -376,6 +377,14 @@ pub async fn result(
         .collect();
     let groups = groups(&decode);
     let copy = summary(&headline, &decode.vin, &groups);
+    // A report is public, so it names the vehicle by the first 11
+    // characters of the VIN and never by the whole of it.
+    let stem = report::vin_stem(&decode.vin);
+    let report = report::links(
+        state.config(),
+        &format!("/vin/{stem}"),
+        &format!("{headline}, VIN {stem}"),
+    );
     private(site::html(
         StatusCode::OK,
         &Result {
@@ -392,6 +401,7 @@ pub async fn result(
             copy,
             model_year,
             pro: site::pro_link("vin-result"),
+            report,
         },
     ))
 }
