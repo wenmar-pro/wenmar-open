@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ job.name }} on the {{ name }}: labour time</h1>
+{% if let Some(words) = range -%}
+<p><strong>{{ words }}</strong> {{ scope_words }} {{ basis }}</p>
+<p class="note">{{ note }}</p>
+{% for credit in attribution -%}
+<p class="note">{{ credit }}.</p>
+{% endfor -%}
+{% else -%}
+<p>No estimate covers this job on this vehicle yet.</p>
+{% endif -%}
+{% if !job.includes.is_empty() -%}
+<h2>What the time covers</h2>
+<ul>
+{% for entry in job.includes -%}
+<li>{{ entry }}</li>
+{% endfor -%}
+</ul>
+{% endif -%}
+{% if !job.excludes.is_empty() -%}
+<h2>What it does not cover</h2>
+<ul>
+{% for entry in job.excludes -%}
+<li>{{ entry }}</li>
+{% endfor -%}
+</ul>
+{% endif -%}
+{% if range.is_some() -%}
+<h2 id="price">The labour charge at your rate</h2>
+<form class="calc" action="{{ path }}#price" method="get">
+{% if let Some(engine) = engine -%}
+<input type="hidden" name="engine" value="{{ engine }}">
+{% endif -%}
+<label for="rate">Your shop's hourly labour rate, in dollars</label>
+<input id="rate" name="rate" type="text" inputmode="decimal" maxlength="12" value="{{ rate }}" required>
+<label for="province">Province or territory, for the tax (optional)</label>
+<select id="province" name="province">
+<option value="">No tax</option>
+{% for (code, province_name, chosen) in provinces -%}
+<option value="{{ code }}"{% if chosen %} selected{% endif %}>{{ province_name }}</option>
+{% endfor -%}
+</select>
+<div class="screen"><button class="primary" type="submit">Work it out</button></div>
+</form>
+{% if let Some(problem) = problem -%}
+<p class="warning">{{ problem }}</p>
+{% endif -%}
+{% if !prices.is_empty() -%}
+<table class="prose">
+<caption>At your rate</caption>
+<tbody>
+{% for price in prices -%}
+<tr><th scope="row">{{ price.label }}: {{ price.hours }} hours</th><td>{{ price.charge }} labour{% if let Some(tax) = price.tax %}, {{ tax }} tax, {{ price.total }} in all{% endif %}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">{{ tax_words }} Labour only: parts, shop supplies and fees are not in these figures. {{ note }}</p>
+{% endif -%}
+{% endif -%}
+<ul class="plain links">
+<li><a href="/jobs/{{ job.id }}">{{ job.name }}: the job and its typical hours</a></li>
+<li><a href="{{ model_year_path }}">The {{ name }}</a></li>
+{% if let Some(href) = recalls_href -%}
+<li><a href="{{ href }}">Recalls for the {{ name }}</a></li>
+{% endif -%}
+{% for (component, href) in bulletin_links -%}
+<li><a href="{{ href }}">Service bulletins about {{ component }} for the {{ name }}</a></li>
+{% endfor -%}
+{% for (code, title) in codes -%}
+<li><a href="/codes/{{ code }}"><span class="mono">{{ code }}</span> {{ title }}</a></li>
+{% endfor -%}
+<li><a href="{% if let Some(form) = report.form %}{{ form }}{% else %}{{ report.issue }}{% endif %}">Report an error on this page</a></li>
+{% if let Some(mail) = report.mail -%}
+<li><a href="{{ mail }}">Report an error by email</a></li>
+{% endif -%}
+</ul>
+{% endblock %}

@@ -469,6 +469,10 @@ pub fn router() -> Router<AppState> {
         .route("/jobs", get(labor::index))
         .route("/jobs.md", get(labor::index_md))
         .route("/jobs/{job}", get(labor::job))
+        .route(
+            "/makes/{make}/{model}/{year}/labor/{job}",
+            get(labor::model_year_labor),
+        )
         .route("/codes", get(codes::index))
         .route("/codes.md", get(codes::index_md))
         .route("/codes/{code}", get(codes::code))

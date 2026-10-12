@@ -115,3 +115,131 @@ async fn the_job_pages_exist_only_where_the_jobs_are_held() {
     let (_, index) = page(&app, "/sitemap.xml").await;
     assert!(!index.contains("sitemaps/jobs.xml"));
 }
+
+const KONA_A: &str = "/makes/hyundai/kona/2023/labor/test-job-a";
+const KONA_B: &str = "/makes/hyundai/kona/2023/labor/test-job-b";
+
+#[tokio::test]
+async fn a_job_on_a_model_year_says_the_hours_and_what_the_figure_is_for() {
+    let app = common::labor_app().await;
+    // Job A has a figure for the model: narrower than a class, so the
+    // page is offered to search engines.
+    let response = app.get(KONA_A).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert!(response.headers().get("x-robots-tag").is_none());
+    let (_, html) = page(&app, KONA_A).await;
+    common::assert_basics(&html, KONA_A);
+    common::assert_head(&html, KONA_A);
+    assert!(html.contains("<h1>Test job A on the 2023 Hyundai Kona: labour time</h1>"));
+    assert!(html.contains("<strong>87 to 89 hours, typically 88.</strong>"));
+    assert!(html.contains("This figure is for the Hyundai Kona, every model year."));
+    assert!(html.contains("Written by a person who does this work."));
+    assert!(html.contains(NOTE));
+    assert!(html.contains(common::LABOR_CREDIT));
+    assert!(html.contains("<li>made-up step one</li>"));
+    assert!(html.contains("<li>made-up exclusion</li>"));
+    // No price until a rate is given.
+    assert!(html.contains("<label for=\"rate\">"));
+    assert!(html.contains("<label for=\"province\">"));
+    assert!(!html.contains("<caption>At your rate</caption>"));
+    assert!(!html.contains('$'));
+    // The recalls of the model year, and the job's own page.
+    assert!(html.contains("href=\"/makes/hyundai/kona/2023/recalls\""));
+    assert!(html.contains("href=\"/jobs/test-job-a\""));
+    assert!(html.contains("Report an error on this page"));
+
+    // Job B has only a class figure: the page says so and is not indexed.
+    let response = app.get(KONA_B).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(header(&response, "x-robots-tag"), "noindex");
+    let (_, html) = page(&app, KONA_B).await;
+    assert!(html.contains("<strong>47 to 49 hours, typically 48.</strong>"));
+    assert!(html.contains(
+        "This figure is typical for a Small SUV. It was not worked out on this vehicle."
+    ));
+    assert!(html.contains("Measured from 40 repair orders at 6 shops."));
+    assert!(html.contains("<meta name=\"robots\" content=\"noindex"));
+    // Job C has no figure that reaches the vehicle.
+    let path = "/makes/hyundai/kona/2023/labor/test-job-c";
+    let response = app.get(path).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(header(&response, "x-robots-tag"), "noindex");
+    let (_, html) = page(&app, path).await;
+    assert!(html.contains("No estimate covers this job on this vehicle yet."));
+    assert!(!html.contains("<label for=\"rate\">"));
+    // The engine is asked for in the query, and such a page is a view.
+    let (_, html) = page(&app, &format!("{KONA_A}?engine=2-0l")).await;
+    assert!(html.contains("<strong>67 to 69.5 hours, typically 68.</strong>"));
+    assert!(html.contains("with the 2-0l engine"));
+    assert!(html.contains("<meta name=\"robots\" content=\"noindex"));
+
+    let text = common::markdown(&app, &format!("{KONA_A}.md")).await;
+    assert!(text.starts_with("# Test job A on the 2023 Hyundai Kona: labour time\n"));
+    assert!(text.contains("87 to 89 hours, typically 88."));
+    assert!(text.contains(common::LABOR_CREDIT));
+    assert!(!text.contains('$'));
+}
+
+#[tokio::test]
+async fn a_rate_makes_a_price_and_a_province_adds_its_tax() {
+    let app = common::labor_app().await;
+    // 87, 88 and 89 hours at $100.00.
+    let (status, html) = page(&app, &format!("{KONA_A}?rate=100")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("<caption>At your rate</caption>"));
+    for charge in ["$8,700.00", "$8,800.00", "$8,900.00"] {
+        assert!(html.contains(charge), "{charge}");
+    }
+    assert!(html.contains("value=\"100\""));
+    assert!(html.contains("No province was chosen, so no tax is added."));
+    assert!(html.contains("<meta name=\"robots\" content=\"noindex"));
+    assert!(html.contains(NOTE));
+    // Alberta charges 5% on labour: $440.00 on $8,800.00.
+    let (_, html) = page(&app, &format!("{KONA_A}?rate=100.00&province=AB")).await;
+    assert!(html.contains("Alberta"));
+    for amount in ["$8,800.00", "$440.00", "$9,240.00"] {
+        assert!(html.contains(amount), "{amount}");
+    }
+    assert!(html.contains("<option value=\"AB\" selected>"));
+    // A rate that cannot be read: hours only, and why.
+    for rate in ["abc", "-5", "1.234"] {
+        let (status, html) = page(&app, &format!("{KONA_A}?rate={rate}&province=AB")).await;
+        assert_eq!(status, StatusCode::OK, "{rate}");
+        assert!(
+            html.contains("Enter your hourly rate as dollars, such as 150 or 149.50."),
+            "{rate}"
+        );
+        assert!(!html.contains("<caption>At your rate</caption>"), "{rate}");
+    }
+    common::assert_no_injection(
+        &page(
+            &app,
+            &format!("{KONA_A}?rate=%3Cscript%3E&province=%22%3E%3Cb%3E"),
+        )
+        .await
+        .1,
+    );
+}
+
+#[tokio::test]
+async fn the_page_exists_for_jobs_of_the_list_and_vehicles_of_the_catalog() {
+    let app = common::labor_app().await;
+    for path in [
+        "/makes/hyundai/kona/2023/labor/test-job-z",
+        "/makes/hyundai/kona/2023/labor/Test-Job-A",
+        "/makes/hyundai/kona/2023/labor",
+        "/makes/hyundai/nothing/2023/labor/test-job-a",
+        "/makes/hyundai/kona/1899/labor/test-job-a",
+        "/makes/hyundai/kona/2023/labor/test-job-a/more",
+    ] {
+        let (status, _) = page(&app, path).await;
+        assert_eq!(status, StatusCode::NOT_FOUND, "{path}");
+    }
+    // The job list alone: no estimates, so no such page.
+    let app = common::app_with_shop(common::JOB_DATASETS, &common::job_rows()).await;
+    let (status, _) = page(&app, KONA_A).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    let (status, html) = page(&app, "/jobs/test-job-a").await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(!html.contains("id=\"vehicle\""));
+}
