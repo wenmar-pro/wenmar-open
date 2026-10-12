@@ -18,6 +18,9 @@ pub mod state;
 pub mod vin_rows;
 
 #[cfg(test)]
+#[path = "../battery_build.rs"]
+mod battery_build;
+#[cfg(test)]
 #[path = "../build_id.rs"]
 mod build_id;
 #[cfg(test)]

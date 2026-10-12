@@ -2,6 +2,8 @@
 //! and writes the rates of the Canadian invoice page out as Rust. See
 //! `build_id.rs` and `rates_build.rs` for what each is and why.
 
+#[path = "battery_build.rs"]
+mod battery_build;
 #[path = "build_id.rs"]
 mod build_id;
 #[path = "links_build.rs"]
@@ -46,6 +48,14 @@ fn main() -> io::Result<()> {
     let code = refrigerant_build::generate(&toml)
         .map_err(|why| io::Error::other(format!("{}: {why}", chart.display())))?;
     fs::write(out.join(refrigerant_build::OUT), code)?;
+
+    // The battery table, read and checked the same way.
+    let battery = root.join(battery_build::PATH);
+    let toml = fs::read_to_string(&battery)
+        .map_err(|error| io::Error::other(format!("{}: {error}", battery.display())))?;
+    let code = battery_build::generate(&toml)
+        .map_err(|why| io::Error::other(format!("{}: {why}", battery.display())))?;
+    fs::write(out.join(battery_build::OUT), code)?;
 
     // The makers' own links: one that is not as makes.yaml says stops the build.
     let makes = root.join(links_build::PATH);

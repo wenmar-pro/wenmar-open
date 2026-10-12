@@ -1,0 +1,70 @@
+# The state of charge of a 12 V battery at each open-circuit voltage, and the
+# correction of that voltage for the battery's temperature, for the battery
+# tool at `/tools/battery-state-of-charge`.
+#
+# This is the one place a figure of that tool is written. The server's build
+# reads it (crates/open-server/battery_build.rs) and stops if it is not as
+# described here, so a mistake never reaches a visitor.
+#
+# Change a figure only as it is printed in a source: the battery maker's own
+# published manual or data sheet, or a standards body's own service manual,
+# read in full. Then set `as_of` to the day it was read. No figure is worked
+# out, rounded or filled in between two rows by hand; the page works out the
+# correction itself.
+#
+# The schema
+#
+#   schema                1.
+#   [source.<id>]         A page a figure was read from. `title` says whose
+#                         page it is and what it is; `url` is its address.
+#                         `archived` is there when the page could not be
+#                         read directly and the Internet Archive's copy of
+#                         that date (a year, a month or a day) was read.
+#   [[battery]]           `key` (small letters, digits and _: the id of its
+#                         entry), `name` (the kind of battery, as the source
+#                         names it), `as_of` (the day the table was read),
+#                         `confirmed`.
+#     confirmed           true only when every row was read from a source
+#                         listed in `sources`. The page works nothing out for
+#                         a battery that is not confirmed.
+#     missing             What is not yet known. Empty when confirmed.
+#     notes               Sentences the page shows with a result. Optional.
+#     conditions          Sentences the source gives for the table to hold,
+#                         such as how long the battery must rest. Shown above
+#                         the form. Optional.
+#     to_check            Weak points in the evidence, for whoever checks
+#                         the file next. Not shown.
+#     sources             The ids of the pages the rows were read from. At
+#                         least one when there are rows.
+#   [[battery.row]]       `volts`, as text, exactly as printed, with at most
+#                         three decimal places; and `percent`, a whole number
+#                         from 0 to 100 as printed. In order of rising
+#                         voltage: each voltage higher than the one before and
+#                         each percent higher than the one before.
+#   [battery.correction]  Optional. `reference_c`: the temperature the table
+#                         was measured at, in °C, as text. `add_millivolts_per_c_below`:
+#                         the millivolts the source says to add to a reading
+#                         for each degree Celsius the battery is below
+#                         `reference_c`, as text, with at most three decimal
+#                         places; the same amount is taken off for each degree
+#                         above. `sources`: the ids of the pages that state it.
+#                         Only a single figure per degree is entered: a table
+#                         or a curve of corrections is not.
+
+schema = 1
+
+[[battery]]
+key = "flooded_12v"
+name = "Flooded lead-acid, 12 V"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["The state of charge at each open-circuit voltage has not been read from a published source yet."]
+sources = []
+
+[[battery]]
+key = "agm_12v"
+name = "AGM, 12 V"
+as_of = "2026-10-12"
+confirmed = false
+missing = ["The state of charge at each open-circuit voltage has not been read from a published source yet."]
+sources = []

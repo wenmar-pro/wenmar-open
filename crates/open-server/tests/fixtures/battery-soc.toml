@@ -1,0 +1,41 @@
+# Made up for the tests of battery_build.rs. No figure here is a real battery's.
+schema = 1
+
+[source.fake]
+title = "A made-up page"
+url = "https://example.org/battery"
+
+[[battery]]
+key = "made_up"
+name = "Made-up battery"
+as_of = "2026-01-31"
+confirmed = true
+missing = []
+conditions = ["A condition the page shows."]
+to_check = ["A weak point."]
+sources = ["fake"]
+
+[battery.correction]
+reference_c = "25"
+add_millivolts_per_c_below = "10"
+sources = ["fake"]
+
+[[battery.row]]
+volts = "10.00"
+percent = 0
+
+[[battery.row]]
+volts = "11.00"
+percent = 50
+
+[[battery.row]]
+volts = "12.00"
+percent = 100
+
+[[battery]]
+key = "not_read"
+name = "Battery not read"
+as_of = "2026-01-31"
+confirmed = false
+missing = ["No table has been read."]
+sources = []
