@@ -29,7 +29,7 @@ struct Cli {
 enum Command {
     /// Download a source's files. With no source: a vPIC plain-text dump, extracted.
     Fetch {
-        /// vpic (the default), nhtsa-recalls, tc-recalls, nhtsa-investigations, nhtsa-recall-reports, nhtsa-ratings or nhtsa-vin-guides.
+        /// vpic (the default), nhtsa-recalls, tc-recalls, nhtsa-investigations, nhtsa-recall-reports, nhtsa-ratings, nhtsa-vin-guides or epa-vehicles.
         source: Option<String>,
         /// vpic only. Release such as 2026_09. Defaults to the newest on NHTSA's page.
         #[arg(long)]

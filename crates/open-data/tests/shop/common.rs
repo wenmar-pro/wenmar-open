@@ -353,3 +353,33 @@ pub fn nhtsa_vin_guides_dir(scratch: &Scratch) -> PathBuf {
     }
     directory
 }
+/// A zip at `path` holding one file, `inner`, with `text` in it.
+pub fn zip_one(path: &std::path::Path, inner: &str, text: &str) {
+    use std::io::Write;
+
+    let file = std::fs::File::create(path).unwrap();
+    let mut archive = zip::ZipWriter::new(file);
+    archive
+        .start_file(inner, zip::write::SimpleFileOptions::default())
+        .unwrap();
+    archive.write_all(text.as_bytes()).unwrap();
+    archive.finish().unwrap();
+}
+
+/// A fetched `epa-vehicles` directory made from the fixture, under
+/// `scratch`: the CSV zipped under the name `open-data fetch` saves, with
+/// the CR LF line ends EPA writes, and `source.json` beside it.
+pub fn epa_vehicles_dir(scratch: &Scratch) -> PathBuf {
+    let directory = scratch.path("sources/epa-vehicles");
+    std::fs::create_dir_all(&directory).unwrap();
+    let text = std::fs::read_to_string(fixture("epa-vehicles").join("vehicles.csv"))
+        .unwrap()
+        .replace('\n', "\r\n");
+    zip_one(&directory.join("vehicles.csv.zip"), "vehicles.csv", &text);
+    std::fs::copy(
+        fixture("epa-vehicles").join("source.json"),
+        directory.join("source.json"),
+    )
+    .unwrap();
+    directory
+}

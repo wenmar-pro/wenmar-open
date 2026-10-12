@@ -106,6 +106,13 @@ pub const SOURCES: &[FetchSource] = &[
             },
         ],
     },
+    FetchSource {
+        id: "epa-vehicles",
+        files: &[FetchFile {
+            url: "https://www.fueleconomy.gov/feg/epadata/vehicles.csv.zip",
+            name: "vehicles.csv.zip",
+        }],
+    },
 ];
 
 pub fn find(id: &str) -> Option<&'static FetchSource> {
@@ -278,7 +285,8 @@ mod tests {
                 "tc-recalls",
                 "nhtsa-investigations",
                 "nhtsa-recall-reports",
-                "nhtsa-ratings"
+                "nhtsa-ratings",
+                "epa-vehicles"
             ]
         );
         let names = |id: &str| -> Vec<&str> {
@@ -299,6 +307,7 @@ mod tests {
             ["Safercar_data.csv", "Safercar_data_READ_ME_file.txt"]
         );
         assert_eq!(names("nhtsa-investigations"), ["FLAT_INV.zip", "INV.txt"]);
+        assert_eq!(names("epa-vehicles"), ["vehicles.csv.zip"]);
         assert_eq!(
             names("nhtsa-recall-reports"),
             [
