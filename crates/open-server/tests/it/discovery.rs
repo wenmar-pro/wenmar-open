@@ -582,3 +582,40 @@ async fn a_server_without_recalls_lists_no_recall_address() {
     let (_, docs) = page(&app, "/docs").await;
     assert!(!docs.contains(r#"<h2 id="recalls">"#));
 }
+
+#[tokio::test]
+async fn the_docs_page_gives_the_overview_addresses_and_llms_txt_the_tools_actions() {
+    let app = common::app().await;
+    let (_, docs) = page(&app, "/docs").await;
+    assert!(
+        docs.contains(r#"<h2 id="everything-for-one-vehicle">Everything for one vehicle</h2>"#),
+        "{docs}"
+    );
+    // The three that answer on any server, and each does on this one.
+    for address in &OVERVIEW_ADDRESSES[..3] {
+        assert!(
+            docs.contains(&format!("curl https://open.example{address}")),
+            "{address}"
+        );
+        assert_eq!(app.get(address).await.status(), StatusCode::OK, "{address}");
+    }
+    // The section sits with the other routes, above the errors.
+    assert!(
+        docs.find(r#"<h2 id="everything-for-one-vehicle">"#)
+            .unwrap()
+            < docs.find(r#"<h2 id="errors">"#).unwrap()
+    );
+    // The recent list is said only by a server that holds recalls.
+    assert!(!docs.contains("/v1/recalls/recent"));
+    let with = common::recalls_app().await;
+    let (_, docs) = page(&with, "/docs").await;
+    assert!(
+        docs.contains("https://open.example/v1/recalls/recent?since=2026-01-01"),
+        "{docs}"
+    );
+
+    let text = body_text(app.get("/llms.txt").await).await;
+    assert!(text.contains("`wenmar_vin` (actions `decode`, `batch`, `overview`)"));
+    assert!(text.contains("`entry`, `overview`, `model_years`"));
+    assert!(text.contains("`campaign`, `search`, `recent`)"));
+}

@@ -93,6 +93,15 @@ pub fn docs(state: &AppState) -> Doc {
                     "curl '{base}/v1/vehicles/search?q=2019+civic+si'\ncurl {base}/v1/vehicles/2019_honda_civic_si"
                 ),
             ),
+            with_code(
+                section(
+                    "Everything for one vehicle",
+                    &["One answer with everything this server holds for a model year, asked for by vehicle id or by VIN, with links to its pages. A block the server has no data for is null, so the answer has the same members on every server. The recalls in it are a count of the campaigns that list the year, make and model, with the three newest; the whole list has its own address. The third address lists every model year of one model, newest first."],
+                ),
+                format!(
+                    "curl {base}/v1/vehicles/2019_honda_civic/overview\ncurl {base}/v1/vin/KM8K2CAB4PU001140/overview\ncurl {base}/v1/models/honda/civic"
+                ),
+            ),
             section(
                 "Errors",
                 &[
@@ -163,11 +172,11 @@ pub fn docs(state: &AppState) -> Doc {
                 "Recalls",
                 &[
                     "Recall campaigns from NHTSA, for the United States, and from Transport Canada, newest first. A campaign lists a year, a make and a model, so a recall listed here may apply to a vehicle of that model year. Only the manufacturer can say whether it applies to one vehicle: every answer has may_apply set to true and a lookup object with the official lookups by VIN.",
-                    "Add country=us or country=ca for one country. as_of is the day each country's data was current, and attribution holds the credit the data's licence asks for. A server run without recall data answers these addresses with 404 and the code dataset_unavailable.",
+                    "The last address lists the campaigns reported on or after a day, each with the vehicles it lists. Add country=us or country=ca for one country. as_of is the day each country's data was current, and attribution holds the credit the data's licence asks for. A server run without recall data answers these addresses with 404 and the code dataset_unavailable.",
                 ],
             ),
             format!(
-                "curl {base}/v1/vehicles/2019_honda_civic/recalls\ncurl {base}/v1/vin/KM8K2CAB4PU001140/recalls\ncurl {base}/v1/recalls/nhtsa/19V888000\ncurl '{base}/v1/recalls?make=honda&year=2019'"
+                "curl {base}/v1/vehicles/2019_honda_civic/recalls\ncurl {base}/v1/vin/KM8K2CAB4PU001140/recalls\ncurl {base}/v1/recalls/nhtsa/19V888000\ncurl '{base}/v1/recalls?make=honda&year=2019'\ncurl '{base}/v1/recalls/recent?since=2026-01-01'"
             ),
         );
         let before_errors = doc

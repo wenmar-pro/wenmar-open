@@ -28,7 +28,7 @@ use serde::Deserialize;
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 
-use crate::api::{recalls, vehicles, vin};
+use crate::api::{overview, recalls, vehicles, vin};
 use crate::error::ApiError;
 use crate::state::AppState;
 
@@ -101,7 +101,15 @@ async fn vin_tool(state: &AppState, action: &str, given: &Value) -> Result<Value
                 .collect::<Result<_, _>>()?;
             Ok(Value::Array(items))
         }
-        _ => Err(ApiError::validation("action must be decode or batch")),
+        "overview" => {
+            let Some(input) = given.vin else {
+                return Err(ApiError::validation("vin is required for action=overview"));
+            };
+            to_value(overview::vin_overview_op(state, input, given.year).await?)
+        }
+        _ => Err(ApiError::validation(
+            "action must be decode, batch or overview",
+        )),
     }
 }
 
@@ -109,6 +117,8 @@ async fn vin_tool(state: &AppState, action: &str, given: &Value) -> Result<Value
 struct Lookup {
     query: Option<String>,
     id: Option<String>,
+    make: Option<String>,
+    model: Option<String>,
 }
 
 async fn vehicles_tool(state: &AppState, action: &str, given: &Value) -> Result<Value, ApiError> {
@@ -131,8 +141,24 @@ async fn vehicles_tool(state: &AppState, action: &str, given: &Value) -> Result<
             };
             to_value(vehicles::entry_op(state, id).await?)
         }
+        "overview" => {
+            let lookup: Lookup = arguments(given)?;
+            let Some(id) = lookup.id else {
+                return Err(ApiError::validation("id is required for action=overview"));
+            };
+            to_value(overview::vehicle_overview_op(state, id).await?)
+        }
+        "model_years" => {
+            let lookup: Lookup = arguments(given)?;
+            let (Some(make), Some(model)) = (lookup.make, lookup.model) else {
+                return Err(ApiError::validation(
+                    "make and model are required for action=model_years",
+                ));
+            };
+            to_value(overview::model_years_op(state, make, model).await?)
+        }
         _ => Err(ApiError::validation(
-            "action must be years, makes, models, submodels, engines, search or entry",
+            "action must be years, makes, models, submodels, engines, search, entry, overview or model_years",
         )),
     }
 }
@@ -187,8 +213,12 @@ async fn recalls_tool(state: &AppState, action: &str, given: &Value) -> Result<V
             query.q = asked.query.or(query.q);
             to_value(recalls::recall_search_op(state, query).await?)
         }
+        "recent" => {
+            let query: overview::RecentQuery = arguments(given)?;
+            to_value(overview::recent_recalls_op(state, query).await?)
+        }
         _ => Err(ApiError::validation(
-            "action must be vehicle, vin, campaign or search",
+            "action must be vehicle, vin, campaign, search or recent",
         )),
     }
 }

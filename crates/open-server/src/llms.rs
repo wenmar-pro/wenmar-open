@@ -93,7 +93,7 @@ To decode a VIN, fetch `{base}/v1/vin/` followed by the VIN, and read the JSON. 
 
 Responses are plain JSON with no wrapper. Errors are `{{ \"error\": {{ \"code\", \"message\", \"details\" }} }}`. One address may make {limit} requests a minute; over that the answer is 429 with `Retry-After`. Fields and endpoints are only ever added.
 
-An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenmar_vin` (actions `decode`, `batch`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`) and `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`). `wenmar_recalls` lists recalls by year, make and model and never looks a VIN up: confirm by VIN with the manufacturer.
+An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenmar_vin` (actions `decode`, `batch`, `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`) and `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`, `recent`). `wenmar_recalls` lists recalls by year, make and model and never looks a VIN up: confirm by VIN with the manufacturer.
 
 The calculators under `{base}/tools` are web pages with forms, for people. An agent does the arithmetic itself: the Markdown version of each calculator states its formula and one worked example.
 

@@ -349,7 +349,13 @@ async fn llms_txt_points_at_the_api_and_the_mcp_endpoint() {
     assert!(text.contains("https://open.example/mcp"));
     assert!(text.contains("Data version 2026.09"));
     assert!(text.contains("600 requests a minute"));
-    assert!(text.contains("`wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`)"));
+    assert!(text.contains("`wenmar_vin` (actions `decode`, `batch`, `overview`)"));
+    assert!(text.contains("`search`, `entry`, `overview`, `model_years`"));
+    assert!(
+        text.contains(
+            "`wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`, `recent`)"
+        )
+    );
     assert!(text.contains("confirm by VIN with the manufacturer"));
 }
 
@@ -837,4 +843,188 @@ async fn a_server_with_no_recall_data_answers_the_recalls_tool_with_a_tool_error
     .await;
     assert_eq!(result["isError"], false);
     assert_eq!(text(&result)["as_of"]["ca"], Value::Null);
+}
+
+#[tokio::test]
+async fn the_overview_actions_give_what_the_api_gives() {
+    let app = common::recalls_app().await;
+    let cases = [
+        (
+            "wenmar_vehicles",
+            json!({ "action": "overview", "id": "2023_hyundai_kona" }),
+            "/v1/vehicles/2023_hyundai_kona/overview",
+        ),
+        (
+            "wenmar_vehicles",
+            json!({ "action": "overview", "id": "2019_honda_civic_si" }),
+            "/v1/vehicles/2019_honda_civic_si/overview",
+        ),
+        (
+            "wenmar_vehicles",
+            json!({ "action": "model_years", "make": "hyundai", "model": "kona" }),
+            "/v1/models/hyundai/kona",
+        ),
+        (
+            "wenmar_vehicles",
+            json!({ "action": "model_years", "make": "chevy", "model": "Silverado" }),
+            "/v1/models/chevy/Silverado",
+        ),
+        (
+            "wenmar_vin",
+            json!({ "action": "overview", "vin": common::KONA }),
+            "/v1/vin/KM8K2CAB4PU001140/overview",
+        ),
+        (
+            "wenmar_vin",
+            json!({ "action": "overview", "vin": "km8k2-cab4pu001140", "year": 2023 }),
+            "/v1/vin/KM8K2CAB4PU001140/overview?year=2023",
+        ),
+        (
+            "wenmar_vin",
+            json!({ "action": "overview", "vin": common::COACH }),
+            "/v1/vin/1M8PDMPA9SP000001/overview",
+        ),
+        (
+            "wenmar_recalls",
+            json!({ "action": "recent", "since": "2019-01-01" }),
+            "/v1/recalls/recent?since=2019-01-01",
+        ),
+        (
+            "wenmar_recalls",
+            json!({ "action": "recent", "since": "2019-01-01", "make": "chevy", "country": "ca", "limit": 1 }),
+            "/v1/recalls/recent?since=2019-01-01&make=chevy&country=ca&limit=1",
+        ),
+    ];
+    for (tool, arguments, path) in cases {
+        let result = call(&app, tool, arguments.clone()).await;
+        assert_eq!(result["isError"], false, "{arguments}");
+        let (status, served) = app.json(path).await;
+        assert_eq!(status, StatusCode::OK, "{path}");
+        assert_eq!(text(&result), served, "{arguments}");
+        assert_eq!(result["structuredContent"], served, "{arguments}");
+    }
+    // The second page of the recent list is asked for with the cursor of
+    // the first.
+    let first = call(
+        &app,
+        "wenmar_recalls",
+        json!({ "action": "recent", "since": "1960-01-01", "limit": 2 }),
+    )
+    .await;
+    let cursor = text(&first)["next_cursor"].as_str().unwrap().to_owned();
+    let second = call(
+        &app,
+        "wenmar_recalls",
+        json!({ "action": "recent", "since": "1960-01-01", "limit": 2, "cursor": cursor }),
+    )
+    .await;
+    let (_, served) = app
+        .json(&format!(
+            "/v1/recalls/recent?since=1960-01-01&limit=2&cursor={cursor}"
+        ))
+        .await;
+    assert_eq!(text(&second), served);
+}
+
+#[tokio::test]
+async fn the_overview_actions_fail_as_the_api_does() {
+    let app = common::recalls_app().await;
+    let cases = [
+        (
+            "wenmar_vehicles",
+            json!({ "action": "overview" }),
+            "validation_failed",
+        ),
+        (
+            "wenmar_vehicles",
+            json!({ "action": "overview", "id": "2023_hyundai_nothing" }),
+            "not_found",
+        ),
+        (
+            "wenmar_vehicles",
+            json!({ "action": "model_years", "make": "honda" }),
+            "validation_failed",
+        ),
+        (
+            "wenmar_vehicles",
+            json!({ "action": "model_years", "make": "honda", "model": "nothing" }),
+            "not_found",
+        ),
+        (
+            "wenmar_vin",
+            json!({ "action": "overview" }),
+            "validation_failed",
+        ),
+        (
+            "wenmar_vin",
+            json!({ "action": "overview", "vin": "KM8K2CAB4PUO01140" }),
+            "invalid_vin",
+        ),
+        (
+            "wenmar_recalls",
+            json!({ "action": "recent" }),
+            "validation_failed",
+        ),
+        (
+            "wenmar_recalls",
+            json!({ "action": "recent", "since": "yesterday" }),
+            "validation_failed",
+        ),
+        (
+            "wenmar_recalls",
+            json!({ "action": "recent", "since": "2019-01-01", "country": "mx" }),
+            "validation_failed",
+        ),
+    ];
+    for (tool, arguments, code) in cases {
+        let result = call(&app, tool, arguments.clone()).await;
+        assert_eq!(result["isError"], true, "{arguments}");
+        assert_eq!(
+            result["structuredContent"]["error"]["code"], code,
+            "{arguments}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn a_server_with_no_shop_file_still_answers_the_overview_actions() {
+    let app = common::app().await;
+    let result = call(
+        &app,
+        "wenmar_vehicles",
+        json!({ "action": "overview", "id": "2023_hyundai_kona" }),
+    )
+    .await;
+    assert_eq!(result["isError"], false);
+    let overview = text(&result);
+    assert_eq!(overview["vehicle"]["id"], "2023_hyundai_kona");
+    assert_eq!(overview["recalls"], Value::Null);
+    assert_eq!(overview["safety"], Value::Null);
+    let result = call(
+        &app,
+        "wenmar_vin",
+        json!({ "action": "overview", "vin": common::KONA }),
+    )
+    .await;
+    assert_eq!(text(&result)["recalls"], Value::Null);
+    assert_eq!(text(&result)["decode"]["vin"], common::KONA);
+    let result = call(
+        &app,
+        "wenmar_vehicles",
+        json!({ "action": "model_years", "make": "hyundai", "model": "kona" }),
+    )
+    .await;
+    assert_eq!(text(&result)["years"][0]["recalls"], Value::Null);
+    // The recent list is recalls and nothing else: it says what is missing.
+    let result = call(
+        &app,
+        "wenmar_recalls",
+        json!({ "action": "recent", "since": "2019-01-01" }),
+    )
+    .await;
+    assert_eq!(result["isError"], true);
+    assert_eq!(
+        result["structuredContent"]["error"]["message"],
+        "The recalls_us dataset is not available."
+    );
 }
