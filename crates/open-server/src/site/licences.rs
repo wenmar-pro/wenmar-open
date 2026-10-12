@@ -52,7 +52,8 @@ pub const LICENCES: &[Licence] = &[
     // ---- Shop-data plans add one row per dataset below this line. ----
     // In the order of the roadmap's dataset ids: recalls_us, recalls_ca,
     // investigations, recall_reports, ratings, bulletins, complaints, codes,
-    // fuel_us, fuel_ca, specs, oil_grade, fluids, tires, manuals, jobs, labor.
+    // fuel_us, fuel_ca, specs, oil_grade, fluids, tires, manuals, jobs, labor,
+    // vin_guides.
     // The same row, cell for cell, goes above the marker in NOTICE.md.
     Licence {
         dataset: "Vehicle recall campaigns, United States",

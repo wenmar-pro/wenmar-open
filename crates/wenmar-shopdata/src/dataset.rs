@@ -28,10 +28,11 @@ pub enum Dataset {
     Manuals,
     Jobs,
     Labor,
+    VinGuides,
 }
 
 impl Dataset {
-    pub const ALL: [Dataset; 17] = [
+    pub const ALL: [Dataset; 18] = [
         Dataset::RecallsUs,
         Dataset::RecallsCa,
         Dataset::Investigations,
@@ -49,6 +50,7 @@ impl Dataset {
         Dataset::Manuals,
         Dataset::Jobs,
         Dataset::Labor,
+        Dataset::VinGuides,
     ];
 
     /// The key in the `datasets` meta value.
@@ -71,6 +73,7 @@ impl Dataset {
             Dataset::Manuals => "manuals",
             Dataset::Jobs => "jobs",
             Dataset::Labor => "labor",
+            Dataset::VinGuides => "vin_guides",
         }
     }
 
@@ -205,7 +208,8 @@ mod tests {
                 "tires",
                 "manuals",
                 "jobs",
-                "labor"
+                "labor",
+                "vin_guides"
             ]
         );
         for dataset in Dataset::ALL {

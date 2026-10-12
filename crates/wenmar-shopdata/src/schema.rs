@@ -204,3 +204,40 @@ CREATE TABLE IF NOT EXISTS rating_vehicle (
 CREATE INDEX IF NOT EXISTS rating_vehicle_ymm ON rating_vehicle (make_id, model_id, year);
 CREATE INDEX IF NOT EXISTS rating_vehicle_rating ON rating_vehicle (rating_id);
 ";
+
+/// NHTSA's index of the letters manufacturers file under 49 CFR Part 565
+/// to explain how their VINs are built: the `vin_guides` dataset.
+///
+/// `vin_guide` holds one row for each filing, in order of letter date, and
+/// never the letter itself: `url` is the address of NHTSA's copy.
+/// `manufacturer_id` is vPIC's number for the manufacturer that filed.
+/// `vin_guide_wmi` holds the manufacturer codes of the core data file
+/// whose manufacturer name is the filer's, and `vin_guide_make` the catalog
+/// makes built under those codes, so a reader is given a code or a make id
+/// and matches no names.
+pub const VIN_GUIDES: &str = "
+CREATE TABLE vin_guide (
+    id              INTEGER PRIMARY KEY,
+    name            TEXT NOT NULL UNIQUE,
+    manufacturer_id INTEGER NOT NULL,
+    manufacturer    TEXT NOT NULL,
+    kind            TEXT NOT NULL,
+    letter_date     TEXT NOT NULL,
+    year_from       INTEGER,
+    year_to         INTEGER,
+    url             TEXT NOT NULL
+);
+CREATE INDEX vin_guide_manufacturer ON vin_guide (manufacturer_id, letter_date);
+
+CREATE TABLE vin_guide_wmi (
+    wmi             TEXT NOT NULL,
+    manufacturer_id INTEGER NOT NULL,
+    PRIMARY KEY (wmi, manufacturer_id)
+) WITHOUT ROWID;
+
+CREATE TABLE vin_guide_make (
+    make_id         INTEGER NOT NULL,
+    manufacturer_id INTEGER NOT NULL,
+    PRIMARY KEY (make_id, manufacturer_id)
+) WITHOUT ROWID;
+";
