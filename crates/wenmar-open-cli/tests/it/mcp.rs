@@ -80,7 +80,8 @@ fn a_client_can_initialize_and_list_the_tools() {
             "wenmar_vehicles",
             "wenmar_recalls",
             "wenmar_bulletins",
-            "wenmar_codes"
+            "wenmar_codes",
+            "wenmar_labor"
         ]
     );
     assert_eq!(answers[1]["result"]["tools"], open_mcp::tools());

@@ -87,7 +87,8 @@ async fn a_client_can_initialize_and_list_the_tools() {
             "wenmar_vehicles",
             "wenmar_recalls",
             "wenmar_bulletins",
-            "wenmar_codes"
+            "wenmar_codes",
+            "wenmar_labor"
         ]
     );
     for tool in tools {
@@ -450,7 +451,8 @@ async fn a_client_with_no_handshake_discovers_lists_and_calls() {
             "wenmar_vehicles",
             "wenmar_recalls",
             "wenmar_bulletins",
-            "wenmar_codes"
+            "wenmar_codes",
+            "wenmar_labor"
         ]
     );
     assert_eq!(answer["result"]["resultType"], "complete");
@@ -634,7 +636,7 @@ async fn a_client_that_shakes_hands_is_answered_as_before() {
     for headers in [&[][..], &[("mcp-protocol-version", "2025-06-18")][..]] {
         let (status, answer) = raw(&app, headers, &list).await;
         assert_eq!(status, StatusCode::OK, "{headers:?}");
-        assert_eq!(answer["result"]["tools"].as_array().unwrap().len(), 5);
+        assert_eq!(answer["result"]["tools"].as_array().unwrap().len(), 6);
         assert!(answer["result"].get("resultType").is_none(), "{answer}");
         assert!(answer["result"].get("_meta").is_none());
     }
@@ -1393,6 +1395,84 @@ async fn the_codes_tool_fails_as_a_tool_error_the_model_can_read() {
         ),
     ] {
         let result = call(&app, "wenmar_codes", arguments.clone()).await;
+        assert_eq!(result["isError"], true, "{arguments}");
+        assert!(result.to_string().contains(words), "{arguments}: {result}");
+    }
+}
+
+#[tokio::test]
+async fn the_labor_tool_gives_what_the_api_gives() {
+    let app = common::labor_app().await;
+    let cases = [
+        (json!({ "action": "jobs" }), "/v1/jobs".to_owned()),
+        (
+            json!({ "action": "jobs", "job": "test-job-a" }),
+            "/v1/jobs/test-job-a".to_owned(),
+        ),
+        (
+            json!({ "action": "vehicle", "id": "2023_hyundai_kona" }),
+            "/v1/vehicles/2023_hyundai_kona/labor".to_owned(),
+        ),
+        (
+            json!({ "action": "vehicle", "id": "2023_hyundai_kona", "job": "test-job-b" }),
+            "/v1/vehicles/2023_hyundai_kona/labor/test-job-b".to_owned(),
+        ),
+        (
+            json!({ "action": "vin", "vin": common::KONA, "year": 2023 }),
+            format!("/v1/vin/{}/labor?year=2023", common::KONA),
+        ),
+        (
+            json!({ "action": "vin", "vin": common::KONA, "job": "test-job-a" }),
+            format!("/v1/vin/{}/labor/test-job-a", common::KONA),
+        ),
+    ];
+    for (arguments, path) in cases {
+        let result = call(&app, "wenmar_labor", arguments.clone()).await;
+        assert_eq!(result["isError"], false, "{arguments}");
+        let (status, served) = app.json(&path).await;
+        assert_eq!(status, StatusCode::OK, "{path}");
+        assert_eq!(text(&result), served, "{arguments}");
+        assert_eq!(result["structuredContent"], served, "{arguments}");
+    }
+}
+
+#[tokio::test]
+async fn the_labor_tool_fails_as_a_tool_error_the_model_can_read() {
+    let app = common::recalls_app().await;
+    for (arguments, message) in [
+        (
+            json!({ "action": "jobs" }),
+            "The jobs dataset is not available.",
+        ),
+        (
+            json!({ "action": "vehicle", "id": "2023_hyundai_kona" }),
+            "The labor dataset is not available.",
+        ),
+    ] {
+        let result = call(&app, "wenmar_labor", arguments.clone()).await;
+        assert_eq!(result["isError"], true, "{arguments}");
+        assert_eq!(
+            result["structuredContent"]["error"]["message"], message,
+            "{arguments}"
+        );
+    }
+    let app = common::labor_app().await;
+    for (arguments, words) in [
+        (
+            json!({ "action": "vehicle" }),
+            "id is required for action=vehicle",
+        ),
+        (json!({ "action": "vin" }), "vin is required for action=vin"),
+        (
+            json!({ "action": "nonsense" }),
+            "action must be jobs, vehicle or vin",
+        ),
+        (
+            json!({ "action": "vehicle", "id": "2023_hyundai_kona", "job": "test-job-z" }),
+            "No job has that id.",
+        ),
+    ] {
+        let result = call(&app, "wenmar_labor", arguments.clone()).await;
         assert_eq!(result["isError"], true, "{arguments}");
         assert!(result.to_string().contains(words), "{arguments}: {result}");
     }

@@ -50,15 +50,16 @@ pub enum Era {
 pub const SERVER_NAME: &str = "wenmar-open";
 
 /// What a model is told about the server as a whole.
-pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. The overview action of either gives everything held for one vehicle in one answer. Use wenmar_recalls to list the recall campaigns from NHTSA and Transport Canada that may apply to a model year. A recall listed may apply: only the manufacturer can confirm it for one VIN. Use wenmar_bulletins to list the manufacturer service bulletins, warranty extensions and software updates that NHTSA publishes for a model year, or to search them by trouble code or by text. Use wenmar_codes to read what a generic OBD-II trouble code means and what bulletins and recalls a model year has for it. Every call is read-only and needs no key.";
+pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. The overview action of either gives everything held for one vehicle in one answer. Use wenmar_recalls to list the recall campaigns from NHTSA and Transport Canada that may apply to a model year. A recall listed may apply: only the manufacturer can confirm it for one VIN. Use wenmar_bulletins to list the manufacturer service bulletins, warranty extensions and software updates that NHTSA publishes for a model year, or to search them by trouble code or by text. Use wenmar_codes to read what a generic OBD-II trouble code means and what bulletins and recalls a model year has for it. Use wenmar_labor for Wenmar's estimate of the hours a repair job takes on a vehicle: an estimate, not a quote. Every call is read-only and needs no key.";
 
 /// The names of the tools, in the order `tools/list` gives them.
-pub const TOOL_NAMES: [&str; 5] = [
+pub const TOOL_NAMES: [&str; 6] = [
     "wenmar_vin",
     "wenmar_vehicles",
     "wenmar_recalls",
     "wenmar_bulletins",
     "wenmar_codes",
+    "wenmar_labor",
 ];
 
 /// The Server Card schema a card must conform to. The schema's own pattern
@@ -227,6 +228,23 @@ pub fn tools() -> Value {
                     "system": { "type": "string" },
                     "limit": { "type": "integer" },
                     "cursor": { "type": "string" }
+                },
+                "required": ["action"]
+            },
+            "annotations": { "readOnlyHint": true, "openWorldHint": false }
+        },
+        {
+            "name": "wenmar_labor",
+            "title": "Labour estimates",
+            "description": "Wenmar's own estimates of the hours a repair job takes: written by people who do the work and later measured from repair orders, never from a labour guide. An estimate, not a quote. Rust, seized fasteners and added equipment change the time. action=jobs lists the jobs an estimate can be about; with `job` it gives one job: what it includes, what it excludes, and its typical hours by class of vehicle. action=vehicle takes `id`, a vehicle id such as \"2018_ford_f-150\" (an id that ends with an engine asks for that engine), and optionally `job`: for each job it gives `hours` (low, typical, high), `basis` (expert or observed) and `scope`, which says what the figure is for: engine, generation, model or class. A class figure is typical for vehicles of that class and was not worked out on this vehicle: say so. A job with no figure for the vehicle is not listed. action=vin takes `vin` (and optionally `year`, `job`) and does the same for the vehicle the VIN decodes to. No answer holds a price: multiply by the shop's own rate. Credit the data as `attribution` says: Labour estimates by Wenmar Pro, CC BY 4.0.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "action": { "type": "string", "enum": ["jobs", "vehicle", "vin"] },
+                    "job": { "type": "string", "description": "A job id, such as brake-pads-front." },
+                    "id": { "type": "string", "description": "A vehicle id, such as 2018_ford_f-150." },
+                    "vin": { "type": "string", "description": "A 17-character VIN. Spaces and dashes are ignored." },
+                    "year": { "type": "integer", "description": "For vin: the model year to use." }
                 },
                 "required": ["action"]
             },
@@ -440,7 +458,33 @@ mod tests {
     }
 
     #[test]
-    fn there_are_five_gateway_tools_and_each_needs_an_action() {
+    fn the_labor_tool_says_an_estimate_is_not_a_quote() {
+        let tools = tools();
+        let tool = tools
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|tool| tool["name"] == "wenmar_labor")
+            .unwrap();
+        let description = tool["description"].as_str().unwrap();
+        assert!(
+            description.contains("Labour estimates by Wenmar Pro, CC BY 4.0"),
+            "{description}"
+        );
+        assert!(description.contains("`scope`"), "{description}");
+        assert!(
+            description.contains("never from a labour guide"),
+            "{description}"
+        );
+        assert_eq!(
+            tool["inputSchema"]["properties"]["action"]["enum"],
+            json!(["jobs", "vehicle", "vin"])
+        );
+        assert!(INSTRUCTIONS.contains("wenmar_labor"));
+    }
+
+    #[test]
+    fn there_are_six_gateway_tools_and_each_needs_an_action() {
         let tools = tools();
         let tools = tools.as_array().unwrap();
         let names: Vec<&str> = tools
@@ -525,7 +569,7 @@ mod tests {
                 .unwrap()
                 .clone()
         };
-        assert_eq!(TOOL_NAMES.len(), 5);
+        assert_eq!(TOOL_NAMES.len(), 6);
         assert!(actions("wenmar_vin").contains(&json!("overview")));
         for action in ["entry", "overview", "model_years"] {
             assert!(
@@ -567,7 +611,7 @@ mod tests {
         assert!(description.contains("safety (`id`"), "{description}");
         assert!(description.contains("NHTSA"), "{description}");
         // An action of a tool that exists: no tool was added.
-        assert_eq!(TOOL_NAMES.len(), 5);
+        assert_eq!(TOOL_NAMES.len(), 6);
     }
 
     #[test]
@@ -596,7 +640,7 @@ mod tests {
             }
         }
         // Actions of tools that exist: no tool was added.
-        assert_eq!(TOOL_NAMES.len(), 5);
+        assert_eq!(TOOL_NAMES.len(), 6);
     }
 
     #[test]
