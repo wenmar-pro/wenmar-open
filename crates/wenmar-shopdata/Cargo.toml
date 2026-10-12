@@ -47,3 +47,8 @@ required-features = ["sqlite"]
 [[test]]
 name = "vin_guides"
 required-features = ["sqlite"]
+
+
+[[test]]
+name = "bulletins"
+required-features = ["sqlite"]
