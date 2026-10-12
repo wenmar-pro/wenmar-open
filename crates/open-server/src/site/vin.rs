@@ -62,6 +62,8 @@ struct Result {
     /// The open NHTSA investigations that list that model year. `None`
     /// when there is none, and on a server that holds none.
     investigations: Option<site::investigations::Notice>,
+    /// The parts-ordering card.
+    card: crate::api::types::PartsCard,
 }
 
 /// The year, make, model and trim, or what there is of them.
@@ -391,6 +393,7 @@ pub async fn result(
         Some(selection) => site::investigations::open_for(&state, &selection.vehicle_id).await,
         None => None,
     };
+    let card = crate::api::parts_card::card_of(&state, &decode).await;
     // A report is public, so it names the vehicle by the first 11
     // characters of the VIN and never by the whole of it.
     let stem = report::vin_stem(&decode.vin);
@@ -417,6 +420,7 @@ pub async fn result(
             pro: site::pro_link("vin-result"),
             report,
             recalls,
+            card,
             investigations,
         },
     ))

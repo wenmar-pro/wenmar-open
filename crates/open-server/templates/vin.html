@@ -32,6 +32,22 @@
 </tbody>
 </table>
 {% endfor -%}
+<h2 id="parts-card">Parts-ordering card</h2>
+<p>What a parts counter asks for. Read it out, or select the text and copy it.</p>
+<pre class="card" tabindex="0">{{ card.text }}</pre>
+<div class="actions">
+<button type="button" data-copy-text="{{ card.text }}" hidden>Copy the card</button>
+<span class="status" role="status"></span>
+</div>
+<table>
+<caption>Where each line of the card comes from</caption>
+<tbody>
+{% for line in card.lines -%}
+<tr><th scope="row">{{ line.label }}</th><td>{{ line.value }} <span class="note">{{ line.source }}</span></td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">Nothing here is guessed: a line is shown only when its source gives it. A build-date line is the range a recall campaign covers, not this vehicle's own build date.</p>
 {% if let Some(brief) = recalls -%}
 <h2 id="recalls">Recalls that may apply</h2>
 <p>{{ brief.text }} to the {{ brief.name }}. This is a list for the model year, not a check of this VIN: only the manufacturer can say whether a recall applies to this vehicle.</p>
