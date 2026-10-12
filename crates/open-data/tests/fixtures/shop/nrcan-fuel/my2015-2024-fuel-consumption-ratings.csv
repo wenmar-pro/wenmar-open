@@ -1,0 +1,16 @@
+Model year,Make,Model,Vehicle class,Engine size (L),Cylinders,Transmission,Fuel type,City (L/100 km),Highway (L/100 km),Combined (L/100 km),Combined (mpg),CO2 emissions (g/km),CO2 rating,Smog rating
+2016,Honda,Civic Sedan,Mid-size,1.5,4,AV,X,7.6,5.5,6.7,42,157,8,n/a
+2016,Honda,Civic Sedan,Mid-size,2.0,4,AV,X,7.8,5.8,6.9,41,162,8,n/a
+2017,MINI,Cooper 3 Door,Subcompact,1.5,3,AS6,Z,8.8,6.8,7.9,36,184,7,8
+2018,Ford,F-150,Pickup truck: Standard,2.7,6,AS10,X,11.9,9.0,10.6,27,249,4,5
+2018,Ford,F-150,Pickup truck: Standard,3.0,6,AS10,D,10.8,8.0,9.5,30,256,4,1
+2018,Ford,F-150,Pickup truck: Standard,3.3,6,AS6,X,12.3,9.4,11.0,26,259,4,5
+2018,Ford,F-150,Pickup truck: Standard,3.5,6,AS10,X,13.6,10.1,12.0,24,282,4,5
+2018,Ford,F-150,Pickup truck: Standard,5.0,8,AS10,X,14.1,10.4,12.4,23,292,3,3
+2018,Ford,F-150 FFV 4X4,Pickup truck: Standard,3.3,6,AS6,X,12.9,10.2,11.7,24,273,4,5
+2018,Ford,F-150 FFV 4X4,Pickup truck: Standard,3.3,6,AS6,E,17.6,13.7,15.8,18,263,4,5
+2018,Ford,F-150 FFV 4X4,Pickup truck: Standard,5.0,8,AS10,X,15.1,11.0,13.3,21,311,3,3
+2018,Ford,F-150 FFV 4X4,Pickup truck: Standard,5.0,8,AS10,E,20.0,15.6,18.0,16,300,3,3
+2019,Honda,CR-V AWD,Sport utility vehicle: Small,1.5,4,AV,X,8.7,7.2,8.0,35,188,6,5
+2019,Ram,1500 4X4,Pickup truck: Standard,5.7,8,A8,X,16.1,11.0,13.8,20,325,3,5
+2020,Honda,Accord Hybrid,Full-size,2.0,4,AV,X,5.0,5.0,5.0,56,117,10,7

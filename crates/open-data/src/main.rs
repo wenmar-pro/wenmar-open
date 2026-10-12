@@ -9,8 +9,8 @@ use open_data::build::{BuildInfo, build};
 use open_data::catalog::curated::Curated;
 use open_data::shop::build::{ShopBuildInfo, ShopInputs, build_shop, open_catalog};
 use open_data::shop::coverage;
-use open_data::shop::epa_guide;
 use open_data::shop::nhtsa_vin_guides;
+use open_data::shop::{epa_guide, nrcan_fuel};
 use open_data::{catalog_parity, fetch, inspect, parity, sources};
 use wenmar_shopdata::ShopData;
 use wenmar_shopdata::sqlite::ShopSource;
@@ -30,7 +30,7 @@ struct Cli {
 enum Command {
     /// Download a source's files. With no source: a vPIC plain-text dump, extracted.
     Fetch {
-        /// vpic (the default), nhtsa-recalls, tc-recalls, nhtsa-investigations, nhtsa-recall-reports, nhtsa-ratings, nhtsa-vin-guides, epa-vehicles, epa-guide or epa-emissions.
+        /// vpic (the default), nhtsa-recalls, tc-recalls, nhtsa-investigations, nhtsa-recall-reports, nhtsa-ratings, nhtsa-vin-guides, epa-vehicles, epa-guide, epa-emissions or nrcan-fuel.
         source: Option<String>,
         /// vpic only. Release such as 2026_09. Defaults to the newest on NHTSA's page.
         #[arg(long)]
@@ -210,13 +210,15 @@ fn main() -> Result<()> {
                 // A source in this match has to find out which files there are.
                 let paths = match id {
                     epa_guide::SOURCE => epa_guide::fetch(&dir, &now())?,
+                    nrcan_fuel::SOURCE => nrcan_fuel::fetch(&dir, &now())?,
                     _ => {
                         let Some(source) = sources::find(id) else {
                             bail!(
-                                "{id} is not a source; use vpic, {}, {}, {}",
+                                "{id} is not a source; use vpic, {}, {}, {}, {}",
                                 sources::ids().join(", "),
                                 nhtsa_vin_guides::SOURCE_ID,
-                                epa_guide::SOURCE
+                                epa_guide::SOURCE,
+                                nrcan_fuel::SOURCE
                             );
                         };
                         sources::fetch(source, &dir, &now())?

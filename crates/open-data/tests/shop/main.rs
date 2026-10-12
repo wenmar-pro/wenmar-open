@@ -13,5 +13,6 @@ mod nhtsa_ratings;
 mod nhtsa_recall_reports;
 mod nhtsa_recalls;
 mod nhtsa_vin_guides;
+mod nrcan_fuel;
 mod recalls;
 mod tc_recalls;

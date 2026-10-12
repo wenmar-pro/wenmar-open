@@ -1,0 +1,5 @@
+Model year,Make,Model,Vehicle class,Motor (kW),Engine size (L),Cylinders,Transmission,Fuel type 1,Combined Le/100 km,Range 1 (km),Recharge time (h),Fuel type 2,City (L/100 km),Highway (L/100 km),Combined (L/100 km),Range 2 (km),CO2 emissions (g/km),CO2 rating,Smog rating
+2012,Chevrolet,Volt,Compact,111,1.4,4,AV,B,2.5 (22.3 kWh/100 km),56,4,Z,6.7,5.9,6.4,550,54,n/a,n/a
+2013,Ford,Fusion Energi,Mid-size,35,2.0,4,AV,B/X,2.7 ([23.2 kWh + 0.1 L]/100 km),32,2.5,X,5.8,6.5,6.1,856,80,n/a,n/a
+2013,Toyota,Prius Plug-in Hybrid,Mid-size,60,1.8,4,AV,B/X,2.5 ([18.0 kWh + 0.4 L]/100 km),18,1.5,X,4.7,4.8,4.7,845,101,n/a,n/a
+2020,Honda,Clarity Plug-in Hybrid,Mid-size,135,1.5,4,AV,B/X*,2.1 ([19.0 kWh + 0.0 L]/100 km),77,2.5,X,5.3,5.9,5.6,475,36,10,8

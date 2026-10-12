@@ -572,3 +572,34 @@ pub fn epa_emissions_dir(scratch: &Scratch) -> PathBuf {
     .unwrap();
     directory
 }
+
+/// A fetched `nrcan-fuel` directory made from the fixture, under
+/// `scratch`: the four CSV files with the CR LF line ends NRCan writes,
+/// and `source.json`.
+pub fn nrcan_fuel_dir(scratch: &Scratch) -> PathBuf {
+    let directory = scratch.path("sources/nrcan-fuel");
+    std::fs::create_dir_all(&directory).unwrap();
+    for name in [
+        "my2012-2026-battery-electric-vehicles.csv",
+        "my2012-2026-plug-in-hybrid-electric-vehicles.csv",
+        "my2015-2024-fuel-consumption-ratings.csv",
+        "my2025-fuel-consumption-ratings.csv",
+    ] {
+        // The files are Latin-1, so they are handled as bytes.
+        let bytes = std::fs::read(fixture("nrcan-fuel").join(name)).unwrap();
+        let mut with_cr = Vec::with_capacity(bytes.len() + 64);
+        for byte in bytes {
+            if byte == b'\n' {
+                with_cr.push(b'\r');
+            }
+            with_cr.push(byte);
+        }
+        std::fs::write(directory.join(name), with_cr).unwrap();
+    }
+    std::fs::copy(
+        fixture("nrcan-fuel").join("source.json"),
+        directory.join("source.json"),
+    )
+    .unwrap();
+    directory
+}

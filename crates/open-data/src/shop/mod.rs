@@ -16,6 +16,7 @@ pub mod nhtsa_ratings;
 pub mod nhtsa_recall_reports;
 pub mod nhtsa_recalls;
 pub mod nhtsa_vin_guides;
+pub mod nrcan_fuel;
 pub mod oil_grade;
 pub mod recalls;
 pub mod tc_recalls;
