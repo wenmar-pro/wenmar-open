@@ -377,7 +377,7 @@ pub fn cases() -> Vec<(&'static str, &'static str, Value)> {
 
 /// The `datasets` value of the fixture shop file: the recalls of both
 /// countries.
-pub const SHOP_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":3,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."}}"#;
+pub const SHOP_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":3,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."},"ratings":{"as_of":"2026-08-07","rows":3,"licence":"public-domain","attribution":""}}"#;
 
 /// Four campaigns against the catalog above. The columns are those of
 /// `wenmar_shopdata::schema::RECALLS`, in order. The Kona of model year
@@ -395,6 +395,14 @@ INSERT INTO recall_vehicle VALUES
   (2, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact', '2022-09-01', '2023-01-31'),
   (3, 2023, 498, 900, 'HYUNDAI', 'KONA ELECTRIC', 'base', NULL, NULL),
   (4, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact', NULL, NULL);
+INSERT INTO rating VALUES
+  (1, 2023, 'HYUNDAI', 'KONA', 'SUV', 'MPV', 'AWD', 1, 5, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 4, 148, 0, 3225, NULL, 'standard', 'meets', 'standard', 'meets', 'standard', 'does_not_meet', 'standard', 'pending', NULL, 'optional', 'standard', 'standard', NULL),
+  (2, 2023, 'HYUNDAI', 'KONA', 'SUV', 'MPV', 'FWD', 1, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 4, 155, 0, 3005, NULL, 'standard', 'meets', 'standard', 'meets', 'both', 'upgrade_only', 'both', 'standard_only', NULL, 'optional', 'standard', 'standard', 'These ratings do not apply to the N Line.' || char(10) || 'The rear door opened in the side test.'),
+  (3, 2023, 'HYUNDAI', 'KONA ELECTRIC', 'SUV', 'MPV', 'FWD', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'standard', 'pending', 'standard', 'pending', NULL, NULL, NULL, NULL, NULL, NULL, 'standard', 'standard', NULL);
+INSERT INTO rating_vehicle VALUES
+  (1, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact'),
+  (2, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact'),
+  (3, 2023, 498, 900, 'HYUNDAI', 'KONA ELECTRIC', 'base');
 ";
 
 /// The whole shop file as SQL, matched against the data file of version
@@ -402,9 +410,10 @@ INSERT INTO recall_vehicle VALUES
 /// `node:sqlite`.
 pub fn shop_fixture_sql(schema_version: &str, catalog_data_version: &str) -> String {
     format!(
-        "{}\nINSERT INTO meta VALUES\n  ('schema_version', '{schema_version}'),\n  ('data_version', '2026.10.12'),\n  ('catalog_data_version', '{catalog_data_version}'),\n  ('built_at', '2026-10-12 06:00:00'),\n  ('datasets', '{SHOP_DATASETS}');\n{}\n{SHOP_ROWS}",
+        "{}\nINSERT INTO meta VALUES\n  ('schema_version', '{schema_version}'),\n  ('data_version', '2026.10.12'),\n  ('catalog_data_version', '{catalog_data_version}'),\n  ('built_at', '2026-10-12 06:00:00'),\n  ('datasets', '{SHOP_DATASETS}');\n{}\n{}\n{SHOP_ROWS}",
         wenmar_shopdata::schema::META.trim(),
         wenmar_shopdata::schema::RECALLS.trim(),
+        wenmar_shopdata::schema::RATINGS.trim(),
     )
 }
 
@@ -600,6 +609,33 @@ pub fn overview_cases() -> Vec<(&'static str, &'static str, Value)> {
             "recent recalls, not a day",
             "recalls_recent",
             json!({ "since": "yesterday" }),
+        ),
+    ]
+}
+
+/// Questions about crash test ratings, asked of the two fixtures with the
+/// shop file open.
+pub fn safety_cases() -> Vec<(&'static str, &'static str, Value)> {
+    vec![
+        (
+            "crash test ratings of a model year",
+            "safety",
+            json!({ "id": "2023_hyundai_kona" }),
+        ),
+        (
+            "crash test ratings, a submodel in the id",
+            "safety",
+            json!({ "id": "2023_hyundai_kona_se" }),
+        ),
+        (
+            "crash test ratings, none",
+            "safety",
+            json!({ "id": "2019_honda_civic" }),
+        ),
+        (
+            "crash test ratings, unknown vehicle",
+            "safety",
+            json!({ "id": "2019_honda_nothing" }),
         ),
     ]
 }

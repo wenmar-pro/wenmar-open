@@ -76,6 +76,7 @@ fn the_fixtures_of_the_npm_package_are_up_to_date() {
     record(&open_shop.statements);
     let shop_cases: Vec<Value> = common::shop_cases()
         .into_iter()
+        .chain(common::safety_cases())
         .chain(common::overview_cases())
         .map(|(name, op, args)| {
             let run = common::run_with_shop(&mut engine, &connection, &shop, op, args.clone());

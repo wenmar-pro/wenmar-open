@@ -2523,7 +2523,7 @@
         ],
         [
           "datasets",
-          "{\"recalls_us\":{\"as_of\":\"2026-10-11\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"recalls_ca\":{\"as_of\":\"2026-10-06\",\"rows\":1,\"licence\":\"ogl-canada\",\"attribution\":\"Contains information licensed under the Open Government Licence - Canada.\"}}"
+          "{\"recalls_us\":{\"as_of\":\"2026-10-11\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"recalls_ca\":{\"as_of\":\"2026-10-06\",\"rows\":1,\"licence\":\"ogl-canada\",\"attribution\":\"Contains information licensed under the Open Government Licence - Canada.\"},\"ratings\":{\"as_of\":\"2026-08-07\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"}}"
         ]
       ],
       "sql": "SELECT key, value FROM meta"
@@ -2951,6 +2951,138 @@
         ]
       ],
       "sql": "\nSELECT r.id, r.source, r.campaign, r.report_date, r.manufacturer, r.component, COALESCE(r.summary_en, r.notes_en), r.mfr_campaign, r.units, r.do_not_drive, r.park_outside, r.notification\nFROM recall r\nWHERE +r.source IN (?1, ?2)\n  AND (?3 IS NULL OR r.component LIKE ?3 ESCAPE '\\')\n  AND (?4 IS NULL\n       OR r.campaign LIKE ?4 ESCAPE '\\'\n       OR r.mfr_campaign LIKE ?4 ESCAPE '\\'\n       OR r.manufacturer LIKE ?4 ESCAPE '\\'\n       OR r.component LIKE ?4 ESCAPE '\\'\n       OR r.summary_en LIKE ?4 ESCAPE '\\'\n       OR r.consequence_en LIKE ?4 ESCAPE '\\'\n       OR r.remedy_en LIKE ?4 ESCAPE '\\'\n       OR r.notes_en LIKE ?4 ESCAPE '\\'\n       OR EXISTS (SELECT 1 FROM recall_vehicle t\n                  WHERE t.recall_id = r.id\n                    AND (t.make_text LIKE ?4 ESCAPE '\\' OR t.model_text LIKE ?4 ESCAPE '\\')))\n  AND (?5 IS NULL OR r.report_date >= ?5)\n  AND ((?6 IS NULL AND ?7 IS NULL AND ?8 IS NULL)\n       OR EXISTS (SELECT 1 FROM recall_vehicle v\n                  WHERE v.recall_id = r.id\n                    AND (?6 IS NULL OR v.make_id = ?6)\n                    AND (?7 IS NULL OR v.model_id = ?7)\n                    AND (?8 IS NULL OR v.year = ?8)))\n  AND (?9 IS NULL\n       OR r.report_date < ?9\n       OR (r.report_date = ?9 AND r.id < ?10))\nORDER BY r.report_date DESC, r.id DESC\nLIMIT ?11"
+    },
+    {
+      "db": "shop",
+      "params": [
+        498,
+        900,
+        2023
+      ],
+      "rows": [
+        [
+          "KONA",
+          "SUV",
+          "MPV",
+          "AWD",
+          1,
+          "exact",
+          5,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          4,
+          148,
+          0,
+          3225,
+          null,
+          "standard",
+          "meets",
+          "standard",
+          "meets",
+          "standard",
+          "does_not_meet",
+          "standard",
+          "pending",
+          null,
+          "optional",
+          "standard",
+          "standard",
+          null
+        ],
+        [
+          "KONA",
+          "SUV",
+          "MPV",
+          "FWD",
+          1,
+          "exact",
+          4,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          4,
+          155,
+          0,
+          3005,
+          null,
+          "standard",
+          "meets",
+          "standard",
+          "meets",
+          "both",
+          "upgrade_only",
+          "both",
+          "standard_only",
+          null,
+          "optional",
+          "standard",
+          "standard",
+          "These ratings do not apply to the N Line.\nThe rear door opened in the side test."
+        ],
+        [
+          "KONA ELECTRIC",
+          "SUV",
+          "MPV",
+          "FWD",
+          1,
+          "base",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "standard",
+          "pending",
+          "standard",
+          "pending",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "standard",
+          "standard",
+          null
+        ]
+      ],
+      "sql": "\nSELECT r.model_text, r.body_style, r.vehicle_type, r.drive, r.release, v.\"match\",\n       r.overall, r.frontal, r.frontal_driver, r.frontal_passenger,\n       r.side, r.side_driver, r.side_passenger, r.side_barrier, r.side_front_seat, r.side_rear_seat, r.side_pole,\n       r.rollover, r.rollover_risk_permille, r.rollover_tip, r.curb_weight_lb,\n       r.esc, r.fcw, r.fcw_evaluation, r.ldw, r.ldw_evaluation, r.cib, r.cib_evaluation, r.dbs, r.dbs_evaluation,\n       r.backup_camera, r.blind_spot_detection, r.head_side_airbag, r.torso_side_airbag, r.notes\nFROM rating_vehicle v\nJOIN rating r ON r.id = v.rating_id\nWHERE v.make_id = ?1 AND v.model_id = ?2 AND v.year = ?3\nORDER BY r.model_text, r.body_style, r.drive, r.release, r.id"
+    },
+    {
+      "db": "shop",
+      "params": [
+        474,
+        1863,
+        2019
+      ],
+      "rows": [],
+      "sql": "\nSELECT r.model_text, r.body_style, r.vehicle_type, r.drive, r.release, v.\"match\",\n       r.overall, r.frontal, r.frontal_driver, r.frontal_passenger,\n       r.side, r.side_driver, r.side_passenger, r.side_barrier, r.side_front_seat, r.side_rear_seat, r.side_pole,\n       r.rollover, r.rollover_risk_permille, r.rollover_tip, r.curb_weight_lb,\n       r.esc, r.fcw, r.fcw_evaluation, r.ldw, r.ldw_evaluation, r.cib, r.cib_evaluation, r.dbs, r.dbs_evaluation,\n       r.backup_camera, r.blind_spot_detection, r.head_side_airbag, r.torso_side_airbag, r.notes\nFROM rating_vehicle v\nJOIN rating r ON r.id = v.rating_id\nWHERE v.make_id = ?1 AND v.model_id = ?2 AND v.year = ?3\nORDER BY r.model_text, r.body_style, r.drive, r.release, r.id"
     },
     {
       "db": "shop",
@@ -4021,6 +4153,12 @@
           "built_at": "2026-10-01 04:25:57",
           "data_version": "2026.09",
           "datasets": {
+            "ratings": {
+              "as_of": "2026-08-07",
+              "attribution": "",
+              "licence": "public-domain",
+              "rows": 3
+            },
             "recalls_ca": {
               "as_of": "2026-10-06",
               "attribution": "Contains information licensed under the Open Government Licence - Canada.",
@@ -4042,6 +4180,356 @@
       "name": "meta, with the shop file",
       "op": "meta",
       "steps": 0
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-08-07",
+          "attribution": [],
+          "ratings": [
+            {
+              "body_style": "SUV",
+              "curb_weight_kg": 1463,
+              "curb_weight_lb": 3225,
+              "description": "KONA, SUV, AWD",
+              "drive": "AWD",
+              "features": {
+                "backup_camera": null,
+                "blind_spot_detection": "optional",
+                "crash_imminent_braking": "standard",
+                "crash_imminent_braking_evaluation": "does_not_meet",
+                "dynamic_brake_support": "standard",
+                "dynamic_brake_support_evaluation": "pending",
+                "esc": null,
+                "forward_collision_warning": "standard",
+                "forward_collision_warning_evaluation": "meets",
+                "head_side_airbag": "standard",
+                "lane_departure_warning": "standard",
+                "lane_departure_warning_evaluation": "meets",
+                "torso_side_airbag": "standard"
+              },
+              "match": "exact",
+              "model": "KONA",
+              "notes": [],
+              "release": 1,
+              "rollover_risk_percent": 14.8,
+              "rollover_tip": false,
+              "stars": {
+                "frontal": 4,
+                "frontal_driver": 4,
+                "frontal_passenger": 4,
+                "overall": 5,
+                "rollover": 4,
+                "side": 5,
+                "side_barrier": 5,
+                "side_driver": 5,
+                "side_front_seat": 5,
+                "side_passenger": 5,
+                "side_pole": 5,
+                "side_rear_seat": 5
+              },
+              "vehicle_type": "MPV"
+            },
+            {
+              "body_style": "SUV",
+              "curb_weight_kg": 1363,
+              "curb_weight_lb": 3005,
+              "description": "KONA, SUV, FWD",
+              "drive": "FWD",
+              "features": {
+                "backup_camera": null,
+                "blind_spot_detection": "optional",
+                "crash_imminent_braking": "both",
+                "crash_imminent_braking_evaluation": "upgrade_only",
+                "dynamic_brake_support": "both",
+                "dynamic_brake_support_evaluation": "standard_only",
+                "esc": null,
+                "forward_collision_warning": "standard",
+                "forward_collision_warning_evaluation": "meets",
+                "head_side_airbag": "standard",
+                "lane_departure_warning": "standard",
+                "lane_departure_warning_evaluation": "meets",
+                "torso_side_airbag": "standard"
+              },
+              "match": "exact",
+              "model": "KONA",
+              "notes": [
+                "These ratings do not apply to the N Line.",
+                "The rear door opened in the side test."
+              ],
+              "release": 1,
+              "rollover_risk_percent": 15.5,
+              "rollover_tip": false,
+              "stars": {
+                "frontal": 4,
+                "frontal_driver": 4,
+                "frontal_passenger": 4,
+                "overall": 4,
+                "rollover": 4,
+                "side": 5,
+                "side_barrier": 5,
+                "side_driver": 5,
+                "side_front_seat": 5,
+                "side_passenger": 5,
+                "side_pole": 5,
+                "side_rear_seat": 5
+              },
+              "vehicle_type": "MPV"
+            },
+            {
+              "body_style": "SUV",
+              "curb_weight_kg": null,
+              "curb_weight_lb": null,
+              "description": "KONA ELECTRIC, SUV, FWD",
+              "drive": "FWD",
+              "features": {
+                "backup_camera": null,
+                "blind_spot_detection": null,
+                "crash_imminent_braking": null,
+                "crash_imminent_braking_evaluation": null,
+                "dynamic_brake_support": null,
+                "dynamic_brake_support_evaluation": null,
+                "esc": null,
+                "forward_collision_warning": "standard",
+                "forward_collision_warning_evaluation": "pending",
+                "head_side_airbag": "standard",
+                "lane_departure_warning": "standard",
+                "lane_departure_warning_evaluation": "pending",
+                "torso_side_airbag": "standard"
+              },
+              "match": "base",
+              "model": "KONA ELECTRIC",
+              "notes": [],
+              "release": 1,
+              "rollover_risk_percent": null,
+              "rollover_tip": null,
+              "stars": {
+                "frontal": null,
+                "frontal_driver": null,
+                "frontal_passenger": null,
+                "overall": null,
+                "rollover": null,
+                "side": null,
+                "side_barrier": null,
+                "side_driver": null,
+                "side_front_seat": null,
+                "side_passenger": null,
+                "side_pole": null,
+                "side_rear_seat": null
+              },
+              "vehicle_type": "MPV"
+            }
+          ],
+          "source": "NHTSA New Car Assessment Program",
+          "source_url": "https://www.nhtsa.gov/ratings",
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          }
+        }
+      },
+      "args": {
+        "id": "2023_hyundai_kona"
+      },
+      "name": "crash test ratings of a model year",
+      "op": "safety",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-08-07",
+          "attribution": [],
+          "ratings": [
+            {
+              "body_style": "SUV",
+              "curb_weight_kg": 1463,
+              "curb_weight_lb": 3225,
+              "description": "KONA, SUV, AWD",
+              "drive": "AWD",
+              "features": {
+                "backup_camera": null,
+                "blind_spot_detection": "optional",
+                "crash_imminent_braking": "standard",
+                "crash_imminent_braking_evaluation": "does_not_meet",
+                "dynamic_brake_support": "standard",
+                "dynamic_brake_support_evaluation": "pending",
+                "esc": null,
+                "forward_collision_warning": "standard",
+                "forward_collision_warning_evaluation": "meets",
+                "head_side_airbag": "standard",
+                "lane_departure_warning": "standard",
+                "lane_departure_warning_evaluation": "meets",
+                "torso_side_airbag": "standard"
+              },
+              "match": "exact",
+              "model": "KONA",
+              "notes": [],
+              "release": 1,
+              "rollover_risk_percent": 14.8,
+              "rollover_tip": false,
+              "stars": {
+                "frontal": 4,
+                "frontal_driver": 4,
+                "frontal_passenger": 4,
+                "overall": 5,
+                "rollover": 4,
+                "side": 5,
+                "side_barrier": 5,
+                "side_driver": 5,
+                "side_front_seat": 5,
+                "side_passenger": 5,
+                "side_pole": 5,
+                "side_rear_seat": 5
+              },
+              "vehicle_type": "MPV"
+            },
+            {
+              "body_style": "SUV",
+              "curb_weight_kg": 1363,
+              "curb_weight_lb": 3005,
+              "description": "KONA, SUV, FWD",
+              "drive": "FWD",
+              "features": {
+                "backup_camera": null,
+                "blind_spot_detection": "optional",
+                "crash_imminent_braking": "both",
+                "crash_imminent_braking_evaluation": "upgrade_only",
+                "dynamic_brake_support": "both",
+                "dynamic_brake_support_evaluation": "standard_only",
+                "esc": null,
+                "forward_collision_warning": "standard",
+                "forward_collision_warning_evaluation": "meets",
+                "head_side_airbag": "standard",
+                "lane_departure_warning": "standard",
+                "lane_departure_warning_evaluation": "meets",
+                "torso_side_airbag": "standard"
+              },
+              "match": "exact",
+              "model": "KONA",
+              "notes": [
+                "These ratings do not apply to the N Line.",
+                "The rear door opened in the side test."
+              ],
+              "release": 1,
+              "rollover_risk_percent": 15.5,
+              "rollover_tip": false,
+              "stars": {
+                "frontal": 4,
+                "frontal_driver": 4,
+                "frontal_passenger": 4,
+                "overall": 4,
+                "rollover": 4,
+                "side": 5,
+                "side_barrier": 5,
+                "side_driver": 5,
+                "side_front_seat": 5,
+                "side_passenger": 5,
+                "side_pole": 5,
+                "side_rear_seat": 5
+              },
+              "vehicle_type": "MPV"
+            },
+            {
+              "body_style": "SUV",
+              "curb_weight_kg": null,
+              "curb_weight_lb": null,
+              "description": "KONA ELECTRIC, SUV, FWD",
+              "drive": "FWD",
+              "features": {
+                "backup_camera": null,
+                "blind_spot_detection": null,
+                "crash_imminent_braking": null,
+                "crash_imminent_braking_evaluation": null,
+                "dynamic_brake_support": null,
+                "dynamic_brake_support_evaluation": null,
+                "esc": null,
+                "forward_collision_warning": "standard",
+                "forward_collision_warning_evaluation": "pending",
+                "head_side_airbag": "standard",
+                "lane_departure_warning": "standard",
+                "lane_departure_warning_evaluation": "pending",
+                "torso_side_airbag": "standard"
+              },
+              "match": "base",
+              "model": "KONA ELECTRIC",
+              "notes": [],
+              "release": 1,
+              "rollover_risk_percent": null,
+              "rollover_tip": null,
+              "stars": {
+                "frontal": null,
+                "frontal_driver": null,
+                "frontal_passenger": null,
+                "overall": null,
+                "rollover": null,
+                "side": null,
+                "side_barrier": null,
+                "side_driver": null,
+                "side_front_seat": null,
+                "side_passenger": null,
+                "side_pole": null,
+                "side_rear_seat": null
+              },
+              "vehicle_type": "MPV"
+            }
+          ],
+          "source": "NHTSA New Car Assessment Program",
+          "source_url": "https://www.nhtsa.gov/ratings",
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          }
+        }
+      },
+      "args": {
+        "id": "2023_hyundai_kona_se"
+      },
+      "name": "crash test ratings, a submodel in the id",
+      "op": "safety",
+      "steps": 5
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-08-07",
+          "attribution": [],
+          "ratings": [],
+          "source": "NHTSA New Car Assessment Program",
+          "source_url": "https://www.nhtsa.gov/ratings",
+          "vehicle": {
+            "id": "2019_honda_civic",
+            "make": "Honda",
+            "model": "Civic",
+            "year": 2019
+          }
+        }
+      },
+      "args": {
+        "id": "2019_honda_civic"
+      },
+      "name": "crash test ratings, none",
+      "op": "safety",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "not_found",
+          "details": {},
+          "message": "No vehicle has that id."
+        }
+      },
+      "args": {
+        "id": "2019_honda_nothing"
+      },
+      "name": "crash test ratings, unknown vehicle",
+      "op": "safety",
+      "steps": 1
     },
     {
       "answer": {

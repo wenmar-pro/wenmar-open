@@ -3,9 +3,9 @@
 
 use serde::Serialize;
 use serde_json::{Value, json};
-use wenmar_shopdata::ShopError;
 use wenmar_shopdata::answer::{self, AnswerError, Answers, Overviews, Recent, Search};
 use wenmar_shopdata::recalls::RecallSource;
+use wenmar_shopdata::{Dataset, ShopError};
 use wenmar_vehicles::{Catalog, Scope, vin_rows};
 use wenmar_vin::{DecodeOptions, Decoder, Vin};
 
@@ -333,4 +333,21 @@ pub fn model_years(overviews: &OverviewAnswers, args: &Value) -> Result<Value, O
     let make = text(args, "make")?.unwrap_or_default();
     let model = text(args, "model")?.unwrap_or_default();
     json(overviews.model_years(&make, &model)?)
+}
+
+// ----- crash test ratings -----
+
+/// What `safety` gets when no shop file has been opened: the API's own
+/// `dataset_unavailable`, naming the ratings. The API looks for the
+/// ratings before it reads the vehicle id, so nothing else is checked
+/// first.
+pub fn no_ratings() -> OpError {
+    AnswerError::Shop(ShopError::DatasetUnavailable(Dataset::Ratings)).into()
+}
+
+/// `{ "id" }`: NHTSA's crash test ratings for a model year, every one of
+/// them.
+pub fn safety(answers: &RecallAnswers, args: &Value) -> Result<Value, OpError> {
+    let id = text(args, "id")?.unwrap_or_default();
+    json(answers.safety(&id)?)
 }

@@ -759,3 +759,74 @@ async fn the_offline_engine_answers_overview_questions_as_the_api_does() {
         }
     }
 }
+
+#[tokio::test]
+async fn the_offline_engine_answers_safety_questions_as_the_api_does() {
+    // Three servers, and the files that go with each: the ratings beside
+    // the recalls, the recalls alone, and no shop file.
+    for held in ["ratings", "recalls", "nothing"] {
+        let files = match held {
+            "ratings" => Some((
+                common::RECALL_AND_RATING_DATASETS,
+                format!("{}{}", common::recall_rows(), common::rating_rows()),
+            )),
+            "recalls" => Some((common::RECALL_DATASETS, common::recall_rows())),
+            _ => None,
+        };
+        let app = match &files {
+            Some((datasets, rows)) => common::app_with_shop(datasets, rows).await,
+            None => common::app().await,
+        };
+        let fixture = common::data_file();
+        // A shop file is written either way. With none on the server it is
+        // not opened, so the engine has none either.
+        let (datasets, rows) = files
+            .clone()
+            .unwrap_or((common::RECALL_DATASETS, String::new()));
+        common::add_shop_file(
+            &fixture,
+            wenmar_shopdata::schema::SCHEMA_VERSION,
+            "2026.09",
+            datasets,
+            &rows,
+        );
+        let connection = Connection::open(fixture.path()).unwrap();
+        let shop = Connection::open(fixture.shop_path()).unwrap();
+        let mut engine = Engine::new();
+        let opened = ask(&mut engine, &connection, "open", &json!({}));
+        assert!(opened.get("ok").is_some(), "{opened}");
+        // With no shop file on the server, none is opened here either.
+        if files.is_some() {
+            let opened = ask_with_shop(&mut engine, &connection, &shop, "open_shop", &json!({}));
+            assert!(opened.get("ok").is_some(), "{opened}");
+        }
+
+        for id in [
+            "2023_hyundai_kona",
+            "2023_hyundai_kona_se",
+            "2022_hyundai_kona",
+            "2019_ford_f-150",
+            "2019_honda_civic",
+            "2019_honda_nothing",
+        ] {
+            let (status, served) = app.json(&format!("/v1/vehicles/{id}/safety")).await;
+            let args = json!({ "id": id });
+            let answer = if files.is_some() {
+                ask_with_shop(&mut engine, &connection, &shop, "safety", &args)
+            } else {
+                ask(&mut engine, &connection, "safety", &args)
+            };
+            if status == StatusCode::OK {
+                assert_eq!(held, "ratings", "{id}");
+                // Nothing is set aside: the files give every field.
+                assert_eq!(answer["ok"], served, "{id}");
+            } else {
+                assert_eq!(json!({ "error": answer["error"] }), served, "{id} {held}");
+                assert_eq!(status, StatusCode::NOT_FOUND, "{id} {held}");
+                if held != "ratings" {
+                    assert_eq!(answer["error"]["code"], "dataset_unavailable", "{id}");
+                }
+            }
+        }
+    }
+}

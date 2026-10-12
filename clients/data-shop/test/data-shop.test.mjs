@@ -77,7 +77,7 @@ test("the committed manifest ships the shop file and carries a version that must
 test("prepare writes the package: the file, its versions, and the one data package it goes with", { skip }, async () => {
   const [shop, core, out] = [file("shop.sqlite3", shopSql), file("core.sqlite3", coreSql), join(directory, "build")];
   const printed = execFileSync(process.execPath, [prepare, shop, core, out], { encoding: "utf8" });
-  assert.match(printed, /^wenmar-open-data-shop@1\.20261012\.0: shop data 2026\.10\.12 for wenmar-open-data@3\.202609\.0, schema 1, recalls_us, recalls_ca, /);
+  assert.match(printed, /^wenmar-open-data-shop@1\.20261012\.0: shop data 2026\.10\.12 for wenmar-open-data@3\.202609\.0, schema 1, recalls_us, recalls_ca, ratings, /);
   assert.deepEqual(readdirSync(out).sort(), ["LICENSE", "NOTICE.md", "README.md", "index.d.ts", "index.js", "package.json", "wenmar-open-shop.sqlite3"]);
   const manifest = JSON.parse(readFileSync(join(out, "package.json"), "utf8"));
   assert.equal(manifest.version, "1.20261012.0");
@@ -89,7 +89,7 @@ test("prepare writes the package: the file, its versions, and the one data packa
   assert.equal(built.catalogDataVersion, "2026.09");
   assert.equal(built.schemaVersion, "1");
   assert.equal(built.builtAt, "2026-10-12 06:00:00");
-  assert.deepEqual(Object.keys(built.datasets), ["recalls_us", "recalls_ca"]);
+  assert.deepEqual(Object.keys(built.datasets), ["recalls_us", "recalls_ca", "ratings"]);
   assert.equal(built.datasets.recalls_ca.licence, "ogl-canada");
   // The file in the package is the file that was given.
   assert.deepEqual(readFileSync(built.path), readFileSync(shop));
@@ -125,12 +125,12 @@ test("the D1 exporter of wenmar-open-data writes the shop file too, and it reads
   for (const statement of sql) assert.ok(new TextEncoder().encode(statement).length <= 100_000);
   const copy = new sqlite.DatabaseSync(":memory:");
   for (const statement of sql) copy.exec(statement);
-  for (const table of ["meta", "recall", "recall_vehicle"]) {
+  for (const table of ["meta", "recall", "recall_vehicle", "rating", "rating_vehicle"]) {
     const rows = (from) => from.prepare(`SELECT * FROM "${table}" ORDER BY rowid`).all();
     assert.deepEqual(rows(copy), rows(database), table);
   }
   const indexes = copy.prepare("SELECT count(*) AS found FROM sqlite_schema WHERE type = 'index' AND sql IS NOT NULL").get();
-  assert.equal(indexes.found, 4);
+  assert.equal(indexes.found, 6);
   database.close();
   copy.close();
 });
