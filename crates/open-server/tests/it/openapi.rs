@@ -37,7 +37,9 @@ fn the_description_lists_every_route_and_no_others() {
         [
             "/v1/makes/{make}",
             "/v1/meta",
+            "/v1/models/{make}/{model}",
             "/v1/recalls",
+            "/v1/recalls/recent",
             "/v1/recalls/{source}/{campaign}",
             "/v1/vehicles/engines",
             "/v1/vehicles/makes",
@@ -47,9 +49,11 @@ fn the_description_lists_every_route_and_no_others() {
             "/v1/vehicles/trims",
             "/v1/vehicles/years",
             "/v1/vehicles/{id}",
+            "/v1/vehicles/{id}/overview",
             "/v1/vehicles/{id}/recalls",
             "/v1/vin/batch",
             "/v1/vin/{vin}",
+            "/v1/vin/{vin}/overview",
             "/v1/vin/{vin}/recalls",
         ]
     );
@@ -69,6 +73,12 @@ fn the_description_lists_every_route_and_no_others() {
         "RecallList",
         "Recall",
         "RecallLookup",
+        "Overview",
+        "OverviewRecalls",
+        "RecallCount",
+        "ModelYears",
+        "RecentRecalls",
+        "VinRecallCount",
     ] {
         assert!(schemas.contains_key(name), "no schema for {name}");
     }

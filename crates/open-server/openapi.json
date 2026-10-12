@@ -79,6 +79,59 @@
         }
       }
     },
+    "/v1/models/{make}/{model}": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Every model year of one model, newest first, each with its vehicle id\nand the number of recall campaigns that may apply to it.",
+        "operationId": "model_years",
+        "parameters": [
+          {
+            "name": "make",
+            "in": "path",
+            "description": "A make's id, name or alias.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "ford"
+          },
+          {
+            "name": "model",
+            "in": "path",
+            "description": "A model's id or name.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "f-150"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The model years. `recalls` is `null` in each when this server holds no recalls.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelYears"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no model has that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/recalls": {
       "get": {
         "tags": [
@@ -182,6 +235,98 @@
           },
           "400": {
             "description": "`validation_failed`: `country`, `year`, `limit` or `cursor` is wrong, or `model` was given without `make`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`dataset_unavailable`: this server holds no recalls, or none for the country asked for.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/recalls/recent": {
+      "get": {
+        "tags": [
+          "Recalls"
+        ],
+        "summary": "Recall campaigns reported on or after a day, newest first, each with\nthe vehicles it lists.",
+        "description": "For an application that keeps a list of vehicles: ask once a day with\nthe day of the last answer, and compare `vehicles[].vehicle_id` with\nits own. Each campaign may apply to the vehicles it lists.",
+        "operationId": "recent_recalls",
+        "parameters": [
+          {
+            "name": "since",
+            "in": "query",
+            "description": "Only campaigns reported on or after this day, as `2026-09-01`.\nRequired.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2026-09-01"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "description": "`us` or `ca`. Left out: both, where the server holds both.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "make",
+            "in": "query",
+            "description": "Only campaigns that list a vehicle of this make: a name, an alias\nor an id.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "ford"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "At most this many, up to 100. The default is 25.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "`next_cursor` from the page before, unchanged.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of campaigns.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecentRecalls"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: `since` is missing or is not a day, or `country`, `limit` or `cursor` is wrong.",
             "content": {
               "application/json": {
                 "schema": {
@@ -821,6 +966,50 @@
         }
       }
     },
+    "/v1/vehicles/{id}/overview": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Everything held for a model year, in one answer.",
+        "description": "A block this server has no data for is `null`. The `recalls` block\ncounts the campaigns that may apply to the year, make and model; it is\nnot a lookup by VIN.",
+        "operationId": "vehicle_overview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A vehicle id. The overview is of the year, make and model; a submodel or an engine in the id is set aside.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2018_ford_f-150"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The overview. `decode` is `null`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Overview"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no vehicle has that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vehicles/{id}/recalls": {
       "get": {
         "tags": [
@@ -891,8 +1080,20 @@
           "VIN"
         ],
         "summary": "Decode up to 50 VINs.",
-        "description": "The answer is an array in the order asked. Each item is a decode, or the\nerror object a single request for that VIN would have returned.",
+        "description": "The answer is an array in the order asked. Each item is a decode, or the\nerror object a single request for that VIN would have returned.\n\nWith `?include=recalls`, each decode that reaches a model year of the\ncatalog also carries `recalls`: how many campaigns may apply to that\nmodel year. It is a count for the year, make and model, never a lookup\nby VIN.",
         "operationId": "batch",
+        "parameters": [
+          {
+            "name": "include",
+            "in": "query",
+            "description": "`recalls` adds to each decode the number of recall campaigns that\nmay apply to the model year it reaches. Left out: nothing is added.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "recalls"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -918,7 +1119,17 @@
             }
           },
           "400": {
-            "description": "`validation_failed`: the body is not `{ \"vins\": [...] }` or lists more than 50.",
+            "description": "`validation_failed`: the body is not `{ \"vins\": [...] }` or lists more than 50, or `include` is not `recalls`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`dataset_unavailable`: `include=recalls` was asked of a server that holds no recalls.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1015,6 +1226,72 @@
           },
           "429": {
             "description": "`rate_limited`: over 600 requests a minute. See `Retry-After`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vin/{vin}/overview": {
+      "get": {
+        "tags": [
+          "VIN"
+        ],
+        "summary": "Everything held for the model year a VIN decodes to, in one answer.",
+        "description": "The VIN only names the model year: `recalls` counts the campaigns that\nmay apply to it, and no public data says a recall applies to one VIN. A\nVIN that decodes to no vehicle in the catalog gets `vehicle: null`,\nevery block `null` and the warning `no_catalog_vehicle`, not an error.",
+        "operationId": "vin_overview",
+        "parameters": [
+          {
+            "name": "vin",
+            "in": "path",
+            "description": "A 17-character VIN.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "KM8K2CAB4PU001140"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "Use this model year instead of working it out from the VIN.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "example": 2023
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The overview, with `decode`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Overview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`invalid_vin`, or `validation_failed` for `year`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no manufacturer is registered for the first three characters.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1614,6 +1891,348 @@
           }
         }
       },
+      "ModelYearSummary": {
+        "type": "object",
+        "description": "One model year of a model.",
+        "required": [
+          "id",
+          "year",
+          "url"
+        ],
+        "properties": {
+          "bulletins": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "How many service bulletins are on file. `null` until this server\nholds bulletins.",
+            "minimum": 0
+          },
+          "id": {
+            "type": "string",
+            "description": "The vehicle id of the year, make and model.",
+            "example": "2018_ford_f-150"
+          },
+          "recalls": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecallCount",
+                "description": "How many recall campaigns may apply. `null` when this server holds\nno recalls."
+              }
+            ]
+          },
+          "url": {
+            "type": "string",
+            "description": "The model year's page on this site.",
+            "example": "https://open.wenmarpro.com/makes/ford/f-150/2018"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          }
+        }
+      },
+      "ModelYears": {
+        "type": "object",
+        "description": "Every model year of one model, newest first.",
+        "required": [
+          "make",
+          "model",
+          "may_apply",
+          "as_of",
+          "years",
+          "lookup",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "$ref": "#/components/schemas/RecallAsOf"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lookup": {
+            "$ref": "#/components/schemas/RecallLookup"
+          },
+          "make": {
+            "$ref": "#/components/schemas/NamedId"
+          },
+          "may_apply": {
+            "type": "boolean",
+            "description": "Always `true`: a recall count is of campaigns that may apply to the\nmodel year."
+          },
+          "model": {
+            "$ref": "#/components/schemas/NamedId"
+          },
+          "years": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModelYearSummary"
+            }
+          }
+        }
+      },
+      "NamedId": {
+        "type": "object",
+        "description": "A make or a model: its id form and its name.",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "ford"
+          },
+          "name": {
+            "type": "string",
+            "example": "Ford"
+          }
+        }
+      },
+      "Overview": {
+        "type": "object",
+        "description": "Everything held for one model year, in one answer.\n\nA block this server has no data for is `null`: `specs`, `fuel`,\n`fluids`, `tires`, `labor` and `bulletins` are `null` in every answer\ntoday, and each is filled when its data arrives. A client must accept\nan object there.",
+        "required": [
+          "links",
+          "attribution",
+          "warnings"
+        ],
+        "properties": {
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The credit lines the data's licences ask for."
+          },
+          "bulletins": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "decode": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/OverviewDecode",
+                "description": "What the VIN decoded to. `null` when the overview was asked for by\nvehicle id."
+              }
+            ]
+          },
+          "fluids": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "fuel": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "labor": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "links": {
+            "$ref": "#/components/schemas/OverviewLinks"
+          },
+          "recalls": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/OverviewRecalls",
+                "description": "`null` when this server holds no recalls. A count of `0` with a\nday in `as_of` means none was found."
+              }
+            ]
+          },
+          "specs": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "tires": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "vehicle": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecallVehicle",
+                "description": "The model year. `null` when a VIN reaches no model year of the\ncatalog; every block is then `null` too."
+              }
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            }
+          }
+        }
+      },
+      "OverviewDecode": {
+        "type": "object",
+        "description": "What the VIN of an overview decoded to.",
+        "required": [
+          "vin",
+          "valid",
+          "engine_settled"
+        ],
+        "properties": {
+          "engine": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The engine in short form, such as `2.0L`, when the VIN names one.",
+            "example": "2.0L"
+          },
+          "engine_settled": {
+            "type": "boolean",
+            "description": "Whether the VIN settles on one engine of the catalog."
+          },
+          "entry_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The most specific catalog entry the VIN reaches.",
+            "example": "2023_hyundai_kona_se"
+          },
+          "make": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "trim": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "valid": {
+            "type": "boolean",
+            "description": "Whether the check digit, position 9, is right."
+          },
+          "vin": {
+            "type": "string",
+            "example": "KM8K2CAB4PU001140"
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          }
+        }
+      },
+      "OverviewLinks": {
+        "type": "object",
+        "description": "Where to read more.",
+        "properties": {
+          "maker": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MakeLinks",
+                "description": "The maker's own pages. `null` when none are recorded for the make."
+              }
+            ]
+          },
+          "page": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The model year's page on this site. `null` when the VIN reaches no\nmodel year of the catalog.",
+            "example": "https://open.wenmarpro.com/makes/ford/f-150/2018"
+          }
+        }
+      },
+      "OverviewRecalls": {
+        "type": "object",
+        "description": "The recalls of a model year, in brief.",
+        "required": [
+          "may_apply",
+          "count",
+          "as_of",
+          "do_not_drive",
+          "park_outside",
+          "newest",
+          "lookup",
+          "url"
+        ],
+        "properties": {
+          "as_of": {
+            "$ref": "#/components/schemas/RecallAsOf"
+          },
+          "count": {
+            "$ref": "#/components/schemas/RecallCount"
+          },
+          "do_not_drive": {
+            "type": "boolean",
+            "description": "Whether any campaign carries NHTSA's advisory not to drive."
+          },
+          "lookup": {
+            "$ref": "#/components/schemas/RecallLookup"
+          },
+          "may_apply": {
+            "type": "boolean",
+            "description": "Always `true`. A campaign lists a year, make and model; only the\nmanufacturer can say whether one vehicle is in it."
+          },
+          "newest": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Recall"
+            },
+            "description": "The three newest campaigns. The whole list is at\n`/v1/vehicles/{id}/recalls`."
+          },
+          "park_outside": {
+            "type": "boolean",
+            "description": "Whether any campaign carries NHTSA's advisory to park outside."
+          },
+          "url": {
+            "type": "string",
+            "description": "The model year's recall page on this site.",
+            "example": "https://open.wenmarpro.com/makes/ford/f-150/2018/recalls"
+          }
+        }
+      },
       "Plant": {
         "type": "object",
         "description": "Where the vehicle was built. `code` is position 11 of the VIN.",
@@ -2012,6 +2631,30 @@
           }
         }
       },
+      "RecallCount": {
+        "type": "object",
+        "description": "How many recall campaigns list a model year, for each country. `null`\nfor a country this server holds no recalls for; `0` when it holds them\nand none lists the model year.",
+        "properties": {
+          "ca": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "example": 5,
+            "minimum": 0
+          },
+          "us": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "example": 7,
+            "minimum": 0
+          }
+        }
+      },
       "RecallDecode": {
         "type": "object",
         "description": "What a VIN decoded to, as far as recalls need it.",
@@ -2175,6 +2818,81 @@
             "type": "integer",
             "format": "int32",
             "minimum": 0
+          }
+        }
+      },
+      "RecentRecall": {
+        "type": "object",
+        "description": "One campaign of the recent list, with the vehicles it lists.",
+        "required": [
+          "recall",
+          "vehicles",
+          "vehicles_listed"
+        ],
+        "properties": {
+          "recall": {
+            "$ref": "#/components/schemas/Recall"
+          },
+          "vehicles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecallCampaignVehicle"
+            },
+            "description": "The vehicles the campaign lists: at most 200 of them. Every one is\nat `/v1/recalls/{source}/{campaign}`."
+          },
+          "vehicles_listed": {
+            "type": "integer",
+            "format": "int32",
+            "description": "How many vehicles the campaign lists in all.",
+            "minimum": 0
+          }
+        }
+      },
+      "RecentRecalls": {
+        "type": "object",
+        "description": "Campaigns reported on or after a day, newest first.",
+        "required": [
+          "may_apply",
+          "since",
+          "as_of",
+          "recalls",
+          "lookup",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "$ref": "#/components/schemas/RecallAsOf"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lookup": {
+            "$ref": "#/components/schemas/RecallLookup"
+          },
+          "may_apply": {
+            "type": "boolean",
+            "description": "Always `true`: a campaign may apply to the vehicles it lists."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Hand it back as `cursor` for the next page. `null` on the last."
+          },
+          "recalls": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecentRecall"
+            }
+          },
+          "since": {
+            "type": "string",
+            "description": "The day asked for.",
+            "example": "2026-09-01"
           }
         }
       },
@@ -2495,6 +3213,17 @@
           "plant": {
             "$ref": "#/components/schemas/Plant"
           },
+          "recalls": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/VinRecallCount",
+                "description": "How many recall campaigns may apply to the model year. Only in a\nbatch asked with `include=recalls`, and only when the VIN reaches a\nmodel year of the catalog."
+              }
+            ]
+          },
           "safety": {
             "oneOf": [
               {
@@ -2589,6 +3318,37 @@
             "format": "int32",
             "example": 2023,
             "minimum": 0
+          }
+        }
+      },
+      "VinRecallCount": {
+        "type": "object",
+        "description": "What a batch decode says of recalls when `include=recalls` is asked:\nhow many campaigns may apply to the model year the VIN decodes to.",
+        "required": [
+          "may_apply",
+          "count",
+          "do_not_drive",
+          "park_outside",
+          "lookup"
+        ],
+        "properties": {
+          "count": {
+            "$ref": "#/components/schemas/RecallCount"
+          },
+          "do_not_drive": {
+            "type": "boolean",
+            "description": "Whether any of them carries NHTSA's advisory not to drive."
+          },
+          "lookup": {
+            "$ref": "#/components/schemas/RecallLookup"
+          },
+          "may_apply": {
+            "type": "boolean",
+            "description": "Always `true`. The count is for the year, make and model, not for\nthe VIN: check the VIN at the addresses in `lookup`."
+          },
+          "park_outside": {
+            "type": "boolean",
+            "description": "Whether any of them carries NHTSA's advisory to park outside."
           }
         }
       },
