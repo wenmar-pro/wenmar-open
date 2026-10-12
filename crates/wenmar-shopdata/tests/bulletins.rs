@@ -612,6 +612,20 @@ fn a_bulletin_is_related_by_vehicle_and_component() {
     assert!(held().related_recalls(11000007, 10).unwrap().is_empty());
     assert!(shop.has_table("recall_component").unwrap());
     assert!(!held().has_table("recall_component").unwrap());
+
+    // The reverse: the bulletins beside a campaign. 19V888000 is about the
+    // engine for the 2019 Silverado; two bulletins are too.
+    let beside = |campaign: &str| -> Vec<i64> {
+        shop.bulletins_for_recall(wenmar_shopdata::recalls::RecallSource::Nhtsa, campaign, 10)
+            .unwrap()
+            .into_iter()
+            .map(|bulletin| bulletin.nhtsa_id)
+            .collect()
+    };
+    assert_eq!(beside("19V888000"), [11000007, 11000006]);
+    // 23V123000 is about the engine for the 2023 Kona: 11000001 is too.
+    assert_eq!(beside("23V123000"), [11000001]);
+    assert!(beside("00V000000").is_empty());
 }
 
 #[test]

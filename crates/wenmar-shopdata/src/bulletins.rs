@@ -712,6 +712,58 @@ impl<S: Source> ShopData<S> {
             .collect()
     }
 
+    /// Bulletins about a component a recall campaign is about that list a
+    /// model year it lists, newest first. Empty when the file holds no
+    /// bulletins, was built before components were recorded, or has no
+    /// such campaign.
+    pub fn bulletins_for_recall(
+        &self,
+        source: crate::recalls::RecallSource,
+        campaign: &str,
+        limit: usize,
+    ) -> Result<Vec<BulletinSummary>, ShopError> {
+        self.require_recalls(Some(source))?;
+        if self.require(Dataset::Bulletins).is_err()
+            || !self.has_table("recall_component")?
+            || !self.has_table("bulletin_component")?
+        {
+            return Ok(Vec::new());
+        }
+        let campaign = campaign.trim().to_ascii_uppercase();
+        let found = self.query(
+            "SELECT id FROM recall WHERE source = ?1 AND campaign = ?2",
+            &[source.id().into(), campaign.as_str().into()],
+        )?;
+        let Some(recall_id) = found
+            .first()
+            .and_then(|row| row.first())
+            .and_then(Value::integer)
+        else {
+            return Ok(Vec::new());
+        };
+        let sql = format!(
+            "SELECT {COLUMNS} FROM bulletin b
+             WHERE b.id IN (SELECT bc.bulletin_id FROM bulletin_component bc WHERE bc.component_id IN (
+                     SELECT c1.component_id FROM recall_component c1 JOIN component k ON k.id = c1.component_id
+                     WHERE c1.recall_id = ?1
+                       AND (k.parent IS NOT NULL OR NOT EXISTS (
+                            SELECT 1 FROM recall_component c3 JOIN component k3 ON k3.id = c3.component_id
+                            WHERE c3.recall_id = ?1 AND k3.parent IS NOT NULL))))
+               AND b.id IN (SELECT v.bulletin_id
+                            FROM (SELECT DISTINCT model_id, year FROM recall_vehicle
+                                  WHERE recall_id = ?1 AND model_id IS NOT NULL AND year IS NOT NULL LIMIT 40) rv
+                            JOIN bulletin_model m ON m.model_id = rv.model_id
+                            JOIN bulletin_vehicle v ON v.bulletin_model_id = m.id
+                                 AND v.year_from <= rv.year AND v.year_to >= rv.year)
+             ORDER BY b.added DESC, b.id DESC LIMIT ?2"
+        );
+        let limit = i64::try_from(limit.clamp(1, MOST_RELATED)).unwrap_or(1);
+        self.query(&sql, &[recall_id.into(), limit.into()])?
+            .iter()
+            .map(|row| summary(row))
+            .collect()
+    }
+
     /// Whether the file has a table of this name. Tables are added to a
     /// shop file without a new schema version, so a reader of a newer
     /// table asks first.
