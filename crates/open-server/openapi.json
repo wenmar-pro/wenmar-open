@@ -1274,7 +1274,8 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "How tire pressure is monitored, as NHTSA words it, such as `Direct`."
           },
           "traction_control": {
             "type": [

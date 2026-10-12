@@ -118,6 +118,7 @@ pub struct Safety {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub esc: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// How tire pressure is monitored, as NHTSA words it, such as `Direct`.
     pub tpms: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub adaptive_cruise: Option<String>,

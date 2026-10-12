@@ -273,3 +273,23 @@ async fn an_oversized_batch_body_is_413() {
         "payload_too_large"
     );
 }
+
+#[tokio::test]
+async fn a_decode_gives_wheel_sizes_and_the_tire_pressure_monitor_where_on_file() {
+    let app = common::app_with_rows(
+        "INSERT INTO pattern VALUES
+           (40, 1, 'K2***', 119, '17', '2022-05-01 00:00:00', NULL, '17'),
+           (41, 1, 'K2***', 120, '18', '2022-05-01 00:00:00', NULL, '18');",
+    )
+    .await;
+    let (status, body) = app.json("/v1/vin/KM8K2CAB4PU001140").await;
+    assert_eq!(status, StatusCode::OK);
+    // Inches, as numbers.
+    assert_eq!(body["wheel_size_front"], json!(17));
+    assert_eq!(body["wheel_size_rear"], json!(18));
+    assert_eq!(body["safety"]["tpms"], "Direct");
+    // Where the data has none, the fields are left out.
+    let (_, body) = common::app().await.json("/v1/vin/KM8K2CAB4PU001140").await;
+    assert!(body.get("wheel_size_front").is_none() && body.get("wheel_size_rear").is_none());
+    assert_eq!(body["safety"]["tpms"], "Direct");
+}

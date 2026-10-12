@@ -412,6 +412,7 @@ export interface components {
             park_assist?: string | null;
             pedestrian_braking?: string | null;
             rear_cross_traffic?: string | null;
+            /** @description How tire pressure is monitored, as NHTSA words it, such as `Direct`. */
             tpms?: string | null;
             traction_control?: string | null;
         };

@@ -50,6 +50,8 @@ The fields most applications read:
 | `DisplacementL`, `EngineCylinders`, `FuelTypePrimary`, `EngineModel` | `engine.displacement_l`, `engine.cylinders`, `engine.fuel`, `engine.model`; `engine.label` is a short name such as `2.0L Turbo` |
 | `Manufacturer`, `PlantCity`, `PlantCountry` | `manufacturer.name`, `plant.city`, `plant.country` |
 | `ABS`, `ESC`, `TPMS` and the driver-assistance fields | under `safety` |
+| `TPMS` | `safety.tpms`: the kind of tire-pressure monitor, as NHTSA words it, such as `Direct`. It decides whether a tire job needs sensor service. |
+| `WheelSizeFront`, `WheelSizeRear` | `wheel_size_front`, `wheel_size_rear`: rim diameter in whole inches. Left out where NHTSA has none or the value is not one number. |
 
 A decode also has `catalog`: the entry of the vehicle catalog the VIN reaches, with ids for the year, make and model, the trim, and the engine. An application with a vehicle form can fill the form from it.
 

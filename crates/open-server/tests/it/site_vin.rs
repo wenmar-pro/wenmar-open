@@ -310,3 +310,53 @@ async fn a_crawler_that_fetches_a_result_page_learns_nothing_to_index() {
         assert!(!text.contains("open.example/vin/"), "{path}");
     }
 }
+
+/// Rim diameters on file for the fixture's Kona: vPIC elements 119 (front)
+/// and 120 (rear). The small data file has none.
+const WHEELS: &str = "INSERT INTO pattern VALUES
+  (40, 1, 'K2***', 119, '17', '2022-05-01 00:00:00', NULL, '17'),
+  (41, 1, 'K2***', 120, '18', '2022-05-01 00:00:00', NULL, '18');";
+
+#[tokio::test]
+async fn wheel_sizes_and_the_tire_pressure_monitor_are_on_the_sheet() {
+    let app = common::app_with_rows(WHEELS).await;
+    let (status, html) = page(&app, "/vin/KM8K2CAB4PU001140").await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(
+        html.contains("<caption>Wheels and seats</caption>"),
+        "{html}"
+    );
+    assert!(
+        html.contains(r#"<tr><th scope="row">Front wheels, inches</th><td>17</td></tr>"#),
+        "{html}"
+    );
+    assert!(html.contains(r#"<tr><th scope="row">Rear wheels, inches</th><td>18</td></tr>"#));
+    assert!(
+        html.contains(r#"<tr><th scope="row">Tire pressure monitoring</th><td>Direct</td></tr>"#)
+    );
+    // The copy button carries them too.
+    assert!(
+        html.contains("\nWheels and seats\nFront wheels, inches: 17\nRear wheels, inches: 18\n"),
+        "{html}"
+    );
+    // The monitor is safety equipment; the wheels come after driver assistance.
+    let safety = html.find("<caption>Safety equipment</caption>").unwrap();
+    let monitor = html
+        .find(r#"<th scope="row">Tire pressure monitoring</th>"#)
+        .unwrap();
+    let wheels = html.find("<caption>Wheels and seats</caption>").unwrap();
+    assert!(safety < monitor && monitor < wheels);
+
+    // Front only: one row, and no empty one.
+    let front = "INSERT INTO pattern VALUES (40, 1, 'K2***', 119, '17', '2022-05-01 00:00:00', NULL, '17');";
+    let (_, html) = page(
+        &common::app_with_rows(front).await,
+        "/vin/KM8K2CAB4PU001140",
+    )
+    .await;
+    assert!(html.contains("Front wheels, inches") && !html.contains("Rear wheels, inches"));
+    // A size that is not a whole number of inches is not shown as one.
+    let odd = "INSERT INTO pattern VALUES (40, 1, 'K2***', 119, '17 or 18', '2022-05-01 00:00:00', NULL, 'x');";
+    let (_, html) = page(&common::app_with_rows(odd).await, "/vin/KM8K2CAB4PU001140").await;
+    assert!(!html.contains("Front wheels, inches"), "{html}");
+}

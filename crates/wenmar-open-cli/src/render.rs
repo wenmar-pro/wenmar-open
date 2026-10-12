@@ -513,6 +513,36 @@ Safety equipment
     }
 
     #[test]
+    fn wheel_sizes_and_the_tire_pressure_monitor_are_shown() {
+        let value = json!({
+            "vin": "KM8K2CAB4PU001140",
+            "valid": true,
+            "year": 2023,
+            "make": "Hyundai",
+            "model": "Kona",
+            "wheel_size_front": 17,
+            "wheel_size_rear": 18,
+            "safety": { "tpms": "Direct" },
+            "manufacturer": { "wmi": "KM8", "name": "Hyundai Motor Co" },
+            "plant": { "code": "U" },
+            "warnings": []
+        });
+        let text = text(&decode_request(), &value);
+        let line = |label: &str| {
+            text.lines()
+                .find(|line| line.trim_start().starts_with(label))
+                .unwrap_or_else(|| panic!("no {label} line:\n{text}"))
+                .to_owned()
+        };
+        assert!(line("Wheel size front").ends_with(" 17"), "{text}");
+        assert!(line("Wheel size rear").ends_with(" 18"), "{text}");
+        assert!(line("Tpms").ends_with(" Direct"), "{text}");
+        // The monitor is listed with the safety equipment, below the rest.
+        assert!(text.find("Wheel size front").unwrap() < text.find("Safety equipment").unwrap());
+        assert!(text.find("Safety equipment").unwrap() < text.find("Tpms").unwrap());
+    }
+
+    #[test]
     fn a_wrong_check_digit_and_its_warning_are_said() {
         let value = json!({
             "vin": "KM8K2CAB0PU001140",
