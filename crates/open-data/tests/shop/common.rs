@@ -92,6 +92,17 @@ INSERT INTO catalog_vehicle VALUES
   (26, 2015, 517, 21696, 8, 1, NULL);
 ";
 
+/// The curated model names the fixture builds with.
+pub const MODELS_YAML: &str = "
+models:
+  - make: BMW
+    model: 3 SERIES
+    to: [320i, 328i, 328d, 330i, 335i]
+  - make: Mercedes-Benz
+    model: C300 4MATIC
+    to: [C-Class]
+";
+
 /// A temporary directory holding a fixture core file, removed when dropped.
 pub struct Scratch {
     directory: PathBuf,
@@ -102,7 +113,8 @@ impl Scratch {
         let directory =
             std::env::temp_dir().join(format!("open-data-shop-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&directory);
-        std::fs::create_dir_all(directory.join("curated")).unwrap();
+        std::fs::create_dir_all(directory.join("curated/shop")).unwrap();
+        std::fs::write(directory.join("curated/shop/models.yaml"), MODELS_YAML).unwrap();
         let scratch = Scratch { directory };
         let connection = Connection::open(scratch.core()).unwrap();
         connection
