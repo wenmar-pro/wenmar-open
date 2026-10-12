@@ -401,3 +401,39 @@ impl<S: Source> ShopData<S> {
         .collect()
     }
 }
+
+impl<S: Source> ShopData<S> {
+    /// The described codes whose records name one of `components` (ids of
+    /// `components.yaml`), by code, at most `limit`. A job's page links
+    /// them.
+    pub fn codes_for_components(
+        &self,
+        components: &[String],
+        limit: usize,
+    ) -> Result<Vec<CodeSummary>, ShopError> {
+        self.require(Dataset::Codes)?;
+        if components.is_empty() {
+            return Ok(Vec::new());
+        }
+        let mut params: Vec<Value> = vec![Value::Integer(
+            i64::try_from(limit.clamp(1, MOST_CODES_LISTED)).unwrap_or(1),
+        )];
+        let mut marks: Vec<String> = Vec::with_capacity(components.len());
+        for component in components {
+            params.push(component.as_str().into());
+            marks.push(format!("?{}", params.len()));
+        }
+        self.query(
+            &format!(
+                "SELECT DISTINCT c.code, c.system, c.title FROM code c
+                 JOIN code_component k ON k.code = c.code
+                 WHERE k.component_id IN ({}) ORDER BY c.code LIMIT ?1",
+                marks.join(", ")
+            ),
+            &params,
+        )?
+        .iter()
+        .map(|row| summary(row))
+        .collect()
+    }
+}

@@ -15,6 +15,7 @@ pub mod hand;
 pub mod home;
 pub mod investigations;
 pub mod jsonld;
+pub mod labor;
 pub mod licences;
 pub mod links;
 pub mod manuals;
@@ -465,6 +466,9 @@ pub fn router() -> Router<AppState> {
         )
         .route("/bulletins", get(bulletins::index))
         .route("/bulletins/{nhtsa_id}", get(bulletins::bulletin))
+        .route("/jobs", get(labor::index))
+        .route("/jobs.md", get(labor::index_md))
+        .route("/jobs/{job}", get(labor::job))
         .route("/codes", get(codes::index))
         .route("/codes.md", get(codes::index_md))
         .route("/codes/{code}", get(codes::code))

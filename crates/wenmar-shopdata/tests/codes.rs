@@ -212,3 +212,20 @@ fn the_codes_that_have_a_record_are_picked_out_of_a_list() {
     assert_eq!(shop.codes_described(&asked).unwrap(), ["P0001", "U0001"]);
     assert!(shop.codes_described(&[]).unwrap().is_empty());
 }
+
+#[test]
+fn the_codes_about_some_components_are_listed() {
+    let shop = shop(true);
+    let about = |ids: &[&str]| -> Vec<String> {
+        let ids: Vec<String> = ids.iter().map(|id| (*id).to_owned()).collect();
+        shop.codes_for_components(&ids, 20)
+            .unwrap()
+            .into_iter()
+            .map(|code| code.code)
+            .collect()
+    };
+    assert_eq!(about(&["engine"]), ["P0001"]);
+    assert_eq!(about(&["electrical", "timing-belt"]), ["P0001", "U0001"]);
+    assert!(about(&["brakes"]).is_empty());
+    assert!(about(&[]).is_empty());
+}

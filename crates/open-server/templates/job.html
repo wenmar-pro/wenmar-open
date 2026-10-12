@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ job.name }}</h1>
+{% if !job.includes.is_empty() -%}
+<h2>Includes</h2>
+<ul>
+{% for entry in job.includes -%}
+<li>{{ entry }}</li>
+{% endfor -%}
+</ul>
+{% endif -%}
+{% if !job.excludes.is_empty() -%}
+<h2>Does not include</h2>
+<ul>
+{% for entry in job.excludes -%}
+<li>{{ entry }}</li>
+{% endfor -%}
+</ul>
+{% endif -%}
+{% if !classes.is_empty() -%}
+<table class="prose">
+<caption>Typical hours by class of vehicle</caption>
+<tbody>
+{% for (class, hours) in classes -%}
+<tr><th scope="row">{{ class }}</th><td>{{ hours }}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">{{ job.note }} A figure for a class is typical for vehicles of that class; it was not worked out on any one vehicle.</p>
+{% for credit in job.attribution -%}
+<p class="note">{{ credit }}.</p>
+{% endfor -%}
+{% else if labor_held -%}
+<p>No estimate has been written for this job yet.</p>
+{% endif -%}
+{% if labor_held -%}
+<h2 id="vehicle">For one vehicle</h2>
+{% if let Some(missing) = missing -%}
+<p class="warning">The catalog has no {{ missing }}.</p>
+{% endif -%}
+<form class="calc" action="/jobs/{{ job.id }}#vehicle" method="get">
+<label for="pick-year">Model year</label>
+<input id="pick-year" name="year" type="text" inputmode="numeric" maxlength="4" required>
+<label for="pick-make">Make</label>
+<input id="pick-make" name="make" type="text" maxlength="40" required>
+<label for="pick-model">Model</label>
+<input id="pick-model" name="model" type="text" maxlength="40" required>
+<div class="screen"><button class="primary" type="submit">Show the time for this vehicle</button></div>
+</form>
+{% endif -%}
+<table class="prose">
+<caption>About this job</caption>
+<tbody>
+<tr><th scope="row">System</th><td>{{ job.system_name }}</td></tr>
+{% if !job.components.is_empty() -%}
+<tr><th scope="row">Components</th><td>{% for component in job.components %}{% if !loop.first %}, {% endif %}{{ component.name }}{% endfor %}</td></tr>
+{% endif -%}
+{% if !job.related.is_empty() -%}
+<tr><th scope="row">Related jobs</th><td>{% for other in job.related %}{% if !loop.first %}, {% endif %}<a href="/jobs/{{ other.id }}">{{ other.name }}</a>{% endfor %}</td></tr>
+{% endif -%}
+{% if !codes.is_empty() -%}
+<tr><th scope="row">Trouble codes about these components</th><td>{% for (code, title) in codes %}{% if !loop.first %}, {% endif %}<a class="mono" href="/codes/{{ code }}">{{ code }}</a> {{ title }}{% endfor %}</td></tr>
+{% endif -%}
+</tbody>
+</table>
+<ul class="plain links">
+<li><a href="/jobs">Every job</a></li>
+<li><a href="{% if let Some(form) = report.form %}{{ form }}{% else %}{{ report.issue }}{% endif %}">Report an error on this page</a></li>
+{% if let Some(mail) = report.mail -%}
+<li><a href="{{ mail }}">Report an error by email</a></li>
+{% endif -%}
+</ul>
+{% endblock %}

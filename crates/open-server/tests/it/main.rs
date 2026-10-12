@@ -53,6 +53,7 @@ mod site_hand;
 mod site_head;
 mod site_home;
 mod site_investigations;
+mod site_labor;
 mod site_labor_rate;
 mod site_maintenance;
 mod site_manuals;

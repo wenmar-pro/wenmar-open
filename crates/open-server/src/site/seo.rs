@@ -215,6 +215,9 @@ pub async fn index(State(state): State<AppState>) -> Response {
     if state.dataset(Dataset::Codes).is_ok() {
         names.push("codes".to_owned());
     }
+    if state.dataset(Dataset::Jobs).is_ok() {
+        names.push("jobs".to_owned());
+    }
     let mut xml = String::from(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n",
     );
@@ -448,6 +451,9 @@ pub async fn sitemap(
             if state.dataset(Dataset::Codes).is_ok() {
                 paths.push("/codes".to_owned());
             }
+            if state.dataset(Dataset::Jobs).is_ok() {
+                paths.push("/jobs".to_owned());
+            }
             paths.push(site::rules::INDEX_PATH.to_owned());
             paths.extend(
                 site::rules::PROVINCES
@@ -458,6 +464,23 @@ pub async fn sitemap(
             paths.extend(["/docs", "/data", "/about"].map(str::to_owned));
             Ok(Some(paths))
         }
+        // Every job. The pages of a job on a model year are in no
+        // sitemap: they are reached from a job's page.
+        "jobs" => match state.dataset(Dataset::Jobs) {
+            Ok(shop) => shop
+                .run(|reader| reader.jobs())
+                .await
+                .map_err(ApiError::from)
+                .and_then(|jobs| jobs.map_err(ApiError::from))
+                .map(|jobs| {
+                    Some(
+                        jobs.into_iter()
+                            .map(|job| format!("/jobs/{}", job.id))
+                            .collect(),
+                    )
+                }),
+            Err(_) => Ok(None),
+        },
         // Every described code. The pages of a code on a model year are
         // in no sitemap: they are reached from the bulletin pages.
         "codes" => match state.dataset(Dataset::Codes) {
