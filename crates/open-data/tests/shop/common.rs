@@ -441,3 +441,116 @@ pub fn add_engines(scratch: &Scratch) {
     let connection = Connection::open(scratch.core()).unwrap();
     connection.execute_batch(ENGINE_ROWS).unwrap();
 }
+
+/// The bytes of a one-sheet `.xlsx` workbook holding `rows`. Text goes in
+/// the shared string table and numbers are stored as numbers, as a
+/// spreadsheet program writes them.
+pub fn xlsx_bytes(rows: &[Vec<String>]) -> Vec<u8> {
+    use std::io::Write;
+
+    fn escape(text: &str) -> String {
+        text.replace('&', "&amp;")
+            .replace('<', "&lt;")
+            .replace('>', "&gt;")
+    }
+    fn reference(column: usize, row: usize) -> String {
+        let mut letters = String::new();
+        let mut left = column + 1;
+        while left > 0 {
+            letters.insert(0, (b'A' + ((left - 1) % 26) as u8) as char);
+            left = (left - 1) / 26;
+        }
+        format!("{letters}{}", row + 1)
+    }
+
+    let mut strings: Vec<String> = Vec::new();
+    let mut sheet = String::from(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><cols><col min=\"1\" max=\"1\" width=\"9\"/></cols><sheetData>",
+    );
+    for (row_index, row) in rows.iter().enumerate() {
+        sheet.push_str(&format!("<row r=\"{}\">", row_index + 1));
+        for (column, cell) in row.iter().enumerate() {
+            // An empty cell is left out, as a spreadsheet program does.
+            if cell.is_empty() {
+                continue;
+            }
+            let at = reference(column, row_index);
+            if cell.parse::<f64>().is_ok() {
+                sheet.push_str(&format!("<c r=\"{at}\" s=\"1\"><v>{cell}</v></c>"));
+            } else {
+                let index = strings
+                    .iter()
+                    .position(|known| known == cell)
+                    .unwrap_or_else(|| {
+                        strings.push(cell.clone());
+                        strings.len() - 1
+                    });
+                sheet.push_str(&format!("<c r=\"{at}\" t=\"s\"><v>{index}</v></c>"));
+            }
+        }
+        sheet.push_str("</row>");
+    }
+    sheet.push_str("</sheetData></worksheet>");
+    let mut shared = String::from(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<sst xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">",
+    );
+    for text in &strings {
+        shared.push_str(&format!("<si><t>{}</t></si>", escape(text)));
+    }
+    shared.push_str("</sst>");
+
+    let mut archive = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+    for (name, text) in [
+        (
+            "xl/workbook.xml",
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets><sheet name=\"FEguide\" sheetId=\"1\" r:id=\"rId1\"/></sheets></workbook>".to_owned(),
+        ),
+        (
+            "xl/_rels/workbook.xml.rels",
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings\" Target=\"sharedStrings.xml\"/><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/></Relationships>".to_owned(),
+        ),
+        ("xl/sharedStrings.xml", shared),
+        ("xl/worksheets/sheet1.xml", sheet),
+    ] {
+        archive
+            .start_file(name, zip::write::SimpleFileOptions::default())
+            .unwrap();
+        archive.write_all(text.as_bytes()).unwrap();
+    }
+    archive.finish().unwrap().into_inner()
+}
+
+/// A fetched `epa-guide` directory made from the fixture, under `scratch`:
+/// for each `<year>.txt` of the fixture, `<yy>data.zip` holding one
+/// `.xlsx` with those rows, and `source.json` beside them.
+pub fn epa_guide_dir(scratch: &Scratch) -> PathBuf {
+    use std::io::Write;
+
+    let directory = scratch.path("sources/epa-guide");
+    std::fs::create_dir_all(&directory).unwrap();
+    for year in ["2018", "2020"] {
+        let text =
+            std::fs::read_to_string(fixture("epa-guide").join(format!("{year}.txt"))).unwrap();
+        let rows: Vec<Vec<String>> = text
+            .lines()
+            .map(|line| line.split('|').map(str::to_owned).collect())
+            .collect();
+        let file =
+            std::fs::File::create(directory.join(format!("{}data.zip", &year[2..]))).unwrap();
+        let mut archive = zip::ZipWriter::new(file);
+        archive
+            .start_file(
+                format!("{year} FE Guide for DOE public.xlsx"),
+                zip::write::SimpleFileOptions::default(),
+            )
+            .unwrap();
+        archive.write_all(&xlsx_bytes(&rows)).unwrap();
+        archive.finish().unwrap();
+    }
+    std::fs::copy(
+        fixture("epa-guide").join("source.json"),
+        directory.join("source.json"),
+    )
+    .unwrap();
+    directory
+}
