@@ -7,6 +7,7 @@ mod api_complaints;
 mod api_fuel;
 mod api_hand;
 mod api_investigations;
+mod api_labor;
 mod api_overview;
 mod api_parts_card;
 mod api_recalls;

@@ -120,6 +120,17 @@ export type CodeList = Schemas["CodeList"];
 /** A trouble code on one model year, with its bulletins and recalls. */
 export type VehicleCode = Schemas["VehicleCode"];
 
+/** The repair jobs a labour estimate can be about. */
+export type JobList = Schemas["JobList"];
+/** One repair job: what it covers and what it typically takes by class. */
+export type JobDetail = Schemas["JobDetail"];
+/** One labour estimate: hours, the scope it is for and its basis. */
+export type LaborFigure = Schemas["LaborFigure"];
+/** Labour estimates for one model year. An estimate, not a quote. */
+export type VehicleLabor = Schemas["VehicleLabor"];
+/** Labour estimates for the vehicle a VIN decodes to. */
+export type VinLabor = Schemas["VinLabor"];
+
 /** The body of every error the API sends. */
 export type ErrorBody = Schemas["ErrorBody"];
 /** One answer of a batch: a decode, or the error for that VIN. */

@@ -35,6 +35,10 @@ import type {
   VehicleFuelQuery,
   VehicleInvestigations,
   VehicleInvestigationsQuery,
+  JobDetail,
+  JobList,
+  VehicleLabor,
+  VinLabor,
   VehicleBulletins,
   VehicleCode,
   VehicleRecalls,
@@ -263,6 +267,39 @@ export class WenmarOpen {
    */
   async vehicleCode(id: string, code: string, options: RequestOptions = {}): Promise<VehicleCode> {
     const path = `/v1/vehicles/${segment("id", id)}/codes/${segment("code", code)}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /** The repair jobs a labour estimate can be about. A job's id never changes. */
+  async jobs(options: RequestOptions = {}): Promise<JobList> {
+    return this.#request("GET", "/v1/jobs", undefined, options);
+  }
+
+  /** One repair job: what it covers, and what it typically takes by class of vehicle. */
+  async job(job: string, options: RequestOptions = {}): Promise<JobDetail> {
+    return this.#request("GET", `/v1/jobs/${segment("job", job)}`, undefined, options);
+  }
+
+  /**
+   * Wenmar's labour estimates for a model year, or for one `job` of it:
+   * for each job, the hours of the narrowest scope that has a figure, and
+   * which scope that was. An estimate, not a quote. Credit it as
+   * `attribution` says.
+   */
+  async labor(id: string, job?: string, options: RequestOptions = {}): Promise<VehicleLabor> {
+    const narrowed = job === undefined ? "" : `/${segment("job", job)}`;
+    const path = `/v1/vehicles/${segment("id", id)}/labor${narrowed}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /** Labour estimates for the vehicle a VIN decodes to, or for one `job` of it. */
+  async vinLabor(
+    vin: string,
+    job?: string,
+    options: RequestOptions & { year?: number } = {},
+  ): Promise<VinLabor> {
+    const narrowed = job === undefined ? "" : `/${segment("job", job)}`;
+    const path = `/v1/vin/${segment("vin", vin)}/labor${narrowed}${queryString({ year: options.year })}`;
     return this.#request("GET", path, undefined, options);
   }
 

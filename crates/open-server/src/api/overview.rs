@@ -265,6 +265,24 @@ pub async fn overview_of(
         }
         _ => None,
     };
+    // The labour estimates of the model year, for a server that holds
+    // them. No engine is asked for: the labour routes narrow by engine.
+    let labor = match (found, state.dataset(wenmar_shopdata::Dataset::Labor)) {
+        (Some(found), Ok(shop)) => {
+            match crate::api::labor::labor_of(state, shop, found, None, None).await? {
+                Some(answer) => {
+                    for line in &answer.attribution {
+                        if !attribution.contains(line) {
+                            attribution.push(line.clone());
+                        }
+                    }
+                    Some(serde_json::to_value(answer).map_err(ApiError::internal)?)
+                }
+                None => None,
+            }
+        }
+        _ => None,
+    };
     Ok(Overview {
         vehicle: found.map(|found| found.vehicle.clone()),
         decode,
@@ -274,7 +292,7 @@ pub async fn overview_of(
         tires,
         recalls,
         safety,
-        labor: None,
+        labor,
         bulletins,
         complaints,
         links,

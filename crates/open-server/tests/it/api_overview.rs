@@ -13,7 +13,7 @@ const TC_LOOKUP: &str =
 
 /// The blocks no dataset fills yet. A plan that fills one takes its name
 /// out of this list and adds a test of its own.
-const NOT_YET: [&str; 1] = ["labor"];
+const NOT_YET: [&str; 0] = [];
 
 async fn ok(app: &TestApp, path: &str) -> Value {
     let (status, body) = app.json(path).await;

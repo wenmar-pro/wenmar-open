@@ -2013,3 +2013,179 @@ pub struct VehicleCode {
     pub note: String,
     pub attribution: Vec<String>,
 }
+
+// ----- jobs and labour estimates -----
+
+/// A repair job in a list.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct JobLink {
+    /// The job's id. It never changes.
+    #[schema(example = "brake-pads-front")]
+    pub id: String,
+    #[schema(example = "Replace front brake pads")]
+    pub name: String,
+    /// The id of the system the job belongs to.
+    #[schema(example = "brakes")]
+    pub system: String,
+    /// The job's page on this site.
+    #[schema(example = "https://open.wenmarpro.com/jobs/brake-pads-front")]
+    pub url: String,
+}
+
+/// The repair jobs a labour estimate can be about.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct JobList {
+    /// The day the list was last changed.
+    #[schema(example = "2026-10-12")]
+    pub as_of: Option<String>,
+    /// In the order of the list.
+    pub jobs: Vec<JobLink>,
+    pub attribution: Vec<String>,
+}
+
+/// A component a job acts on.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct JobComponent {
+    #[schema(example = "brake-pad")]
+    pub id: String,
+    #[schema(example = "Brake pads")]
+    pub name: String,
+    /// The system a part belongs to. `null` for a system.
+    pub parent: Option<String>,
+}
+
+/// Hours, as numbers of hours.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct LaborHours {
+    pub low: f64,
+    /// A vehicle in ordinary condition.
+    pub typical: f64,
+    /// Allowing for rust and seized fasteners.
+    pub high: f64,
+}
+
+/// The first and last model year a figure covers.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct LaborYears {
+    pub from: u16,
+    pub to: u16,
+}
+
+/// What stands behind a measured figure.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct LaborSample {
+    /// Repair orders.
+    pub jobs: i64,
+    /// Shops they came from.
+    pub shops: i64,
+}
+
+/// One labour estimate: the hours a job takes, and what the figure is for.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct LaborFigure {
+    /// The job's id.
+    #[schema(example = "brake-pads-front")]
+    pub job: String,
+    pub name: String,
+    pub hours: LaborHours,
+    /// `expert`: written by a person who does the work. `observed`:
+    /// measured from repair orders; `sample` then says how many.
+    #[schema(example = "expert")]
+    pub basis: String,
+    /// What the figure is for, and so how far to trust it for one
+    /// vehicle: `engine`, `generation`, `model` or `class`.
+    #[schema(example = "class")]
+    pub scope: String,
+    /// The class, for a class-scope figure.
+    #[schema(example = "small-suv")]
+    pub class: Option<String>,
+    #[schema(example = "Small SUV")]
+    pub class_name: Option<String>,
+    /// The model years, for a generation or an engine.
+    pub years: Option<LaborYears>,
+    /// The engine's id form, for an engine-scope figure.
+    pub engine: Option<String>,
+    /// `null` for an `expert` figure.
+    pub sample: Option<LaborSample>,
+    pub notes: Option<String>,
+    /// The day the figure was last changed.
+    #[schema(example = "2026-10-12")]
+    pub updated: String,
+    /// The job's page on this site.
+    pub url: String,
+}
+
+/// One repair job: what it covers, and what it typically takes by class
+/// of vehicle.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct JobDetail {
+    #[schema(example = "brake-pads-front")]
+    pub id: String,
+    pub name: String,
+    #[schema(example = "brakes")]
+    pub system: String,
+    #[schema(example = "Brakes")]
+    pub system_name: String,
+    pub components: Vec<JobComponent>,
+    /// The work the job covers.
+    pub includes: Vec<String>,
+    /// Work often done at the same visit that is not part of this job.
+    pub excludes: Vec<String>,
+    pub related: Vec<JobLink>,
+    /// The job's class-scope figures. `null` where labour estimates are
+    /// not held.
+    pub estimates: Option<Vec<LaborFigure>>,
+    pub url: String,
+    /// What an estimate is not.
+    pub note: String,
+    /// The credit the labour estimates ask for. Empty without them.
+    pub attribution: Vec<String>,
+}
+
+/// The class a model year is in.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct LaborClass {
+    #[schema(example = "small-suv")]
+    pub id: String,
+    #[schema(example = "Small SUV")]
+    pub name: String,
+    /// `epa`: EPA's size class for the model year. `nearest`: that of the
+    /// nearest model year of the same model EPA rated.
+    pub source: String,
+}
+
+/// Labour estimates for one model year: for each job, the figure of the
+/// narrowest scope that has one.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct VehicleLabor {
+    pub vehicle: RecallVehicle,
+    /// The engine the vehicle id named, as an id form. `null` when it
+    /// named none: no engine-scope figure can then answer.
+    pub engine: Option<String>,
+    /// `null` when the model year has no class: no class-scope figure
+    /// reaches it.
+    pub class: Option<LaborClass>,
+    /// The newest day an estimate was changed.
+    pub as_of: Option<String>,
+    /// One for each job that has a figure covering the vehicle, in the
+    /// order of the job list.
+    pub estimates: Vec<LaborFigure>,
+    /// "An estimate, not a quote. …"
+    pub note: String,
+    pub attribution: Vec<String>,
+}
+
+/// Labour estimates for the vehicle a VIN decodes to.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct VinLabor {
+    pub decode: RecallDecode,
+    /// `null` when the VIN decodes to no vehicle in the catalog.
+    pub vehicle: Option<RecallVehicle>,
+    pub engine: Option<String>,
+    pub class: Option<LaborClass>,
+    pub as_of: Option<String>,
+    pub estimates: Vec<LaborFigure>,
+    pub note: String,
+    pub attribution: Vec<String>,
+    pub warnings: Vec<Warning>,
+}

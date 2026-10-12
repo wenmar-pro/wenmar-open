@@ -185,6 +185,36 @@ const calls: Record<string, { call: () => Promise<unknown>; method: string; url:
     method: "GET",
     url: "/v1/vehicles/2018_ford_f-150/codes/P0420",
   },
+  jobs: {
+    call: () => client.jobs(),
+    method: "GET",
+    url: "/v1/jobs",
+  },
+  job: {
+    call: () => client.job("brake-pads-front"),
+    method: "GET",
+    url: "/v1/jobs/brake-pads-front",
+  },
+  vehicle_labor: {
+    call: () => client.labor("2018_ford_f-150"),
+    method: "GET",
+    url: "/v1/vehicles/2018_ford_f-150/labor",
+  },
+  vehicle_labor_job: {
+    call: () => client.labor("2018_ford_f-150", "brake-pads-front"),
+    method: "GET",
+    url: "/v1/vehicles/2018_ford_f-150/labor/brake-pads-front",
+  },
+  vin_labor: {
+    call: () => client.vinLabor(KONA, undefined, { year: 2023 }),
+    method: "GET",
+    url: `/v1/vin/${KONA}/labor?year=2023`,
+  },
+  vin_labor_job: {
+    call: () => client.vinLabor(KONA, "brake-pads-front"),
+    method: "GET",
+    url: `/v1/vin/${KONA}/labor/brake-pads-front`,
+  },
   vehicle_bulletins: {
     call: () => client.bulletins("2018_ford_f-150", { type: "warranty_extension", limit: 5 }),
     method: "GET",

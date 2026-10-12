@@ -390,7 +390,7 @@ pub fn shop_config(fixture: &Fixture) -> Config {
     }
 }
 
-async fn app_over(fixture: Fixture, change: impl FnOnce(&mut Config)) -> TestApp {
+pub async fn app_over(fixture: Fixture, change: impl FnOnce(&mut Config)) -> TestApp {
     let mut config = config(&fixture);
     change(&mut config);
     let state = AppState::open(config).await.unwrap();
@@ -1470,6 +1470,91 @@ pub async fn codes_app_at(base_url: &str) -> TestApp {
         "2026.09",
         CODE_DATASETS,
         &code_rows(),
+    );
+    let shop = fixture.shop_path();
+    let base_url = base_url.to_owned();
+    app_over(fixture, |config| {
+        config.shop_data = Some(shop);
+        config.base_url = base_url;
+    })
+    .await
+}
+
+// ----- jobs and labour estimates -----
+
+/// The credit line of the labour dataset.
+pub const LABOR_CREDIT: &str = "Labour estimates by Wenmar Pro, CC BY 4.0";
+
+/// The `datasets` value of the labour fixture: recalls, the job list and
+/// the labour estimates.
+pub const LABOR_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":7,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":2,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence – Canada."},"jobs":{"as_of":"2026-10-11","rows":3,"licence":"mit","attribution":""},"labor":{"as_of":"2026-10-12","rows":6,"licence":"cc-by-4.0","attribution":"Labour estimates by Wenmar Pro, CC BY 4.0"}}"#;
+
+/// [`LABOR_DATASETS`] without the estimates: the job list alone.
+pub const JOB_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":7,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":2,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence – Canada."},"jobs":{"as_of":"2026-10-11","rows":3,"licence":"mit","attribution":""}}"#;
+
+/// Three made-up jobs.
+pub const JOB_INSERTS: &str = r#"
+INSERT INTO component VALUES
+  ('engine', 'Engine', NULL),
+  ('timing-belt', 'Timing belt or chain', 'engine'),
+  ('brakes', 'Brakes', NULL);
+INSERT INTO job VALUES
+  ('test-job-a', 'Test job A', 'engine', '["made-up step one","made-up step two"]', '["made-up exclusion"]', '["test-job-b"]', 0),
+  ('test-job-b', 'Test job B', 'brakes', '["made-up step"]', '[]', '[]', 1),
+  ('test-job-c', 'Test job C', 'engine', '["made-up step"]', '[]', '[]', 2);
+INSERT INTO job_component VALUES ('test-job-a', 'timing-belt', 0), ('test-job-a', 'engine', 1);
+"#;
+
+/// Six made-up estimates, every figure impossible on purpose. The Kona of
+/// model year 2023 (model 900) is a small SUV: job A has a figure for the
+/// model and one for its `2-0l` engine, job B has a class figure, written
+/// and measured, and job C has none that reaches it.
+pub const LABOR_INSERTS: &str = r#"
+INSERT INTO vehicle_class VALUES (900, 2023, 'small-suv', 'epa'), (900, 2022, 'small-suv', 'nearest');
+INSERT INTO labor_estimate VALUES
+  (1, 'test-job-a', 'class', 'small-suv', NULL, NULL, NULL, NULL, NULL, 9750, 9800, 9925, 'expert', NULL, NULL, 'Made-up note.', 'test-author', 'test-reviewer', '2026-10-10'),
+  (2, 'test-job-a', 'model', NULL, 498, 900, NULL, NULL, NULL, 8700, 8800, 8900, 'expert', NULL, NULL, NULL, 'test-author', 'test-reviewer', '2026-10-10'),
+  (3, 'test-job-a', 'engine', NULL, 498, 900, 2023, 2023, '2-0l', 6700, 6800, 6950, 'expert', NULL, NULL, NULL, 'test-author', 'test-reviewer', '2026-10-12'),
+  (4, 'test-job-b', 'class', 'small-suv', NULL, NULL, NULL, NULL, NULL, 5700, 5800, 5900, 'expert', NULL, NULL, NULL, 'test-author', 'test-reviewer', '2026-10-11'),
+  (5, 'test-job-b', 'class', 'small-suv', NULL, NULL, NULL, NULL, NULL, 4700, 4800, 4900, 'observed', 40, 6, NULL, NULL, NULL, '2026-10-12'),
+  (6, 'test-job-c', 'class', 'two-seater', NULL, NULL, NULL, NULL, NULL, 3700, 3800, 3900, 'expert', NULL, NULL, NULL, 'test-author', 'test-reviewer', '2026-10-12');
+"#;
+
+/// The recall tables and rows, then the job tables and [`JOB_INSERTS`].
+pub fn job_rows() -> String {
+    use wenmar_shopdata::schema;
+    format!(
+        "{}{}{}{JOB_INSERTS}",
+        recall_rows(),
+        schema::COMPONENTS,
+        schema::JOBS
+    )
+}
+
+/// [`job_rows`], then the labour tables and [`LABOR_INSERTS`].
+pub fn labor_rows() -> String {
+    format!(
+        "{}{}{LABOR_INSERTS}",
+        job_rows(),
+        wenmar_shopdata::schema::LABOR
+    )
+}
+
+/// The application over the small data file and a shop file holding
+/// recalls, the job list and labour estimates.
+pub async fn labor_app() -> TestApp {
+    app_with_shop(LABOR_DATASETS, &labor_rows()).await
+}
+
+/// [`labor_app`], saying its pages are at `base_url`.
+pub async fn labor_app_at(base_url: &str) -> TestApp {
+    let fixture = data_file();
+    add_shop_file(
+        &fixture,
+        wenmar_shopdata::schema::SCHEMA_VERSION,
+        "2026.09",
+        LABOR_DATASETS,
+        &labor_rows(),
     );
     let shop = fixture.shop_path();
     let base_url = base_url.to_owned();
