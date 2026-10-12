@@ -27,6 +27,7 @@ struct Cli {
 }
 
 #[derive(Subcommand)]
+#[allow(clippy::large_enum_variant)]
 enum Command {
     /// Download a source's files. With no source: a vPIC plain-text dump, extracted.
     Fetch {
