@@ -112,6 +112,13 @@ pub const LICENCES: &[Licence] = &[
         attribution: "Keep the copyright notice in LICENSE.",
     },
     Licence {
+        dataset: "Job list: the repair jobs a labour time can be about",
+        source: "Written by hand for this project, in its own words: data/jobs.yaml",
+        licence: "MIT",
+        licence_id: "mit",
+        attribution: "Keep the copyright notice in LICENSE.",
+    },
+    Licence {
         dataset: "Index of the VIN guides manufacturers file under 49 CFR Part 565",
         source: "NHTSA vPIC, the GetParts list of manufacturer filings, https://vpic.nhtsa.dot.gov/api/",
         licence: "Public domain (United States government work) for the index. The letters it links to belong to the manufacturers and are not copied.",
