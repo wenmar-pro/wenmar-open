@@ -465,6 +465,9 @@ fn the_registry_file_describes_the_hosted_server() {
         "{}",
         description.len()
     );
+    // The registry and the Server Card describe the server in the same words.
+    assert_eq!(description, open_mcp::CARD_DESCRIPTION);
+    assert!(description.contains("recall"), "{description}");
     assert_eq!(file["version"], env!("CARGO_PKG_VERSION"));
     assert_eq!(file["websiteUrl"], "https://open.wenmarpro.com");
     assert_eq!(
@@ -473,4 +476,109 @@ fn the_registry_file_describes_the_hosted_server() {
     );
     // It is a remote server only: nothing to install.
     assert!(file.get("packages").is_none());
+}
+
+/// What `/llms.txt` lists of recalls, as lines of `## API` and of
+/// `## Reference pages`.
+const RECALL_ADDRESSES: [&str; 6] = [
+    "/v1/vehicles/2019_honda_civic/recalls",
+    "/v1/vin/KM8K2CAB4PU001140/recalls",
+    "/v1/recalls/nhtsa/19V888000",
+    "/v1/recalls?make=honda&year=2019",
+    "/makes/honda/civic/2019/recalls.md",
+    "/recalls/nhtsa/19V888000.md",
+];
+
+/// The routes of plan C12 that `/llms.txt` lists. The first three answer on
+/// any server; the last needs recalls.
+const OVERVIEW_ADDRESSES: [&str; 4] = [
+    "/v1/vehicles/2019_honda_civic/overview",
+    "/v1/vin/KM8K2CAB4PU001140/overview",
+    "/v1/models/honda/civic",
+    "/v1/recalls/recent?since=2026-01-01",
+];
+
+#[tokio::test]
+async fn a_server_with_recalls_says_so_where_a_model_looks() {
+    let app = common::recalls_app().await;
+    let text = body_text(app.get("/llms.txt").await).await;
+    assert!(
+        text.contains(
+            "Canadian invoice taxes. Recall campaigns from NHTSA and Transport Canada, listed by model year. No API key"
+        ),
+        "{text}"
+    );
+    let prose = text.split("\n## ").next().unwrap();
+    assert!(prose.contains("may apply to a vehicle of that model year"));
+    assert!(prose.contains("Only the manufacturer can say whether it applies to one vehicle"));
+    assert!(prose.contains("`may_apply: true`"));
+    // Every address listed answers, on this very server.
+    for address in RECALL_ADDRESSES.iter().chain(&OVERVIEW_ADDRESSES) {
+        assert!(
+            text.contains(&format!("](https://open.example{address})")),
+            "{address}"
+        );
+        assert_eq!(app.get(address).await.status(), StatusCode::OK, "{address}");
+    }
+    // The same sections in the same order: recalls add lines, not headings.
+    let sections: Vec<&str> = text
+        .lines()
+        .filter_map(|line| line.strip_prefix("## "))
+        .collect();
+    assert_eq!(
+        sections,
+        [
+            "API",
+            "Docs",
+            "Shop calculators",
+            "Rules for repair shops",
+            "Reference pages",
+            "Optional"
+        ]
+    );
+    // Nothing says a recall applies to a VIN.
+    for wrong in [
+        "applies to this VIN",
+        "applies to your",
+        "open recall",
+        "is affected",
+    ] {
+        assert!(!text.contains(wrong), "{wrong}");
+    }
+
+    let full = body_text(app.get("/llms-full.txt").await).await;
+    assert!(
+        full.contains("Recall campaigns from NHTSA and Transport Canada, listed by model year.")
+    );
+    assert!(full.contains("### Recalls"), "{full}");
+
+    let (_, docs) = page(&app, "/docs").await;
+    assert!(docs.contains(r#"<h2 id="recalls">Recalls</h2>"#), "{docs}");
+    assert!(docs.contains("may apply to a vehicle of that model year"));
+    assert!(docs.contains("curl https://open.example/v1/vehicles/2019_honda_civic/recalls"));
+    // The section sits with the other routes, above the errors.
+    assert!(docs.find(r#"<h2 id="recalls">"#).unwrap() < docs.find(r#"<h2 id="errors">"#).unwrap());
+}
+
+#[tokio::test]
+async fn a_server_without_recalls_lists_no_recall_address() {
+    let app = common::app().await;
+    let text = body_text(app.get("/llms.txt").await).await;
+    // The MCP tool is named either way; no recall address or sentence is.
+    assert!(!text.contains("/recalls"), "{text}");
+    assert!(!text.contains("Recall campaigns"), "{text}");
+    assert!(!text.contains("may apply"), "{text}");
+    // The overview answers without a shop file, so it is always listed.
+    for address in &OVERVIEW_ADDRESSES[..3] {
+        assert!(
+            text.contains(&format!("](https://open.example{address})")),
+            "{address}"
+        );
+        assert_eq!(app.get(address).await.status(), StatusCode::OK, "{address}");
+    }
+    assert!(!text.contains("/v1/recalls/recent"));
+    let full = body_text(app.get("/llms-full.txt").await).await;
+    assert!(!full.contains("### Recalls"));
+    let (_, docs) = page(&app, "/docs").await;
+    assert!(!docs.contains(r#"<h2 id="recalls">"#));
 }

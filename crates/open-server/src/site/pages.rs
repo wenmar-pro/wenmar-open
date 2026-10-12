@@ -55,7 +55,7 @@ pub fn render(page: Page, doc: Doc) -> Response {
 pub fn docs(state: &AppState) -> Doc {
     let base = &state.config().base_url;
     let limit = state.config().requests_per_minute;
-    Doc {
+    let mut doc = Doc {
         title: "API".to_owned(),
         intro: "A JSON API for VIN decoding and for looking up vehicles by year, make, model, trim and engine. It needs no key and no account, and any website may call it from a browser.".to_owned(),
         sections: vec![
@@ -154,7 +154,30 @@ pub fn docs(state: &AppState) -> Doc {
                 ],
             ),
         ],
+    };
+    // Said only by a server that holds recalls: without them every address
+    // below answers 404.
+    if crate::llms::holds_recalls(state) {
+        let recalls = with_code(
+            section(
+                "Recalls",
+                &[
+                    "Recall campaigns from NHTSA, for the United States, and from Transport Canada, newest first. A campaign lists a year, a make and a model, so a recall listed here may apply to a vehicle of that model year. Only the manufacturer can say whether it applies to one vehicle: every answer has may_apply set to true and a lookup object with the official lookups by VIN.",
+                    "Add country=us or country=ca for one country. as_of is the day each country's data was current, and attribution holds the credit the data's licence asks for. A server run without recall data answers these addresses with 404 and the code dataset_unavailable.",
+                ],
+            ),
+            format!(
+                "curl {base}/v1/vehicles/2019_honda_civic/recalls\ncurl {base}/v1/vin/KM8K2CAB4PU001140/recalls\ncurl {base}/v1/recalls/nhtsa/19V888000\ncurl '{base}/v1/recalls?make=honda&year=2019'"
+            ),
+        );
+        let before_errors = doc
+            .sections
+            .iter()
+            .position(|section| section.heading == "Errors")
+            .unwrap_or(doc.sections.len());
+        doc.sections.insert(before_errors, recalls);
     }
+    doc
 }
 
 /// About the data.

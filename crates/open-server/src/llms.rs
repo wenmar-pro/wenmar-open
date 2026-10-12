@@ -17,15 +17,51 @@ use crate::site::{markdown, pages};
 use crate::state::AppState;
 
 /// What the service is, in one paragraph. Both files open with it.
-fn summary(data_version: &str) -> String {
+fn summary(data_version: &str, recalls: bool) -> String {
+    let recalls = if recalls {
+        " Recall campaigns from NHTSA and Transport Canada, listed by model year."
+    } else {
+        ""
+    };
     format!(
-        "Free vehicle data and shop calculators for auto repair shops: VIN decoding, a year, make, model, submodel and engine catalog built from NHTSA's vPIC, and calculators for a shop's prices, margins and Canadian invoice taxes. No API key and no account. Read-only. Data version {data_version}."
+        "Free vehicle data and shop calculators for auto repair shops: VIN decoding, a year, make, model, submodel and engine catalog built from NHTSA's vPIC, and calculators for a shop's prices, margins and Canadian invoice taxes.{recalls} No API key and no account. Read-only. Data version {data_version}."
     )
 }
 
+/// What `/llms.txt` says about recalls, on a server that holds them: a
+/// paragraph of prose, the lines of `## API` and the lines of
+/// `## Reference pages`. The words "may apply" are the point: nothing here
+/// is a lookup by VIN.
+fn recall_text(base: &str) -> (String, String, String) {
+    let prose = format!(
+        "Recall campaigns from NHTSA (United States) and Transport Canada are listed by model year: fetch `{base}/v1/vehicles/` followed by a vehicle id and `/recalls`, or `{base}/v1/vin/` followed by a VIN and `/recalls`. A campaign lists a year, a make and a model, so a recall listed here may apply to a vehicle of that model year. Only the manufacturer can say whether it applies to one vehicle: every answer has `may_apply: true` and a `lookup` object with the official lookups by VIN. `as_of` is the day each country's data was current.\n\n"
+    );
+    let api = format!(
+        "- [Recalls that may apply to a model year]({base}/v1/vehicles/2019_honda_civic/recalls): `GET /v1/vehicles/{{id}}/recalls?country=`
+- [Recalls that may apply to the model year a VIN decodes to]({base}/v1/vin/KM8K2CAB4PU001140/recalls): `GET /v1/vin/{{vin}}/recalls?country=`
+- [One recall campaign]({base}/v1/recalls/nhtsa/19V888000): `GET /v1/recalls/{{source}}/{{campaign}}`
+- [Recall campaigns, listed and searched]({base}/v1/recalls?make=honda&year=2019): `GET /v1/recalls?make=&model=&year=&component=&q=&country=&limit=&cursor=`
+- [Recall campaigns reported since a day]({base}/v1/recalls/recent?since=2026-01-01): `GET /v1/recalls/recent?since=&country=&make=`
+"
+    );
+    let pages = format!(
+        "- [Recalls that may apply to a model year, such as the 2019 Honda Civic]({base}/makes/honda/civic/2019/recalls.md): `/makes/{{make}}/{{model}}/{{year}}/recalls.md`
+- [One recall campaign, such as NHTSA 19V888000]({base}/recalls/nhtsa/19V888000.md): `/recalls/{{source}}/{{campaign}}.md`
+"
+    );
+    (prose, api, pages)
+}
+
 /// The text of `/llms.txt` for a server at `base` serving `data_version`,
-/// where one address may make `limit` requests a minute.
-pub fn text(base: &str, data_version: &str, limit: u32) -> String {
+/// where one address may make `limit` requests a minute. `recalls` says
+/// whether the server holds recall campaigns: what is said of them is left
+/// out of a server that would answer every recall route with 404.
+pub fn text(base: &str, data_version: &str, limit: u32, recalls: bool) -> String {
+    let (recall_prose, recall_api, recall_pages) = if recalls {
+        recall_text(base)
+    } else {
+        Default::default()
+    };
     let guides: String = GUIDES
         .iter()
         .map(|guide| {
@@ -61,7 +97,7 @@ An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenma
 
 The calculators under `{base}/tools` are web pages with forms, for people. An agent does the arithmetic itself: the Markdown version of each calculator states its formula and one worked example.
 
-Vehicle ids such as `2019_honda_civic_si` are built from the year and the names, and stay the same between data releases for as long as the names do. Every reference page has a Markdown version at the same address with `.md` added. The data is what manufacturers reported to NHTSA. It can be incomplete, especially for vehicles never sold in the United States.
+{recall_prose}Vehicle ids such as `2019_honda_civic_si` are built from the year and the names, and stay the same between data releases for as long as the names do. Every reference page has a Markdown version at the same address with `.md` added. The data is what manufacturers reported to NHTSA. It can be incomplete, especially for vehicles never sold in the United States.
 
 ## API
 
@@ -75,7 +111,10 @@ Vehicle ids such as `2019_honda_civic_si` are built from the year and the names,
 - [Engines]({base}/v1/vehicles/engines?make=honda&model=civic&year=2019): `GET /v1/vehicles/engines?make=&model=&year=&submodel=`
 - [Search]({base}/v1/vehicles/search?q=2019+civic+si): `GET /v1/vehicles/search?q=`
 - [One vehicle by id]({base}/v1/vehicles/2019_honda_civic): `GET /v1/vehicles/{{id}}`
-- [Data version]({base}/v1/meta): `GET /v1/meta`
+- [Everything held for one model year]({base}/v1/vehicles/2019_honda_civic/overview): `GET /v1/vehicles/{{id}}/overview`
+- [Everything held for the vehicle a VIN decodes to]({base}/v1/vin/KM8K2CAB4PU001140/overview): `GET /v1/vin/{{vin}}/overview`
+- [Every model year of one model]({base}/v1/models/honda/civic): `GET /v1/models/{{make}}/{{model}}`
+{recall_api}- [Data version]({base}/v1/meta): `GET /v1/meta`
 
 ## Docs
 
@@ -97,13 +136,13 @@ Vehicle ids such as `2019_honda_civic_si` are built from the year and the names,
 - [One make, such as Honda]({base}/makes/honda.md): `/makes/{{make}}.md`
 - [One model year, such as the 2019 Honda Civic]({base}/makes/honda/civic/2019.md): `/makes/{{make}}/{{model}}/{{year}}.md`
 - [One manufacturer code, such as KM8]({base}/wmi/KM8.md): `/wmi/{{code}}.md`
-
+{recall_pages}
 ## Optional
 
 - [About the data]({base}/data.md): the data version, its source and how to download it
 - [About]({base}/about.md): who runs the service and what it keeps
 ",
-        summary = summary(data_version)
+        summary = summary(data_version, recalls)
     )
 }
 
@@ -115,7 +154,7 @@ pub fn full(state: &AppState) -> String {
     let base = &state.config().base_url;
     let mut text = format!(
         "# Wenmar Open\n\n> {}\n\nThis is the documentation of {base} as one file. The same text is on the pages {base}/docs, {base}/guides, {base}/tools, {base}/data and {base}/about.\n",
-        summary(&state.db().meta().data_version)
+        summary(&state.db().meta().data_version, holds_recalls(state))
     );
     let mut docs = vec![pages::docs(state)];
     docs.extend(GUIDES.iter().map(|guide| guide.doc(base)));
@@ -153,11 +192,17 @@ fn plain(body: String) -> Response {
         .into_response()
 }
 
+/// Whether this server holds the recalls of either country.
+pub fn holds_recalls(state: &AppState) -> bool {
+    crate::api::recalls::recall_shop(state, None).is_ok()
+}
+
 pub async fn llms_txt(State(state): State<AppState>) -> Response {
     plain(text(
         &state.config().base_url,
         &state.db().meta().data_version,
         state.config().requests_per_minute,
+        holds_recalls(&state),
     ))
 }
 

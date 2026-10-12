@@ -67,8 +67,7 @@ pub const CATALOG_TYPE: &str = "application/ai-catalog+json";
 
 /// One line, at most a hundred characters, on what this server is for. The
 /// schema sets that limit, and `registry server.json` holds the same words.
-pub const CARD_DESCRIPTION: &str =
-    "Free VIN decoder and vehicle catalog from NHTSA vPIC data. Read-only, no key.";
+pub const CARD_DESCRIPTION: &str = "Free VIN decoder, vehicle catalog and recall campaigns from NHTSA and Transport Canada. No key.";
 
 /// The Server Card (SEP-2127): what this server is and where to reach it,
 /// for a client that has a domain and no connection yet.
