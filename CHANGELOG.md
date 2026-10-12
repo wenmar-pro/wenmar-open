@@ -69,6 +69,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - `open-data fetch epa-emissions` downloads EPA's emissions file, and `shop::epa_emissions::parse` reads it: the emission standard, the sales area code and the smog score each EPA vehicle id was certified with. Nothing uses it yet.
 - `open-data fetch nrcan-fuel` asks open.canada.ca's catalogue for the files of Natural Resources Canada's fuel consumption ratings, checks the dataset is still under the Open Government Licence – Canada, and downloads them; `shop::nrcan_fuel::parse` reads the three layouts (conventional, battery-electric, plug-in hybrid). Nothing uses it yet.
 - `open-data build-shop` takes `--epa-vehicles`, `--epa-guide`, `--epa-emissions` and `--nrcan-fuel`, and writes the datasets `fuel_us`, `fuel_ca`, `specs` and `oil_grade` into four new tables. `open-data coverage` measures `fuel_us` and `fuel_ca`. `wenmar-shopdata` has the module `fuel` with their readers.
+- `open-data fetch nhtsa-mfr-comms` downloads NHTSA's manufacturer communications (service bulletins, warranty extensions, over-the-air updates): it finds the five-year archives by asking for their names, newest name first, because the newest archive is renamed each January, and stops without downloading if a block has none. `shop::mfr_comms::parse` reads them as fetched, checks the 14 field names in `TSBS.txt`, repairs text that was encoded twice, and hands each record on as a typed row. Nothing uses it yet.
 
 ## [0.2.0] - 2026-10-10
 
