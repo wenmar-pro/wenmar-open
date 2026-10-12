@@ -8,6 +8,7 @@
 pub mod dataset;
 pub mod error;
 pub mod licence;
+pub mod recalls;
 pub mod schema;
 pub mod shop;
 
