@@ -987,3 +987,174 @@ A recall listed here may apply to a vehicle of that year, make and model. Only t
         "2023 Hyundai Kona\nPage: https://open.wenmarpro.com/makes/hyundai/kona/2023\n\nRecalls: no recall data is held where this was asked.\n"
     );
 }
+
+// ----- crash test ratings -----
+
+#[test]
+fn the_safety_command_answers_from_the_shop_file_as_the_api_words_it() {
+    let fixture = common::ratings_dir();
+    let run = offline(&fixture, &["vehicles", "safety", "2023_hyundai_kona_se"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    let answer = run.json();
+    assert_eq!(
+        answer["vehicle"],
+        json!({ "id": "2023_hyundai_kona", "year": 2023, "make": "Hyundai", "model": "Kona" })
+    );
+    assert_eq!(answer["as_of"], "2026-08-07");
+    assert_eq!(answer["source"], "NHTSA New Car Assessment Program");
+    assert_eq!(answer["source_url"], "https://www.nhtsa.gov/ratings");
+    assert_eq!(answer["attribution"], json!([]));
+    assert_eq!(answer.as_object().unwrap().len(), 6);
+    // Every rating, by NHTSA's model name, body style and drive. None is
+    // picked.
+    let described: Vec<&str> = answer["ratings"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|rating| rating["description"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        described,
+        [
+            "KONA, SUV, AWD",
+            "KONA, SUV, FWD",
+            "KONA ELECTRIC, SUV, FWD"
+        ]
+    );
+    assert_eq!(
+        answer["ratings"][0],
+        json!({
+            "description": "KONA, SUV, AWD",
+            "model": "KONA",
+            "body_style": "SUV",
+            "vehicle_type": "MPV",
+            "drive": "AWD",
+            "release": 1,
+            "match": "exact",
+            "stars": {
+                "overall": 5,
+                "frontal": 4,
+                "frontal_driver": 4,
+                "frontal_passenger": 4,
+                "side": 5,
+                "side_driver": 5,
+                "side_passenger": 5,
+                "side_barrier": 5,
+                "side_front_seat": 5,
+                "side_rear_seat": 5,
+                "side_pole": 5,
+                "rollover": 4
+            },
+            "rollover_risk_percent": 14.8,
+            "rollover_tip": false,
+            "curb_weight_kg": 1463,
+            "curb_weight_lb": 3225,
+            "features": {
+                "esc": null,
+                "forward_collision_warning": "standard",
+                "forward_collision_warning_evaluation": "meets",
+                "lane_departure_warning": "standard",
+                "lane_departure_warning_evaluation": "meets",
+                "crash_imminent_braking": "standard",
+                "crash_imminent_braking_evaluation": "does_not_meet",
+                "dynamic_brake_support": "standard",
+                "dynamic_brake_support_evaluation": "pending",
+                "backup_camera": null,
+                "blind_spot_detection": "optional",
+                "head_side_airbag": "standard",
+                "torso_side_airbag": "standard"
+            },
+            "notes": []
+        })
+    );
+    assert_eq!(
+        answer["ratings"][1]["notes"],
+        json!([
+            "These ratings do not apply to the N Line.",
+            "The rear door opened in the side test."
+        ])
+    );
+    // A vehicle NHTSA lists and has not tested: every star is null.
+    let electric = &answer["ratings"][2];
+    assert_eq!(electric["match"], "base");
+    for (name, stars) in electric["stars"].as_object().unwrap() {
+        assert!(stars.is_null(), "{name}");
+    }
+    // A model year NHTSA lists nothing for: an empty list, not an error.
+    let run = offline(&fixture, &["vehicles", "safety", "2019_honda_civic"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(run.json()["ratings"], json!([]));
+    assert_eq!(run.json()["as_of"], "2026-08-07");
+    let run = offline(&fixture, &["vehicles", "safety", "2019_honda_nothing"]);
+    assert_eq!(run.code, 3);
+    assert_eq!(run.error()["error"]["message"], "No vehicle has that id.");
+}
+
+#[test]
+fn without_the_ratings_the_safety_command_says_what_to_run() {
+    // With no shop file, and with one that holds the recalls alone.
+    for fixture in [common::data_dir(), common::shop_dir()] {
+        let run = offline(&fixture, &["vehicles", "safety", "2023_hyundai_kona"]);
+        assert_eq!(run.code, 11);
+        assert_eq!(
+            run.error(),
+            json!({
+                "error": {
+                    "code": "dataset_unavailable",
+                    "message": "The ratings dataset is not available.",
+                    "details": { "dataset": "ratings", "hint": "Run: wenmar-open data pull --shop" }
+                }
+            })
+        );
+        // The data file still answers everything else.
+        let run = offline(&fixture, &["vehicles", "entry", "2023_hyundai_kona"]);
+        assert_eq!(run.code, 0, "{}", run.stderr);
+    }
+}
+
+#[test]
+fn at_a_terminal_the_ratings_are_text_in_nhtsas_words() {
+    let fixture = common::ratings_dir();
+    let terminal = Env {
+        stdout_terminal: true,
+        ..common::env(&fixture)
+    };
+    let run = common::run(
+        &terminal,
+        &["vehicles", "safety", "2023_hyundai_kona", "--offline"],
+    );
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(
+        run.stdout,
+        "\
+2023 Hyundai Kona: 3 crash test ratings from NHTSA
+
+KONA, SUV, AWD
+  Overall 5/5, Frontal 4/5, Side 5/5, Rollover 4/5
+  Rollover risk 14.8%
+
+KONA, SUV, FWD
+  Overall 4/5, Frontal 4/5, Side 5/5, Rollover 4/5
+  Rollover risk 15.5%
+  Note: These ratings do not apply to the N Line.
+  Note: The rear door opened in the side test.
+
+KONA ELECTRIC, SUV, FWD
+  No stars: NHTSA lists this vehicle and has not tested it.
+
+As of: 2026-08-07
+Source: NHTSA New Car Assessment Program, https://www.nhtsa.gov/ratings
+NHTSA rates by body style and drive: each rating is for the vehicle named above it.
+"
+    );
+    let run = common::run(
+        &terminal,
+        &["vehicles", "safety", "2019_honda_civic", "--offline"],
+    );
+    assert!(
+        run.stdout
+            .starts_with("2019 Honda Civic: NHTSA lists no crash test rating\n"),
+        "{}",
+        run.stdout
+    );
+}

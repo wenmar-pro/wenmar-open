@@ -279,6 +279,16 @@ pub enum VehiclesCommand {
         /// The vehicle id.
         id: String,
     },
+    /// NHTSA's crash test ratings for a model year.
+    ///
+    /// NHTSA rates a vehicle by body style and drive, so a model year
+    /// often has several ratings, and their stars can differ: each says
+    /// which vehicle it is for. Offline, the ratings come from the shop
+    /// data file (see `wenmar-open data pull --shop`).
+    Safety {
+        /// The vehicle id, such as 2018_ford_f-150.
+        id: String,
+    },
     /// Everything held for one model year, in one answer.
     ///
     /// A count of the recall campaigns that may apply, with the three
@@ -563,6 +573,13 @@ impl VehiclesCommand {
                     ..Lookup::default()
                 },
             ),
+            VehiclesCommand::Safety { id } => (
+                Action::Safety,
+                Lookup {
+                    id: Some(id),
+                    ..Lookup::default()
+                },
+            ),
             VehiclesCommand::Overview { id } => (
                 Action::Overview,
                 Lookup {
@@ -762,6 +779,20 @@ mod tests {
         assert_eq!(lookup.limit, Some(5));
         // The day is required: without it the command line is refused.
         assert!(Cli::try_parse_from(["wenmar-open", "recalls", "recent"]).is_err());
+    }
+
+    #[test]
+    fn the_safety_command_becomes_a_request() {
+        let cli =
+            Cli::try_parse_from(["wenmar-open", "vehicles", "safety", "2018_ford_f-150"]).unwrap();
+        let Some(Command::Vehicles { command }) = cli.command else {
+            panic!("a vehicles command");
+        };
+        let Request::Vehicles { action, lookup } = command.request() else {
+            panic!("a vehicles request");
+        };
+        assert_eq!(action, Action::Safety);
+        assert_eq!(lookup.id.as_deref(), Some("2018_ford_f-150"));
     }
 
     #[test]

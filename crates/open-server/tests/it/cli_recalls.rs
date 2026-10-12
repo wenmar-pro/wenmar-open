@@ -543,3 +543,112 @@ async fn the_tool_answers_overview_questions_as_the_api_does_from_files_and_over
         open_server::api::overview::MOST_VEHICLES_EACH
     );
 }
+
+#[tokio::test(flavor = "multi_thread")]
+async fn the_tool_answers_safety_questions_as_the_api_does_from_files_and_over_http() {
+    // Three servers, and the files that go with each: the ratings beside
+    // the recalls, the recalls alone, and no shop file.
+    for held in ["ratings", "recalls", "nothing"] {
+        let shop = match held {
+            "ratings" => Some((
+                common::RECALL_AND_RATING_DATASETS,
+                format!("{}{}", common::recall_rows(), common::rating_rows()),
+            )),
+            "recalls" => Some((common::RECALL_DATASETS, common::recall_rows())),
+            _ => None,
+        };
+        let app = match &shop {
+            Some((datasets, rows)) => common::app_with_shop(datasets, rows).await,
+            None => common::app().await,
+        };
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address: SocketAddr = listener.local_addr().unwrap();
+        let (stop, stopped) = oneshot::channel::<()>();
+        let serving = tokio::spawn(serve(
+            listener,
+            app.router.clone(),
+            async move {
+                let _ = stopped.await;
+            },
+            Limits::default(),
+        ));
+        let api = format!("http://{address}");
+
+        // The same files, under the names the tool looks for.
+        let fixture = common::data_file();
+        let directory = tempfile::tempdir().unwrap();
+        std::fs::copy(fixture.path(), directory.path().join(DATA_FILE)).unwrap();
+        if let Some((datasets, rows)) = &shop {
+            common::add_shop_file(
+                &fixture,
+                wenmar_shopdata::schema::SCHEMA_VERSION,
+                "2026.09",
+                datasets,
+                rows,
+            );
+            std::fs::copy(fixture.shop_path(), directory.path().join(SHOP_FILE)).unwrap();
+        }
+
+        for id in [
+            "2023_hyundai_kona",
+            "2023_hyundai_kona_se",
+            "2022_hyundai_kona",
+            "2019_ford_f-150",
+            "2019_honda_civic",
+            "2019_honda_nothing",
+        ] {
+            let (status, served) = app.json(&format!("/v1/vehicles/{id}/safety")).await;
+            let ask = |source: &'static str| {
+                let directory = directory.path().to_path_buf();
+                let api = api.clone();
+                tokio::task::spawn_blocking(move || {
+                    tool(&directory, &api, &["vehicles", "safety", id, source])
+                })
+            };
+            let (local_code, local) = ask("--offline").await.unwrap();
+            let (remote_code, remote) = ask("--online").await.unwrap();
+            if status == StatusCode::OK {
+                assert_eq!(held, "ratings", "{id}");
+                assert_eq!((local_code, remote_code), (0, 0), "{id}");
+                // Nothing is set aside: a safety answer has no address of
+                // this site and no link of a maker's, so the files give
+                // every field of it.
+                assert_eq!(remote, served, "{id}");
+                assert_eq!(local, served, "{id}");
+            } else {
+                // The same code and the same sentence, and the same exit
+                // code both ways. The tool may add a hint to the details.
+                assert_eq!(local_code, remote_code, "{id} {held}");
+                assert_ne!(local_code, 0, "{id}");
+                for told in [&local, &remote] {
+                    assert_eq!(told["error"]["code"], served["error"]["code"], "{id}");
+                    assert_eq!(
+                        told["error"]["message"], served["error"]["message"],
+                        "{id} {held}"
+                    );
+                }
+                // Without the ratings every question names the dataset,
+                // whatever else is wrong with it.
+                if held != "ratings" {
+                    assert_eq!(served["error"]["code"], "dataset_unavailable", "{id}");
+                }
+            }
+        }
+
+        let _ = stop.send(());
+        let _ = serving.await;
+    }
+    // The words the files carry are the server's own.
+    assert_eq!(
+        wenmar_shopdata::answer::SAFETY_SOURCE,
+        open_server::api::safety::SOURCE
+    );
+    assert_eq!(
+        wenmar_shopdata::answer::SAFETY_SOURCE_URL,
+        open_server::api::safety::SOURCE_URL
+    );
+    assert_eq!(
+        wenmar_shopdata::answer::kilograms(3225),
+        open_server::api::safety::kilograms(3225)
+    );
+}

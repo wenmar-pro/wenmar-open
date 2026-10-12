@@ -64,6 +64,23 @@ wenmar-open vehicles entry 2019_honda_civic_si
 - An unknown make or model gives an empty list, not an error.
 - A vehicle id such as `2019_honda_civic_si` stays the same between data releases for as long as the names do, so it can be stored.
 
+## Crash test ratings
+
+```bash
+wenmar-open vehicles safety 2018_ford_f-150
+wenmar-open vehicles safety 2018_ford_f-150 --jq '.ratings[] | [.description, .stars.overall]'
+```
+
+NHTSA's crash test ratings for a model year, from its New Car Assessment Program. NHTSA rates a vehicle by body style and drive, so `ratings` often has several entries and their stars can differ. `description` says which vehicle each is for, in NHTSA's words. Report every one, or the one whose body style and drive are known to be the vehicle's; do not pick one otherwise.
+
+- `stars` has `overall`, `frontal`, `side` and `rollover`, and the single tests behind them, each from 1 to 5. A rating with every star `null` is a vehicle NHTSA lists and has not tested. `ratings` is empty when NHTSA lists none for the model year.
+- Each rating also has `rollover_risk_percent`, `curb_weight_kg`, `features` (such as `esc` and `forward_collision_warning`: `standard`, `optional`, `both` or `no`) and `notes`, NHTSA's own remarks.
+- `as_of` is the day NHTSA's file was current, and `source_url` is where NHTSA shows a rating in full.
+- In this answer every field is always there, and one that is not known is `null`.
+- A submodel or an engine in the id is set aside: ratings are listed by year, make and model.
+
+Offline, the ratings are in the shop data file. Without it the error is `dataset_unavailable` and `details.hint` is `Run: wenmar-open data pull --shop`.
+
 ## Recalls
 
 Recall campaigns from NHTSA (United States) and Transport Canada. A campaign lists a year, a make and a model, so every answer is about a model year and has `"may_apply": true`. A recall listed may apply to a vehicle; it is never a statement about one VIN. Neither government publishes recalls by VIN as data. To confirm, check the VIN with the manufacturer or at the addresses in `lookup` (`lookup.nhtsa` for the United States, `lookup.tc` for Canada). Say "may apply" when you report these.
@@ -137,6 +154,6 @@ Online, one address may make 600 requests a minute. Over that the error is `rate
 wenmar-open mcp
 ```
 
-This runs an MCP server on standard input and output with three tools: `wenmar_vin` (actions `decode`, `batch` and `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview` and `model_years`) and `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search` and `recent`). The results are the same JSON as the commands above. `wenmar-open setup claude` and `wenmar-open setup codex` print the command that registers it.
+This runs an MCP server on standard input and output with three tools: `wenmar_vin` (actions `decode`, `batch` and `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years` and `safety`) and `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search` and `recent`). The results are the same JSON as the commands above. `wenmar-open setup claude` and `wenmar-open setup codex` print the command that registers it.
 
 <!-- wenmar-open-skill: managed. Written by `wenmar-open setup`; the next setup replaces it. -->

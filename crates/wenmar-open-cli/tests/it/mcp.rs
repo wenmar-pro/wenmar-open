@@ -751,3 +751,105 @@ fn with_only_the_data_file_the_overview_actions_answer_and_recent_says_what_to_r
         "Run: wenmar-open data pull --shop"
     );
 }
+
+#[test]
+fn the_safety_action_asks_the_api_at_its_route() {
+    let server = server::serve(|request: &Seen| match request.target.as_str() {
+        "/v1/vehicles/2023_hyundai_kona/safety" => {
+            Reply::json(200, &json!({ "route": "safety", "ratings": [] }))
+        }
+        // Something that is not the API's answer: it has no list.
+        "/v1/vehicles/2019_honda_civic/safety" => Reply::json(200, &json!({ "vehicle": null })),
+        _ => Reply::json(
+            404,
+            &json!({ "error": { "code": "dataset_unavailable", "message": "The ratings dataset is not available.", "details": { "dataset": "ratings" } } }),
+        ),
+    });
+    let fixture = common::empty_dir();
+    let env = Env {
+        api: Some(server.url().to_owned()),
+        ..common::env(&fixture)
+    };
+    let answers = session(
+        &env,
+        &["mcp"],
+        &[
+            call(
+                1,
+                "wenmar_vehicles",
+                json!({ "action": "safety", "id": "2023_hyundai_kona" }),
+            ),
+            // The server holds no ratings for this one: its error is the tool's.
+            call(
+                2,
+                "wenmar_vehicles",
+                json!({ "action": "safety", "id": "2022_hyundai_kona" }),
+            ),
+            // Refused here, and never sent.
+            call(
+                3,
+                "wenmar_vehicles",
+                json!({ "action": "safety", "id": "../meta" }),
+            ),
+            call(4, "wenmar_vehicles", json!({ "action": "safety" })),
+            call(
+                5,
+                "wenmar_vehicles",
+                json!({ "action": "safety", "id": "2019_honda_civic" }),
+            ),
+        ],
+    );
+    assert_eq!(answers[0]["result"]["isError"], false);
+    assert_eq!(text(&answers[0])["route"], "safety");
+    assert_eq!(
+        server.targets(),
+        [
+            "/v1/vehicles/2023_hyundai_kona/safety",
+            "/v1/vehicles/2022_hyundai_kona/safety",
+            "/v1/vehicles/2019_honda_civic/safety"
+        ]
+    );
+    let codes: Vec<&str> = answers[1..]
+        .iter()
+        .map(|answer| {
+            assert_eq!(answer["result"]["isError"], true, "{answer}");
+            answer["result"]["structuredContent"]["error"]["code"]
+                .as_str()
+                .unwrap()
+        })
+        .collect();
+    assert_eq!(
+        codes,
+        [
+            "dataset_unavailable",
+            "not_found",
+            "validation_failed",
+            "bad_response"
+        ]
+    );
+}
+
+#[test]
+fn with_only_the_data_file_the_safety_action_says_what_to_run() {
+    let fixture = common::data_dir();
+    let answers = session(
+        &common::env(&fixture),
+        &["mcp"],
+        &[call(
+            1,
+            "wenmar_vehicles",
+            json!({ "action": "safety", "id": "2023_hyundai_kona" }),
+        )],
+    );
+    assert_eq!(answers[0]["result"]["isError"], true);
+    assert_eq!(
+        answers[0]["result"]["structuredContent"],
+        json!({
+            "error": {
+                "code": "dataset_unavailable",
+                "message": "The ratings dataset is not available.",
+                "details": { "dataset": "ratings", "hint": "Run: wenmar-open data pull --shop" }
+            }
+        })
+    );
+}

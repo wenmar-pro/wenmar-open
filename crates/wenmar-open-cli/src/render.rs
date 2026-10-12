@@ -788,6 +788,77 @@ fn recent(value: &Value) -> String {
     text + &recall_footer(value)
 }
 
+/// NHTSA's crash test ratings for a model year: a few lines for each
+/// vehicle NHTSA rated, under NHTSA's own words for it. None is picked.
+fn safety(value: &Value) -> String {
+    let vehicle = &value["vehicle"];
+    let ratings = value["ratings"]
+        .as_array()
+        .map(Vec::as_slice)
+        .unwrap_or_default();
+    let mut text = format!(
+        "{} {} {}: {}\n",
+        cell(vehicle, "year"),
+        cell(vehicle, "make"),
+        cell(vehicle, "model"),
+        match ratings.len() {
+            0 => "NHTSA lists no crash test rating".to_owned(),
+            1 => "1 crash test rating from NHTSA".to_owned(),
+            all => format!("{all} crash test ratings from NHTSA"),
+        }
+    );
+    for rating in ratings {
+        text.push_str(&format!("\n{}\n", cell(rating, "description")));
+        // The four ratings a buyer is shown first, where NHTSA gave them.
+        // An older rating may have only the stars of single tests.
+        let mut stars: Vec<String> = ["overall", "frontal", "side", "rollover"]
+            .iter()
+            .filter_map(|key| {
+                field(&rating["stars"], key).map(|stars| format!("{} {stars}/5", label(key)))
+            })
+            .collect();
+        if stars.is_empty() {
+            stars = fields(&rating["stars"], &[], &[])
+                .iter()
+                .map(|row| format!("{}/5", row.join(" ")))
+                .collect();
+        }
+        if stars.is_empty() {
+            text.push_str("  No stars: NHTSA lists this vehicle and has not tested it.\n");
+        } else {
+            text.push_str(&format!("  {}\n", stars.join(", ")));
+        }
+        if let Some(risk) = field(rating, "rollover_risk_percent") {
+            text.push_str(&format!("  Rollover risk {risk}%\n"));
+        }
+        for note in rating["notes"].as_array().into_iter().flatten() {
+            if let Some(note) = note.as_str() {
+                text.push_str(&format!("  Note: {}\n", one_line(note)));
+            }
+        }
+    }
+    text.push('\n');
+    if let Some(day) = field(value, "as_of") {
+        text.push_str(&format!("As of: {day}\n"));
+    }
+    text.push_str(&format!(
+        "Source: {}, {}\n",
+        cell(value, "source"),
+        cell(value, "source_url")
+    ));
+    for credit in value["attribution"].as_array().into_iter().flatten() {
+        if let Some(credit) = scalar(credit) {
+            text.push_str(&format!("{credit}\n"));
+        }
+    }
+    if !ratings.is_empty() {
+        text.push_str(
+            "NHTSA rates by body style and drive: each rating is for the vehicle named above it.\n",
+        );
+    }
+    text
+}
+
 /// What `data status --shop` reports, as text.
 pub fn shop_status(value: &Value) -> String {
     let path = cell(value, "path");
@@ -887,6 +958,7 @@ pub fn text(request: &Request, value: &Value) -> String {
             vec![cell(found, "id"), cell(found, "summary")]
         }),
         Action::Entry => entry(value),
+        Action::Safety => safety(value),
         Action::Overview => overview(value),
         Action::ModelYears => model_years(value),
     }

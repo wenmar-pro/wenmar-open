@@ -162,6 +162,25 @@ impl Local {
         }
     }
 
+    /// NHTSA's crash test ratings for a model year, from the shop file
+    /// beside the data file, worded as the hosted API words them.
+    fn safety(&self, id: &str) -> Result<Value, CliError> {
+        let Some(shop) = &self.shop else {
+            return Err(if self.shop_status.installed {
+                shop_unusable(&self.shop_status)
+            } else {
+                dataset_unavailable(Dataset::Ratings)
+            });
+        };
+        let answers = Answers {
+            shop,
+            catalog: &self.catalog,
+            core: &self.core,
+            base: SITE,
+        };
+        json(answers.safety(id).map_err(answer_error)?)
+    }
+
     /// The recalls that may apply, from the shop file beside the data
     /// file, worded as the hosted API words them.
     fn recalls(&self, action: RecallAction, lookup: &RecallLookup) -> Result<Value, CliError> {
@@ -346,6 +365,7 @@ impl Local {
                 Some(entry) => json(entry),
                 None => Err(CliError::new(NOT_FOUND, "No vehicle has that id.")),
             },
+            Action::Safety => self.safety(&text(&lookup.id)),
             Action::Overview => json(
                 self.overviews()
                     .vehicle(&text(&lookup.id))

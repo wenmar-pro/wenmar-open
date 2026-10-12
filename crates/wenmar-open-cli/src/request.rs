@@ -52,10 +52,12 @@ pub enum Action {
     Overview,
     /// Every model year of one model.
     ModelYears,
+    /// NHTSA's crash test ratings for one model year, by its vehicle id.
+    Safety,
 }
 
 impl Action {
-    pub const ALL: [Action; 9] = [
+    pub const ALL: [Action; 10] = [
         Action::Years,
         Action::Makes,
         Action::Models,
@@ -65,6 +67,7 @@ impl Action {
         Action::Entry,
         Action::Overview,
         Action::ModelYears,
+        Action::Safety,
     ];
 
     /// The name of the action in the `wenmar_vehicles` tool. For the first
@@ -80,6 +83,7 @@ impl Action {
             Action::Entry => "entry",
             Action::Overview => "overview",
             Action::ModelYears => "model_years",
+            Action::Safety => "safety",
         }
     }
 
@@ -440,7 +444,7 @@ impl Request {
                         model: required("model", lookup.model.as_ref())?,
                         ..Lookup::default()
                     },
-                    Action::Entry | Action::Overview => Lookup {
+                    Action::Entry | Action::Overview | Action::Safety => Lookup {
                         id: required("id", lookup.id.as_ref())?,
                         ..Lookup::default()
                     },
@@ -531,7 +535,7 @@ impl Request {
         let Some(action) = Action::parse(action) else {
             return Err(CliError::validation(
                 "action",
-                "action must be years, makes, models, submodels, engines, search, entry, overview or model_years",
+                "action must be years, makes, models, submodels, engines, search, entry, overview, model_years or safety",
             ));
         };
         Ok(Request::Vehicles {
@@ -1129,6 +1133,32 @@ mod tests {
         );
         let error = Request::from_tool("wenmar_vin", &json!({ "action": "overview" })).unwrap_err();
         assert_eq!(error.details["field"], "vin");
+    }
+
+    #[test]
+    fn the_safety_question_needs_a_vehicle_id_and_is_read_from_a_tool_call() {
+        let error = vehicles(Action::Safety, Lookup::default())
+            .checked(2026)
+            .unwrap_err();
+        assert_eq!(error.code, "validation_failed");
+        assert_eq!(error.details["field"], "id");
+        let asked = Request::from_tool(
+            "wenmar_vehicles",
+            &json!({ "action": "safety", "id": " 2018_ford_f-150 ", "make": "dropped" }),
+        )
+        .unwrap();
+        assert_eq!(
+            asked.checked(2026).unwrap(),
+            vehicles(
+                Action::Safety,
+                Lookup {
+                    id: text("2018_ford_f-150"),
+                    ..Lookup::default()
+                }
+            )
+        );
+        assert_eq!(Action::Safety.name(), "safety");
+        assert!(Action::ALL.contains(&Action::Safety));
     }
 
     #[test]

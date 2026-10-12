@@ -327,6 +327,20 @@ impl Remote {
                 Err(self.not_the_api(200))
             };
         }
+        if action == Action::Safety {
+            let id = lookup.id.clone().unwrap_or_default();
+            // Only text that has the form of an id is put in a path.
+            if VehicleId::parse(&id).is_none() {
+                return Err(CliError::new(NOT_FOUND, "No vehicle has that id."));
+            }
+            let safety = self.get(&format!("/v1/vehicles/{id}/safety"), &[])?;
+            // Every answer has the list, empty or not.
+            return if safety.get("ratings").is_some_and(Value::is_array) {
+                Ok(safety)
+            } else {
+                Err(self.not_the_api(200))
+            };
+        }
         if action == Action::Overview {
             let id = lookup.id.clone().unwrap_or_default();
             // Only text that has the form of an id is put in a path.

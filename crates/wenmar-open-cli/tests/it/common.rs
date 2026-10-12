@@ -307,3 +307,58 @@ pub fn shop_dir() -> Fixture {
     write_shop_file(&fixture.shop_file(), "2026.10.12", "2026.09");
     fixture
 }
+
+// ----- crash test ratings -----
+
+/// The `datasets` value of a shop file that holds the crash test ratings
+/// beside the recalls of both countries.
+pub const RATING_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":3,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."},"ratings":{"as_of":"2026-08-07","rows":3,"licence":"public-domain","attribution":""}}"#;
+
+/// Three ratings of the Kona of model year 2023. The columns are those of
+/// `wenmar_shopdata::schema::RATINGS`, in order. The figures are made up.
+/// Two are rated, by drive; the third NHTSA lists and has not tested, and
+/// it reached the model through `KONA ELECTRIC`.
+pub const RATING_ROWS: &str = "
+INSERT INTO rating VALUES
+  (1, 2023, 'HYUNDAI', 'KONA', 'SUV', 'MPV', 'AWD', 1, 5, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 4, 148, 0, 3225, NULL, 'standard', 'meets', 'standard', 'meets', 'standard', 'does_not_meet', 'standard', 'pending', NULL, 'optional', 'standard', 'standard', NULL),
+  (2, 2023, 'HYUNDAI', 'KONA', 'SUV', 'MPV', 'FWD', 1, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 4, 155, 0, 3005, NULL, 'standard', 'meets', 'standard', 'meets', 'both', 'upgrade_only', 'both', 'standard_only', NULL, 'optional', 'standard', 'standard', 'These ratings do not apply to the N Line.' || char(10) || 'The rear door opened in the side test.'),
+  (3, 2023, 'HYUNDAI', 'KONA ELECTRIC', 'SUV', 'MPV', 'FWD', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'standard', 'pending', 'standard', 'pending', NULL, NULL, NULL, NULL, NULL, NULL, 'standard', 'standard', NULL);
+INSERT INTO rating_vehicle VALUES
+  (1, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact'),
+  (2, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact'),
+  (3, 2023, 498, 900, 'HYUNDAI', 'KONA ELECTRIC', 'base');
+";
+
+/// A data directory holding a data file and a shop file that goes with it
+/// and holds the recalls of [`SHOP_ROWS`] and the ratings above.
+pub fn ratings_dir() -> Fixture {
+    let fixture = data_dir();
+    let connection = Connection::open(fixture.shop_file()).unwrap();
+    connection
+        .execute_batch(wenmar_shopdata::schema::META)
+        .unwrap();
+    for (key, value) in [
+        ("schema_version", wenmar_shopdata::schema::SCHEMA_VERSION),
+        ("data_version", "2026.10.12"),
+        ("catalog_data_version", "2026.09"),
+        ("built_at", "2026-10-12 06:00:00"),
+        ("datasets", RATING_DATASETS),
+    ] {
+        connection
+            .execute(
+                "INSERT INTO meta (key, value) VALUES (?1, ?2)",
+                [key, value],
+            )
+            .unwrap();
+    }
+    for sql in [
+        wenmar_shopdata::schema::RECALLS,
+        SHOP_ROWS,
+        wenmar_shopdata::schema::RATINGS,
+        RATING_ROWS,
+    ] {
+        connection.execute_batch(sql).unwrap();
+    }
+    connection.close().unwrap();
+    fixture
+}

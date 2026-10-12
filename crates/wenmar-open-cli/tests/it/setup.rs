@@ -298,6 +298,7 @@ fn with_no_command_and_no_terminal_the_tool_says_what_it_is_and_stops() {
             "wenmar-open vehicles engines",
             "wenmar-open vehicles search",
             "wenmar-open vehicles entry",
+            "wenmar-open vehicles safety",
             "wenmar-open vehicles overview",
             "wenmar-open vehicles model-years",
             "wenmar-open recalls vehicle",
