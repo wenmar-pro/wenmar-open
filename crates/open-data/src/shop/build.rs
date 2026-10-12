@@ -33,6 +33,14 @@ pub struct ShopInputs {
     pub nhtsa_ratings: Option<PathBuf>,
     /// `data/build/sources/nhtsa-vin-guides`.
     pub nhtsa_vin_guides: Option<PathBuf>,
+    /// `data/build/sources/epa-vehicles`.
+    pub epa_vehicles: Option<PathBuf>,
+    /// `data/build/sources/epa-guide`. Needs `epa_vehicles`.
+    pub epa_guide: Option<PathBuf>,
+    /// `data/build/sources/epa-emissions`. Needs `epa_vehicles`.
+    pub epa_emissions: Option<PathBuf>,
+    /// `data/build/sources/nrcan-fuel`.
+    pub nrcan_fuel: Option<PathBuf>,
 }
 
 /// What the finished file holds.
@@ -149,6 +157,10 @@ fn shape_all(context: &mut ShapeContext<'_>, inputs: &ShopInputs) -> Result<()> 
         nhtsa_recall_reports,
         nhtsa_ratings,
         nhtsa_vin_guides,
+        epa_vehicles,
+        epa_guide,
+        epa_emissions,
+        nrcan_fuel,
     } = inputs;
     if let Some(directory) = nhtsa_recalls {
         crate::shop::nhtsa_recalls::shape(context, directory)?;
@@ -167,6 +179,21 @@ fn shape_all(context: &mut ShapeContext<'_>, inputs: &ShopInputs) -> Result<()> 
     }
     if let Some(directory) = nhtsa_vin_guides {
         crate::shop::nhtsa_vin_guides::shape(context, directory)?;
+    }
+    match epa_vehicles {
+        Some(directory) => crate::shop::fuel::shape_epa(
+            context,
+            directory,
+            epa_guide.as_deref(),
+            epa_emissions.as_deref(),
+        )?,
+        None if epa_guide.is_some() || epa_emissions.is_some() => {
+            bail!("--epa-guide and --epa-emissions need --epa-vehicles")
+        }
+        None => {}
+    }
+    if let Some(directory) = nrcan_fuel {
+        crate::shop::fuel::shape_nrcan(context, directory)?;
     }
     Ok(())
 }

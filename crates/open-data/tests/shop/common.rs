@@ -603,3 +603,16 @@ pub fn nrcan_fuel_dir(scratch: &Scratch) -> PathBuf {
     .unwrap();
     directory
 }
+
+/// A zip at `path` holding one file, `inner`, with `bytes` in it.
+pub fn zip_bytes(path: &std::path::Path, inner: &str, bytes: &[u8]) {
+    use std::io::Write;
+
+    let file = std::fs::File::create(path).unwrap();
+    let mut archive = zip::ZipWriter::new(file);
+    archive
+        .start_file(inner, zip::write::SimpleFileOptions::default())
+        .unwrap();
+    archive.write_all(bytes).unwrap();
+    archive.finish().unwrap();
+}

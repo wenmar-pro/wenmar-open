@@ -86,6 +86,18 @@ enum Command {
         /// The fetched nhtsa-vin-guides directory. Adds the vin_guides dataset.
         #[arg(long)]
         nhtsa_vin_guides: Option<PathBuf>,
+        /// The fetched epa-vehicles directory. Adds the fuel_us and specs datasets.
+        #[arg(long)]
+        epa_vehicles: Option<PathBuf>,
+        /// The fetched epa-guide directory. Adds the oil_grade dataset. Needs --epa-vehicles.
+        #[arg(long)]
+        epa_guide: Option<PathBuf>,
+        /// The fetched epa-emissions directory. Adds emission standards to specs. Needs --epa-vehicles.
+        #[arg(long)]
+        epa_emissions: Option<PathBuf>,
+        /// The fetched nrcan-fuel directory. Adds the fuel_ca dataset.
+        #[arg(long)]
+        nrcan_fuel: Option<PathBuf>,
     },
     /// Decode one VIN against a data file and print the JSON.
     Decode {
@@ -298,6 +310,10 @@ fn main() -> Result<()> {
             nhtsa_recall_reports,
             nhtsa_ratings,
             nhtsa_vin_guides,
+            epa_vehicles,
+            epa_guide,
+            epa_emissions,
+            nrcan_fuel,
         } => {
             let built_at = now();
             let data_version = data_version.unwrap_or_else(|| {
@@ -318,6 +334,10 @@ fn main() -> Result<()> {
                 nhtsa_recall_reports,
                 nhtsa_ratings,
                 nhtsa_vin_guides,
+                epa_vehicles,
+                epa_guide,
+                epa_emissions,
+                nrcan_fuel,
             };
             let summary = build_shop(&catalog, &out, &curated, &info, &inputs)?;
             println!(

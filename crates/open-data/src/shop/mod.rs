@@ -10,6 +10,7 @@ pub mod epa_emissions;
 pub mod epa_guide;
 pub mod epa_match;
 pub mod epa_vehicles;
+pub mod fuel;
 pub mod matcher;
 pub mod nhtsa_investigations;
 pub mod nhtsa_ratings;
