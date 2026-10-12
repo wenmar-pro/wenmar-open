@@ -171,7 +171,7 @@ jobs:
         if: steps.pick.outputs.exists == 'false'
         run: |
           set -euo pipefail
-          for source in nhtsa-recalls tc-recalls nhtsa-investigations nhtsa-recall-reports nhtsa-ratings nhtsa-vin-guides epa-vehicles epa-guide epa-emissions nrcan-fuel nhtsa-mfr-comms; do
+          for source in nhtsa-recalls tc-recalls nhtsa-investigations nhtsa-recall-reports nhtsa-ratings nhtsa-vin-guides epa-vehicles epa-guide epa-emissions nrcan-fuel nhtsa-mfr-comms nhtsa-complaints; do
             ./target/release/open-data fetch "$source" --dir data/build
             cat "data/build/sources/$source/source.json"
           done
@@ -197,6 +197,7 @@ jobs:
             --nhtsa-recalls data/build/sources/nhtsa-recalls \
             --tc-recalls data/build/sources/tc-recalls \
             --nhtsa-mfr-comms data/build/sources/nhtsa-mfr-comms \
+            --nhtsa-complaints data/build/sources/nhtsa-complaints \
             --epa-vehicles data/build/sources/epa-vehicles \
             --epa-guide data/build/sources/epa-guide \
             --epa-emissions data/build/sources/epa-emissions \

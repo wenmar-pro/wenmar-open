@@ -94,3 +94,14 @@ After the sources are stored the build reads `data/components.yaml` (see `data/c
 ## Siblings
 
 After the sources are stored the build fills `vehicle_sibling`: for a model year, the other models that share recall campaigns and bulletins with it. Only documents that list two to four catalog models are counted; a pair is kept from five shared documents up, when they are at least a fifth of the model year's own. It says two models have documents in common. It is not fitment and is never shown as such.
+
+## Complaints
+
+`bin/shop-data` adds the `complaints` dataset when its source has been fetched:
+
+```bash
+cargo run --release -p open-data -- fetch nhtsa-complaints   # 374 MB
+bin/shop-data
+```
+
+NHTSA's file holds every complaint an owner has filed since 1995, with what the owner wrote, where they live and part of the VIN. The build keeps none of that. It reads eleven of each record's 51 fields (the list is `READ` in `crates/open-data/src/shop/complaints.rs`) and stores one table, `complaint_count`: for each catalog model year and each component of `data/components.yaml`, the number of complaints, how many of them report a crash, a fire or an injury, and the median mileage at failure. The row with an empty `component_id` counts every complaint of the model year. A test fails if the table gains a column.
