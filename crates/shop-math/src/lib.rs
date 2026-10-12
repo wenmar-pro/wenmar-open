@@ -19,6 +19,7 @@ pub mod parts_matrix;
 mod percent;
 mod quantity;
 pub mod targets;
+pub mod tire_size;
 
 pub use decimal::{ParseError, TooLarge};
 pub use money::Money;
