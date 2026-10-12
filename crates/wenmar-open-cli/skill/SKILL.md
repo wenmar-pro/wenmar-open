@@ -107,6 +107,22 @@ wenmar-open recalls search --component "air bags" --limit 5
 
 Offline, the recalls are in a second file, the shop data file. Without it the error is `dataset_unavailable` and `details.hint` is `Run: wenmar-open data pull --shop`. `lookup.maker`, the manufacturer's own lookup, is filled only by the hosted API; offline it is `null`.
 
+## Bulletins
+
+Manufacturer communications NHTSA publishes: service bulletins, service campaigns, warranty extensions and over-the-air updates. A bulletin is not a recall, and it does not say a vehicle is affected: a bulletin lists model years. The summary is NHTSA's; the document is the manufacturer's and is linked at NHTSA, never quoted.
+
+```bash
+wenmar-open bulletins vehicle 2018_ford_f-150
+wenmar-open bulletins vehicle 2023_hyundai_kona --code P0420
+wenmar-open bulletins vin KM8K2CAB4PU001140 --type warranty_extension
+wenmar-open bulletins get 10152456
+wenmar-open bulletins search --make ford --query "water pump" --limit 5
+```
+
+- `bulletins vehicle` and `bulletins vin` list the bulletins of a model year, newest first, with `counts` by type, component, trouble code and topic. Narrow with `--type`, `--component`, `--code`, `--topic maintenance` or `--query`. `--limit` is at most 100, and `next_cursor` goes in `--cursor`.
+- `bulletins get` gives one bulletin with every vehicle it lists. `bulletins search` lists all of them, narrowed by `--make`, `--model` (needs `--make`) and `--year`.
+- Bulletins come from the hosted API only. Offline the error is `dataset_unavailable` and `details.hint` says to run the command again with `--online`.
+
 ## Everything for one vehicle
 
 One answer with everything held for a model year, asked for by vehicle id or by VIN; every model year of a model; and the recall campaigns reported since a day.
@@ -121,7 +137,7 @@ wenmar-open recalls recent --since 2026-09-01 --make ford --country ca
 ```
 
 - `vehicles overview` and `vin overview` give `vehicle`, `decode` (what the VIN decoded to in brief; `null` when asked by vehicle id), `recalls`, `links` and `attribution`. `recalls` has `count` (`us` and `ca`), `do_not_drive`, `park_outside`, the three `newest` campaigns, `as_of`, `lookup` and `"may_apply": true`. It counts the campaigns that may apply to the year, make and model, and is never a statement about one VIN. The whole list is `recalls vehicle`.
-- A block with no data is `null`. `safety` is what `vehicles safety` gives, where the crash test ratings are held, online and offline. `specs`, `fuel` and `fluids` are filled by the hosted API where its server holds them; from local files they are `null` for now. `tires`, `labor` and `bulletins` are `null` everywhere today. Offline, `recalls` is `null` when there is no shop data file. That is not an error.
+- A block with no data is `null`. `safety` is what `vehicles safety` gives, where the crash test ratings are held, online and offline. `specs`, `fuel` and `fluids` are filled by the hosted API where its server holds them; from local files they are `null` for now. `bulletins` is filled by the hosted API where its server holds bulletins, and is `null` offline. `tires` and `labor` are `null` everywhere today. Offline, `recalls` is `null` when there is no shop data file. That is not an error.
 - A VIN that decodes to no vehicle in the catalog gives `"vehicle": null`, every block `null` and a warning with the code `no_catalog_vehicle`.
 - `vehicles model-years` lists every model year of one model, newest first, each with its vehicle id and `recalls`, the number of campaigns that may apply (`null` when no recalls are held).
 - `recalls recent` lists the campaigns reported on or after `--since`, a day written like `2026-09-01`, newest first, each with `vehicles`, the vehicles it lists (at most 200; `vehicles_listed` is how many there are in all). Compare `vehicles[].vehicle_id` with your own list. `--make`, `--country`, `--limit` and `--cursor` are as in `recalls search`. Offline it needs the shop data file.
@@ -154,6 +170,6 @@ Online, one address may make 600 requests a minute. Over that the error is `rate
 wenmar-open mcp
 ```
 
-This runs an MCP server on standard input and output with three tools: `wenmar_vin` (actions `decode`, `batch` and `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years` and `safety`) and `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search` and `recent`). The results are the same JSON as the commands above. `wenmar-open setup claude` and `wenmar-open setup codex` print the command that registers it.
+This runs an MCP server on standard input and output with four tools: `wenmar_vin` (actions `decode`, `batch` and `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years` and `safety`), `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search` and `recent`) and `wenmar_bulletins` (actions `vehicle`, `vin`, `get` and `search`). The results are the same JSON as the commands above. `wenmar-open setup claude` and `wenmar-open setup codex` print the command that registers it.
 
 <!-- wenmar-open-skill: managed. Written by `wenmar-open setup`; the next setup replaces it. -->

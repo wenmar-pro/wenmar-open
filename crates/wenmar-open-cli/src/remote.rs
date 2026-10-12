@@ -6,7 +6,10 @@ use serde_json::{Value, json};
 use wenmar_vehicles::VehicleId;
 
 use crate::error::{BAD_RESPONSE, CliError, NETWORK, NOT_FOUND, USAGE};
-use crate::request::{Action, Lookup, RecallAction, RecallLookup, Request, current_year};
+use crate::request::{
+    Action, BulletinAction, BulletinLookup, Lookup, RecallAction, RecallLookup, Request,
+    current_year,
+};
 
 /// The longest answer read from the API, in bytes.
 const LONGEST_ANSWER: u64 = 4 * 1024 * 1024;
@@ -175,6 +178,7 @@ impl Remote {
             }
             Request::Vehicles { action, lookup } => self.vehicles(*action, lookup),
             Request::Recalls { action, lookup } => self.recalls(*action, lookup),
+            Request::Bulletins { action, lookup } => self.bulletins(*action, lookup),
         }
     }
 
@@ -241,6 +245,63 @@ impl Remote {
         let answer = self.get(&path, &query)?;
         // Every recall answer says so.
         if answer.get("may_apply") == Some(&Value::Bool(true)) {
+            Ok(answer)
+        } else {
+            Err(self.not_the_api(200))
+        }
+    }
+
+    /// The bulletin routes. Whatever goes in the path has been checked to
+    /// be an id, a VIN or a number.
+    fn bulletins(
+        &self,
+        action: BulletinAction,
+        lookup: &BulletinLookup,
+    ) -> Result<Value, CliError> {
+        let text = |field: &Option<String>| field.clone().unwrap_or_default();
+        let mut query: Vec<(&str, String)> = Vec::new();
+        let mut add = |name: &'static str, value: Option<String>| {
+            if let Some(value) = value {
+                query.push((name, value));
+            }
+        };
+        let path = match action {
+            BulletinAction::Vehicle => {
+                let id = text(&lookup.id);
+                if VehicleId::parse(&id).is_none() {
+                    return Err(CliError::new(NOT_FOUND, "No vehicle has that id."));
+                }
+                format!("/v1/vehicles/{id}/bulletins")
+            }
+            BulletinAction::Vin => {
+                add("year", lookup.year.map(|year| year.to_string()));
+                format!("/v1/vin/{}/bulletins", text(&lookup.vin))
+            }
+            BulletinAction::Get => match lookup.nhtsa_id {
+                Some(nhtsa_id) => format!("/v1/bulletins/{nhtsa_id}"),
+                None => return Err(CliError::new(NOT_FOUND, "No bulletin has that NHTSA id.")),
+            },
+            BulletinAction::Search => {
+                add("make", lookup.make.clone());
+                add("model", lookup.model.clone());
+                add("year", lookup.year.map(|year| year.to_string()));
+                "/v1/bulletins".to_owned()
+            }
+        };
+        // The filters every list takes, after the ones an action has.
+        if action != BulletinAction::Get {
+            add("type", lookup.kind.clone());
+            add("component", lookup.component.clone());
+            add("code", lookup.code.clone());
+            add("topic", lookup.topic.clone());
+            add("q", lookup.query.clone());
+            add("limit", lookup.limit.map(|limit| limit.to_string()));
+            add("cursor", lookup.cursor.clone());
+        }
+        let answer = self.get(&path, &query)?;
+        // Every bulletin answer carries the note that says what a bulletin
+        // is.
+        if answer.get("note").is_some_and(Value::is_string) {
             Ok(answer)
         } else {
             Err(self.not_the_api(200))

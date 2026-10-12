@@ -26,15 +26,25 @@ pub const PULL_HINT: &str = "Run `wenmar-open data pull` to download the current
 /// What to do when the recalls are not here.
 pub const SHOP_PULL_HINT: &str = "Run: wenmar-open data pull --shop";
 
+/// What to do about a dataset only the hosted service carries.
+pub const HOSTED_ONLY_HINT: &str =
+    "Bulletins are served by the hosted API only. Run the command again with --online.";
+
 /// The error for a dataset the local files do not hold: the API's own
-/// `dataset_unavailable`, with what to run to get the data.
+/// `dataset_unavailable`, with what to run to get the data. A dataset only
+/// the hosted service carries is told to be asked for online.
 pub fn dataset_unavailable(dataset: Dataset) -> CliError {
+    let hint = if dataset.hosted_only() {
+        HOSTED_ONLY_HINT
+    } else {
+        SHOP_PULL_HINT
+    };
     CliError::new(
         DATASET_UNAVAILABLE,
         ShopError::DatasetUnavailable(dataset).to_string(),
     )
     .with_details(serde_json::json!({ "dataset": dataset.id() }))
-    .with_hint(SHOP_PULL_HINT)
+    .with_hint(hint)
 }
 
 /// The recall dataset a question needs first: the country asked for, or
@@ -278,6 +288,8 @@ impl Local {
             }
             Request::Vehicles { action, lookup } => self.vehicles(*action, lookup),
             Request::Recalls { action, lookup } => self.recalls(*action, lookup),
+            // The files do not hold bulletins: the hosted API answers them.
+            Request::Bulletins { .. } => Err(dataset_unavailable(Dataset::Bulletins)),
         }
     }
 

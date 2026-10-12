@@ -355,3 +355,88 @@ fn the_api_address_is_a_flag_or_a_variable_and_must_be_http() {
         assert_eq!(run.error()["error"]["code"], "usage", "{address}");
     }
 }
+
+/// Answers the bulletin routes the way the hosted API does, with the note
+/// every bulletin answer carries.
+fn bulletin_api(request: &Seen) -> Reply {
+    let (path, _) = request
+        .target
+        .split_once('?')
+        .unwrap_or((&request.target, ""));
+    let answer = json!({
+        "as_of": "2026-10-11",
+        "bulletins": [],
+        "note": "A bulletin is a manufacturer's communication to its dealers, as NHTSA indexes it."
+    });
+    match path {
+        "/v1/vehicles/2018_ford_f-150/bulletins"
+        | "/v1/vin/KM8K2CAB4PU001140/bulletins"
+        | "/v1/bulletins/10152456"
+        | "/v1/bulletins" => Reply::json(200, &answer),
+        _ => Reply::json(
+            404,
+            &json!({ "error": { "code": "not_found", "message": "There is nothing at this address.", "details": {} } }),
+        ),
+    }
+}
+
+#[test]
+fn bulletins_are_asked_at_the_bulletin_routes_with_their_filters() {
+    let server = server::serve(bulletin_api);
+    let fixture = common::empty_dir();
+    let env = online(&fixture, server.url());
+    let run = common::run(
+        &env,
+        &[
+            "bulletins",
+            "vehicle",
+            "2018_ford_f-150",
+            "--type",
+            "warranty_extension",
+            "--query",
+            "noise",
+            "--limit",
+            "5",
+        ],
+    );
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    let run = common::run(&env, &["bulletins", "vin", KONA, "--year", "2023"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    let run = common::run(&env, &["bulletins", "get", "10152456"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    let run = common::run(
+        &env,
+        &["bulletins", "search", "--make", "ford", "--code", "P0420"],
+    );
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(
+        server.targets(),
+        [
+            "/v1/vehicles/2018_ford_f-150/bulletins?type=warranty_extension&q=noise&limit=5",
+            "/v1/vin/KM8K2CAB4PU001140/bulletins?year=2023&limit=25",
+            "/v1/bulletins/10152456",
+            "/v1/bulletins?make=ford&code=P0420&limit=25",
+        ]
+    );
+}
+
+#[test]
+fn bulletins_are_never_answered_from_the_data_file() {
+    let fixture = common::data_dir();
+    // Offline, the question is refused and says to ask online.
+    let run = common::run(
+        &common::env(&fixture),
+        &["bulletins", "vehicle", "2018_ford_f-150", "--offline"],
+    );
+    assert_eq!(run.code, 11, "{}", run.stderr);
+    let error = run.error();
+    assert_eq!(error["error"]["code"], "dataset_unavailable");
+    assert_eq!(error["error"]["details"]["dataset"], "bulletins");
+    assert!(error.to_string().contains("--online"), "{error}");
+    // With the data file and no flag, the question goes to the API.
+    let server = server::serve(bulletin_api);
+    let env = online(&fixture, server.url());
+    let run = common::run(&env, &["bulletins", "get", "10152456"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(server.targets(), ["/v1/bulletins/10152456"]);
+}

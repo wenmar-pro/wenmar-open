@@ -33,6 +33,11 @@ const FIRST_VIN_YEAR: u16 = 1980;
 /// may be.
 pub const RECALLS_DEFAULT: usize = 25;
 pub const RECALLS_MOST: usize = 100;
+
+/// Bulletins in a list when `limit` is not given, and the most one list
+/// holds.
+pub const BULLETINS_DEFAULT: usize = 25;
+pub const BULLETINS_MOST: usize = 100;
 /// Longest recall campaign number read.
 pub const LONGEST_CAMPAIGN: usize = 20;
 /// What the API says of a campaign it does not have.
@@ -170,6 +175,64 @@ pub struct RecallLookup {
     pub since: Option<String>,
 }
 
+/// A question about manufacturer bulletins.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BulletinAction {
+    /// The bulletins that list a model year, by its vehicle id.
+    Vehicle,
+    /// The same, for the model year a VIN decodes to.
+    Vin,
+    /// One bulletin with every vehicle it lists.
+    Get,
+    /// Bulletins, newest first, narrowed by what is given.
+    Search,
+}
+
+impl BulletinAction {
+    pub const ALL: [BulletinAction; 4] = [
+        BulletinAction::Vehicle,
+        BulletinAction::Vin,
+        BulletinAction::Get,
+        BulletinAction::Search,
+    ];
+
+    /// The name of the action in the `wenmar_bulletins` tool.
+    pub fn name(self) -> &'static str {
+        match self {
+            BulletinAction::Vehicle => "vehicle",
+            BulletinAction::Vin => "vin",
+            BulletinAction::Get => "get",
+            BulletinAction::Search => "search",
+        }
+    }
+
+    fn parse(name: &str) -> Option<BulletinAction> {
+        BulletinAction::ALL
+            .into_iter()
+            .find(|action| action.name() == name)
+    }
+}
+
+/// What a bulletin question may carry. Which fields matter depends on the
+/// [`BulletinAction`].
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct BulletinLookup {
+    pub id: Option<String>,
+    pub vin: Option<String>,
+    pub year: Option<u16>,
+    pub nhtsa_id: Option<u64>,
+    pub make: Option<String>,
+    pub model: Option<String>,
+    /// The `type` of the API.
+    pub kind: Option<String>,
+    pub component: Option<String>,
+    pub code: Option<String>,
+    pub topic: Option<String>,
+    pub query: Option<String>,
+    pub limit: Option<usize>,
+    pub cursor: Option<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Request {
     VinDecode {
@@ -192,6 +255,11 @@ pub enum Request {
     Recalls {
         action: RecallAction,
         lookup: RecallLookup,
+    },
+    /// Manufacturer bulletins. Served by the hosted API only.
+    Bulletins {
+        action: BulletinAction,
+        lookup: BulletinLookup,
     },
 }
 
@@ -358,6 +426,72 @@ fn checked_recalls(
     })
 }
 
+/// The filters every bulletin list may carry, with the API's limit.
+fn bulletin_filters(lookup: &BulletinLookup) -> BulletinLookup {
+    BulletinLookup {
+        kind: present(lookup.kind.as_ref()),
+        component: present(lookup.component.as_ref()),
+        code: present(lookup.code.as_ref()),
+        topic: present(lookup.topic.as_ref()),
+        query: present(lookup.query.as_ref()),
+        limit: Some(
+            lookup
+                .limit
+                .unwrap_or(BULLETINS_DEFAULT)
+                .clamp(1, BULLETINS_MOST),
+        ),
+        cursor: present(lookup.cursor.as_ref()),
+        ..BulletinLookup::default()
+    }
+}
+
+/// A bulletin question with the API's rules applied.
+fn checked_bulletins(
+    action: BulletinAction,
+    lookup: BulletinLookup,
+    current_year: u16,
+) -> Result<BulletinLookup, CliError> {
+    Ok(match action {
+        BulletinAction::Vehicle => BulletinLookup {
+            id: required("id", lookup.id.as_ref())?,
+            ..bulletin_filters(&lookup)
+        },
+        BulletinAction::Vin => {
+            let Some(vin) = lookup.vin.as_ref() else {
+                return Err(CliError::validation("vin", "vin is required"));
+            };
+            vin_year(lookup.year, current_year)?;
+            BulletinLookup {
+                vin: Some(well_formed(vin)?.as_str().to_owned()),
+                year: lookup.year,
+                ..bulletin_filters(&lookup)
+            }
+        }
+        BulletinAction::Get => match lookup.nhtsa_id {
+            Some(nhtsa_id) => BulletinLookup {
+                nhtsa_id: Some(nhtsa_id),
+                ..BulletinLookup::default()
+            },
+            None => {
+                return Err(CliError::validation("nhtsa_id", "nhtsa_id is required"));
+            }
+        },
+        BulletinAction::Search => {
+            let make = present(lookup.make.as_ref());
+            let model = present(lookup.model.as_ref());
+            if model.is_some() && make.is_none() {
+                return Err(CliError::validation("make", "model needs make"));
+            }
+            BulletinLookup {
+                make,
+                model,
+                year: lookup.year,
+                ..bulletin_filters(&lookup)
+            }
+        }
+    })
+}
+
 impl Request {
     /// The request with the API's rules applied: required fields present,
     /// text cut to length, limits within bounds. Fields the action does not
@@ -390,6 +524,10 @@ impl Request {
             Request::Recalls { action, lookup } => Ok(Request::Recalls {
                 action,
                 lookup: checked_recalls(action, lookup, current_year)?,
+            }),
+            Request::Bulletins { action, lookup } => Ok(Request::Bulletins {
+                action,
+                lookup: checked_bulletins(action, lookup, current_year)?,
             }),
             Request::Vehicles { action, lookup } => {
                 let term = present(lookup.term.as_ref());
@@ -529,6 +667,32 @@ impl Request {
                     limit: number(arguments, "limit")?,
                     cursor: text(arguments, "cursor")?,
                     since: text(arguments, "since")?,
+                },
+            });
+        }
+        if tool == "wenmar_bulletins" {
+            let Some(action) = BulletinAction::parse(action) else {
+                return Err(CliError::validation(
+                    "action",
+                    "action must be vehicle, vin, get or search",
+                ));
+            };
+            return Ok(Request::Bulletins {
+                action,
+                lookup: BulletinLookup {
+                    id: text(arguments, "id")?,
+                    vin: text(arguments, "vin")?,
+                    year: number(arguments, "year")?,
+                    nhtsa_id: number(arguments, "nhtsa_id")?,
+                    make: text(arguments, "make")?,
+                    model: text(arguments, "model")?,
+                    kind: text(arguments, "type")?,
+                    component: text(arguments, "component")?,
+                    code: text(arguments, "code")?,
+                    topic: text(arguments, "topic")?,
+                    query: text(arguments, "query")?,
+                    limit: number(arguments, "limit")?,
+                    cursor: text(arguments, "cursor")?,
                 },
             });
         }
@@ -984,6 +1148,105 @@ mod tests {
             .unwrap_err();
             assert_eq!(error.code, "not_found", "{source} {campaign}");
             assert_eq!(error.message, "No recall campaign has that number.");
+        }
+    }
+
+    fn bulletins(action: BulletinAction, lookup: BulletinLookup) -> Request {
+        Request::Bulletins { action, lookup }
+    }
+
+    #[test]
+    fn a_bulletin_question_is_checked_as_the_api_checks_it() {
+        // A model needs a make; the list's limit is set and blank text dropped.
+        let cases = [
+            (BulletinAction::Vehicle, BulletinLookup::default(), "id"),
+            (BulletinAction::Vin, BulletinLookup::default(), "vin"),
+            (BulletinAction::Get, BulletinLookup::default(), "nhtsa_id"),
+            (
+                BulletinAction::Search,
+                BulletinLookup {
+                    model: text("kona"),
+                    ..BulletinLookup::default()
+                },
+                "make",
+            ),
+        ];
+        for (action, lookup, field) in cases {
+            let error = bulletins(action, lookup).checked(2026).unwrap_err();
+            assert_eq!(error.code, "validation_failed", "{field}");
+            assert_eq!(error.details["field"], field, "{field}");
+        }
+        assert_eq!(
+            bulletins(BulletinAction::Search, BulletinLookup::default())
+                .checked(2026)
+                .unwrap(),
+            bulletins(
+                BulletinAction::Search,
+                BulletinLookup {
+                    limit: Some(BULLETINS_DEFAULT),
+                    ..BulletinLookup::default()
+                }
+            )
+        );
+        let Request::Bulletins { lookup, .. } = bulletins(
+            BulletinAction::Vehicle,
+            BulletinLookup {
+                id: text(" 2023_hyundai_kona "),
+                kind: text("   "),
+                limit: Some(500),
+                make: text("dropped"),
+                ..BulletinLookup::default()
+            },
+        )
+        .checked(2026)
+        .unwrap() else {
+            panic!("a bulletins request");
+        };
+        assert_eq!(lookup.id, text("2023_hyundai_kona"));
+        assert_eq!(lookup.kind, None);
+        assert_eq!(lookup.limit, Some(BULLETINS_MOST));
+        assert_eq!(lookup.make, None);
+    }
+
+    #[test]
+    fn a_bulletins_tool_call_is_read_into_a_request() {
+        assert_eq!(
+            Request::from_tool(
+                "wenmar_bulletins",
+                &json!({ "action": "get", "nhtsa_id": 10152456 })
+            )
+            .unwrap(),
+            bulletins(
+                BulletinAction::Get,
+                BulletinLookup {
+                    nhtsa_id: Some(10_152_456),
+                    ..BulletinLookup::default()
+                }
+            )
+        );
+        assert_eq!(
+            Request::from_tool(
+                "wenmar_bulletins",
+                &json!({ "action": "vehicle", "id": "2018_ford_f-150", "type": "warranty_extension", "query": "noise" })
+            )
+            .unwrap(),
+            bulletins(
+                BulletinAction::Vehicle,
+                BulletinLookup {
+                    id: text("2018_ford_f-150"),
+                    kind: text("warranty_extension"),
+                    query: text("noise"),
+                    ..BulletinLookup::default()
+                }
+            )
+        );
+        for (arguments, field) in [
+            (json!({ "action": "recall" }), "action"),
+            (json!({ "action": "get", "nhtsa_id": "ten" }), "nhtsa_id"),
+        ] {
+            let error = Request::from_tool("wenmar_bulletins", &arguments).unwrap_err();
+            assert_eq!(error.code, "validation_failed", "{arguments}");
+            assert_eq!(error.details["field"], field, "{arguments}");
         }
     }
 

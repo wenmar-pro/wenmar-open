@@ -11,6 +11,7 @@ mod api_safety;
 mod api_vehicles;
 mod api_vin;
 mod capture;
+mod cli_bulletins;
 mod cli_recalls;
 mod common;
 mod db;

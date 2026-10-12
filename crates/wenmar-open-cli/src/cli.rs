@@ -4,7 +4,9 @@ use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
 
-use crate::request::{Action, Lookup, RecallAction, RecallLookup, Request};
+use crate::request::{
+    Action, BulletinAction, BulletinLookup, Lookup, RecallAction, RecallLookup, Request,
+};
 use crate::setup::Agent;
 
 /// Free vehicle data for auto repair shops: decode a VIN, or look a vehicle
@@ -72,6 +74,13 @@ pub enum Command {
         #[command(subcommand)]
         command: RecallsCommand,
     },
+    /// Manufacturer service bulletins, warranty extensions and software
+    /// updates that NHTSA publishes. They are served by the hosted API
+    /// only: the local shop data file does not hold them.
+    Bulletins {
+        #[command(subcommand)]
+        command: BulletinsCommand,
+    },
     /// The local data file, for answers without a connection.
     Data {
         #[command(subcommand)]
@@ -79,8 +88,8 @@ pub enum Command {
     },
     /// Run an MCP server on standard input and output, for AI agents.
     ///
-    /// It offers three tools, wenmar_vin, wenmar_vehicles and wenmar_recalls,
-    /// the same as the hosted server at /mcp.
+    /// It offers four tools, wenmar_vin, wenmar_vehicles, wenmar_recalls and
+    /// wenmar_bulletins, the same as the hosted server at /mcp.
     Mcp,
     /// Set up a coding agent to use this tool.
     ///
@@ -400,6 +409,138 @@ pub enum RecallsCommand {
     },
 }
 
+/// The filters of a bulletin list, the same in each command that takes
+/// them.
+#[derive(Debug, Clone, Default, Args)]
+pub struct BulletinFilterArgs {
+    /// Only this type: service_bulletin, service_campaign,
+    /// warranty_extension, over_the_air, emissions or other.
+    #[arg(long = "type", value_name = "TYPE")]
+    pub kind: Option<String>,
+    /// Only bulletins about this component, such as brakes or brake-pad.
+    #[arg(long)]
+    pub component: Option<String>,
+    /// Only bulletins whose summary names this trouble code, such as P0420.
+    #[arg(long)]
+    pub code: Option<String>,
+    /// Only bulletins with this topic. `maintenance` is the only one.
+    #[arg(long)]
+    pub topic: Option<String>,
+    /// Only bulletins with this text in them, such as a symptom.
+    #[arg(long)]
+    pub query: Option<String>,
+    /// At most this many, up to 100. The default is 25.
+    #[arg(long)]
+    pub limit: Option<usize>,
+    /// `next_cursor` of the page before, to get the next page.
+    #[arg(long)]
+    pub cursor: Option<String>,
+}
+
+impl BulletinFilterArgs {
+    fn into_lookup(self) -> BulletinLookup {
+        BulletinLookup {
+            kind: self.kind,
+            component: self.component,
+            code: self.code,
+            topic: self.topic,
+            query: self.query,
+            limit: self.limit,
+            cursor: self.cursor,
+            ..BulletinLookup::default()
+        }
+    }
+}
+
+#[derive(Debug, Subcommand)]
+pub enum BulletinsCommand {
+    /// The bulletins that list a model year, newest first.
+    ///
+    /// The list is for the year, make and model, not for one vehicle.
+    Vehicle {
+        /// The vehicle id, such as 2018_ford_f-150.
+        id: String,
+        #[command(flatten)]
+        filter: BulletinFilterArgs,
+    },
+    /// The bulletins that list the model year a VIN decodes to.
+    ///
+    /// The VIN only names the year, make and model. A bulletin is not a
+    /// recall, and the list does not say which vehicles a bulletin concerns.
+    Vin {
+        /// The 17-character VIN.
+        vin: String,
+        /// Use this model year instead of the one worked out from the VIN.
+        #[arg(long)]
+        year: Option<u16>,
+        #[command(flatten)]
+        filter: BulletinFilterArgs,
+    },
+    /// One bulletin with every vehicle it lists.
+    Get {
+        /// NHTSA's id number for the communication, such as 10152456.
+        nhtsa_id: u64,
+    },
+    /// Bulletins, newest first, narrowed by what is given.
+    Search {
+        /// Only bulletins that list a vehicle of this make.
+        #[arg(long)]
+        make: Option<String>,
+        /// Only bulletins that list this model. Needs --make.
+        #[arg(long)]
+        model: Option<String>,
+        /// Only bulletins that list this model year.
+        #[arg(long)]
+        year: Option<u16>,
+        #[command(flatten)]
+        filter: BulletinFilterArgs,
+    },
+}
+
+impl BulletinsCommand {
+    pub fn request(self) -> Request {
+        let (action, lookup) = match self {
+            BulletinsCommand::Vehicle { id, filter } => (
+                BulletinAction::Vehicle,
+                BulletinLookup {
+                    id: Some(id),
+                    ..filter.into_lookup()
+                },
+            ),
+            BulletinsCommand::Vin { vin, year, filter } => (
+                BulletinAction::Vin,
+                BulletinLookup {
+                    vin: Some(vin),
+                    year,
+                    ..filter.into_lookup()
+                },
+            ),
+            BulletinsCommand::Get { nhtsa_id } => (
+                BulletinAction::Get,
+                BulletinLookup {
+                    nhtsa_id: Some(nhtsa_id),
+                    ..BulletinLookup::default()
+                },
+            ),
+            BulletinsCommand::Search {
+                make,
+                model,
+                year,
+                filter,
+            } => (
+                BulletinAction::Search,
+                BulletinLookup {
+                    make,
+                    model,
+                    year,
+                    ..filter.into_lookup()
+                },
+            ),
+        };
+        Request::Bulletins { action, lookup }
+    }
+}
+
 impl RecallsCommand {
     pub fn request(self) -> Request {
         let (action, lookup) = match self {
@@ -712,6 +853,59 @@ mod tests {
     }
 
     #[test]
+    fn the_bulletin_commands_become_bulletin_requests() {
+        let request = |args: &[&str]| {
+            let cli = Cli::try_parse_from(args).unwrap();
+            let Some(Command::Bulletins { command }) = cli.command else {
+                panic!("a bulletins command");
+            };
+            let Request::Bulletins { action, lookup } = command.request() else {
+                panic!("a bulletins request");
+            };
+            (action, lookup)
+        };
+        let (action, lookup) = request(&[
+            "wenmar-open",
+            "bulletins",
+            "vehicle",
+            "2018_ford_f-150",
+            "--type",
+            "warranty_extension",
+            "--limit",
+            "5",
+        ]);
+        assert_eq!(action, BulletinAction::Vehicle);
+        assert_eq!(lookup.id.as_deref(), Some("2018_ford_f-150"));
+        assert_eq!(lookup.kind.as_deref(), Some("warranty_extension"));
+        assert_eq!(lookup.limit, Some(5));
+        let (action, lookup) = request(&["wenmar-open", "bulletins", "get", "10152456"]);
+        assert_eq!(action, BulletinAction::Get);
+        assert_eq!(lookup.nhtsa_id, Some(10_152_456));
+        let (action, lookup) = request(&[
+            "wenmar-open",
+            "bulletins",
+            "search",
+            "--make",
+            "ford",
+            "--code",
+            "P0420",
+        ]);
+        assert_eq!(action, BulletinAction::Search);
+        assert_eq!(lookup.make.as_deref(), Some("ford"));
+        assert_eq!(lookup.code.as_deref(), Some("P0420"));
+        let (action, lookup) = request(&[
+            "wenmar-open",
+            "bulletins",
+            "vin",
+            "KM8K2CAB4PU001140",
+            "--year",
+            "2023",
+        ]);
+        assert_eq!(action, BulletinAction::Vin);
+        assert_eq!(lookup.year, Some(2023));
+    }
+
+    #[test]
     fn the_overview_commands_become_requests() {
         let request = |args: &[&str]| {
             let cli = Cli::try_parse_from(args).unwrap();
@@ -719,6 +913,7 @@ mod tests {
                 Some(Command::Vin { command }) => command.request(),
                 Some(Command::Vehicles { command }) => command.request(),
                 Some(Command::Recalls { command }) => command.request(),
+                Some(Command::Bulletins { command }) => command.request(),
                 _ => panic!("a command that asks a question"),
             }
         };

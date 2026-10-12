@@ -16,6 +16,9 @@ pub enum Backend {
     Local(Box<Local>),
     /// The hosted API.
     Remote(Remote),
+    /// The data file, with the hosted API for what the file does not hold:
+    /// bulletins. Chosen when neither `--offline` nor `--online` is given.
+    Mixed { local: Box<Local>, remote: Remote },
 }
 
 impl Backend {
@@ -41,7 +44,12 @@ impl Backend {
         let status = data::inspect(&path);
         if status.usable {
             match Local::open(&path) {
-                Ok(local) => return Ok(Backend::Local(Box::new(local))),
+                Ok(local) => {
+                    return Ok(Backend::Mixed {
+                        local: Box::new(local),
+                        remote: Remote::new(&api)?,
+                    });
+                }
                 Err(error) => notes.push(format!("{} Using the API at {api}.", error.message)),
             }
         } else if let Some(problem) = &status.problem {
@@ -60,13 +68,17 @@ impl Backend {
         match self {
             Backend::Local(local) => local.run(&request),
             Backend::Remote(remote) => remote.run(&request),
+            Backend::Mixed { local, remote } => match request {
+                Request::Bulletins { .. } => remote.run(&request),
+                _ => local.run(&request),
+            },
         }
     }
 
     /// One line saying where answers come from.
     pub fn describe(&self) -> String {
         match self {
-            Backend::Local(local) => format!(
+            Backend::Local(local) | Backend::Mixed { local, .. } => format!(
                 "offline, data {}",
                 local.status().data_version.as_deref().unwrap_or("unknown")
             ),

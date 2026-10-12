@@ -7,7 +7,7 @@
 
 use serde_json::Value;
 
-use crate::request::{Action, RecallAction, Request};
+use crate::request::{Action, BulletinAction, RecallAction, Request};
 
 /// A value with every control character replaced, so that data cannot move
 /// the cursor, change colours or ring the bell.
@@ -593,6 +593,113 @@ fn recall_campaign(value: &Value) -> String {
     text + &recall_footer(value)
 }
 
+/// One bulletin: its date, type and number, then its summary and the
+/// address of NHTSA's copy of its document, when NHTSA gives one.
+fn bulletin_lines(bulletin: &Value) -> String {
+    let number = field(bulletin, "document_id")
+        .unwrap_or_else(|| format!("NHTSA {}", cell(bulletin, "nhtsa_id")));
+    let mut text = format!(
+        "{}  {}  {}\n",
+        cell(bulletin, "date_added"),
+        cell(bulletin, "type_name"),
+        number
+    );
+    if let Some(summary) = bulletin["summary"].as_str() {
+        text.push_str(&format!("  {}\n", one_line(summary)));
+    }
+    if let Some(url) = field(&bulletin["document"], "url") {
+        text.push_str(&format!("  NHTSA's copy: {url}\n"));
+    }
+    text
+}
+
+/// The bulletin answers end with the note that says what a bulletin is.
+fn bulletin_note(value: &Value) -> String {
+    field(value, "note").map_or_else(String::new, |note| format!("{note}\n"))
+}
+
+/// The first line of a bulletin list: the model year and its count when the
+/// answer names one, and the day the bulletins were current.
+fn bulletin_heading(value: &Value) -> String {
+    let as_of = field(value, "as_of").unwrap_or_else(|| "date not on file".to_owned());
+    let vehicle = &value["vehicle"];
+    if vehicle.is_object() {
+        let count = field(&value["counts"], "count").unwrap_or_else(|| "0".to_owned());
+        format!(
+            "Bulletins for the {} {} {}: {count} on file, as of {as_of}",
+            cell(vehicle, "year"),
+            cell(vehicle, "make"),
+            cell(vehicle, "model")
+        )
+    } else {
+        format!("Bulletins, as of {as_of}")
+    }
+}
+
+/// A list of bulletins under its heading line.
+fn bulletin_list(heading: String, value: &Value) -> String {
+    let mut text = heading + "\n\n";
+    for bulletin in value["bulletins"].as_array().into_iter().flatten() {
+        text.push_str(&bulletin_lines(bulletin));
+        text.push('\n');
+    }
+    if let Some(cursor) = field(value, "next_cursor") {
+        text.push_str(&format!("More: add --cursor {cursor}\n\n"));
+    }
+    text + &bulletin_note(value)
+}
+
+/// The answer to a bulletin question, as text.
+fn bulletins(action: BulletinAction, value: &Value) -> String {
+    match action {
+        BulletinAction::Vehicle | BulletinAction::Search => {
+            bulletin_list(bulletin_heading(value), value)
+        }
+        BulletinAction::Vin => {
+            let mut heading = bulletin_heading(value);
+            for warning in value["warnings"].as_array().into_iter().flatten() {
+                if let Some(message) = field(warning, "message") {
+                    heading.push_str(&format!("\nWarning: {message}"));
+                }
+            }
+            bulletin_list(heading, value)
+        }
+        BulletinAction::Get => {
+            let mut text = bulletin_lines(value);
+            let names = |key: &str, name: &dyn Fn(&Value) -> Option<String>| {
+                value[key]
+                    .as_array()
+                    .into_iter()
+                    .flatten()
+                    .filter_map(name)
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            };
+            let components = names("components", &|item| field(item, "name"));
+            if !components.is_empty() {
+                text.push_str(&format!("Components: {components}\n"));
+            }
+            let codes = names("codes", &scalar);
+            if !codes.is_empty() {
+                text.push_str(&format!("Trouble codes: {codes}\n"));
+            }
+            let vehicles = names("vehicles", &|item| {
+                Some(format!(
+                    "{}-{} {} {}",
+                    cell(item, "year_from"),
+                    cell(item, "year_to"),
+                    cell(item, "make"),
+                    cell(item, "model")
+                ))
+            });
+            if !vehicles.is_empty() {
+                text.push_str(&format!("Vehicles: {vehicles}\n"));
+            }
+            text + &bulletin_note(value)
+        }
+    }
+}
+
 /// The answer to a recall question, as text.
 fn recalls(action: RecallAction, value: &Value) -> String {
     match action {
@@ -918,6 +1025,7 @@ pub fn text(request: &Request, value: &Value) -> String {
         Request::VinBatch { .. } => return batch(value),
         Request::VinOverview { .. } => return overview(value),
         Request::Recalls { action, .. } => return recalls(*action, value),
+        Request::Bulletins { action, .. } => return bulletins(*action, value),
         Request::Vehicles { action, .. } => *action,
     };
     match action {
