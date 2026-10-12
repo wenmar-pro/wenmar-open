@@ -18,6 +18,10 @@ pub const DEFAULT_RELEASES: &str = "https://api.github.com/repos/wenmar-pro/wenm
 /// The data file's name inside the data directory.
 pub const DATA_FILE: &str = "wenmar-open.sqlite3";
 
+/// The shop file's name inside the data directory: the datasets beside the
+/// catalog, such as recalls.
+pub const SHOP_FILE: &str = "wenmar-open-shop.sqlite3";
+
 /// The directory this tool makes inside the platform's data directory.
 const DIRECTORY: &str = "wenmar-open";
 
