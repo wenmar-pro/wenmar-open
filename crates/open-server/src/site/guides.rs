@@ -19,6 +19,8 @@ use crate::site::tools::target::source_links;
 use crate::site::{self, Page, jsonld, seo};
 use crate::state::AppState;
 
+mod fluids;
+
 /// The VIN the guides take apart: a 2023 Hyundai Kona. It is the example
 /// on `/docs` too.
 pub const EXAMPLE: &str = "KM8K2CAB4PU001140";
@@ -581,6 +583,50 @@ pub static GUIDES: [Guide; 6] = [
     },
 ];
 
+/// What a section says until a person has written it. No guide in
+/// [`GUIDES`] may hold it.
+pub const NOT_WRITTEN: &str = "This section has not been written yet.";
+
+/// Guides whose text is not written and approved. Nothing serves or lists
+/// them. A guide is published by moving its entry from here to [`GUIDES`].
+pub static DRAFTS: [Guide; 5] = [
+    Guide {
+        slug: "engine-oil-specifications",
+        title: "Engine oil specifications explained",
+        description: "What the letters on a bottle of engine oil mean: viscosity grades, API and ILSAC categories, dexos and the European approvals, and which replaces which.",
+        topic: Topic::Shop,
+        doc: fluids::engine_oil,
+    },
+    Guide {
+        slug: "transmission-fluids",
+        title: "Transmission fluid types explained",
+        description: "The families of transmission fluid in plain words: automatic, CVT, dual-clutch and manual, which fluids replace older ones, and what not to substitute.",
+        topic: Topic::Shop,
+        doc: fluids::transmission_fluids,
+    },
+    Guide {
+        slug: "coolant-types",
+        title: "Coolant types and chemistries explained",
+        description: "The chemistries of engine coolant in plain words: what the inhibitor types are, why color is not a specification, and what happens when types are mixed.",
+        topic: Topic::Shop,
+        doc: fluids::coolant,
+    },
+    Guide {
+        slug: "brake-fluid-grades",
+        title: "Brake fluid grades explained",
+        description: "The grades of brake fluid in plain words: what the DOT numbers mean, which fluids mix and which do not, and why moisture sets the service interval.",
+        topic: Topic::Shop,
+        doc: fluids::brake_fluid,
+    },
+    Guide {
+        slug: "refrigerants",
+        title: "Automotive refrigerants explained",
+        description: "The refrigerants in vehicle air conditioning in plain words: which is used where, the fittings and oils that go with each, and the rules on handling them.",
+        topic: Topic::Shop,
+        doc: fluids::refrigerants,
+    },
+];
+
 const INDEX_TITLE: &str = "VIN guide: how to read, find and check a VIN";
 const INDEX_DESCRIPTION: &str = "Short answers about vehicle identification numbers: what each position means, where the VIN is on a vehicle, the model year chart and the check digit.";
 
@@ -841,6 +887,46 @@ mod tests {
             // voice is plain.
             let text = markdown::doc(&guide.doc("https://open.example"));
             assert!(text.is_ascii(), "{}", guide.slug);
+        }
+    }
+
+    #[test]
+    fn every_draft_has_its_own_address_title_and_description() {
+        for (index, guide) in DRAFTS.iter().enumerate() {
+            assert!(wenmar_vehicles::text::is_slug(guide.slug), "{}", guide.slug);
+            assert!(guide.title.len() <= 46, "{}", guide.title);
+            assert!(
+                (100..=160).contains(&guide.description.len()),
+                "{}: {}",
+                guide.slug,
+                guide.description.len()
+            );
+            assert_eq!(guide.topic, Topic::Shop, "{}", guide.slug);
+            for listed in &GUIDES {
+                assert_ne!(guide.slug, listed.slug);
+                assert_ne!(guide.title, listed.title);
+                assert_ne!(guide.description, listed.description);
+            }
+            for other in &DRAFTS[index + 1..] {
+                assert_ne!(guide.slug, other.slug);
+                assert_ne!(guide.title, other.title);
+                assert_ne!(guide.description, other.description);
+            }
+            let doc = guide.doc("https://open.example");
+            assert_eq!(doc.title, guide.title);
+            assert!(markdown::doc(&doc).is_ascii(), "{}", guide.slug);
+        }
+    }
+
+    #[test]
+    fn no_listed_guide_has_a_section_that_is_not_written() {
+        for guide in &GUIDES {
+            let text = markdown::doc(&guide.doc("https://open.example"));
+            assert!(
+                !text.contains(NOT_WRITTEN),
+                "{} is listed and not written",
+                guide.slug
+            );
         }
     }
 }
