@@ -170,6 +170,21 @@ const calls: Record<string, { call: () => Promise<unknown>; method: string; url:
     method: "GET",
     url: "/v1/recalls?make=ford&year=2018&q=tailgate&limit=5",
   },
+  code: {
+    call: () => client.code("P0420"),
+    method: "GET",
+    url: "/v1/codes/P0420",
+  },
+  code_search: {
+    call: () => client.codes({ system: "powertrain/emissions", q: "p04", limit: 5 }),
+    method: "GET",
+    url: "/v1/codes?system=powertrain%2Femissions&q=p04&limit=5",
+  },
+  vehicle_code: {
+    call: () => client.vehicleCode("2018_ford_f-150", "P0420"),
+    method: "GET",
+    url: "/v1/vehicles/2018_ford_f-150/codes/P0420",
+  },
   vehicle_bulletins: {
     call: () => client.bulletins("2018_ford_f-150", { type: "warranty_extension", limit: 5 }),
     method: "GET",

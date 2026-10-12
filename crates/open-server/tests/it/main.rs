@@ -2,6 +2,7 @@
 //! engine again, and disk space on the build machines is limited.
 
 mod api_bulletins;
+mod api_codes;
 mod api_complaints;
 mod api_fuel;
 mod api_hand;

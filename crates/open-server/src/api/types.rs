@@ -1877,3 +1877,139 @@ pub struct OverviewComplaints {
     /// The section of the model year's page on this site.
     pub url: String,
 }
+
+// ----- trouble codes -----
+
+/// A component a trouble code concerns.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct CodeComponent {
+    #[schema(example = "oxygen-sensor")]
+    pub id: String,
+    #[schema(example = "Oxygen sensor")]
+    pub name: String,
+    /// The system a part belongs to. `null` for a system.
+    #[schema(example = "exhaust-emissions")]
+    pub parent: Option<String>,
+}
+
+/// A trouble code in a list.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct CodeLink {
+    #[schema(example = "P0420")]
+    pub code: String,
+    /// Where the index lists it: a group (`powertrain`, `body`, `chassis`,
+    /// `network`), or a group and an area of it.
+    #[schema(example = "powertrain/emissions")]
+    pub system: String,
+    pub title: String,
+    /// The code's page on this site.
+    #[schema(example = "https://open.wenmarpro.com/codes/P0420")]
+    pub url: String,
+}
+
+/// One generic trouble code, described in this project's own words.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct Code {
+    #[schema(example = "P0420")]
+    pub code: String,
+    /// Always `true` here: only codes every maker uses the same way are
+    /// described.
+    pub generic: bool,
+    #[schema(example = "powertrain/emissions")]
+    pub system: String,
+    #[schema(example = "Emission controls")]
+    pub system_name: String,
+    pub title: String,
+    /// What the code tells a service advisor.
+    pub meaning: String,
+    /// General causes, not about one make.
+    pub common_causes: Vec<String>,
+    /// What a technician usually verifies first.
+    pub checks: Vec<String>,
+    pub components: Vec<CodeComponent>,
+    /// Related codes that are described too.
+    pub related: Vec<CodeLink>,
+    /// The GitHub name of the person who approved the text.
+    pub reviewer: String,
+    /// The day it was approved.
+    #[schema(example = "2026-10-12")]
+    pub checked: String,
+    #[schema(example = "https://open.wenmarpro.com/codes/P0420")]
+    pub url: String,
+    /// What a description is and is not.
+    pub note: String,
+    /// The credit lines the data's licences ask for.
+    pub attribution: Vec<String>,
+}
+
+/// One page of the described codes, by code.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct CodeList {
+    /// The newest day a description was approved.
+    #[schema(example = "2026-10-12")]
+    pub as_of: Option<String>,
+    pub codes: Vec<CodeLink>,
+    /// Pass it back as `cursor` for the next page. `null` on the last.
+    pub next_cursor: Option<String>,
+    pub note: String,
+    pub attribution: Vec<String>,
+}
+
+/// The bulletins of a model year whose summary names a code.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct CodeBulletins {
+    /// The day the bulletins were current.
+    #[schema(example = "2026-10-11")]
+    pub as_of: Option<String>,
+    /// How many there are. `bulletins` holds at most ten.
+    pub count: u64,
+    /// The newest, newest first.
+    pub bulletins: Vec<Bulletin>,
+    /// The model year's bulletin page on this site, narrowed to the code.
+    pub url: String,
+}
+
+/// The recalls of a model year about the components a code concerns.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct CodeRecalls {
+    /// Always `true`: a campaign lists a model year, never one vehicle.
+    pub may_apply: bool,
+    /// At most ten, newest first.
+    pub recalls: Vec<Recall>,
+    pub lookup: RecallLookup,
+}
+
+/// What else is held for the model year about the components a code
+/// concerns.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct CodeRelated {
+    /// The components of the code's description. Empty without one.
+    pub components: Vec<CodeComponent>,
+    /// Bulletins about those components that do not name the code, at
+    /// most ten. `null` where bulletins are not held.
+    pub bulletins: Option<Vec<Bulletin>>,
+    /// `null` where recalls are not held.
+    pub recalls: Option<CodeRecalls>,
+}
+
+/// A trouble code on one model year.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct VehicleCode {
+    pub vehicle: RecallVehicle,
+    #[schema(example = "P0420")]
+    pub code: String,
+    /// Whether every maker uses the code the same way. A code that is not
+    /// generic is never described, and may still be named by bulletins.
+    pub generic: bool,
+    /// `null` when the code is not generic, when nobody has described it,
+    /// or where descriptions are not held.
+    pub description: Option<Code>,
+    /// `null` where bulletins are not held: they are on the hosted
+    /// service only.
+    pub bulletins: Option<CodeBulletins>,
+    pub related: CodeRelated,
+    /// The page of this code on this model year.
+    pub url: String,
+    pub note: String,
+    pub attribution: Vec<String>,
+}

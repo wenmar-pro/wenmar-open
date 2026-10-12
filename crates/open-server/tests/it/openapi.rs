@@ -37,6 +37,8 @@ fn the_description_lists_every_route_and_no_others() {
         [
             "/v1/bulletins",
             "/v1/bulletins/{nhtsa_id}",
+            "/v1/codes",
+            "/v1/codes/{code}",
             "/v1/makes/{make}",
             "/v1/meta",
             "/v1/models/{make}/{model}",
@@ -53,6 +55,7 @@ fn the_description_lists_every_route_and_no_others() {
             "/v1/vehicles/years",
             "/v1/vehicles/{id}",
             "/v1/vehicles/{id}/bulletins",
+            "/v1/vehicles/{id}/codes/{code}",
             "/v1/vehicles/{id}/complaints",
             "/v1/vehicles/{id}/fluids",
             "/v1/vehicles/{id}/fuel",
@@ -122,6 +125,10 @@ fn the_description_lists_every_route_and_no_others() {
         "Bulletin",
         "BulletinDocument",
         "BulletinCounts",
+        "Code",
+        "CodeList",
+        "VehicleCode",
+        "CodeRelated",
         "VehicleComplaints",
         "ComponentComplaints",
     ] {

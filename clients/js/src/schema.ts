@@ -45,6 +45,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The trouble codes that are described, by code. */
+        get: operations["code_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/codes/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One generic trouble code, described in this project's own words.
+         * @description Only codes every maker uses the same way are described: `P0`, `P2`,
+         *     `P3400` and up, `B0`, `C0`, `U0` and `U3`. The text is general and is
+         *     not about one make.
+         */
+        get: operations["code"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/makes/{make}": {
         parameters: {
             query?: never;
@@ -339,6 +378,32 @@ export interface paths {
          *     what kind, so a caller can offer the narrowings that have something.
          */
         get: operations["vehicle_bulletins"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vehicles/{id}/codes/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A trouble code on one model year: its description, the bulletins of
+         *     that model year whose summary names it, and the bulletins and recalls
+         *     of that model year about the components the description names.
+         * @description Any code answers, a manufacturer-specific one included: such a code has
+         *     `description: null` and whatever bulletins name it. `bulletins` and
+         *     `related.bulletins` are `null` where bulletins are not held, and
+         *     `related.recalls` is `null` where recalls are not. Nothing here says a
+         *     recall applies to one vehicle, or what is wrong with it.
+         */
+        get: operations["vehicle_code"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1006,6 +1071,124 @@ export interface components {
              */
             expected: string;
             valid: boolean;
+        };
+        /** @description One generic trouble code, described in this project's own words. */
+        Code: {
+            /** @description The credit lines the data's licences ask for. */
+            attribution: string[];
+            /**
+             * @description The day it was approved.
+             * @example 2026-10-12
+             */
+            checked: string;
+            /** @description What a technician usually verifies first. */
+            checks: string[];
+            /** @example P0420 */
+            code: string;
+            /** @description General causes, not about one make. */
+            common_causes: string[];
+            components: components["schemas"]["CodeComponent"][];
+            /**
+             * @description Always `true` here: only codes every maker uses the same way are
+             *     described.
+             */
+            generic: boolean;
+            /** @description What the code tells a service advisor. */
+            meaning: string;
+            /** @description What a description is and is not. */
+            note: string;
+            /** @description Related codes that are described too. */
+            related: components["schemas"]["CodeLink"][];
+            /** @description The GitHub name of the person who approved the text. */
+            reviewer: string;
+            /** @example powertrain/emissions */
+            system: string;
+            /** @example Emission controls */
+            system_name: string;
+            title: string;
+            /** @example https://open.wenmarpro.com/codes/P0420 */
+            url: string;
+        };
+        /** @description The bulletins of a model year whose summary names a code. */
+        CodeBulletins: {
+            /**
+             * @description The day the bulletins were current.
+             * @example 2026-10-11
+             */
+            as_of?: string | null;
+            /** @description The newest, newest first. */
+            bulletins: components["schemas"]["Bulletin"][];
+            /**
+             * Format: int64
+             * @description How many there are. `bulletins` holds at most ten.
+             */
+            count: number;
+            /** @description The model year's bulletin page on this site, narrowed to the code. */
+            url: string;
+        };
+        /** @description A component a trouble code concerns. */
+        CodeComponent: {
+            /** @example oxygen-sensor */
+            id: string;
+            /** @example Oxygen sensor */
+            name: string;
+            /**
+             * @description The system a part belongs to. `null` for a system.
+             * @example exhaust-emissions
+             */
+            parent?: string | null;
+        };
+        /** @description A trouble code in a list. */
+        CodeLink: {
+            /** @example P0420 */
+            code: string;
+            /**
+             * @description Where the index lists it: a group (`powertrain`, `body`, `chassis`,
+             *     `network`), or a group and an area of it.
+             * @example powertrain/emissions
+             */
+            system: string;
+            title: string;
+            /**
+             * @description The code's page on this site.
+             * @example https://open.wenmarpro.com/codes/P0420
+             */
+            url: string;
+        };
+        /** @description One page of the described codes, by code. */
+        CodeList: {
+            /**
+             * @description The newest day a description was approved.
+             * @example 2026-10-12
+             */
+            as_of?: string | null;
+            attribution: string[];
+            codes: components["schemas"]["CodeLink"][];
+            /** @description Pass it back as `cursor` for the next page. `null` on the last. */
+            next_cursor?: string | null;
+            note: string;
+        };
+        /** @description The recalls of a model year about the components a code concerns. */
+        CodeRecalls: {
+            lookup: components["schemas"]["RecallLookup"];
+            /** @description Always `true`: a campaign lists a model year, never one vehicle. */
+            may_apply: boolean;
+            /** @description At most ten, newest first. */
+            recalls: components["schemas"]["Recall"][];
+        };
+        /**
+         * @description What else is held for the model year about the components a code
+         *     concerns.
+         */
+        CodeRelated: {
+            /**
+             * @description Bulletins about those components that do not name the code, at
+             *     most ten. `null` where bulletins are not held.
+             */
+            bulletins?: components["schemas"]["Bulletin"][] | null;
+            /** @description The components of the code's description. Empty without one. */
+            components: components["schemas"]["CodeComponent"][];
+            recalls?: null | components["schemas"]["CodeRecalls"];
         };
         /** @description The complaints of a model year that name one component. */
         ComponentComplaints: {
@@ -2410,6 +2593,24 @@ export interface components {
             note: string;
             vehicle: components["schemas"]["RecallVehicle"];
         };
+        /** @description A trouble code on one model year. */
+        VehicleCode: {
+            attribution: string[];
+            bulletins?: null | components["schemas"]["CodeBulletins"];
+            /** @example P0420 */
+            code: string;
+            description?: null | components["schemas"]["Code"];
+            /**
+             * @description Whether every maker uses the code the same way. A code that is not
+             *     generic is never described, and may still be named by bulletins.
+             */
+            generic: boolean;
+            note: string;
+            related: components["schemas"]["CodeRelated"];
+            /** @description The page of this code on this model year. */
+            url: string;
+            vehicle: components["schemas"]["RecallVehicle"];
+        };
         /** @description What owners reported to NHTSA about one model year, as counts. */
         VehicleComplaints: {
             /**
@@ -2868,6 +3069,97 @@ export interface operations {
                 };
             };
             /** @description `not_found`: no bulletin has that id. `dataset_unavailable`: this server holds no bulletins. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    code_search: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Only codes with this text in the code, the title or the meaning,
+                 *     in either case. At most 100 characters are read.
+                 * @example P04
+                 */
+                q?: string;
+                /**
+                 * @description Only this system: `powertrain`, `body`, `chassis` or `network`, or
+                 *     an area of the powertrain such as `powertrain/emissions`. A group
+                 *     holds its areas.
+                 * @example powertrain/emissions
+                 */
+                system?: string;
+                /** @description At most this many, up to 200. The default is 50. */
+                limit?: number;
+                /** @description `next_cursor` from the page before, unchanged. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page of codes. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CodeList"];
+                };
+            };
+            /** @description `validation_failed`: `system` or `cursor` is not one this API knows; `details.field` names it. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `dataset_unavailable`: this server holds no code descriptions. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    code: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description A trouble code, in either case. A longer form such as `P0420:00` is cut to its first five characters.
+                 * @example P0420
+                 */
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The code's description. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Code"];
+                };
+            };
+            /** @description `not_found`: the text is not a code, the code is specific to a manufacturer, or nobody has described it yet; the message says which. `dataset_unavailable`: this server holds no code descriptions. */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3587,6 +3879,46 @@ export interface operations {
                 };
             };
             /** @description `not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no bulletins. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    vehicle_code: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description A vehicle id. A submodel or an engine in the id is set aside.
+                 * @example 2018_ford_f-150
+                 */
+                id: string;
+                /**
+                 * @description A trouble code, in either case.
+                 * @example P0420
+                 */
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description What is held about the code for the model year. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleCode"];
+                };
+            };
+            /** @description `not_found`: no vehicle has that id, or the text is not a code. `dataset_unavailable`: this server holds neither code descriptions nor bulletins. */
             404: {
                 headers: {
                     [name: string]: unknown;

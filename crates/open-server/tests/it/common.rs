@@ -1377,3 +1377,86 @@ pub async fn hand_app() -> TestApp {
 pub async fn hand_alone_app() -> TestApp {
     app_with_rows_and_shop(TESTMAKE_ROWS, HAND_DATASETS_ALONE, &hand_rows()).await
 }
+
+// ----- trouble codes -----
+
+/// The `datasets` value of the code fixture: recalls, bulletins and codes.
+pub const CODE_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":7,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":2,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence – Canada."},"bulletins":{"as_of":"2026-10-11","rows":10,"licence":"public-domain","attribution":""},"codes":{"as_of":"2026-10-12","rows":3,"licence":"mit","attribution":""}}"#;
+
+/// [`CODE_DATASETS`] without the bulletins, as the offline shop file is.
+pub const CODE_DATASETS_OFFLINE: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":7,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":2,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence – Canada."},"codes":{"as_of":"2026-10-12","rows":3,"licence":"mit","attribution":""}}"#;
+
+/// Three records. The numbers are real generic numbers, two of them the
+/// ones the bulletin fixture names; every word of text is made up and
+/// describes no code. `P0420` concerns two components.
+pub const CODE_INSERTS: &str = r#"
+INSERT INTO code VALUES
+  ('P0300', 'powertrain/ignition', 'Made-up title one', 'Made-up meaning one.', '["Made-up cause A"]', '["Made-up check A"]', '["P0420"]', 'test-author', 'test-reviewer', '2026-10-10'),
+  ('P0420', 'powertrain/emissions', 'Made-up title two', 'Made-up meaning two.', '["Made-up cause B","Made-up cause C"]', '["Made-up check B"]', '["P0300"]', 'test-author', 'test-reviewer', '2026-10-12'),
+  ('U0001', 'network', 'Made-up title three', 'Made-up meaning three.', '["Made-up cause D"]', '["Made-up check C"]', '[]', 'test-author', 'test-reviewer', '2026-10-11');
+INSERT INTO code_component VALUES
+  ('P0420', 'catalytic-converter', 0), ('P0420', 'electrical', 1), ('U0001', 'software', 0);
+"#;
+
+/// Which components the recall fixture's campaigns are about, and one
+/// bulletin of the Kona that names a manufacturer-specific code.
+pub const CODE_LINK_INSERTS: &str = r#"
+INSERT INTO recall_component VALUES (1, 'electrical'), (3, 'electrical'), (4, 'brakes'), (9, 'electrical');
+INSERT INTO bulletin_code VALUES (11000004, 'C1234');
+"#;
+
+/// The tables and rows of [`bulletin_rows`], then the code tables,
+/// `recall_component` and the rows above.
+pub fn code_rows() -> String {
+    use wenmar_shopdata::schema;
+    format!(
+        "{}{}{}{CODE_INSERTS}{CODE_LINK_INSERTS}",
+        bulletin_rows(),
+        schema::CODES,
+        schema::RECALL_COMPONENTS
+    )
+}
+
+/// The code fixture as an offline shop file holds it: no bulletin table.
+pub fn code_rows_offline() -> String {
+    use wenmar_shopdata::schema;
+    format!(
+        "{}{}{}{}{CODE_INSERTS}
+INSERT INTO component VALUES
+  ('electrical', 'Electrical system', NULL),
+  ('software', 'Software', 'electrical'),
+  ('exhaust-emissions', 'Exhaust and emissions', NULL),
+  ('catalytic-converter', 'Catalytic converter', 'exhaust-emissions');
+INSERT INTO recall_component VALUES (1, 'electrical'), (3, 'electrical'), (4, 'brakes'), (9, 'electrical');",
+        recall_rows(),
+        schema::COMPONENTS,
+        schema::CODES,
+        schema::RECALL_COMPONENTS
+    )
+}
+
+/// The application over the small data file and a shop file holding
+/// recalls, bulletins and trouble codes.
+pub async fn codes_app() -> TestApp {
+    app_with_shop(CODE_DATASETS, &code_rows()).await
+}
+
+/// The application over a shop file as offline users have it: recalls and
+/// codes, no bulletins. Its pages are at `base_url`.
+pub async fn codes_offline_app_at(base_url: &str) -> TestApp {
+    let fixture = data_file();
+    add_shop_file(
+        &fixture,
+        wenmar_shopdata::schema::SCHEMA_VERSION,
+        "2026.09",
+        CODE_DATASETS_OFFLINE,
+        &code_rows_offline(),
+    );
+    let shop = fixture.shop_path();
+    let base_url = base_url.to_owned();
+    app_over(fixture, |config| {
+        config.shop_data = Some(shop);
+        config.base_url = base_url;
+    })
+    .await
+}

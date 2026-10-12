@@ -308,7 +308,7 @@ pub fn listed(base: &str, recall: shopdata::RecallSummary) -> Recall {
     }
 }
 
-fn for_vehicle(base: &str, found: shopdata::VehicleRecall) -> Recall {
+pub fn for_vehicle(base: &str, found: shopdata::VehicleRecall) -> Recall {
     let mut recall = listed(base, found.recall);
     recall.matched = Some(found.matched);
     recall.models = found.models;

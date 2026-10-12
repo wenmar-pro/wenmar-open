@@ -351,3 +351,27 @@ impl<S: Source> ShopData<S> {
             .collect())
     }
 }
+
+/// What every answer and page about a code says.
+pub const NOTE: &str = "Written for Wenmar Open in its own words, and general: it is not about one make. A code says which circuit or system reported a fault, not which part to replace. Diagnose before replacing anything.";
+
+/// What a vehicle's answer about a code says.
+pub const VEHICLE_NOTE: &str = "The bulletins listed name this code in NHTSA's summary, or are about the same components. A bulletin or a recall listed here may apply to the model year. None of it is a diagnosis.";
+
+/// `not_found`: the text asked for is not a code.
+pub const NOT_A_CODE: &str = "No trouble code is written that way. A code is P, B, C or U and four characters, such as P0420.";
+
+/// `not_found`: the code is outside the ranges [`is_generic`] allows.
+pub const NOT_GENERIC: &str = "That code is specific to a manufacturer, so it has no description here. Ask for it on a vehicle to see the bulletins that name it.";
+
+/// `not_found`: a generic code nobody has described.
+pub const NOT_WRITTEN: &str = "Nobody has written a description of that code yet.";
+
+/// `validation_failed` for `system`.
+pub const BAD_SYSTEM: &str = "system must be powertrain, powertrain/fuel-air, powertrain/ignition, powertrain/emissions, powertrain/speed-idle, powertrain/computer, powertrain/transmission, powertrain/hybrid, body, chassis or network";
+
+/// `validation_failed` for `cursor`.
+pub const BAD_CURSOR: &str = "cursor is not one this API gave out";
+
+/// Codes in a list when `limit` is not given.
+pub const LIST_DEFAULT: usize = 50;

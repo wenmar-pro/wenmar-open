@@ -111,6 +111,15 @@ export type SafetyRating = Schemas["SafetyRating"];
 /** What owners reported to NHTSA about one model year, as counts. Reports, not verified defects. */
 export type VehicleComplaints = Schemas["VehicleComplaints"];
 
+/** One generic trouble code, described in this project's own words. */
+export type Code = Schemas["Code"];
+/** A trouble code in a list. */
+export type CodeLink = Schemas["CodeLink"];
+/** One page of the described trouble codes. */
+export type CodeList = Schemas["CodeList"];
+/** A trouble code on one model year, with its bulletins and recalls. */
+export type VehicleCode = Schemas["VehicleCode"];
+
 /** The body of every error the API sends. */
 export type ErrorBody = Schemas["ErrorBody"];
 /** One answer of a batch: a decode, or the error for that VIN. */
@@ -133,5 +142,6 @@ export type RecallSearchQuery = Query<"recall_search">;
 export type BulletinFilterQuery = Query<"vehicle_bulletins">;
 export type VinBulletinsQuery = Query<"vin_bulletins">;
 export type BulletinSearchQuery = Query<"bulletin_search">;
+export type CodeSearchQuery = Query<"code_search">;
 export type VehicleInvestigationsQuery = Query<"vehicle_investigations">;
 export type RecentRecallsQuery = Query<"recent_recalls">;

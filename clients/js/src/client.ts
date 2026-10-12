@@ -6,6 +6,9 @@ import type {
   BulletinFilterQuery,
   BulletinList,
   BulletinSearchQuery,
+  Code,
+  CodeList,
+  CodeSearchQuery,
   EngineOption,
   EnginesQuery,
   Entry,
@@ -33,6 +36,7 @@ import type {
   VehicleInvestigations,
   VehicleInvestigationsQuery,
   VehicleBulletins,
+  VehicleCode,
   VehicleRecalls,
   VehicleRecallsQuery,
   VehicleComplaints,
@@ -236,6 +240,30 @@ export class WenmarOpen {
    */
   async complaints(id: string, options: RequestOptions = {}): Promise<VehicleComplaints> {
     return this.#request("GET", `/v1/vehicles/${segment("id", id)}/complaints`, undefined, options);
+  }
+
+  /**
+   * One generic trouble code, such as `P0420`, described in this project's
+   * own words. A manufacturer-specific code has no description: the call
+   * fails with `not_found`.
+   */
+  async code(code: string, options: RequestOptions = {}): Promise<Code> {
+    return this.#request("GET", `/v1/codes/${segment("code", code)}`, undefined, options);
+  }
+
+  /** The trouble codes that are described, by code, narrowed by text or system. */
+  async codes(query: CodeSearchQuery = {}, options: RequestOptions = {}): Promise<CodeList> {
+    return this.#request("GET", `/v1/codes${queryString(query)}`, undefined, options);
+  }
+
+  /**
+   * A trouble code on one model year: its description, the bulletins of
+   * that model year that name it, and the bulletins and recalls about the
+   * same components. Any code answers, a manufacturer-specific one too.
+   */
+  async vehicleCode(id: string, code: string, options: RequestOptions = {}): Promise<VehicleCode> {
+    const path = `/v1/vehicles/${segment("id", id)}/codes/${segment("code", code)}`;
+    return this.#request("GET", path, undefined, options);
   }
 
   /** One make by its id, name or alias, such as `honda`, with the maker's own links. */

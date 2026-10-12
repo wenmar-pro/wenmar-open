@@ -202,6 +202,132 @@
         }
       }
     },
+    "/v1/codes": {
+      "get": {
+        "tags": [
+          "Codes"
+        ],
+        "summary": "The trouble codes that are described, by code.",
+        "operationId": "code_search",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Only codes with this text in the code, the title or the meaning,\nin either case. At most 100 characters are read.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "P04"
+          },
+          {
+            "name": "system",
+            "in": "query",
+            "description": "Only this system: `powertrain`, `body`, `chassis` or `network`, or\nan area of the powertrain such as `powertrain/emissions`. A group\nholds its areas.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "powertrain/emissions"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "At most this many, up to 200. The default is 50.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "`next_cursor` from the page before, unchanged.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of codes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CodeList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: `system` or `cursor` is not one this API knows; `details.field` names it.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`dataset_unavailable`: this server holds no code descriptions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/codes/{code}": {
+      "get": {
+        "tags": [
+          "Codes"
+        ],
+        "summary": "One generic trouble code, described in this project's own words.",
+        "description": "Only codes every maker uses the same way are described: `P0`, `P2`,\n`P3400` and up, `B0`, `C0`, `U0` and `U3`. The text is general and is\nnot about one make.",
+        "operationId": "code",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "description": "A trouble code, in either case. A longer form such as `P0420:00` is cut to its first five characters.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "P0420"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The code's description.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Code"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: the text is not a code, the code is specific to a manufacturer, or nobody has described it yet; the message says which. `dataset_unavailable`: this server holds no code descriptions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/makes/{make}": {
       "get": {
         "tags": [
@@ -1319,6 +1445,60 @@
           },
           "404": {
             "description": "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no bulletins.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vehicles/{id}/codes/{code}": {
+      "get": {
+        "tags": [
+          "Codes"
+        ],
+        "summary": "A trouble code on one model year: its description, the bulletins of\nthat model year whose summary names it, and the bulletins and recalls\nof that model year about the components the description names.",
+        "description": "Any code answers, a manufacturer-specific one included: such a code has\n`description: null` and whatever bulletins name it. `bulletins` and\n`related.bulletins` are `null` where bulletins are not held, and\n`related.recalls` is `null` where recalls are not. Nothing here says a\nrecall applies to one vehicle, or what is wrong with it.",
+        "operationId": "vehicle_code",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A vehicle id. A submodel or an engine in the id is set aside.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2018_ford_f-150"
+          },
+          {
+            "name": "code",
+            "in": "path",
+            "description": "A trouble code, in either case.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "P0420"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "What is held about the code for the model year.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleCode"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no vehicle has that id, or the text is not a code. `dataset_unavailable`: this server holds neither code descriptions nor bulletins.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3043,6 +3223,297 @@
           },
           "valid": {
             "type": "boolean"
+          }
+        }
+      },
+      "Code": {
+        "type": "object",
+        "description": "One generic trouble code, described in this project's own words.",
+        "required": [
+          "code",
+          "generic",
+          "system",
+          "system_name",
+          "title",
+          "meaning",
+          "common_causes",
+          "checks",
+          "components",
+          "related",
+          "reviewer",
+          "checked",
+          "url",
+          "note",
+          "attribution"
+        ],
+        "properties": {
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The credit lines the data's licences ask for."
+          },
+          "checked": {
+            "type": "string",
+            "description": "The day it was approved.",
+            "example": "2026-10-12"
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "What a technician usually verifies first."
+          },
+          "code": {
+            "type": "string",
+            "example": "P0420"
+          },
+          "common_causes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "General causes, not about one make."
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CodeComponent"
+            }
+          },
+          "generic": {
+            "type": "boolean",
+            "description": "Always `true` here: only codes every maker uses the same way are\ndescribed."
+          },
+          "meaning": {
+            "type": "string",
+            "description": "What the code tells a service advisor."
+          },
+          "note": {
+            "type": "string",
+            "description": "What a description is and is not."
+          },
+          "related": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CodeLink"
+            },
+            "description": "Related codes that are described too."
+          },
+          "reviewer": {
+            "type": "string",
+            "description": "The GitHub name of the person who approved the text."
+          },
+          "system": {
+            "type": "string",
+            "example": "powertrain/emissions"
+          },
+          "system_name": {
+            "type": "string",
+            "example": "Emission controls"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://open.wenmarpro.com/codes/P0420"
+          }
+        }
+      },
+      "CodeBulletins": {
+        "type": "object",
+        "description": "The bulletins of a model year whose summary names a code.",
+        "required": [
+          "count",
+          "bulletins",
+          "url"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The day the bulletins were current.",
+            "example": "2026-10-11"
+          },
+          "bulletins": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bulletin"
+            },
+            "description": "The newest, newest first."
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "description": "How many there are. `bulletins` holds at most ten.",
+            "minimum": 0
+          },
+          "url": {
+            "type": "string",
+            "description": "The model year's bulletin page on this site, narrowed to the code."
+          }
+        }
+      },
+      "CodeComponent": {
+        "type": "object",
+        "description": "A component a trouble code concerns.",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "oxygen-sensor"
+          },
+          "name": {
+            "type": "string",
+            "example": "Oxygen sensor"
+          },
+          "parent": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The system a part belongs to. `null` for a system.",
+            "example": "exhaust-emissions"
+          }
+        }
+      },
+      "CodeLink": {
+        "type": "object",
+        "description": "A trouble code in a list.",
+        "required": [
+          "code",
+          "system",
+          "title",
+          "url"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "P0420"
+          },
+          "system": {
+            "type": "string",
+            "description": "Where the index lists it: a group (`powertrain`, `body`, `chassis`,\n`network`), or a group and an area of it.",
+            "example": "powertrain/emissions"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "The code's page on this site.",
+            "example": "https://open.wenmarpro.com/codes/P0420"
+          }
+        }
+      },
+      "CodeList": {
+        "type": "object",
+        "description": "One page of the described codes, by code.",
+        "required": [
+          "codes",
+          "note",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The newest day a description was approved.",
+            "example": "2026-10-12"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "codes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CodeLink"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pass it back as `cursor` for the next page. `null` on the last."
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "CodeRecalls": {
+        "type": "object",
+        "description": "The recalls of a model year about the components a code concerns.",
+        "required": [
+          "may_apply",
+          "recalls",
+          "lookup"
+        ],
+        "properties": {
+          "lookup": {
+            "$ref": "#/components/schemas/RecallLookup"
+          },
+          "may_apply": {
+            "type": "boolean",
+            "description": "Always `true`: a campaign lists a model year, never one vehicle."
+          },
+          "recalls": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Recall"
+            },
+            "description": "At most ten, newest first."
+          }
+        }
+      },
+      "CodeRelated": {
+        "type": "object",
+        "description": "What else is held for the model year about the components a code\nconcerns.",
+        "required": [
+          "components"
+        ],
+        "properties": {
+          "bulletins": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/Bulletin"
+            },
+            "description": "Bulletins about those components that do not name the code, at\nmost ten. `null` where bulletins are not held."
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CodeComponent"
+            },
+            "description": "The components of the code's description. Empty without one."
+          },
+          "recalls": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CodeRecalls",
+                "description": "`null` where recalls are not held."
+              }
+            ]
           }
         }
       },
@@ -6401,6 +6872,70 @@
           }
         }
       },
+      "VehicleCode": {
+        "type": "object",
+        "description": "A trouble code on one model year.",
+        "required": [
+          "vehicle",
+          "code",
+          "generic",
+          "related",
+          "url",
+          "note",
+          "attribution"
+        ],
+        "properties": {
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bulletins": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CodeBulletins",
+                "description": "`null` where bulletins are not held: they are on the hosted\nservice only."
+              }
+            ]
+          },
+          "code": {
+            "type": "string",
+            "example": "P0420"
+          },
+          "description": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Code",
+                "description": "`null` when the code is not generic, when nobody has described it,\nor where descriptions are not held."
+              }
+            ]
+          },
+          "generic": {
+            "type": "boolean",
+            "description": "Whether every maker uses the code the same way. A code that is not\ngeneric is never described, and may still be named by bulletins."
+          },
+          "note": {
+            "type": "string"
+          },
+          "related": {
+            "$ref": "#/components/schemas/CodeRelated"
+          },
+          "url": {
+            "type": "string",
+            "description": "The page of this code on this model year."
+          },
+          "vehicle": {
+            "$ref": "#/components/schemas/RecallVehicle"
+          }
+        }
+      },
       "VehicleComplaints": {
         "type": "object",
         "description": "What owners reported to NHTSA about one model year, as counts.",
@@ -7480,6 +8015,10 @@
     {
       "name": "Complaints",
       "description": "What owners reported to NHTSA about a model year, as counts by component. Reports, not verified defects; counts, not rates."
+    },
+    {
+      "name": "Codes",
+      "description": "Generic OBD-II trouble codes, described in this project's own words, and what is held about a code for one model year. Manufacturer-specific codes are not described."
     },
     {
       "name": "Data",
