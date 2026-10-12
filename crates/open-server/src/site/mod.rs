@@ -11,6 +11,7 @@ pub mod guides;
 pub mod home;
 pub mod jsonld;
 pub mod licences;
+pub mod links;
 pub mod markdown;
 pub mod pages;
 pub mod report;
