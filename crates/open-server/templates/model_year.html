@@ -163,6 +163,15 @@
 {% endif -%}
 {% endif -%}
 {% include "maker_links.html" %}
+{% if let Some(section) = manuals -%}
+<h2 id="manuals">Owner's manual and maintenance schedule</h2>
+<ul class="plain links">
+{% for item in section.items -%}
+<li><a href="{{ item.address }}">{{ item.words }}</a> <span class="note">{{ item.note }}</span></li>
+{% endfor -%}
+</ul>
+<p class="note">These lead to the maker's own site, which this site does not run. No manual is copied or kept here.</p>
+{% endif -%}
 {% if view.years.len() > 1 -%}
 <h2 id="years">Other years of the {{ view.entry.model }}</h2>
 <nav aria-labelledby="years">

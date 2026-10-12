@@ -795,6 +795,9 @@ struct ModelYearPage {
     /// The fluids and tire fitments read by hand. `None` when nothing is
     /// recorded for the model year.
     hand: Option<site::hand::Section>,
+    /// Links to this model year's manual and maintenance schedule on the
+    /// maker's own site. `None` when there is none.
+    manuals: Option<site::manuals::Section>,
     /// Models that share campaigns and bulletins with this one. Empty when
     /// there are none, and on a server with no such data.
     siblings: Vec<SiblingLine>,
@@ -1010,6 +1013,8 @@ pub async fn model_year(
     {
         brief.oil.clear();
     }
+    let manuals =
+        site::manuals::section(&state, &view.entry.id, &view.entry.make, &view.model_slug).await;
     // On a server that holds crash test ratings, this model year's.
     let safety = site::safety::section(&state, &view.entry.id).await;
     let investigations = site::investigations::open_for(&state, &view.entry.id).await;
@@ -1023,6 +1028,9 @@ pub async fn model_year(
         }
         if let Some(list) = &links {
             text.push_str(&links::markdown(list));
+        }
+        if let Some(section) = &manuals {
+            text.push_str(&site::manuals::markdown(section));
         }
         if let Some(brief) = &recalls {
             text.push_str(&format!(
@@ -1154,6 +1162,7 @@ pub async fn model_year(
             safety,
             fuel,
             hand,
+            manuals,
             siblings,
             sibling_caveat: SIBLING_CAVEAT,
             maintenance,

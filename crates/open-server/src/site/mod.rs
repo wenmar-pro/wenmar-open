@@ -16,6 +16,7 @@ pub mod investigations;
 pub mod jsonld;
 pub mod licences;
 pub mod links;
+pub mod manuals;
 pub mod markdown;
 pub mod pages;
 pub mod recalls;
