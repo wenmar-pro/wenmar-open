@@ -10,6 +10,12 @@ export interface NodeOptions {
    * which must then be installed.
    */
   path?: string;
+  /**
+   * The shop file, which holds the recalls. Default: the one in the
+   * `wenmar-open-data-shop` package, if that package is installed. `false`
+   * opens none even then.
+   */
+  shopPath?: string | false;
   wasm?: WasmSource;
   currentYear?: number;
 }
@@ -66,16 +72,45 @@ export async function openOffline(options: NodeOptions = {}): Promise<WenmarOpen
       cause,
     });
   }
+  // The shop file: the one named, or the one of the wenmar-open-data-shop
+  // package when it is installed. With neither, recalls are
+  // `dataset_unavailable` and everything else works.
+  let shopPath = options.shopPath;
+  if (shopPath === undefined) {
+    shopPath = await load<{ path: string }>("wenmar-open-data-shop").then(
+      (module) => module.path,
+      () => false as const,
+    );
+  }
+  let shopDatabase: (SyncDatabase & { close(): void }) | undefined;
+  if (shopPath !== false) {
+    try {
+      shopDatabase = new sqlite.DatabaseSync(shopPath, { readOnly: true });
+    } catch (cause) {
+      database.close();
+      throw new WenmarOpenError({
+        code: "no_data",
+        message: `The shop file at ${shopPath} could not be opened.`,
+        details: { path: shopPath },
+        cause,
+      });
+    }
+  }
+  const shop = shopDatabase;
   const store: Store = { ...syncStore(database), close: () => database.close() };
   const client = new WenmarOpenOffline({
     store,
+    ...(shop === undefined ? {} : { shop: { ...syncStore(shop), close: () => shop.close() } }),
     ...(options.wasm === undefined ? {} : { wasm: options.wasm }),
     ...(options.currentYear === undefined ? {} : { currentYear: options.currentYear }),
   });
   try {
+    // `meta` opens the data file and, when there is one, the shop file,
+    // which must go with it.
     await client.meta();
   } catch (error) {
     database.close();
+    shop?.close();
     // SQLite opens a file that is not a database without complaint and
     // fails on the first read; for a file on disk that means the file is
     // not a data file, not that a connection dropped.

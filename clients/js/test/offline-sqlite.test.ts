@@ -11,7 +11,7 @@ import { WenmarOpenError, WenmarOpenOffline, syncStore } from "wenmar-open/offli
 import type { Param, SyncDatabase } from "wenmar-open/offline";
 import { openOffline } from "wenmar-open/offline/node";
 
-import { ask, caseNamed, fixture, fixtureSql, outcome } from "./support/offline.js";
+import { ask, caseNamed, fixture, fixtureShopSql, fixtureSql, outcome } from "./support/offline.js";
 
 type Sqlite = typeof import("node:sqlite");
 const sqlite: Sqlite | undefined = await import("node:sqlite").then(
@@ -184,6 +184,85 @@ test("openOffline finds the file of the wenmar-open-data package, and says so wh
     const client = await openOffline({ currentYear: YEAR });
     assert.equal((await client.decodeVin(KONA)).year, 2023);
     client.close();
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+// ----- the shop file -----
+
+/** The shop fixture as a file on disk, matched against a data version. */
+function shopFile(name: string, catalogDataVersion = "2026.09"): string {
+  if (sqlite === undefined) throw new Error("skipped");
+  const path = join(directory, name);
+  const database = new sqlite.DatabaseSync(path);
+  database.exec(fixtureShopSql.replace("('catalog_data_version', '2026.09')", `('catalog_data_version', '${catalogDataVersion}')`));
+  database.close();
+  return path;
+}
+
+test("every recall case, read from two SQLite databases through node:sqlite", { skip }, async () => {
+  if (sqlite === undefined) throw new Error("skipped");
+  const [database, shop] = [memory(), new sqlite.DatabaseSync(":memory:")];
+  shop.exec(fixtureShopSql);
+  const client = new WenmarOpenOffline({ store: syncStore(database), shop: syncStore(shop), currentYear: YEAR });
+  for (const one of fixture.shop_cases) {
+    assert.deepEqual(await outcome(ask(client, one)), one.answer, one.name);
+  }
+  database.close();
+  shop.close();
+});
+
+test("openOffline reads a shop file at a path beside the data file, and closes both", { skip }, async () => {
+  const path = dataFile("paired.sqlite3");
+  const client = await openOffline({ path, shopPath: shopFile("shop.sqlite3"), currentYear: YEAR });
+  const answer = await client.vinRecalls(KONA);
+  assert.equal(answer.may_apply, true);
+  assert.equal(answer.recalls.length, 3);
+  assert.equal((await client.meta()).datasets["recalls_ca"]?.rows, 1);
+  client.close();
+  await assert.rejects(client.searchRecalls());
+
+  // With no shop file named and the package not installed, recalls are
+  // dataset_unavailable and the data file answers.
+  const alone = await openOffline({ path, currentYear: YEAR });
+  await assert.rejects(alone.recalls("2023_hyundai_kona"), (error: unknown) => {
+    assert.ok(error instanceof WenmarOpenError);
+    assert.equal(error.code, "dataset_unavailable");
+    return true;
+  });
+  assert.equal((await alone.decodeVin(KONA)).year, 2023);
+  alone.close();
+});
+
+test("openOffline refuses a shop file that goes with another data file, or is missing, before any question", { skip }, async () => {
+  const path = dataFile("unpaired.sqlite3");
+  await assert.rejects(openOffline({ path, shopPath: shopFile("shop-other.sqlite3", "2026.08") }), (error: unknown) => {
+    assert.ok(error instanceof WenmarOpenError);
+    assert.equal(error.code, "data_invalid");
+    assert.match(error.message, /matched against data version 2026\.08/);
+    return true;
+  });
+  await assert.rejects(openOffline({ path, shopPath: join(directory, "none", "shop.sqlite3") }), (error: unknown) => {
+    assert.ok(error instanceof WenmarOpenError);
+    assert.equal(error.code, "no_data");
+    return true;
+  });
+});
+
+test("openOffline finds the file of the wenmar-open-data-shop package, unless told not to", { skip }, async () => {
+  const path = dataFile("with-package.sqlite3");
+  const home = new URL("../node_modules/wenmar-open-data-shop/", import.meta.url);
+  mkdirSync(home, { recursive: true });
+  try {
+    writeFileSync(new URL("package.json", home), JSON.stringify({ name: "wenmar-open-data-shop", version: "1.20261012.0", type: "module", exports: "./index.js" }));
+    writeFileSync(new URL("index.js", home), `export const path = ${JSON.stringify(shopFile("packaged-shop.sqlite3"))};\n`);
+    const client = await openOffline({ path, currentYear: YEAR });
+    assert.equal((await client.recalls("2023_hyundai_kona")).recalls.length, 3);
+    client.close();
+    const without = await openOffline({ path, shopPath: false, currentYear: YEAR });
+    assert.deepEqual((await without.meta()).datasets, {});
+    without.close();
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

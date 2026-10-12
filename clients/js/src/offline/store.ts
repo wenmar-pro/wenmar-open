@@ -7,6 +7,12 @@ export type Param = string | number | null;
 export interface Statement {
   readonly sql: string;
   readonly params: readonly Param[];
+  /**
+   * Which file the statement is for. Left out: the data file. `"shop"`:
+   * the shop file, which holds the recalls. The client sends each statement
+   * to the store of its file, so a store never has to look at this.
+   */
+  readonly db?: "shop";
 }
 
 /**

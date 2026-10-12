@@ -11,10 +11,17 @@ import type {
   Meta,
   Model,
   ModelsQuery,
+  RecallCampaign,
+  RecallList,
+  RecallSearchQuery,
   SearchQuery,
   Submodel,
   SubmodelsQuery,
+  VehicleRecalls,
+  VehicleRecallsQuery,
   VinDecode,
+  VinRecalls,
+  VinRecallsQuery,
   YearsQuery,
 } from "../types.js";
 import { Engine, compile } from "./engine.js";
@@ -32,6 +39,13 @@ export const MAX_STEPS = 32;
 export interface OfflineOptions {
   /** Where the data is: `syncStore(...)`, `d1Store(...)`, or your own. */
   store: Store;
+  /**
+   * Where the shop file is: a second database, which holds the recalls.
+   * It must be the shop file that was built against the data file in
+   * `store`. Leave it out and the recall methods fail with
+   * `dataset_unavailable`; everything else works.
+   */
+  shop?: Store;
   /**
    * The decoder. Leave it out everywhere but Cloudflare Workers, where it
    * is the module `import wasm from "wenmar-open/offline.wasm"` gives.
@@ -52,7 +66,11 @@ interface Question {
 type Failure = { code: string; message: string; details: Record<string, unknown> };
 type Outcome = { ok: unknown } | { error: Failure };
 
-const keyOf = (statement: Statement): string => `${statement.sql}\u0000${JSON.stringify(statement.params)}`;
+const keyOf = (statement: Statement): string =>
+  `${statement.db ?? ""}\u0000${statement.sql}\u0000${JSON.stringify(statement.params)}`;
+
+/** Whether a question reads the shop file, when there is one. */
+const needsShop = (question: Question): boolean => question.op === "meta" || question.op.startsWith("recall");
 
 function thrown(failure: Failure): WenmarOpenError {
   return new WenmarOpenError({ code: failure.code, message: failure.message, details: failure.details });
@@ -92,6 +110,9 @@ async function read(store: Store, statements: readonly Statement[]): Promise<unk
  */
 export class WenmarOpenOffline {
   readonly #store: Store;
+  readonly #shop: Store | undefined;
+  /** The copy of the decoder the shop file was opened on, and that opening. */
+  #shopOpened: { engine: Engine; done: Promise<void> } | undefined;
   readonly #wasm: WasmSource | undefined;
   readonly #currentYear: number | undefined;
   #module: Promise<CompiledWasm> | undefined;
@@ -99,6 +120,7 @@ export class WenmarOpenOffline {
 
   constructor(options: OfflineOptions) {
     this.#store = options.store;
+    this.#shop = options.shop;
     this.#wasm = options.wasm;
     this.#currentYear = options.currentYear;
   }
@@ -172,16 +194,54 @@ export class WenmarOpenOffline {
   }
 
   /**
+   * Recalls that may apply to a model year, by its id such as
+   * `2018_ford_f-150`. The list is for the year, make and model: it is not
+   * a lookup by VIN, and `lookup` says where one vehicle can be checked.
+   * Needs a shop file: without one it fails with `dataset_unavailable`.
+   */
+  async recalls(
+    id: string,
+    query: VehicleRecallsQuery = {},
+    options: RequestOptions = {},
+  ): Promise<VehicleRecalls> {
+    return this.#one({ op: "recalls_vehicle", args: { ...query, id: String(id) } }, options);
+  }
+
+  /**
+   * Recalls that may apply to the model year a VIN decodes to. The VIN only
+   * names the model year: no public data says a recall applies to one VIN.
+   */
+  async vinRecalls(
+    vin: string,
+    query: VinRecallsQuery = {},
+    options: RequestOptions = {},
+  ): Promise<VinRecalls> {
+    return this.#one({ op: "recalls_vin", args: { ...query, vin: String(vin) } }, options);
+  }
+
+  /** One recall campaign: `source` is `nhtsa` or `tc`. */
+  async recall(source: string, campaign: string, options: RequestOptions = {}): Promise<RecallCampaign> {
+    return this.#one({ op: "recall", args: { source: String(source), campaign: String(campaign) } }, options);
+  }
+
+  /** Recall campaigns, newest first, narrowed by what is given. */
+  async searchRecalls(query: RecallSearchQuery = {}, options: RequestOptions = {}): Promise<RecallList> {
+    return this.#one({ op: "recalls_search", args: query }, options);
+  }
+
+  /**
    * The data version, the vPIC release it came from, and the build time.
-   * `server_version` is the version of this package.
+   * `server_version` is the version of this package. `datasets` lists what
+   * the shop file holds, and is empty when no shop store was given.
    */
   async meta(options: RequestOptions = {}): Promise<Meta> {
     return this.#one({ op: "meta", args: {} }, options);
   }
 
-  /** Closes the store, if the store was opened for this client. */
+  /** Closes the stores, if they were opened for this client. */
   close(): void {
     this.#store.close?.();
+    this.#shop?.close?.();
   }
 
   async #one<T>(question: Question, options: RequestOptions): Promise<T> {
@@ -234,6 +294,62 @@ export class WenmarOpenOffline {
   }
 
   /**
+   * The rows of every statement, each from the store its file is in: a
+   * statement marked `db: "shop"` is for the shop file.
+   */
+  async #read(statements: readonly Statement[]): Promise<unknown[][][]> {
+    const ofShop = statements.map((statement) => statement.db === "shop");
+    if (!ofShop.includes(true)) return read(this.#store, statements);
+    const shop = this.#shop;
+    if (shop === undefined) {
+      throw new WenmarOpenError({
+        code: "internal_error",
+        message: "The decoder asked for the shop file, and no shop store was given.",
+      });
+    }
+    const forData = statements.filter((_, index) => !ofShop[index]);
+    const forShop = statements.filter((_, index) => ofShop[index]);
+    const [fromData, fromShop] = await Promise.all([
+      forData.length === 0 ? [] : read(this.#store, forData),
+      read(shop, forShop),
+    ]);
+    let [data, other] = [0, 0];
+    return statements.map((_, index) => (ofShop[index] ? fromShop[other++] : fromData[data++]) ?? []);
+  }
+
+  /**
+   * Opens the shop file on `engine`, once for each copy of the decoder. It
+   * is opened when a question first needs it, so a shop store that fails
+   * does not stop a VIN from being decoded.
+   */
+  async #withShop(engine: Engine): Promise<void> {
+    if (this.#shopOpened?.engine !== engine) {
+      this.#shopOpened = { engine, done: this.#openShop(engine) };
+    }
+    const opening = this.#shopOpened;
+    try {
+      await opening.done;
+    } catch (error) {
+      if (this.#shopOpened === opening) this.#shopOpened = undefined;
+      throw error;
+    }
+  }
+
+  async #openShop(engine: Engine): Promise<void> {
+    const answers: Answered[] = [];
+    for (let step = 0; step < MAX_STEPS; step += 1) {
+      const answer = engine.call({ op: "open_shop", answers });
+      if ("ok" in answer) return;
+      if ("error" in answer) throw thrown(answer.error);
+      const rows = await this.#read(answer.need);
+      answer.need.forEach((statement, index) => {
+        answers.push({ ...statement, rows: cleanRows(rows[index], statement.sql) });
+      });
+    }
+    throw new WenmarOpenError({ code: "internal_error", message: "Opening the shop file did not finish." });
+  }
+
+  /**
    * Answers every question, going back to the store as often as the
    * decoder asks. What several questions need in the same step is read
    * together, each statement once.
@@ -258,6 +374,7 @@ export class WenmarOpenOffline {
         });
       }
       const engine = await this.#ready();
+      if (this.#shop !== undefined && questions.some(needsShop)) await this.#withShop(engine);
       const wanted = new Map<string, Statement>();
       const waiting: { index: number; need: Statement[] }[] = [];
       questions.forEach((question, index) => {
@@ -281,7 +398,7 @@ export class WenmarOpenOffline {
       }
 
       const statements = [...wanted.values()];
-      const rows = await read(this.#store, statements);
+      const rows = await this.#read(statements);
       const found = new Map<string, Answered>();
       statements.forEach((statement, index) => {
         found.set(keyOf(statement), { ...statement, rows: cleanRows(rows[index], statement.sql) });

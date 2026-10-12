@@ -55,7 +55,12 @@ after(async () => {
   await api.close();
 });
 
-const STATUS: Record<string, number> = { invalid_vin: 400, validation_failed: 400, not_found: 404 };
+const STATUS: Record<string, number> = {
+  invalid_vin: 400,
+  validation_failed: 400,
+  not_found: 404,
+  dataset_unavailable: 404,
+};
 
 test("the hosted client and the offline client give the same answer and the same error", async () => {
   const hosted = new WenmarOpen({ baseUrl: api.url });
@@ -457,4 +462,138 @@ test("a question that cannot be written as JSON is validation_failed, and the de
   // The same copy of the decoder answers the next question.
   assert.equal((await client.meta()).data_version, "2026.09");
   assert.equal(openings(), 1);
+});
+
+// ----- recalls, from the shop file -----
+
+/** A client over the recorded rows of both files, and the two stores. */
+function withShop(): { client: WenmarOpenOffline; store: RecordedStore; shop: RecordedStore } {
+  const [store, shop] = [new RecordedStore(), new RecordedStore()];
+  return { client: new WenmarOpenOffline({ store, shop, currentYear: YEAR }), store, shop };
+}
+
+test("every recall case is answered as the libraries answer it natively, each file read through its own store", async () => {
+  const { client, store, shop } = withShop();
+  for (const one of fixture.shop_cases) {
+    assert.deepEqual(await outcome(ask(sameSurface(client), one)), one.answer, one.name);
+  }
+  assert.ok(shop.statements.length > 0);
+  assert.ok(shop.statements.every((statement) => statement.db === "shop"));
+  assert.ok(store.statements.every((statement) => statement.db === undefined));
+  // The data file's questions are answered as before with a shop store given.
+  for (const one of fixture.cases.filter((candidate) => candidate.op !== "meta")) {
+    assert.deepEqual(await outcome(ask(client, one)), one.answer, one.name);
+  }
+});
+
+test("the hosted client and the offline client give the same recall answer and the same error", async () => {
+  const hosted = new WenmarOpen({ baseUrl: api.url });
+  const { client } = withShop();
+  for (const one of fixture.shop_cases) {
+    if ("ok" in one.answer) {
+      api.next({ body: one.answer.ok });
+    } else {
+      api.next({ status: STATUS[one.answer.error.code] ?? 500, body: { error: one.answer.error } });
+    }
+    const [overHttp, here] = [await outcome(ask(hosted, one)), await outcome(ask(client, one))];
+    assert.deepEqual(here, overHttp, one.name);
+  }
+});
+
+test("every recall answer says it may apply and where a VIN can be checked", async () => {
+  const { client } = withShop();
+  const answers = [
+    await client.recalls("2023_hyundai_kona"),
+    await client.vinRecalls(KONA),
+    await client.recall("nhtsa", "19V888000"),
+    await client.searchRecalls({ limit: 3 }),
+  ];
+  for (const answer of answers) {
+    assert.equal(answer.may_apply, true);
+    assert.equal(answer.lookup.nhtsa, "https://www.nhtsa.gov/recalls");
+    assert.match(answer.lookup.tc, /^https:\/\/wwwapps\.tc\.gc\.ca\//);
+    // The maker's own lookup is the hosted API's alone.
+    assert.equal(answer.lookup.maker, null);
+  }
+  assert.equal(answers[0]?.attribution[0], "Contains information licensed under the Open Government Licence - Canada.");
+});
+
+test("with no shop store every recall method is dataset_unavailable, and nothing else changes", async () => {
+  const store = new RecordedStore();
+  const client = offline(store);
+  const calls: [string, () => Promise<unknown>][] = [
+    ["recalls_us", () => client.recalls("2023_hyundai_kona")],
+    ["recalls_ca", () => client.recalls("2023_hyundai_kona", { country: "ca" })],
+    ["recalls_us", () => client.vinRecalls(KONA)],
+    ["recalls_ca", () => client.recall("tc", "2023101")],
+    ["recalls_us", () => client.searchRecalls()],
+  ];
+  for (const [dataset, call] of calls) {
+    const error = await failure(call());
+    assert.equal(error.code, "dataset_unavailable");
+    assert.equal(error.message, `The ${dataset} dataset is not available.`);
+    assert.deepEqual(error.details, { dataset });
+    assert.equal(error.status, undefined);
+  }
+  // Only the data file was opened: the refusals read nothing.
+  assert.equal(store.steps, 2);
+  assert.deepEqual((await client.meta()).datasets, {});
+  assert.deepEqual({ ok: await client.decodeVin(KONA) }, caseNamed("decode").answer);
+});
+
+test("the shop file is opened when a question first needs it, once", async () => {
+  const { client, store, shop } = withShop();
+  await client.decodeVin(KONA);
+  await client.years();
+  assert.equal(shop.steps, 0, "a decode does not read the shop file");
+  const meta = await client.meta();
+  assert.equal(shop.steps, 1, "one read of the shop file's meta table");
+  assert.equal(meta.datasets["recalls_us"]?.as_of, "2026-10-11");
+  const before = store.steps + shop.steps;
+  const [first, second] = await Promise.all([client.recalls("2023_hyundai_kona"), client.recalls("2023_hyundai_kona")]);
+  assert.deepEqual(first, second);
+  assert.ok(store.steps + shop.steps > before);
+  // Not opened a second time: the meta statement was run once.
+  assert.equal(shop.statements.filter((statement) => statement.sql === "SELECT key, value FROM meta").length, 1);
+});
+
+test("a shop file that does not go with the data file is data_invalid for recalls, and a VIN still decodes", async () => {
+  const { client, shop } = withShop();
+  shop.alter = (rows, statement) =>
+    statement.sql === "SELECT key, value FROM meta"
+      ? rows.map((row) => (row[0] === "catalog_data_version" ? ["catalog_data_version", "2026.08"] : row))
+      : rows;
+  const error = await failure(client.recalls("2023_hyundai_kona"));
+  assert.equal(error.code, "data_invalid");
+  assert.match(error.message, /matched against data version 2026\.08, but the data file is version 2026\.09/);
+  assert.equal((await failure(client.meta())).code, "data_invalid");
+  assert.deepEqual({ ok: await client.decodeVin(KONA) }, caseNamed("decode").answer);
+  // Put right, the next question opens it.
+  shop.alter = (rows) => rows;
+  assert.equal((await client.recalls("2023_hyundai_kona")).recalls.length, 3);
+});
+
+test("a shop store that fails is store_error for the question that needed it, and is tried again", async () => {
+  const { client, shop } = withShop();
+  const query = shop.query.bind(shop);
+  let failing = true;
+  shop.query = (statements) => {
+    if (failing) throw new Error("the disk went away");
+    return query(statements);
+  };
+  const error = await failure(client.searchRecalls({ limit: 3 }));
+  assert.equal(error.code, "store_error");
+  assert.deepEqual({ ok: await client.decodeVin(KONA) }, caseNamed("decode").answer);
+  failing = false;
+  assert.equal((await client.searchRecalls({ limit: 3 })).recalls.length, 3);
+});
+
+test("close closes both stores", () => {
+  const closed: string[] = [];
+  const client = new WenmarOpenOffline({
+    store: { query: () => [], close: () => closed.push("data") },
+    shop: { query: () => [], close: () => closed.push("shop") },
+  });
+  client.close();
+  assert.deepEqual(closed, ["data", "shop"]);
 });

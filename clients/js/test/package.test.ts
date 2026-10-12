@@ -49,12 +49,20 @@ test("the package has no runtime dependencies and runs no script on install", ()
   }
 });
 
-test("the one peer is the data package, optional, at the schema version the decoder reads", () => {
-  // The data package's major version is the data file's schema version, so
-  // this range is every data file this version of the client can read.
-  const answer = ask({ op: "version" }) as { ok: { version: string; schema_version: string } };
-  assert.deepEqual(manifest["peerDependencies"], { "wenmar-open-data": `^${answer.ok.schema_version}.0.0` });
-  assert.deepEqual(manifest["peerDependenciesMeta"], { "wenmar-open-data": { optional: true } });
+test("the peers are the two data packages, optional, each at the schema version the decoder reads", () => {
+  // A data package's major version is its file's schema version, so each
+  // range is every file of that kind this version of the client can read.
+  const answer = ask({ op: "version" }) as {
+    ok: { version: string; schema_version: string; shop_schema_version: string };
+  };
+  assert.deepEqual(manifest["peerDependencies"], {
+    "wenmar-open-data": `^${answer.ok.schema_version}.0.0`,
+    "wenmar-open-data-shop": `^${answer.ok.shop_schema_version}.0.0`,
+  });
+  assert.deepEqual(manifest["peerDependenciesMeta"], {
+    "wenmar-open-data": { optional: true },
+    "wenmar-open-data-shop": { optional: true },
+  });
   // And the decoder is the one built from this version of the repository.
   assert.equal(answer.ok.version, manifest["version"]);
 });

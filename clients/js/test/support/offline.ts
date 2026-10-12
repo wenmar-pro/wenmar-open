@@ -28,16 +28,23 @@ interface Recorded {
   sql: string;
   params: Param[];
   rows: (string | number | null)[][];
+  /** `"shop"` for a statement of the shop file. */
+  db?: "shop";
 }
 
 export const fixture = JSON.parse(readFileSync(new URL("offline-cases.json", FIXTURES), "utf8")) as {
   current_year: number;
   cases: Case[];
+  /** The questions about recalls, which need the shop file too. */
+  shop_cases: Case[];
   recorded: Recorded[];
 };
 
 /** The fixture data file as SQL, for a real SQLite. */
 export const fixtureSql = readFileSync(new URL("offline.sql", FIXTURES), "utf8");
+
+/** The fixture shop file as SQL, for a second real SQLite. */
+export const fixtureShopSql = readFileSync(new URL("offline-shop.sql", FIXTURES), "utf8");
 
 export function caseNamed(name: string): Case {
   const found = fixture.cases.find((candidate) => candidate.name === name);
@@ -45,7 +52,8 @@ export function caseNamed(name: string): Case {
   return found;
 }
 
-const keyOf = (statement: Statement): string => `${statement.sql}\u0000${JSON.stringify(statement.params)}`;
+const keyOf = (statement: Statement): string =>
+  `${statement.db ?? ""}\u0000${statement.sql}\u0000${JSON.stringify(statement.params)}`;
 
 const recorded = new Map<string, Recorded["rows"]>(
   fixture.recorded.map((entry) => [keyOf(entry), entry.rows]),
@@ -104,7 +112,21 @@ export class FakeD1 implements D1Like {
 /** What both clients have in common: the methods a case can call. */
 export type Client = Pick<
   WenmarOpen,
-  "decodeVin" | "decodeVins" | "years" | "makes" | "models" | "submodels" | "trims" | "engines" | "search" | "vehicle" | "meta"
+  | "decodeVin"
+  | "decodeVins"
+  | "years"
+  | "makes"
+  | "models"
+  | "submodels"
+  | "trims"
+  | "engines"
+  | "search"
+  | "vehicle"
+  | "meta"
+  | "recalls"
+  | "vinRecalls"
+  | "recall"
+  | "searchRecalls"
 >;
 
 // The offline client is a `Client`: if a method's parameters or answer
@@ -133,6 +155,14 @@ export function ask(client: Client, { op, args }: Case): Promise<unknown> {
       return client.vehicle(String(args["id"]));
     case "meta":
       return client.meta();
+    case "recalls_vehicle":
+      return client.recalls(String(args["id"]), args["country"] === undefined ? {} : { country: String(args["country"]) });
+    case "recalls_vin":
+      return client.vinRecalls(String(args["vin"]));
+    case "recall":
+      return client.recall(String(args["source"]), String(args["campaign"]));
+    case "recalls_search":
+      return client.searchRecalls(query);
     default:
       throw new Error(`no method for ${op}`);
   }
