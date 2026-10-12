@@ -62,3 +62,14 @@ bin/shop-data
 NHTSA rates a vehicle by body style and drive, so one model year often has several ratings. Each row of NHTSA's file is one row of `rating`, with the model, body style and drive in NHTSA's words, and `rating_vehicle` ties it to the catalog models its name matched. Every rating is kept, a vehicle NHTSA lists and has not tested among them; none is picked. A feature NHTSA's file writes in words the build does not read is stored as NULL, never guessed: the words it reads are in `fitted` and `evaluation` in `crates/open-data/src/shop/nhtsa_ratings.rs`.
 
 `data/coverage.yaml` has a minimum for `ratings`, so `open-data coverage` fails on a shop file built without them.
+
+## `oil-grades.yaml`
+
+Engine oil spellings in EPA's Fuel Economy Guide files that `open-data` cannot read by pattern. The pattern (`crates/open-data/src/shop/oil_grade.rs`) reads `0W20`, `SAE 0W-20`, `ow-20`, `5W/30, VW50400` and the like; this file is for the few that are misspelt or name no grade.
+
+| Field | Meaning |
+|---|---|
+| `text` | The spelling, as the guide file has it. Case and extra blanks are ignored. |
+| `grades` | The viscosity grades it means, each written like `"5W-30"`. An empty list says the text names no grade. |
+
+The build stops when a guide file has a spelling that neither the pattern nor this file knows, and names it. A person then reads it and adds an entry. Never add a grade the text does not plainly mean: with any doubt, give it an empty list. The file refuses an entry the pattern already reads.

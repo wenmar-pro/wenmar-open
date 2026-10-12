@@ -1,0 +1,23 @@
+# Engine oil spellings in EPA's Fuel Economy Guide files that the pattern
+# in open-data (shop/oil_grade.rs) cannot read. See README.md beside this
+# file.
+#
+# text    The spelling, as the file has it. Case and extra blanks are ignored.
+# grades  The viscosity grades it means, each written like "5W-30".
+#         An empty list says the text names no grade.
+#
+# Every entry here was read by a person. Never add a grade the text does
+# not plainly mean.
+grades:
+  - text: "5VW40 VW50501"
+    grades: ["5W-40"]
+  - text: "SW30"
+    grades: ["5W-30"]
+  - text: "10.0"
+    grades: []
+  - text: "DEXTOS 2"
+    grades: []
+  - text: "LV"
+    grades: []
+  - text: "low viscosity"
+    grades: []
