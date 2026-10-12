@@ -7,7 +7,7 @@ use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 use open_data::build::{BuildInfo, build};
 use open_data::catalog::curated::Curated;
-use open_data::{catalog_parity, fetch, inspect, parity};
+use open_data::{catalog_parity, fetch, inspect, parity, sources};
 use wenmar_vehicles::sqlite::SqliteSource;
 use wenmar_vehicles::{Catalog, Scope};
 use wenmar_vin::sqlite::SqliteData;
@@ -22,12 +22,14 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Download a vPIC plain-text dump and extract it.
+    /// Download a source's files. With no source: a vPIC plain-text dump, extracted.
     Fetch {
-        /// Release such as 2026_09. Defaults to the newest on NHTSA's page.
+        /// vpic (the default), nhtsa-recalls or tc-recalls.
+        source: Option<String>,
+        /// vpic only. Release such as 2026_09. Defaults to the newest on NHTSA's page.
         #[arg(long)]
         release: Option<String>,
-        /// Where to put the files.
+        /// The build directory. vPIC goes in it; other sources go in sources/<source>/ under it.
         #[arg(long, default_value = "data/build")]
         dir: PathBuf,
     },
@@ -123,15 +125,35 @@ fn now() -> String {
 
 fn main() -> Result<()> {
     match Cli::parse().command {
-        Command::Fetch { release, dir } => {
-            let release = match release {
-                Some(release) => release,
-                None => fetch::latest_release(&fetch::downloads_page()?)
-                    .context("no plain-text release found on NHTSA's downloads page")?,
-            };
-            let path = fetch::download(&release, &dir)?;
-            println!("{}", path.display());
-        }
+        Command::Fetch {
+            source,
+            release,
+            dir,
+        } => match source.as_deref().unwrap_or("vpic") {
+            "vpic" => {
+                let release = match release {
+                    Some(release) => release,
+                    None => fetch::latest_release(&fetch::downloads_page()?)
+                        .context("no plain-text release found on NHTSA's downloads page")?,
+                };
+                let path = fetch::download(&release, &dir)?;
+                println!("{}", path.display());
+            }
+            id => {
+                if release.is_some() {
+                    bail!("--release applies to vpic only");
+                }
+                let Some(source) = sources::find(id) else {
+                    bail!(
+                        "{id} is not a source; use vpic, {}",
+                        sources::ids().join(", ")
+                    );
+                };
+                for path in sources::fetch(source, &dir, &now())? {
+                    println!("{}", path.display());
+                }
+            }
+        },
         Command::Build {
             dump,
             out,
