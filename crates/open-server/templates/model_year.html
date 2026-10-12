@@ -23,6 +23,15 @@
 {% endif -%}
 </tbody>
 </table>
+{% if !siblings.is_empty() -%}
+<h2 id="siblings">Shares campaigns and bulletins with</h2>
+<ul class="plain links">
+{% for sibling in siblings -%}
+<li>{% if let Some(href) = sibling.href %}<a href="{{ href }}">{{ sibling.name }}</a>{% else %}{{ sibling.name }}{% endif %} ({{ sibling.shared }} of {{ sibling.total }})</li>
+{% endfor -%}
+</ul>
+<p class="note">{{ sibling_caveat }}</p>
+{% endif -%}
 {% include "investigations_open.html" %}
 <table>
 <caption>Trims</caption>

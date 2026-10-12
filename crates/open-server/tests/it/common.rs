@@ -898,6 +898,29 @@ pub async fn bulletins_app() -> TestApp {
     app_with_shop(BULLETIN_DATASETS, &bulletin_rows()).await
 }
 
+/// [`bulletin_rows`] with the components of four recall campaigns and one
+/// sibling row: the 2023 Kona (model 900) shares 7 of its 20 documents
+/// with the Silverado (model 1850).
+pub fn cross_link_rows() -> String {
+    use wenmar_shopdata::schema;
+    format!(
+        "{}{}{}
+INSERT INTO recall_component VALUES
+  (1, 'electrical'), (3, 'electrical'), (4, 'brakes'), (2, 'equipment');
+INSERT INTO vehicle_sibling VALUES (900, 2023, 1850, 7, 20);
+",
+        bulletin_rows(),
+        schema::RECALL_COMPONENTS,
+        schema::SIBLINGS
+    )
+}
+
+/// The application over recalls, bulletins, their components and the
+/// siblings.
+pub async fn cross_links_app() -> TestApp {
+    app_with_shop(BULLETIN_DATASETS, &cross_link_rows()).await
+}
+
 // ----- helpers for the pages -----
 
 /// `GET`s a page and reads its body as text.

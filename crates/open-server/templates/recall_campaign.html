@@ -55,6 +55,18 @@
 </table>
 <p class="note">From NHTSA's investigation file, {{ found.dated }}. <a href="{{ found.json_path }}">The JSON</a> has NHTSA's summary of each.</p>
 {% endif -%}
+{% if !bulletins.is_empty() -%}
+<h2 id="bulletins">Bulletins for the same vehicles and component</h2>
+<table class="prose">
+<caption>Bulletins for the same vehicles and component</caption>
+<tbody>
+{% for line in bulletins -%}
+<tr><th scope="row"><a class="mono" href="{{ line.href }}">{{ line.label }}</a></th><td>{{ line.date }}. {{ line.kind }}{% if !line.summary.is_empty() %}. {{ line.summary }}{% endif %}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">A bulletin is the manufacturer's note to its dealers. It is not part of this recall.</p>
+{% endif -%}
 <h2>Check one vehicle officially</h2>
 <ul class="plain links">
 <li><a href="{{ lookup.nhtsa }}">NHTSA recall lookup by VIN (United States)</a></li>

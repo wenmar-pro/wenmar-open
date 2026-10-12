@@ -327,6 +327,8 @@ struct ModelYearRecallsPage {
     name: String,
     /// The model-year page.
     model_year_path: String,
+    /// The model year's bulletins, when the server holds bulletins.
+    bulletins_path: Option<String>,
     may_apply: &'static str,
     /// The campaigns with an advisory, said before anything else.
     advisories: Vec<Line>,
@@ -518,12 +520,17 @@ pub async fn model_year_section(
         (false, _) => page,
     };
     let indexed = page.index;
+    let bulletins_path = state
+        .dataset(wenmar_shopdata::Dataset::Bulletins)
+        .is_ok()
+        .then(|| format!("{model_year_path}/bulletins"));
     let mut response = site::html(
         StatusCode::OK,
         &ModelYearRecallsPage {
             page,
             name,
             model_year_path,
+            bulletins_path,
             may_apply: MAY_APPLY,
             advisories,
             filters,
@@ -580,6 +587,10 @@ struct CampaignPage {
     /// The NHTSA investigations that led to the campaign. `None` when
     /// there is none, and on a server that holds none.
     investigations: Option<site::investigations::Behind>,
+    /// The bulletins for the same vehicles and component, at most
+    /// [`wenmar_shopdata::bulletins::MOST_RELATED`]. Empty when there are none, and on
+    /// a server without bulletins.
+    bulletins: Vec<site::bulletins::Line>,
 }
 
 /// Text as paragraphs: Transport Canada's comments are several lines.
@@ -621,6 +632,10 @@ fn facts(campaign: &RecallCampaign) -> Vec<(&'static str, String)> {
     push("Part numbers", campaign.part_number.clone());
     facts
 }
+
+/// Beside a campaign's bulletins: a bulletin is not part of the recall.
+pub const BULLETINS_NOTE: &str =
+    "A bulletin is the manufacturer's note to its dealers. It is not part of this recall.";
 
 /// The heading over a campaign's remedy progress, on the page and in its
 /// Markdown.
@@ -720,6 +735,38 @@ fn vehicle_lines(campaign: &RecallCampaign) -> Vec<VehicleLine> {
         .collect()
 }
 
+/// The bulletins for the same vehicles and component as a campaign, where
+/// the server holds bulletins and the components of both. Never a reason
+/// for the page to fail: a failure leaves the table off.
+async fn bulletins_beside(
+    state: &AppState,
+    campaign: &RecallCampaign,
+) -> Vec<site::bulletins::Line> {
+    let (Some(source), Ok(shop)) = (
+        RecallSource::parse(&campaign.source),
+        state.dataset(wenmar_shopdata::Dataset::Bulletins),
+    ) else {
+        return Vec::new();
+    };
+    let number = campaign.campaign.clone();
+    let beside = shop
+        .run(move |reader| {
+            reader.bulletins_for_recall(source, &number, wenmar_shopdata::bulletins::MOST_RELATED)
+        })
+        .await;
+    match beside {
+        Ok(Ok(list)) => {
+            let base = &state.config().base_url;
+            list.into_iter()
+                .map(|bulletin| {
+                    site::bulletins::line(&crate::api::bulletins::listed(base, bulletin))
+                })
+                .collect()
+        }
+        _ => Vec::new(),
+    }
+}
+
 fn campaign_markdown(
     heading: &str,
     campaign: &RecallCampaign,
@@ -727,6 +774,7 @@ fn campaign_markdown(
     sections: &[(&'static str, Vec<String>)],
     report: &report::ReportLinks,
     investigations: Option<&site::investigations::Behind>,
+    bulletins: &[site::bulletins::Line],
 ) -> String {
     let mut text = format!("# {}\n\n", escape(heading));
     text.push_str(MAY_APPLY);
@@ -774,6 +822,20 @@ fn campaign_markdown(
     if let Some(behind) = investigations {
         text.push_str(&site::investigations::behind_markdown(behind));
     }
+    if !bulletins.is_empty() {
+        text.push_str("\n## Bulletins for the same vehicles and component\n\n");
+        text.push_str(BULLETINS_NOTE);
+        text.push_str("\n\n");
+        for line in bulletins {
+            text.push_str(&format!(
+                "- [{}]({}.md), {}, {}\n",
+                escape(&line.label),
+                line.href,
+                line.date,
+                escape(&line.kind)
+            ));
+        }
+    }
     text.push_str(&markdown_footer(&campaign.lookup, &campaign.attribution));
     text.push_str(&format!(
         "\nJSON: [/v1/recalls/{source}/{number}](/v1/recalls/{source}/{number})\n",
@@ -820,6 +882,7 @@ pub async fn campaign(
     .collect();
     let report = report::links(state.config(), &path, &heading);
     let investigations = site::investigations::behind(&state, &found.source, &found.campaign).await;
+    let bulletins = bulletins_beside(&state, &found).await;
     if format == Format::Markdown {
         let canonical = format!("{}{path}", state.config().base_url);
         return markdown::response(
@@ -830,6 +893,7 @@ pub async fn campaign(
                 &sections,
                 &report,
                 investigations.as_ref(),
+                &bulletins,
             ),
             &canonical,
         );
@@ -901,6 +965,7 @@ pub async fn campaign(
             attribution: found.attribution,
             report,
             investigations,
+            bulletins,
         },
     );
     if !indexed {

@@ -591,6 +591,97 @@ fn load_model_year(
     }))
 }
 
+/// A model that shares recall campaigns and bulletins with this model year.
+pub struct SiblingLine {
+    /// `2019 GMC Sierra`.
+    pub name: String,
+    /// That model's page for the same model year, when the catalog lists
+    /// that year of it.
+    pub href: Option<String>,
+    /// Campaigns and bulletins that list both.
+    pub shared: u32,
+    /// Campaigns and bulletins that list this model year.
+    pub total: u32,
+}
+
+/// What follows the list of siblings, always. It says what the list is
+/// and is not: documents in common, not fitment.
+pub const SIBLING_CAVEAT: &str = "Worked out from the recall campaigns and bulletins that list both. It does not mean a part or a repair for one fits the other.";
+
+/// `?1` model id, `?2` year: the model's make and model names and slugs,
+/// and whether the catalog lists the model for that year.
+const SIBLING_SQL: &str = "
+SELECT mk.name, mk.slug, md.name, md.slug,
+       EXISTS (SELECT 1 FROM catalog_vehicle v WHERE v.model_id = md.id AND v.year = ?2)
+FROM catalog_model md JOIN catalog_make mk ON mk.id = md.make_id
+WHERE md.id = ?1";
+
+/// The models that share documents with the model year `vehicle_id`
+/// names. Empty on a server with no shop file, when the file has no
+/// siblings table, and when anything fails: the page is shown without them.
+async fn sibling_lines(state: &AppState, vehicle_id: &str) -> Vec<SiblingLine> {
+    let Some(shop) = state.shop() else {
+        return Vec::new();
+    };
+    let id = vehicle_id.to_owned();
+    let Ok(Ok(Some(found))) = state
+        .db()
+        .run(move |worker| crate::api::recalls::model_year(worker, &id))
+        .await
+    else {
+        return Vec::new();
+    };
+    let (model_id, year) = (found.model_id, found.vehicle.year);
+    let Ok(Ok(siblings)) = shop
+        .run(move |reader| reader.siblings(model_id, year))
+        .await
+    else {
+        return Vec::new();
+    };
+    if siblings.is_empty() {
+        return Vec::new();
+    }
+    let named = state
+        .db()
+        .run(move |worker| {
+            let mut lines = Vec::new();
+            for sibling in siblings {
+                let rows = worker
+                    .source
+                    .query(
+                        SIBLING_SQL,
+                        &[sibling.model_id.into(), i64::from(year).into()],
+                    )
+                    .map_err(CatalogError::Source)?;
+                let Some(row) = rows.first() else {
+                    continue;
+                };
+                let text = |column: usize| {
+                    row.get(column)
+                        .and_then(Value::text)
+                        .unwrap_or_default()
+                        .to_owned()
+                };
+                let (make, make_slug, model, model_slug) = (text(0), text(1), text(2), text(3));
+                let listed = row.get(4).and_then(Value::integer) == Some(1);
+                let slugs = is_slug(&make_slug) && is_slug(&model_slug);
+                lines.push(SiblingLine {
+                    name: format!("{year} {make} {model}"),
+                    href: (listed && slugs)
+                        .then(|| format!("/makes/{make_slug}/{model_slug}/{year}")),
+                    shared: sibling.shared,
+                    total: sibling.total,
+                });
+            }
+            Ok::<_, CatalogError>(lines)
+        })
+        .await;
+    match named {
+        Ok(Ok(lines)) => lines,
+        _ => Vec::new(),
+    }
+}
+
 #[derive(Template)]
 #[template(path = "model_year.html")]
 struct ModelYearPage {
@@ -611,6 +702,10 @@ struct ModelYearPage {
     safety: Option<site::safety::Section>,
     /// Fuel consumption and engine oil. `None` when nothing is on file.
     fuel: Option<site::fuel::Brief>,
+    /// Models that share campaigns and bulletins with this one. Empty when
+    /// there are none, and on a server with no such data.
+    siblings: Vec<SiblingLine>,
+    sibling_caveat: &'static str,
 }
 
 fn model_year_markdown(view: &ModelYearView, report: &report::ReportLinks) -> String {
@@ -801,6 +896,7 @@ pub async fn model_year(
     // On a server that holds crash test ratings, this model year's.
     let safety = site::safety::section(&state, &view.entry.id).await;
     let investigations = site::investigations::open_for(&state, &view.entry.id).await;
+    let siblings = sibling_lines(&state, &view.entry.id).await;
     if format == Format::Markdown {
         let canonical = format!("{}{path}", state.config().base_url);
         let mut text = model_year_markdown(&view, &report);
@@ -821,6 +917,18 @@ pub async fn model_year(
                 "\n## Bulletins\n\n[{}]({}.md)\n",
                 brief.text, brief.href
             ));
+        }
+        if !siblings.is_empty() {
+            text.push_str("\n## Shares campaigns and bulletins with\n\n");
+            for sibling in &siblings {
+                text.push_str(&format!(
+                    "- {} ({} of {})\n",
+                    escape(&sibling.name),
+                    sibling.shared,
+                    sibling.total
+                ));
+            }
+            text.push_str(&format!("\n{SIBLING_CAVEAT}\n"));
         }
         if let Some(notice) = &investigations {
             text.push_str(&site::investigations::notice_markdown(notice));
@@ -878,6 +986,8 @@ pub async fn model_year(
             investigations,
             safety,
             fuel,
+            siblings,
+            sibling_caveat: SIBLING_CAVEAT,
         },
     )
 }

@@ -52,6 +52,9 @@
 {% endfor -%}
 <ul class="plain links">
 <li><a href="{{ model_year_path }}">Trims and engines for the {{ name }}</a></li>
+{% if let Some(bulletins) = bulletins_path -%}
+<li><a href="{{ bulletins }}">Service bulletins for the {{ name }}</a></li>
+{% endif -%}
 <li><a href="/recalls">Check another vehicle for recalls</a></li>
 <li><a href="{% if let Some(form) = report.form %}{{ form }}{% else %}{{ report.issue }}{% endif %}">Report an error on this page</a></li>
 {% if let Some(mail) = report.mail -%}
