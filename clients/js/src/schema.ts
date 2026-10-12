@@ -118,6 +118,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/recalls/{source}/{campaign}/investigations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The NHTSA investigations that led to a recall campaign.
+         * @description Open and closed, oldest first. Most campaigns followed no investigation
+         *     and give an empty list, as every Transport Canada campaign does. The
+         *     campaign number is not checked against the recall data.
+         */
+        get: operations["recall_investigations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vehicles/engines": {
         parameters: {
             query?: never;
@@ -252,6 +274,28 @@ export interface paths {
         };
         /** One catalog entry by its stable id. */
         get: operations["entry"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vehicles/{id}/investigations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * NHTSA investigations that list a model year.
+         * @description By default only the open ones about a possible defect in the vehicles
+         *     listed. An investigation is not a finding that a defect exists, and it
+         *     lists a year, make and model, never one vehicle: `note` says so.
+         */
+        get: operations["vehicle_investigations"];
         put?: never;
         post?: never;
         delete?: never;
@@ -534,6 +578,67 @@ export interface components {
              * @example a VIN has 17 characters, this has 16
              */
             message: string;
+        };
+        /**
+         * @description One NHTSA defect investigation. An investigation is not a finding that a
+         *     defect exists.
+         */
+        Investigation: {
+            /**
+             * @description NHTSA's action number.
+             * @example EA23001
+             */
+            action: string;
+            /**
+             * @description The recall campaigns it led to, as NHTSA numbers them. Empty when it
+             *     led to none, or to none yet.
+             */
+            campaigns: string[];
+            /**
+             * @description The day it was closed. `null` while it is open, and for some old
+             *     investigations whose closing NHTSA's file does not record.
+             */
+            closed?: string | null;
+            /** @description The components it names, as NHTSA words them, separated by `; `. */
+            component?: string | null;
+            /**
+             * @description The letters the number starts with.
+             * @example EA
+             */
+            kind: string;
+            /**
+             * @description The kind in words. `null` for a kind with no name on file.
+             * @example Engineering analysis
+             */
+            kind_name?: string | null;
+            /** @description The manufacturers it names, separated by `; `. */
+            manufacturer?: string | null;
+            /**
+             * @description In an answer about one model year: how the investigation's vehicle
+             *     text reached that model. `exact`, `base` (it names a series or trim
+             *     of the model) or `curated`. `null` in an answer about a campaign.
+             * @example exact
+             */
+            match?: string | null;
+            /**
+             * @description In an answer about one model year: the model names the
+             *     investigation lists that reached it.
+             */
+            models: string[];
+            /** @description Whether it was opened in 2010 or later and has no day closed. */
+            open: boolean;
+            /**
+             * @description The day it was opened.
+             * @example 2023-03-17
+             */
+            opened?: string | null;
+            /**
+             * @description NHTSA's one-line subject.
+             * @example High pressure fuel pump failure
+             */
+            subject?: string | null;
+            /** @description NHTSA's summary. It can be several thousand characters. */
+            summary?: string | null;
         };
         /** @description A make in the make step of a vehicle form. */
         Make: {
@@ -957,6 +1062,27 @@ export interface components {
             notification?: string | null;
             summary?: string | null;
         };
+        /** @description The NHTSA investigations that led to one recall campaign. */
+        RecallInvestigations: {
+            /** @example 2026-10-12 */
+            as_of: string;
+            attribution: string[];
+            /** @example 18V568000 */
+            campaign: string;
+            /**
+             * @description Oldest first. Empty when the campaign followed no investigation,
+             *     and for every Transport Canada campaign.
+             */
+            investigations: components["schemas"]["Investigation"][];
+            note: string;
+            /**
+             * @description `nhtsa` or `tc`.
+             * @example nhtsa
+             */
+            source: string;
+            /** @description The campaign's page on this site. */
+            url: string;
+        };
         /** @description One page of campaigns, newest first. */
         RecallList: {
             as_of: components["schemas"]["RecallAsOf"];
@@ -1081,6 +1207,24 @@ export interface components {
             kind: string;
             /** @example EX-L */
             name: string;
+        };
+        /** @description NHTSA investigations that list one model year. */
+        VehicleInvestigations: {
+            /**
+             * @description The day NHTSA's investigation file was current.
+             * @example 2026-10-12
+             */
+            as_of: string;
+            /** @description The credit lines the data's licence asks for. */
+            attribution: string[];
+            /** @description Newest first. Empty when none lists the model year. */
+            investigations: components["schemas"]["Investigation"][];
+            /**
+             * @description That an investigation is not a finding of a defect and is not about
+             *     one vehicle. Show it wherever the list is shown.
+             */
+            note: string;
+            vehicle: components["schemas"]["RecallVehicle"];
         };
         /** @description Recalls that may apply to one model year. */
         VehicleRecalls: {
@@ -1481,6 +1625,46 @@ export interface operations {
             };
         };
     };
+    recall_investigations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Who published the campaign: `nhtsa` or `tc` (Transport Canada).
+                 * @example nhtsa
+                 */
+                source: string;
+                /**
+                 * @description The publisher's campaign number. Letters may be in either case.
+                 * @example 18V568000
+                 */
+                campaign: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The investigations, oldest first. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecallInvestigations"];
+                };
+            };
+            /** @description `not_found`: that is not a campaign number. `dataset_unavailable`: this server holds no investigations. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     engines: {
         parameters: {
             query: {
@@ -1804,6 +1988,59 @@ export interface operations {
                 };
             };
             /** @description `not_found`: no vehicle has that id. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    vehicle_investigations: {
+        parameters: {
+            query?: {
+                /**
+                 * @description `open` (the default): only investigations that are open and about a
+                 *     possible defect in the vehicles they list. `all`: every
+                 *     investigation that lists the model year, closed ones and audit
+                 *     queries included.
+                 * @example open
+                 */
+                status?: string;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description A vehicle id. Investigations are listed by year, make and model; a submodel or an engine in the id is set aside.
+                 * @example 2019_ram_1500
+                 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The investigations, newest first. An empty list when none lists the model year. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleInvestigations"];
+                };
+            };
+            /** @description `validation_failed`: `status` is not `open` or `all`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no investigations. */
             404: {
                 headers: {
                     [name: string]: unknown;

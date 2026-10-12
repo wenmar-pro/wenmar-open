@@ -100,6 +100,16 @@ const calls: Record<string, { call: () => Promise<unknown>; method: string; url:
     method: "GET",
     url: "/v1/recalls/nhtsa/19V888000",
   },
+  vehicle_investigations: {
+    call: () => client.investigations("2019_ram_1500", { status: "all" }),
+    method: "GET",
+    url: "/v1/vehicles/2019_ram_1500/investigations?status=all",
+  },
+  recall_investigations: {
+    call: () => client.recallInvestigations("nhtsa", "18V568000"),
+    method: "GET",
+    url: "/v1/recalls/nhtsa/18V568000/investigations",
+  },
   recall_search: {
     call: () => client.searchRecalls({ make: "ford", year: 2018, q: "tailgate", limit: 5 }),
     method: "GET",

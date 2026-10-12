@@ -14,6 +14,7 @@ import type {
   ModelsQuery,
   Overview,
   RecallCampaign,
+  RecallInvestigations,
   RecallList,
   RecallSearchQuery,
   RecentRecalls,
@@ -21,6 +22,8 @@ import type {
   SearchQuery,
   Submodel,
   SubmodelsQuery,
+  VehicleInvestigations,
+  VehicleInvestigationsQuery,
   VehicleRecalls,
   VehicleRecallsQuery,
   VinDecode,
@@ -275,6 +278,30 @@ export class WenmarOpen {
    */
   async recentRecalls(query: RecentRecallsQuery, options: RequestOptions = {}): Promise<RecentRecalls> {
     return this.#request("GET", `/v1/recalls/recent${queryString(query)}`, undefined, options);
+  }
+
+  /**
+   * The open NHTSA investigations that list a model year, by its id such as
+   * `2019_ram_1500`; `{ status: "all" }` adds the closed ones. An
+   * investigation is not a finding that a defect exists: show `note`.
+   */
+  async investigations(
+    id: string,
+    query: VehicleInvestigationsQuery = {},
+    options: RequestOptions = {},
+  ): Promise<VehicleInvestigations> {
+    const path = `/v1/vehicles/${segment("id", id)}/investigations${queryString(query)}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /** The NHTSA investigations that led to a recall campaign: `source` is `nhtsa` or `tc`. */
+  async recallInvestigations(
+    source: string,
+    campaign: string,
+    options: RequestOptions = {},
+  ): Promise<RecallInvestigations> {
+    const path = `/v1/recalls/${segment("source", source)}/${segment("campaign", campaign)}/investigations`;
+    return this.#request("GET", path, undefined, options);
   }
 
   /** The data version, the vPIC release it came from, and the build time. */

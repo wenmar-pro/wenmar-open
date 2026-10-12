@@ -48,6 +48,13 @@ export type ModelYears = Schemas["ModelYears"];
 export type RecentRecalls = Schemas["RecentRecalls"];
 /** What a batch decode says of recalls when `include: "recalls"` is asked. */
 export type VinRecallCount = Schemas["VinRecallCount"];
+/** One NHTSA defect investigation. Not a finding that a defect exists. */
+export type Investigation = Schemas["Investigation"];
+/** NHTSA investigations that list one model year. */
+export type VehicleInvestigations = Schemas["VehicleInvestigations"];
+/** The NHTSA investigations that led to one recall campaign. */
+export type RecallInvestigations = Schemas["RecallInvestigations"];
+
 /** The body of every error the API sends. */
 export type ErrorBody = Schemas["ErrorBody"];
 /** One answer of a batch: a decode, or the error for that VIN. */
@@ -64,4 +71,5 @@ export type SearchQuery = Query<"search">;
 export type VehicleRecallsQuery = Query<"vehicle_recalls">;
 export type VinRecallsQuery = Query<"vin_recalls">;
 export type RecallSearchQuery = Query<"recall_search">;
+export type VehicleInvestigationsQuery = Query<"vehicle_investigations">;
 export type RecentRecallsQuery = Query<"recent_recalls">;
