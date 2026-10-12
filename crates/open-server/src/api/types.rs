@@ -899,6 +899,11 @@ pub struct Overview {
     /// `null` when this server holds no recalls. A count of `0` with a
     /// day in `as_of` means none was found.
     pub recalls: Option<OverviewRecalls>,
+    /// NHTSA's crash test ratings for the model year, as
+    /// `/v1/vehicles/{id}/safety` gives them. `null` when this server
+    /// holds no ratings, and when a VIN reaches no model year.
+    #[schema(value_type = Option<VehicleSafety>)]
+    pub safety: Option<serde_json::Value>,
     #[schema(value_type = Option<Object>)]
     pub labor: Option<serde_json::Value>,
     #[schema(value_type = Option<Object>)]

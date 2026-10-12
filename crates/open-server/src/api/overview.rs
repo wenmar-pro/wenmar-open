@@ -138,6 +138,14 @@ pub async fn overview_of(
             .and_then(crate::site::links::for_make)
             .map(MakeLinks::from),
     };
+    // The ratings are an addition: a server without them answers `null`.
+    let safety = match (found, state.dataset(wenmar_shopdata::Dataset::Ratings)) {
+        (Some(found), Ok(shop)) => {
+            let answer = crate::api::safety::safety_of(shop, found).await?;
+            Some(serde_json::to_value(answer).map_err(ApiError::internal)?)
+        }
+        _ => None,
+    };
     Ok(Overview {
         vehicle: found.map(|found| found.vehicle.clone()),
         decode,
@@ -146,6 +154,7 @@ pub async fn overview_of(
         fluids: None,
         tires: None,
         recalls,
+        safety,
         labor: None,
         bulletins: None,
         links,

@@ -2326,6 +2326,17 @@
               }
             ]
           },
+          "safety": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/VehicleSafety",
+                "description": "NHTSA's crash test ratings for the model year, as\n`/v1/vehicles/{id}/safety` gives them. `null` when this server\nholds no ratings, and when a VIN reaches no model year."
+              }
+            ]
+          },
           "specs": {
             "type": [
               "object",

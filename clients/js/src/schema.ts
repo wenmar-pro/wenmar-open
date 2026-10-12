@@ -830,6 +830,7 @@ export interface components {
             labor?: Record<string, unknown> | null;
             links: components["schemas"]["OverviewLinks"];
             recalls?: null | components["schemas"]["OverviewRecalls"];
+            safety?: null | components["schemas"]["VehicleSafety"];
             specs?: Record<string, unknown> | null;
             tires?: Record<string, unknown> | null;
             vehicle?: null | components["schemas"]["RecallVehicle"];

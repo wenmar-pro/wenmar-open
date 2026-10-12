@@ -30,7 +30,7 @@ fn campaigns(list: &Value) -> Vec<&str> {
 }
 
 /// Every key an overview has, in the order they are written.
-const KEYS: [&str; 12] = [
+const KEYS: [&str; 13] = [
     "vehicle",
     "decode",
     "specs",
@@ -38,6 +38,7 @@ const KEYS: [&str; 12] = [
     "fluids",
     "tires",
     "recalls",
+    "safety",
     "labor",
     "bulletins",
     "links",
@@ -513,4 +514,18 @@ async fn every_answer_with_recalls_says_may_apply_and_never_more() {
     for claim in ["applies to", "is affected", "open recall", "your vehicle"] {
         assert!(!text.contains(claim), "{claim}");
     }
+}
+
+#[tokio::test]
+async fn the_overview_has_the_crash_test_ratings_when_the_server_holds_them() {
+    let app = common::ratings_and_recalls_app().await;
+    let body = ok(&app, "/v1/vehicles/2023_hyundai_kona/overview").await;
+    let (_, safety) = app.json("/v1/vehicles/2023_hyundai_kona/safety").await;
+    assert_eq!(body["safety"], safety);
+    assert_eq!(body["safety"]["ratings"].as_array().unwrap().len(), 3);
+    // Without ratings the block is null, and it is still there.
+    let app = common::recalls_app().await;
+    let body = ok(&app, "/v1/vehicles/2023_hyundai_kona/overview").await;
+    assert_eq!(body["safety"], Value::Null);
+    assert!(body.as_object().unwrap().contains_key("safety"));
 }
