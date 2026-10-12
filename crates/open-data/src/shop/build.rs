@@ -209,6 +209,9 @@ fn shape_all(context: &mut ShapeContext<'_>, inputs: &ShopInputs) -> Result<()> 
     }
     // The hand-kept records are in the curated directory, not fetched.
     crate::shop::hand::shape(context)?;
+    // The hand-written trouble codes are in the curated directory, not
+    // fetched.
+    crate::shop::codes::shape(context)?;
     after_sources(context)
 }
 
@@ -220,7 +223,9 @@ pub fn after_sources(context: &mut ShapeContext<'_>) -> Result<()> {
     let recalls = datasets.contains(Dataset::RecallsUs) || datasets.contains(Dataset::RecallsCa);
     let bulletins = datasets.contains(Dataset::Bulletins);
     let complaints = datasets.contains(Dataset::Complaints);
-    if recalls || bulletins || complaints {
+    // A code names its components, so the file must be able to name them.
+    let codes = datasets.contains(Dataset::Codes);
+    if recalls || bulletins || complaints || codes {
         crate::shop::components::shape(context)?;
     }
     if bulletins {

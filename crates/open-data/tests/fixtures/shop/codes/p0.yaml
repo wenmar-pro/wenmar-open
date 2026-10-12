@@ -1,0 +1,30 @@
+# Test fixture. The code numbers are real generic numbers. Every word of
+# text is made up and describes no trouble code.
+codes:
+  - code: P0001
+    system: powertrain/fuel-air
+    title: " Made-up  title one "
+    meaning: >-
+      Made-up meaning one. This text is a test
+      fixture and describes no trouble code.
+    common_causes:
+      - "Made-up cause A"
+      - "Made-up cause B"
+    checks:
+      - "Made-up check A"
+    components: [timing-belt, engine]
+    related: [P0002, U0001]
+    author: test-author
+    reviewer: test-reviewer
+    checked: 2026-10-10
+  - code: P0002
+    system: powertrain/emissions
+    title: "Made-up title two"
+    meaning: "Made-up meaning two."
+    common_causes: ["Made-up cause C"]
+    checks: ["Made-up check B", "Made-up check C"]
+    components: [exhaust-emissions]
+    related: [P0001]
+    author: test-author
+    reviewer: test-reviewer
+    checked: 2026-10-12

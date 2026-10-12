@@ -2,6 +2,7 @@
 
 mod build;
 mod bulletins;
+mod codes;
 mod common;
 mod complaints;
 mod components;

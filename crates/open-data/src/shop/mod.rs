@@ -6,6 +6,7 @@
 
 pub mod build;
 pub mod bulletin_text;
+pub mod codes;
 pub mod complaints;
 pub mod components;
 pub mod coverage;

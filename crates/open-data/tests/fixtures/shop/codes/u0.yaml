@@ -1,0 +1,13 @@
+# Test fixture. The code number is a real generic number. Every word of
+# text is made up and describes no trouble code.
+codes:
+  - code: U0001
+    system: network
+    title: "Made-up title four"
+    meaning: "Made-up meaning four."
+    common_causes: ["Made-up cause E"]
+    checks: ["Made-up check E"]
+    components: [electrical, software]
+    author: test-author
+    reviewer: other-reviewer
+    checked: 2026-10-11
