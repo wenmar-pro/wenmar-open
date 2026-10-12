@@ -7,6 +7,7 @@
 
 pub mod answer;
 pub mod bulletins;
+pub mod codes;
 pub mod complaints;
 pub mod dataset;
 pub mod error;

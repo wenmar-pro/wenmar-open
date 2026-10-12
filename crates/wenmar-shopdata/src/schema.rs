@@ -632,3 +632,32 @@ CREATE TABLE IF NOT EXISTS manual_link (
 );
 CREATE INDEX IF NOT EXISTS manual_link_ymm ON manual_link (make_id, model_id, year);
 ";
+
+/// Trouble codes this project has described in its own words, from
+/// `data/codes/`: the `codes` dataset. Only generic codes have a row; see
+/// `wenmar_shopdata::codes::is_generic`. `common_causes`, `checks` and
+/// `related` are JSON lists. `code_component.position` is the order the
+/// record lists its components in. A file that holds the dataset also has
+/// the `component` table.
+pub const CODES: &str = "
+CREATE TABLE code (
+    code          TEXT PRIMARY KEY,
+    system        TEXT NOT NULL,
+    title         TEXT NOT NULL,
+    meaning       TEXT NOT NULL,
+    common_causes TEXT NOT NULL,
+    checks        TEXT NOT NULL,
+    related       TEXT NOT NULL,
+    author        TEXT NOT NULL,
+    reviewer      TEXT NOT NULL,
+    checked       TEXT NOT NULL
+) WITHOUT ROWID;
+
+CREATE TABLE code_component (
+    code         TEXT NOT NULL,
+    component_id TEXT NOT NULL,
+    position     INTEGER NOT NULL,
+    PRIMARY KEY (code, component_id)
+) WITHOUT ROWID;
+CREATE INDEX code_component_component ON code_component (component_id);
+";
