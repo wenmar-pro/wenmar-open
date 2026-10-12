@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 
 import { WenmarOpen, WenmarOpenError } from "wenmar-open";
+import type { ApiErrorCode } from "wenmar-open";
 
 import { errorBody, exampleResponse } from "./support/openapi.js";
 import { ApiServer } from "./support/server.js";
@@ -57,6 +58,27 @@ test("a 404 from the API is not_found", async () => {
   assert.equal(error.code, "not_found");
   assert.equal(error.status, 404);
   assert.deepEqual(error.details, {});
+});
+
+test("a server with no recall data answers dataset_unavailable, and the error names the dataset", async () => {
+  const body = errorBody("dataset_unavailable", "The recalls_us dataset is not available.", { dataset: "recalls_us" });
+  const calls: (() => Promise<unknown>)[] = [
+    () => client.recalls("2018_ford_f-150"),
+    () => client.vinRecalls(KONA),
+    () => client.recall("nhtsa", "19V888000"),
+    () => client.searchRecalls({ make: "ford" }),
+  ];
+  for (const call of calls) {
+    api.next({ status: 404, body });
+    const error = await failure(call);
+    // One of the codes the type names, so a switch over them is checked.
+    const code: ApiErrorCode = "dataset_unavailable";
+    assert.equal(error.code, code);
+    assert.equal(error.status, 404);
+    assert.equal(error.message, "The recalls_us dataset is not available.");
+    assert.deepEqual(error.details, { dataset: "recalls_us" });
+    assert.equal(error.retryAfter, undefined);
+  }
 });
 
 test("a code this version has never heard of is passed on as it is", async () => {

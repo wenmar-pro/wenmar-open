@@ -1,8 +1,16 @@
-/** The codes the API answers with. */
+/**
+ * The codes the API answers with.
+ *
+ * `dataset_unavailable` is a `404` from a method that reads a dataset the
+ * server does not hold, such as recalls: `details.dataset` names it, as
+ * `recalls_us` or `recalls_ca`. It is not `not_found`: the vehicle may well
+ * exist, and another server, or the same one later, may hold the data.
+ */
 export type ApiErrorCode =
   | "invalid_vin"
   | "validation_failed"
   | "not_found"
+  | "dataset_unavailable"
   | "method_not_allowed"
   | "payload_too_large"
   | "uri_too_long"
