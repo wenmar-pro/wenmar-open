@@ -8,6 +8,7 @@
 pub mod answer;
 pub mod dataset;
 pub mod error;
+pub mod investigations;
 pub mod licence;
 pub mod recalls;
 pub mod schema;

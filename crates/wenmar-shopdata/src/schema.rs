@@ -64,3 +64,48 @@ CREATE INDEX IF NOT EXISTS recall_vehicle_ymm ON recall_vehicle (make_id, model_
 CREATE INDEX IF NOT EXISTS recall_vehicle_recall ON recall_vehicle (recall_id);
 CREATE INDEX IF NOT EXISTS recall_vehicle_year ON recall_vehicle (year, model_id);
 ";
+
+/// NHTSA defect investigations: the `investigations` dataset.
+///
+/// `investigation` holds one row for each action number. `is_open` is 1
+/// when it has a day opened on or after
+/// [`crate::investigations::OPEN_FROM`] and no day closed, and 0 otherwise.
+/// `investigation_vehicle` holds one row for each year, make and model an
+/// investigation lists, and one for each catalog model when a name matched
+/// several; it has the columns the coverage report reads. `"match"` is
+/// `exact`, `base` or `curated`, and NULL exactly when `model_id` is NULL.
+/// `investigation_campaign` holds the recall campaigns an investigation
+/// led to, written as `recall.campaign` writes them.
+pub const INVESTIGATIONS: &str = "
+CREATE TABLE IF NOT EXISTS investigation (
+    id           INTEGER PRIMARY KEY,
+    action       TEXT NOT NULL UNIQUE,
+    kind         TEXT NOT NULL,
+    opened       TEXT,
+    closed       TEXT,
+    is_open      INTEGER NOT NULL,
+    manufacturer TEXT,
+    component    TEXT,
+    subject      TEXT,
+    summary      TEXT
+);
+
+CREATE TABLE IF NOT EXISTS investigation_vehicle (
+    investigation_id INTEGER NOT NULL,
+    year             INTEGER,
+    make_id          INTEGER,
+    model_id         INTEGER,
+    make_text        TEXT NOT NULL,
+    model_text       TEXT NOT NULL,
+    \"match\"          TEXT
+);
+CREATE INDEX IF NOT EXISTS investigation_vehicle_ymm ON investigation_vehicle (make_id, model_id, year);
+CREATE INDEX IF NOT EXISTS investigation_vehicle_investigation ON investigation_vehicle (investigation_id);
+
+CREATE TABLE IF NOT EXISTS investigation_campaign (
+    investigation_id INTEGER NOT NULL,
+    campaign         TEXT NOT NULL,
+    PRIMARY KEY (campaign, investigation_id)
+) WITHOUT ROWID;
+CREATE INDEX IF NOT EXISTS investigation_campaign_investigation ON investigation_campaign (investigation_id);
+";
