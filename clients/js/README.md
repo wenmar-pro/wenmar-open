@@ -357,6 +357,8 @@ open.close();
 
 `code(code)`, `codes(query)` and `vehicleCode(id, code)` are those of `WenmarOpen`: generic OBD-II trouble codes described in this project's own words, read from the shop file. Offline, `vehicleCode` gives the description and the recalls about the same components; its `bulletins` and `related.bulletins` are always `null`, because bulletins are on the hosted service only.
 
+`jobs()`, `job(job)`, `labor(id, job?)` and `vinLabor(vin, job?)` are those of `WenmarOpen`: the job list and Wenmar's labour estimates, read from the shop file. Each figure has `hours` (`low`, `typical`, `high`), a `basis` and the `scope` it is for. An estimate, not a quote; credit it as `attribution` says: `Labour estimates by Wenmar Pro, CC BY 4.0`.
+
 `safety(id)` is that of `WenmarOpen`: NHTSA's crash test ratings for a model year, read from the shop file.
 
 ```ts

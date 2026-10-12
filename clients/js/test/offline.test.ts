@@ -864,3 +864,24 @@ test("without the codes in the shop file every code method is dataset_unavailabl
     }
   }
 });
+
+// ----- jobs and labour estimates, from the shop file -----
+
+test("without the jobs and the estimates in the shop file every labour method is dataset_unavailable", async () => {
+  // The fixture shop file holds neither. The answers themselves are held
+  // to the API in crates/open-server.
+  for (const { client } of [withShop(), { client: offline(new RecordedStore()) }]) {
+    for (const [asked, dataset] of [
+      [client.jobs(), "jobs"],
+      [client.job("brake-pads-front"), "jobs"],
+      [client.labor("2023_hyundai_kona"), "labor"],
+      [client.labor("2023_hyundai_kona", "brake-pads-front"), "labor"],
+      [client.vinLabor(KONA), "labor"],
+    ] as const) {
+      const error = await failure(asked);
+      assert.equal(error.code, "dataset_unavailable");
+      assert.equal(error.message, `The ${dataset} dataset is not available.`);
+      assert.deepEqual(error.details, { dataset });
+    }
+  }
+});
