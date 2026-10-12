@@ -61,6 +61,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Five guides on fluids and specifications (engine oil, transmission fluid, coolant, brake fluid, refrigerants) exist as drafts in `crates/open-server/src/site/guides/fluids.rs`, each with its fixed headings. A draft is in `guides::DRAFTS`, where nothing serves it; a guide is published by moving its entry to `GUIDES` once a person has written and approved its text.
 - `scripts/shop-manifest.mjs`, `scripts/shop-datasets-check.mjs` and `scripts/shop-pull.mjs`, tested by `scripts/shop-release.test.mjs` in `mise run js` and in CI. `scripts/release-check.sh` holds the wiring of the shop data package, and `scripts/release-bump.sh` is held not to touch `SHOP_VERSION`. `wenmar-shopdata` stays unpublished.
 - `wenmar-shopdata` reads the crash test ratings of a model year from a shop file: `ShopData::ratings_for_vehicle`, each rating with NHTSA's description of the vehicle it is for.
+- `open-data fetch epa-vehicles` downloads EPA's fuel economy file, and `shop::epa_vehicles::parse` reads it: the 84-column header is pinned, and each row comes out typed with its engine, transmission, drive, fuel grade, ratings and volumes. Nothing uses it yet.
 
 ## [0.2.0] - 2026-10-10
 
