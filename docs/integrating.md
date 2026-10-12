@@ -278,7 +278,7 @@ gunzip "wenmar-open-$version.sqlite3.gz"
 - **Schema version.** The file's `meta` table has a `schema_version`. A version of the crates reads one schema version and refuses any other, with a message that names both. The changelog says when it changes; take the new crates and the new file together.
 - The tables are this project's own and can change with the schema version. Read them through the crates or the command-line tool, not with your own SQL.
 
-**The shop file.** Recalls are in a second file, released weekly as `shop-YYYY.MM.DD` with three assets: `wenmar-open-shop-<version>.sqlite3.gz`, its `.sha256`, and `wenmar-open-shop-<version>.json`, a manifest whose `catalog_data_version` names the data file it was built against. Use the two together and never mix: a shop file holds the ids of one data file's catalog, and the readers refuse a pair that disagree.
+**The shop file.** Recalls are in a second file, released weekly as `shop-YYYY.MM.DD`. The assets to use are `wenmar-open-shop-<version>.sqlite3.gz`, its `.sha256`, and `wenmar-open-shop-<version>.json`, a manifest whose `catalog_data_version` names the data file it was built against. The release also has `wenmar-open-shop-full-<version>.sqlite3.gz`, the larger file the hosted site serves, which adds service bulletins; the command-line tool and the npm packages do not read bulletins from a file, so ask the hosted API for those. Use the two together and never mix: a shop file holds the ids of one data file's catalog, and the readers refuse a pair that disagree.
 
 **From another language**, the `wenmar-open` command-line tool reads the same file and prints JSON:
 

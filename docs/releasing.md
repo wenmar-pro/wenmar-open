@@ -10,7 +10,7 @@ It starts when a tag `v<version>` is pushed to a commit on `main`, and is run by
 
 The data file is released separately, every month, by `.github/workflows/data-release.yml`, as `data-YYYY.MM`. The same run publishes the file to npm as `wenmar-open-data`. A release of the code does not rebuild the data, and a data release does not publish code.
 
-The shop file (recalls, and the datasets that follow) is released separately too, every Monday and after each data release, by `.github/workflows/shop-data-release.yml`, as `shop-YYYY.MM.DD`. The same run publishes it to npm as `wenmar-open-data-shop`. See "The shop data release" below.
+The shop file (recalls, and the datasets that follow) is released separately too, every Monday and after each data release, by `.github/workflows/shop-data-release.yml`, as `shop-YYYY.MM.DD`. Each release has two shop files: the offline file, which people download, and the full file, which the hosted server reads. The same run publishes the offline file to npm as `wenmar-open-data-shop`. See "The shop data release" below.
 
 ## The monthly release
 
@@ -115,19 +115,33 @@ With neither `--patch` nor `--minor` it decides minor or patch from the changelo
 A shop file holds the catalog ids of one data file, so it is always built against a released data file. `shop-data-release.yml` does this, on `main`, with nobody watching:
 
 1. finds the newest `data-YYYY.MM` release and downloads its file, checking the checksum;
-2. downloads every source (`open-data fetch nhtsa-recalls`, `open-data fetch tc-recalls`);
-3. builds the shop file with `open-data build-shop`, named for the day: `2026.10.12`;
-4. runs `open-data coverage`, which fails the run when less of a dataset matched the catalog than `data/coverage.yaml` asks;
-5. writes the manifest (`scripts/shop-manifest.mjs`) and compares its datasets with the previous release's (`scripts/shop-datasets-check.mjs`): a dataset that is missing, empty, or under half its former size fails the run;
-6. creates the release `shop-2026.10.12` with three files: `wenmar-open-shop-2026.10.12.sqlite3.gz`, its `.sha256`, and the manifest `wenmar-open-shop-2026.10.12.json`;
-7. in a second job, assembles `wenmar-open-data-shop` from the released file and publishes it, unless that version is on npm already.
+2. downloads every source (`open-data fetch nhtsa-recalls`, `open-data fetch tc-recalls`, and the others in its list, `nhtsa-mfr-comms` for bulletins among them);
+3. builds two shop files with one run of `open-data build-shop`, named for the day, `2026.10.12`: the full file (`--out`), and the offline file (`--offline-out`), which is a copy of it without the datasets only the hosted service carries;
+4. runs `open-data coverage` on the full file, which fails the run when less of a dataset matched the catalog than `data/coverage.yaml` asks;
+5. writes the manifest (`scripts/shop-manifest.mjs`) and compares its datasets with the previous release's (`scripts/shop-datasets-check.mjs`): a dataset that is missing, empty, or under half its former size fails the run. Each file is compared with its own kind: the offline file with the previous offline file, and what only the full file holds with the previous full file;
+6. creates the release `shop-2026.10.12` with five files: the offline file `wenmar-open-shop-2026.10.12.sqlite3.gz` and its `.sha256`, the full file `wenmar-open-shop-full-2026.10.12.sqlite3.gz` and its `.sha256`, and the manifest `wenmar-open-shop-2026.10.12.json`;
+7. in a second job, assembles `wenmar-open-data-shop` from the released offline file and publishes it, unless that version is on npm already.
+
+### The two files of a release
+
+| | The offline file | The full file |
+|---|---|---|
+| Release asset | `wenmar-open-shop-2026.10.12.sqlite3.gz` | `wenmar-open-shop-full-2026.10.12.sqlite3.gz` |
+| Holds | every dataset except the hosted-only ones | every dataset, bulletins among them |
+| Size, measured 2026-10-12 | 119 MB, 26 MB to download | 280 MB, 66 MB to download |
+| Who takes it | `wenmar-open data pull --shop`; the npm package `wenmar-open-data-shop` | `bin/shop-pull`, for the server's image |
+| In the manifest | the fields `bytes`, `sha256` and `datasets` | the field `full`, with its own `bytes`, `sha256` and `datasets` |
+| On a developer's machine | `data/build/shop/offline/wenmar-open-shop-2026.10.12.sqlite3` | `data/build/shop/wenmar-open-shop-2026.10.12.sqlite3` |
+
+The offline file keeps the name the one file of a release had before there were two, and the manifest's first seven fields still describe it. So a command-line tool of any version downloads the offline file and never the full one. Which datasets are hosted-only is decided in one place, `Dataset::hosted_only` in `crates/wenmar-shopdata/src/dataset.rs`; `clients/data-shop/lib/hosted-only.mjs` repeats the list for the Node scripts, and a test fails when the two differ. `scripts/shop-manifest.mjs` refuses an offline file that holds one of them, and so does `clients/data-shop/scripts/prepare.mjs`, so neither the release nor the npm package can carry the full file under the offline name.
 
 It runs every Monday at 09:00 UTC. It also runs whenever "Data release" finishes, because a new data file needs a shop file built against it: until that run is done, `wenmar-open data pull --shop` and `bin/shop-pull` find no shop release for the new data version and say so. A second release on one day is `2026.10.12.1`.
 
 **When a run fails, nothing is published,** and last week's release stays the newest. Read the failed step:
 
 - *Check how much matched the catalog.* The lines starting `below:` name the dataset and the share. The report above them lists the commonest unmatched names. Either add them to `data/shop/models.yaml`, or, if the drop is real and accepted, lower the figure in `data/coverage.yaml` in a commit that says why. Then run the workflow again from `main`.
-- *No dataset of the previous release is missing.* A source answered with nothing, or with part of its file, or a dataset was dropped from the build. If it was dropped on purpose, run the workflow by hand with "accept_dataset_changes" ticked; the release notes then say so. Otherwise wait for the source and run it again.
+- *No dataset of the previous release is missing.* A source answered with nothing, or with part of its file, or a dataset was dropped from the build. If it was dropped on purpose, run the workflow by hand with "accept_dataset_changes" ticked; the release notes then say so. Otherwise wait for the source and run it again. A line that says "the full file" is about a hosted-only dataset; any other is about the offline file. Making a dataset hosted-only takes it out of the offline file, which this step refuses until it is accepted that way.
+- *Compress and describe.* `shop-manifest:` followed by "holds bulletins, which only the hosted service carries" means the offline file is not the offline file: the two paths given to `build-shop` or to `shop-manifest.mjs` were exchanged. Nothing was released.
 - *Fetch every source.* A source could not be downloaded. Run it again later; nothing was released.
 - *The `npm` job.* The GitHub release exists and is fine. Use "Re-run failed jobs", or run the workflow again: the `release` job finds the release and does nothing, and the `npm` job publishes the released file.
 
@@ -137,7 +151,7 @@ To rebuild a day's file, run the workflow by hand with `data_version` set to `20
 gh release download shop-2026.10.12 --pattern '*.json' --output - | head -n 20
 ```
 
-The scripts are tested by `node --test scripts/shop-release.test.mjs`, which `mise run js` and CI run. The workflow itself can only be tried on GitHub.
+The scripts are tested by `node --test scripts/shop-release.test.mjs`, which `mise run js` and CI run. The same tests read the workflow file and hold it to the names above. The workflow itself can only be tried on GitHub.
 
 `wenmar-shopdata`, the crate that reads a shop file, is not published to crates.io: its reader grows with every dataset, and nothing outside this repository reads a shop file from Rust yet. `scripts/release-check.sh` refuses a release in which it has lost `publish = false`.
 

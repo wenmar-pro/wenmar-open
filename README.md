@@ -100,8 +100,8 @@ Without mise: `OPEN_DATA=data/build/wenmar-open-2026.09.sqlite3 cargo run -p ope
 | `bin/dev` | Run the website and the API on http://localhost:3000 |
 | `bin/tui` | Open the one-screen terminal interface |
 | `bin/data` | Download vPIC and build the data file |
-| `bin/shop-data`, `bin/coverage` | Build the shop file (recalls) from the fetched sources, and check how much of it matched the catalog |
-| `bin/shop-pull` | Fetch the newest shop data release that pairs with the data version in `config/deploy.yml` |
+| `bin/shop-data`, `bin/coverage` | Build the shop file from the fetched sources, and check how much of it matched the catalog. It writes two: the full file in `data/build/shop/`, which the server reads, and a copy without bulletins in `data/build/shop/offline/` |
+| `bin/shop-pull` | Fetch the full file of the newest shop data release that pairs with the data version in `config/deploy.yml` |
 | `bin/check` | Format check, lints and tests: what CI runs |
 | `bin/parity`, `bin/catalog-parity` | Compare the data and the catalog with NHTSA's answers |
 | `bin/js` | Build and test the npm client |
@@ -183,7 +183,7 @@ Recalls that may apply to a model year come from a second file, the shop file:
 ./target/debug/wenmar-open data pull --shop
 ```
 
-`data pull --shop` downloads the newest shop file that was built against the data file in place; without it, recall commands are answered by the hosted API. The list is for the year, make and model: it is never a check of one VIN.
+`data pull --shop` downloads the newest shop file that was built against the data file in place; without it, recall commands are answered by the hosted API. It downloads the offline file of a release, which holds no service bulletins: those are too large to download and are answered by the hosted API only. The list is for the year, make and model: it is never a check of one VIN.
 
 Free-text search finds more online than offline. The data file reads the text as a year, a make, a model and a submodel, in that order. The hosted API also finds a model from its own words in any order, so `vehicles search type r` finds the Civic Type R with `--online` and nothing from the data file, where `vehicles search civic type r` finds it.
 
@@ -199,7 +199,7 @@ Run with no command at a terminal, `wenmar-open` opens a one-screen interface: t
 
 A workflow builds the data file each month from NHTSA's newest release, runs both checks against NHTSA's recorded answers, and attaches the file to a GitHub release tagged `data-YYYY.MM`. A build that fails a check is not released. Models NHTSA added to the newest model years after the answers were recorded are noted in the release and do not fail it; see [data/catalog/README.md](data/catalog/README.md).
 
-A second workflow builds the shop file every Monday, and again after each data release: recall campaigns from NHTSA and Transport Canada as they are that day, matched against the newest released data file. It is attached to a release tagged `shop-YYYY.MM.DD` with its checksum and a manifest that names the data file it pairs with, and published to npm as `wenmar-open-data-shop`. A build that matched less of the catalog than `data/coverage.yaml` asks, or that lost a dataset the release before it had, is not released. A shop file is used with the data file it was built against and no other.
+A second workflow builds the shop file every Monday, and again after each data release: recall campaigns from NHTSA and Transport Canada as they are that day, matched against the newest released data file. Each release, tagged `shop-YYYY.MM.DD`, has two shop files, their checksums, and a manifest that names the data file they pair with. `wenmar-open-shop-YYYY.MM.DD.sqlite3.gz` is the offline file: the one to download, the one `wenmar-open data pull --shop` takes, and the one published to npm as `wenmar-open-data-shop`. `wenmar-open-shop-full-YYYY.MM.DD.sqlite3.gz` is the full file: it also holds NHTSA's manufacturer communications (service bulletins), is more than twice the size, and is what open.wenmarpro.com serves. A build that matched less of the catalog than `data/coverage.yaml` asks, or that lost a dataset the release before it had, is not released. A shop file is used with the data file it was built against and no other.
 
 ## Data sources
 

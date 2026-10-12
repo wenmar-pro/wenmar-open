@@ -7,7 +7,7 @@ This is the procedure for putting Wenmar Open on the internet and keeping it up 
 - One container, `wenmar-open`, on the same server as `app.wenmarpro.com`.
 - The Kamal proxy already on that server terminates TLS and routes `open.wenmarpro.com` to it.
 - The container is limited to half a CPU and 256 MB of memory. It uses about 125 MB.
-- The image holds the server binary and two data files: the data file (VIN patterns and the catalog) and the shop file (recalls) that was built against it. There is no volume, no database to back up, and no secret.
+- The image holds the server binary and two data files: the data file (VIN patterns and the catalog) and the shop file (recalls, bulletins and the other datasets) that was built against it. It is the full shop file of a release, not the smaller one people download. There is no volume, no database to back up, and no secret.
 
 ## Before the first deploy
 
@@ -49,7 +49,7 @@ Do these once.
    git diff config/deploy.yml
    ```
 
-   `bin/shop-pull` reads `DATA_VERSION` from `config/deploy.yml`, downloads the newest `shop-YYYY.MM.DD` release whose manifest names that data version, checks it against the manifest's checksum, and writes its version on the `SHOP_VERSION` line. Commit that one-line change. If it says no release pairs with the data version, run the "Shop data release" workflow from `main` and try again when it is done.
+   `bin/shop-pull` reads `DATA_VERSION` from `config/deploy.yml`, finds the newest `shop-YYYY.MM.DD` release whose manifest names that data version, downloads its full file (`wenmar-open-shop-full-<version>.sqlite3.gz`, the one with bulletins), checks it against the checksum under `full` in the manifest, stores it as `data/build/shop/wenmar-open-shop-<version>.sqlite3`, and writes its version on the `SHOP_VERSION` line. It never takes the release's other file, the offline one, which has no bulletins. Commit that one-line change. If it says no release pairs with the data version, run the "Shop data release" workflow from `main` and try again when it is done.
 
 6. **Tools.** Docker must be running on the machine you deploy from. Kamal is not one of this repository's tools; use the one you use for `wenmar`. The registry in `config/deploy.yml` is the same one `wenmar` uses.
 
@@ -71,7 +71,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'http://localhost:3999/v1/recalls?q=air
 docker stats --no-stream
 ```
 
-`/v1/meta` lists `recalls_us` and `recalls_ca` under `datasets`. `docker stats` after those requests is the first measurement of the server's memory with a shop file: before it had one it used about 125 MB of the 256 MB it is allowed. If it shows more than 200 MB, set `OPEN_CONNECTIONS: "2"` under `env.clear` in `config/deploy.yml` before deploying, and write the figure down here.
+`/v1/meta` lists `recalls_us`, `recalls_ca` and `bulletins` under `datasets`. If `bulletins` is not there, the image was built around an offline file: run `bin/shop-pull` again and rebuild. `docker stats` after those requests is the first measurement of the server's memory with a shop file: before it had one it used about 125 MB of the 256 MB it is allowed. If it shows more than 200 MB, set `OPEN_CONNECTIONS: "2"` under `env.clear` in `config/deploy.yml` before deploying, and write the figure down here.
 
 Stop it with Ctrl-C.
 
@@ -215,7 +215,7 @@ Tests check what the pages contain. Only looking checks how they look. Before th
 - **The refrigerant chart.** `/tools/refrigerant-pt` shows a heading for each refrigerant. Under one that is checked there is a table of four columns, which at 320 pixels wide scrolls sideways inside its own box, then the day it was checked and a link to each source. Under one that is not there is one amber line, "Not yet checked", and no figure. Print preview shows the tables and no button or navigation.
 - **The tire size calculator.** At 320 pixels wide, `/tools/tire-size` shows two boxes, one to a row, each as wide as the page's column; the first result table has three columns and may scroll sideways inside its own box, and nothing else does. A phone shows its letter keyboard for both boxes. Print preview shows the form and both tables, and no button or navigation.
 - **A warning.** `/vin/1HGCM82633A004353` (a wrong check digit) shows the decode with one amber line above the tables, which says what position 9 should be and links to the guide.
-- **Recalls.** With a shop file in `data/build/shop/` (`mise run serve` picks up the newest), `/makes/honda/civic/2019/recalls` at 320 pixels wide shows a table for each country that scrolls sideways inside its own box, the day each country's data was current, and the two official lookups; `/recalls/nhtsa/19V888000` shows the campaign and the vehicles it lists; `/vin/1HGCM82633A004352` has a section "Recalls that may apply". None of them says a recall applies to the vehicle.
+- **Recalls.** With a shop file in `data/build/shop/` (`mise run serve` picks up the newest there, which is a full file; it never looks in `data/build/shop/offline/`), `/makes/honda/civic/2019/recalls` at 320 pixels wide shows a table for each country that scrolls sideways inside its own box, the day each country's data was current, and the two official lookups; `/recalls/nhtsa/19V888000` shows the campaign and the vehicles it lists; `/vin/1HGCM82633A004352` has a section "Recalls that may apply". None of them says a recall applies to the vehicle.
 - **A long name.** The make and the trim with the longest names wrap inside the page at 320 pixels. Find them with:
 
   ```bash
@@ -230,7 +230,7 @@ Tests check what the pages contain. Only looking checks how they look. Before th
 
 Recalls change every day, and a new shop file is released every Monday. To put the newest on the site, from a clean checkout of `main`:
 
-1. `bin/shop-pull`. It downloads the newest shop release that pairs with `DATA_VERSION` and writes its version on the `SHOP_VERSION` line of `config/deploy.yml`. If it says the file is already here and the line already names it, there is nothing new to deploy.
+1. `bin/shop-pull`. It downloads the full file of the newest shop release that pairs with `DATA_VERSION` and writes its version on the `SHOP_VERSION` line of `config/deploy.yml`. If it says the file is already here and the line already names it, there is nothing new to deploy.
 2. `git commit -am "deploy: shop data <version>"`, and push. Deploy from a clean checkout.
 3. `kamal deploy`.
 4. `curl -s https://open.wenmarpro.com/v1/meta` shows the new `as_of` dates under `datasets`.
