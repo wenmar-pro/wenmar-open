@@ -21,6 +21,8 @@ Every dataset Wenmar Open serves, where it comes from, and what its licence asks
 | VIN decoding data and vehicle catalog | NHTSA vPIC, the Product Information Catalog and Vehicle Listing, https://vpic.nhtsa.dot.gov/ | Public domain (United States government work) | None required. This site credits NHTSA. |
 | Popular makes, aliases, trim spellings and added trims | Written by hand for this project: data/catalog/makes.yaml, data/catalog/names.yaml and data/presets.yaml | MIT | Keep the copyright notice in LICENSE. |
 | Canadian sales tax and tire fee rates | Government and stewardship pages, each named on the calculator page, collected in data/rates/canada.toml | MIT for the collection. A rate is a fact. | Keep the copyright notice in LICENSE. |
+| Vehicle recall campaigns, United States | NHTSA recall flat files, https://static.nhtsa.gov/odi/ffdd/rcl/ | Public domain (United States government work) | None required. This site credits NHTSA. |
+| Vehicle recall campaigns, Canada | Transport Canada, Vehicle Recalls Database, https://open.canada.ca/data/en/dataset/1ec92326-47ef-4110-b7ca-959fab03f96d | Open Government Licence – Canada | Contains information licensed under the Open Government Licence – Canada. |
 <!-- Shop-data plans add one row per dataset above this line, and the same row in crates/open-server/src/site/licences.rs. -->
 
 ## Fonts

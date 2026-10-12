@@ -54,6 +54,20 @@ pub const LICENCES: &[Licence] = &[
     // investigations, recall_reports, ratings, bulletins, complaints, codes,
     // fuel_us, fuel_ca, specs, oil_grade, fluids, tires, manuals, jobs, labor.
     // The same row, cell for cell, goes above the marker in NOTICE.md.
+    Licence {
+        dataset: "Vehicle recall campaigns, United States",
+        source: "NHTSA recall flat files, https://static.nhtsa.gov/odi/ffdd/rcl/",
+        licence: "Public domain (United States government work)",
+        licence_id: "public-domain",
+        attribution: "None required. This site credits NHTSA.",
+    },
+    Licence {
+        dataset: "Vehicle recall campaigns, Canada",
+        source: "Transport Canada, Vehicle Recalls Database, https://open.canada.ca/data/en/dataset/1ec92326-47ef-4110-b7ca-959fab03f96d",
+        licence: "Open Government Licence – Canada",
+        licence_id: "ogl-canada",
+        attribution: "Contains information licensed under the Open Government Licence – Canada.",
+    },
 ];
 
 /// The row as `NOTICE.md` and the Markdown page write it.
