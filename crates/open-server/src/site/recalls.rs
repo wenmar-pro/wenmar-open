@@ -22,7 +22,9 @@ use crate::api::recalls::{
     MAY_APPLY, RecallSearchQuery, campaign_and_reach, model_year, recall_search_op, recall_shop,
     recalls_of,
 };
-use crate::api::types::{Make, Recall, RecallCampaign, RecallLookup, VehicleRecalls};
+use crate::api::types::{
+    Make, Recall, RecallCampaign, RecallCompletion, RecallLookup, VehicleRecalls,
+};
 use crate::error::ApiError;
 use crate::site::markdown::{self, Format, escape};
 use crate::site::{self, Page, jsonld, report, seo};
@@ -564,6 +566,9 @@ struct CampaignPage {
     facts: Vec<(&'static str, String)>,
     /// The sections of text, as heading and paragraphs.
     sections: Vec<(&'static str, Vec<String>)>,
+    /// The manufacturer's newest report of remedy progress. `None` when
+    /// there is none on file.
+    progress: Option<Progress>,
     vehicles: Vec<VehicleLine>,
     /// How many vehicles the campaign lists; `vehicles` holds at most 200.
     vehicles_total: usize,
@@ -615,6 +620,66 @@ fn facts(campaign: &RecallCampaign) -> Vec<(&'static str, String)> {
     );
     push("Part numbers", campaign.part_number.clone());
     facts
+}
+
+/// The heading over a campaign's remedy progress, on the page and in its
+/// Markdown.
+pub const PROGRESS_HEADING: &str = "Remedy progress the manufacturer reported";
+
+/// What a campaign's page says of how far its remedy has got.
+pub struct Progress {
+    /// The report's figures, as label and value.
+    pub facts: Vec<(&'static str, String)>,
+    /// What the figures are, and what they are not.
+    pub note: String,
+}
+
+/// A quarter stored as `2026-1`, in words: `2026 quarter 1`.
+fn quarter_in_words(quarter: &str) -> String {
+    match quarter.split_once('-') {
+        Some((year, quarter)) => format!("{year} quarter {quarter}"),
+        None => quarter.to_owned(),
+    }
+}
+
+/// The remedy progress of a campaign as its page shows it.
+pub fn progress(completion: &RecallCompletion) -> Progress {
+    let period = if completion.period_from == completion.period_to {
+        quarter_in_words(&completion.period_to)
+    } else {
+        format!(
+            "{} to {}",
+            quarter_in_words(&completion.period_from),
+            quarter_in_words(&completion.period_to)
+        )
+    };
+    let kind = match completion.kind.as_str() {
+        "annual" => "Annual",
+        _ => "Quarterly",
+    };
+    let remedied = match completion.remedied_percent {
+        Some(percent) => format!("{} ({percent}%)", completion.remedied),
+        None => completion.remedied.to_string(),
+    };
+    let mut facts = vec![(
+        "Report",
+        format!("{kind} report {}, for {period}", completion.report_number),
+    )];
+    if let Some(submitted) = &completion.submitted {
+        facts.push(("Filed with NHTSA", submitted.clone()));
+    }
+    facts.push(("Vehicles in the campaign", completion.involved.to_string()));
+    facts.push(("Reported remedied", remedied));
+    facts.push(("Reported unreachable", completion.unreachable.to_string()));
+    facts.push(("Reported removed", completion.removed.to_string()));
+    let mut note = format!(
+        "These are the manufacturer's totals for the whole campaign at the end of {}, as filed with NHTSA. They do not say whether one vehicle has been remedied: check the VIN with the official lookups.",
+        quarter_in_words(&completion.period_to)
+    );
+    if let Some(day) = &completion.as_of {
+        note.push_str(&format!(" The reports are from data as of {day}."));
+    }
+    Progress { facts, note }
 }
 
 fn vehicle_lines(campaign: &RecallCampaign) -> Vec<VehicleLine> {
@@ -678,6 +743,14 @@ fn campaign_markdown(
         for paragraph in body {
             text.push_str(&format!("{}\n\n", escape(paragraph)));
         }
+    }
+    if let Some(completion) = &campaign.completion {
+        let shown = progress(completion);
+        text.push_str(&format!("\n## {PROGRESS_HEADING}\n\n"));
+        for (label, value) in &shown.facts {
+            text.push_str(&format!("- {label}: {}\n", escape(value)));
+        }
+        text.push_str(&format!("\n{}\n", escape(&shown.note)));
     }
     text.push_str("\n## Vehicles this campaign lists\n\n");
     for vehicle in vehicle_lines(campaign) {
@@ -819,6 +892,7 @@ pub async fn campaign(
             advisory: advisory(found.do_not_drive, found.park_outside),
             facts,
             sections,
+            progress: found.completion.as_ref().map(progress),
             vehicles,
             vehicles_total: found.vehicles.len(),
             dated: dated(found.as_of.as_ref()),

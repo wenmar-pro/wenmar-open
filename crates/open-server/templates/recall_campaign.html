@@ -13,6 +13,17 @@
 {% endfor -%}
 </tbody>
 </table>
+{% if let Some(shown) = progress -%}
+<table>
+<caption>Remedy progress the manufacturer reported</caption>
+<tbody>
+{% for fact in shown.facts -%}
+<tr><th scope="row">{{ fact.0 }}</th><td>{{ fact.1 }}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">{{ shown.note }}</p>
+{% endif -%}
 {% for section in sections -%}
 <h2>{{ section.0 }}</h2>
 {% for paragraph in section.1 -%}
