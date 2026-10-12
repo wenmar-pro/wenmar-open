@@ -31,6 +31,19 @@
 <p class="note">The first {{ vehicles.len() }} of {{ vehicles_total }} vehicles are shown. <a href="{{ json_path }}">The JSON</a> has them all.</p>
 {% endif -%}
 <p class="note">A vehicle with no link is not in this site's catalog, which covers cars, multipurpose vehicles and trucks by model year. The campaign is from data {{ dated }}.</p>
+{% if let Some(found) = investigations -%}
+<h2 id="investigations">{{ found.heading }}</h2>
+<p>{{ found.text }} {{ found.note }}</p>
+<table class="prose">
+<caption>NHTSA investigations that led to this recall</caption>
+<tbody>
+{% for line in found.lines -%}
+<tr><th scope="row" class="mono">{{ line.action }}</th><td>{{ line.details }}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">From NHTSA's investigation file, {{ found.dated }}. <a href="{{ found.json_path }}">The JSON</a> has NHTSA's summary of each.</p>
+{% endif -%}
 <h2>Check one vehicle officially</h2>
 <ul class="plain links">
 <li><a href="{{ lookup.nhtsa }}">NHTSA recall lookup by VIN (United States)</a></li>

@@ -52,6 +52,7 @@
 <li><a href="{{ brief.lookup.tc }}">Transport Canada recall search (Canada)</a></li>
 </ul>
 {% endif -%}
+{% include "investigations_open.html" %}
 <ul class="plain links screen">
 {% if let Some(link) = model_year -%}
 <li><a href="{{ link.0 }}">All trims and engines for the {{ link.1 }}</a></li>

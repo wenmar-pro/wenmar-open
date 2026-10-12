@@ -572,6 +572,9 @@ struct CampaignPage {
     attribution: Vec<String>,
     json_path: String,
     report: report::ReportLinks,
+    /// The NHTSA investigations that led to the campaign. `None` when
+    /// there is none, and on a server that holds none.
+    investigations: Option<site::investigations::Behind>,
 }
 
 /// Text as paragraphs: Transport Canada's comments are several lines.
@@ -658,6 +661,7 @@ fn campaign_markdown(
     facts: &[(&'static str, String)],
     sections: &[(&'static str, Vec<String>)],
     report: &report::ReportLinks,
+    investigations: Option<&site::investigations::Behind>,
 ) -> String {
     let mut text = format!("# {}\n\n", escape(heading));
     text.push_str(MAY_APPLY);
@@ -693,6 +697,9 @@ fn campaign_markdown(
             "\nThe first {MOST_VEHICLES} of {} vehicles are shown. The JSON has them all.\n",
             campaign.vehicles.len()
         ));
+    }
+    if let Some(behind) = investigations {
+        text.push_str(&site::investigations::behind_markdown(behind));
     }
     text.push_str(&markdown_footer(&campaign.lookup, &campaign.attribution));
     text.push_str(&format!(
@@ -739,10 +746,18 @@ pub async fn campaign(
     .filter(|(_, body)| !body.is_empty())
     .collect();
     let report = report::links(state.config(), &path, &heading);
+    let investigations = site::investigations::behind(&state, &found.source, &found.campaign).await;
     if format == Format::Markdown {
         let canonical = format!("{}{path}", state.config().base_url);
         return markdown::response(
-            campaign_markdown(&heading, &found, &facts, &sections, &report),
+            campaign_markdown(
+                &heading,
+                &found,
+                &facts,
+                &sections,
+                &report,
+                investigations.as_ref(),
+            ),
             &canonical,
         );
     }
@@ -811,6 +826,7 @@ pub async fn campaign(
             lookup: found.lookup,
             attribution: found.attribution,
             report,
+            investigations,
         },
     );
     if !indexed {

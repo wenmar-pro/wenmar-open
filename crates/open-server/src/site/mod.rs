@@ -9,6 +9,7 @@ pub mod catalog;
 pub mod feedback;
 pub mod guides;
 pub mod home;
+pub mod investigations;
 pub mod jsonld;
 pub mod licences;
 pub mod links;

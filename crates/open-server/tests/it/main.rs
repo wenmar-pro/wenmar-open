@@ -35,6 +35,7 @@ mod site_gross_profit;
 mod site_guides;
 mod site_head;
 mod site_home;
+mod site_investigations;
 mod site_labor_rate;
 mod site_pages;
 mod site_recall_lines;

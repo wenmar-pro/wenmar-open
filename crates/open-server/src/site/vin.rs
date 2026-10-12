@@ -59,6 +59,9 @@ struct Result {
     /// Recalls that may apply to the model year the VIN decodes to. `None`
     /// on a server that holds none, and for a VIN the catalog cannot place.
     recalls: Option<site::recalls::Brief>,
+    /// The open NHTSA investigations that list that model year. `None`
+    /// when there is none, and on a server that holds none.
+    investigations: Option<site::investigations::Notice>,
 }
 
 /// The year, make, model and trim, or what there is of them.
@@ -384,6 +387,10 @@ pub async fn result(
         Some(selection) => site::recalls::brief(&state, &selection.vehicle_id).await,
         None => None,
     };
+    let investigations = match decode.catalog.as_ref() {
+        Some(selection) => site::investigations::open_for(&state, &selection.vehicle_id).await,
+        None => None,
+    };
     // A report is public, so it names the vehicle by the first 11
     // characters of the VIN and never by the whole of it.
     let stem = report::vin_stem(&decode.vin);
@@ -410,6 +417,7 @@ pub async fn result(
             pro: site::pro_link("vin-result"),
             report,
             recalls,
+            investigations,
         },
     ))
 }

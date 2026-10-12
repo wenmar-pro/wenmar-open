@@ -1,0 +1,13 @@
+{% if let Some(found) = investigations -%}
+<h2 id="investigations">Under investigation by NHTSA</h2>
+<p>{{ found.text }} {{ found.note }}</p>
+<table class="prose">
+<caption>Open NHTSA investigations that list the {{ found.name }}</caption>
+<tbody>
+{% for line in found.lines -%}
+<tr><th scope="row" class="mono">{{ line.action }}</th><td>{{ line.details }}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">From NHTSA's investigation file, {{ found.dated }}. <a href="{{ found.json_path }}">The JSON</a> has NHTSA's summary of each.</p>
+{% endif -%}
