@@ -11,3 +11,5 @@ datasets:
   recalls_ca: 69.8
   investigations: 80.2
   ratings: 86.9
+  fuel_us: 95.8
+  fuel_ca: 86.8
