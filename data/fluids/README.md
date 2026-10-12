@@ -57,3 +57,14 @@ It cannot tell whether a figure is true. That is the reviewer's work.
 ## What may not be copied
 
 Record the figure and the name of the specification. Never copy a sentence, a table or a picture from the manual, and never take a figure from another website, an oil maker's product finder, a parts catalogue or a paid database.
+
+## Entering a record, step by step
+
+1. See what is missing: `cargo run -q -p open-data -- hand-coverage --catalog data/build/wenmar-open-2026.09.sqlite3` lists the makes in the order of `data/catalog/makes.yaml` and, for each, the models with no record. The repository has no sales figures, so choosing which model to do first is yours.
+2. Get the id forms: `wenmar-open vehicles search 2018 f-150 --json` for the make and model, and `wenmar-open vehicles engines --make ford --model f-150 --year 2018 --json` for the engines.
+3. Open the maker's own document for that model year. Read the figure; write it in the file with its unit, the document and page in `source`, and today's date in `checked`.
+4. Check the shape: `cargo test -p open-data --test shop hand`.
+5. Check it against the catalog and look at the page: `bin/shop-data`, then `mise run serve`, and open `http://localhost:3000/makes/<make>/<model>/<year>`.
+6. Open a pull request with at most 20 records. Say how the reviewer can see each source. The reviewer opens the source, compares every figure, and puts their GitHub name in `reviewer`.
+
+The same steps serve `data/tires/`.
