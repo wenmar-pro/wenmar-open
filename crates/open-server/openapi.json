@@ -1192,6 +1192,50 @@
         }
       }
     },
+    "/v1/vehicles/{id}/safety": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "NHTSA's crash test ratings for a model year.",
+        "description": "NHTSA rates by body style and drive, so `ratings` often has several\nentries and their stars can differ: each says which vehicle it is for,\nin NHTSA's words. An entry with no stars is a vehicle NHTSA lists and\nhas not tested. `ratings` is empty when NHTSA lists none for the model\nyear.",
+        "operationId": "vehicle_safety",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A vehicle id. Ratings are listed by year, make and model; a submodel or an engine in the id is set aside.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2018_ford_f-150"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Every rating NHTSA gave a vehicle of the model year.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleSafety"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no crash test ratings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vin/batch": {
       "post": {
         "tags": [
@@ -3393,6 +3437,309 @@
           }
         }
       },
+      "SafetyFeatures": {
+        "type": "object",
+        "description": "The safety features NHTSA lists with a rating. A feature is `standard`,\n`optional`, `both` (standard on some versions, optional on others) or\n`no`. An evaluation is `meets`, `does_not_meet`, `standard_only`,\n`upgrade_only` or `pending`. `null` where NHTSA's file does not say.\n\nFor the four driver-assistance features (forward collision warning,\nlane departure warning, crash imminent braking, dynamic brake support)\nNHTSA's file means two things by its years. Through model year 2022,\n`standard`, `optional` and `both` say the feature is fitted and met\nNHTSA's performance criteria, `no` says it is not fitted or did not\nmeet them, and there is no evaluation. From model year 2023 the value\nsays only whether the feature is fitted, and the evaluation says what\nNHTSA's test found.",
+        "properties": {
+          "backup_camera": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "blind_spot_detection": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "crash_imminent_braking": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Automatic emergency braking: the vehicle brakes by itself."
+          },
+          "crash_imminent_braking_evaluation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dynamic_brake_support": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The vehicle adds to the driver's braking."
+          },
+          "dynamic_brake_support_evaluation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "esc": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Electronic stability control.",
+            "example": "standard"
+          },
+          "forward_collision_warning": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "forward_collision_warning_evaluation": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "meets"
+          },
+          "head_side_airbag": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Side air bags for the head, and for the torso."
+          },
+          "lane_departure_warning": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lane_departure_warning_evaluation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "torso_side_airbag": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "SafetyRating": {
+        "type": "object",
+        "description": "One rating NHTSA gave a vehicle of a model year.",
+        "required": [
+          "description",
+          "model",
+          "release",
+          "match",
+          "stars",
+          "features",
+          "notes"
+        ],
+        "properties": {
+          "body_style": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "PU/CC"
+          },
+          "curb_weight_kg": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "The weight of the vehicle NHTSA tested. NHTSA gives pounds; the\nkilograms are worked out from them and rounded.",
+            "example": 2295,
+            "minimum": 0
+          },
+          "curb_weight_lb": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "example": 5060,
+            "minimum": 0
+          },
+          "description": {
+            "type": "string",
+            "description": "The vehicle NHTSA rated, in NHTSA's words, on one line.",
+            "example": "F-150 SUPER CREW, PU/CC, 4x4"
+          },
+          "drive": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "4x4"
+          },
+          "features": {
+            "$ref": "#/components/schemas/SafetyFeatures"
+          },
+          "match": {
+            "type": "string",
+            "description": "How NHTSA's model name reached this model: `exact`, `base` (NHTSA\nnames a body or a version of it) or `curated`.",
+            "example": "base"
+          },
+          "model": {
+            "type": "string",
+            "description": "The model, body style, vehicle type and drive as NHTSA words them.",
+            "example": "F-150 SUPER CREW"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "NHTSA's safety concerns and footnotes: what happened in a test, and\nwhich vehicles the rating does not cover."
+          },
+          "release": {
+            "type": "integer",
+            "format": "int32",
+            "description": "1 for the first release of a model year; 2 or 3 for a later one\nthat NHTSA rated again.",
+            "example": 1,
+            "minimum": 0
+          },
+          "rollover_risk_percent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "The chance of a rollover in a single-vehicle crash, in percent.",
+            "example": 19.1
+          },
+          "rollover_tip": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "Whether the vehicle tipped up in NHTSA's dynamic test."
+          },
+          "stars": {
+            "$ref": "#/components/schemas/SafetyStars"
+          },
+          "vehicle_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "TRUCK"
+          }
+        }
+      },
+      "SafetyStars": {
+        "type": "object",
+        "description": "The stars of one rating, each from 1 to 5. `null` where NHTSA gave\nnone: a test it did not run, or a rating older than the overall rating,\nwhich began with model year 2011.",
+        "properties": {
+          "frontal": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "The frontal crash test, overall.",
+            "minimum": 0
+          },
+          "frontal_driver": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "frontal_passenger": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "overall": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "example": 5,
+            "minimum": 0
+          },
+          "rollover": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "side": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "The side crash tests, overall.",
+            "minimum": 0
+          },
+          "side_barrier": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "side_driver": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "The side barrier test: the driver, and the rear passenger.",
+            "minimum": 0
+          },
+          "side_front_seat": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "The front seat and the rear seat, over the barrier and pole tests.",
+            "minimum": 0
+          },
+          "side_passenger": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "side_pole": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "side_rear_seat": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          }
+        }
+      },
       "Selection": {
         "type": "object",
         "description": "The catalog's answer for one decoded VIN.",
@@ -3524,6 +3871,52 @@
               "$ref": "#/components/schemas/Recall"
             },
             "description": "Newest first. Empty when none was found as of the dates in `as_of`."
+          },
+          "vehicle": {
+            "$ref": "#/components/schemas/RecallVehicle"
+          }
+        }
+      },
+      "VehicleSafety": {
+        "type": "object",
+        "description": "NHTSA's crash test ratings for one model year.",
+        "required": [
+          "vehicle",
+          "as_of",
+          "ratings",
+          "source",
+          "source_url",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "description": "The day NHTSA's file was current.",
+            "example": "2026-08-07"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The credit lines the data's licence asks for. NHTSA's asks for none."
+          },
+          "ratings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SafetyRating"
+            },
+            "description": "One entry for each vehicle of the model year NHTSA rated or lists,\nby NHTSA's model name, body style and drive. Empty when it lists\nnone."
+          },
+          "source": {
+            "type": "string",
+            "description": "Who rates the vehicles.",
+            "example": "NHTSA New Car Assessment Program"
+          },
+          "source_url": {
+            "type": "string",
+            "description": "NHTSA's own pages of ratings.",
+            "example": "https://www.nhtsa.gov/ratings"
           },
           "vehicle": {
             "$ref": "#/components/schemas/RecallVehicle"

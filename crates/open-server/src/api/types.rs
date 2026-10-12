@@ -1057,3 +1057,128 @@ pub struct RecallInvestigations {
     /// The campaign's page on this site.
     pub url: String,
 }
+
+// ----- crash test ratings -----
+
+/// The stars of one rating, each from 1 to 5. `null` where NHTSA gave
+/// none: a test it did not run, or a rating older than the overall rating,
+/// which began with model year 2011.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct SafetyStars {
+    #[schema(example = 5)]
+    pub overall: Option<u8>,
+    /// The frontal crash test, overall.
+    pub frontal: Option<u8>,
+    pub frontal_driver: Option<u8>,
+    pub frontal_passenger: Option<u8>,
+    /// The side crash tests, overall.
+    pub side: Option<u8>,
+    /// The side barrier test: the driver, and the rear passenger.
+    pub side_driver: Option<u8>,
+    pub side_passenger: Option<u8>,
+    pub side_barrier: Option<u8>,
+    /// The front seat and the rear seat, over the barrier and pole tests.
+    pub side_front_seat: Option<u8>,
+    pub side_rear_seat: Option<u8>,
+    pub side_pole: Option<u8>,
+    pub rollover: Option<u8>,
+}
+
+/// The safety features NHTSA lists with a rating. A feature is `standard`,
+/// `optional`, `both` (standard on some versions, optional on others) or
+/// `no`. An evaluation is `meets`, `does_not_meet`, `standard_only`,
+/// `upgrade_only` or `pending`. `null` where NHTSA's file does not say.
+///
+/// For the four driver-assistance features (forward collision warning,
+/// lane departure warning, crash imminent braking, dynamic brake support)
+/// NHTSA's file means two things by its years. Through model year 2022,
+/// `standard`, `optional` and `both` say the feature is fitted and met
+/// NHTSA's performance criteria, `no` says it is not fitted or did not
+/// meet them, and there is no evaluation. From model year 2023 the value
+/// says only whether the feature is fitted, and the evaluation says what
+/// NHTSA's test found.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct SafetyFeatures {
+    /// Electronic stability control.
+    #[schema(example = "standard")]
+    pub esc: Option<String>,
+    pub forward_collision_warning: Option<String>,
+    #[schema(example = "meets")]
+    pub forward_collision_warning_evaluation: Option<String>,
+    pub lane_departure_warning: Option<String>,
+    pub lane_departure_warning_evaluation: Option<String>,
+    /// Automatic emergency braking: the vehicle brakes by itself.
+    pub crash_imminent_braking: Option<String>,
+    pub crash_imminent_braking_evaluation: Option<String>,
+    /// The vehicle adds to the driver's braking.
+    pub dynamic_brake_support: Option<String>,
+    pub dynamic_brake_support_evaluation: Option<String>,
+    pub backup_camera: Option<String>,
+    pub blind_spot_detection: Option<String>,
+    /// Side air bags for the head, and for the torso.
+    pub head_side_airbag: Option<String>,
+    pub torso_side_airbag: Option<String>,
+}
+
+/// One rating NHTSA gave a vehicle of a model year.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct SafetyRating {
+    /// The vehicle NHTSA rated, in NHTSA's words, on one line.
+    #[schema(example = "F-150 SUPER CREW, PU/CC, 4x4")]
+    pub description: String,
+    /// The model, body style, vehicle type and drive as NHTSA words them.
+    #[schema(example = "F-150 SUPER CREW")]
+    pub model: String,
+    #[schema(example = "PU/CC")]
+    pub body_style: Option<String>,
+    #[schema(example = "TRUCK")]
+    pub vehicle_type: Option<String>,
+    #[schema(example = "4x4")]
+    pub drive: Option<String>,
+    /// 1 for the first release of a model year; 2 or 3 for a later one
+    /// that NHTSA rated again.
+    #[schema(example = 1)]
+    pub release: u8,
+    /// How NHTSA's model name reached this model: `exact`, `base` (NHTSA
+    /// names a body or a version of it) or `curated`.
+    #[serde(rename = "match")]
+    #[schema(example = "base")]
+    pub matched: String,
+    pub stars: SafetyStars,
+    /// The chance of a rollover in a single-vehicle crash, in percent.
+    #[schema(example = 19.1)]
+    pub rollover_risk_percent: Option<f64>,
+    /// Whether the vehicle tipped up in NHTSA's dynamic test.
+    pub rollover_tip: Option<bool>,
+    /// The weight of the vehicle NHTSA tested. NHTSA gives pounds; the
+    /// kilograms are worked out from them and rounded.
+    #[schema(example = 2295)]
+    pub curb_weight_kg: Option<u32>,
+    #[schema(example = 5060)]
+    pub curb_weight_lb: Option<u32>,
+    pub features: SafetyFeatures,
+    /// NHTSA's safety concerns and footnotes: what happened in a test, and
+    /// which vehicles the rating does not cover.
+    pub notes: Vec<String>,
+}
+
+/// NHTSA's crash test ratings for one model year.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct VehicleSafety {
+    pub vehicle: RecallVehicle,
+    /// The day NHTSA's file was current.
+    #[schema(example = "2026-08-07")]
+    pub as_of: String,
+    /// One entry for each vehicle of the model year NHTSA rated or lists,
+    /// by NHTSA's model name, body style and drive. Empty when it lists
+    /// none.
+    pub ratings: Vec<SafetyRating>,
+    /// Who rates the vehicles.
+    #[schema(example = "NHTSA New Car Assessment Program")]
+    pub source: String,
+    /// NHTSA's own pages of ratings.
+    #[schema(example = "https://www.nhtsa.gov/ratings")]
+    pub source_url: String,
+    /// The credit lines the data's licence asks for. NHTSA's asks for none.
+    pub attribution: Vec<String>,
+}

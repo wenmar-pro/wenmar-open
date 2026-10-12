@@ -53,6 +53,7 @@ fn the_description_lists_every_route_and_no_others() {
             "/v1/vehicles/{id}/investigations",
             "/v1/vehicles/{id}/overview",
             "/v1/vehicles/{id}/recalls",
+            "/v1/vehicles/{id}/safety",
             "/v1/vin/batch",
             "/v1/vin/{vin}",
             "/v1/vin/{vin}/overview",
@@ -85,6 +86,8 @@ fn the_description_lists_every_route_and_no_others() {
         "ModelYears",
         "RecentRecalls",
         "VinRecallCount",
+        "VehicleSafety",
+        "SafetyRating",
     ] {
         assert!(schemas.contains_key(name), "no schema for {name}");
     }

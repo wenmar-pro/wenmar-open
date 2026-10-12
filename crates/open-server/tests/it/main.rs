@@ -4,6 +4,7 @@
 mod api_investigations;
 mod api_overview;
 mod api_recalls;
+mod api_safety;
 mod api_vehicles;
 mod api_vin;
 mod capture;

@@ -678,6 +678,61 @@ pub async fn reports_app_at(base_url: &str) -> (TestApp, TempDir) {
     (app, files)
 }
 
+// ----- crash test ratings -----
+
+/// The `datasets` value of the ratings fixture: the ratings alone, then
+/// with the recalls of both countries.
+pub const RATING_DATASETS: &str =
+    r#"{"ratings":{"as_of":"2026-08-07","rows":7,"licence":"public-domain","attribution":""}}"#;
+pub const RECALL_AND_RATING_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":7,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":2,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence – Canada."},"ratings":{"as_of":"2026-08-07","rows":7,"licence":"public-domain","attribution":""}}"#;
+
+/// Seven ratings against the small data file's catalog. The columns are
+/// those of `wenmar_shopdata::schema::RATINGS`, in order. The figures are
+/// made up. The Kona of model year 2023 has three: two rated, by drive,
+/// and one NHTSA lists and has not tested, reached through `KONA
+/// ELECTRIC`. The 2022 Kona has a later release, the F-150 a rating from
+/// before the evaluations, one rating has HTML where its words should be,
+/// and one matched nothing. The 2019 Civic has none.
+pub const RATING_INSERTS: &str = r#"
+INSERT INTO rating VALUES
+  (1, 2023, 'HYUNDAI', 'KONA', 'SUV', 'MPV', 'AWD', 1, 5, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 4, 148, 0, 3225, NULL, 'standard', 'meets', 'standard', 'meets', 'standard', 'does_not_meet', 'standard', 'pending', NULL, 'optional', 'standard', 'standard', NULL),
+  (2, 2023, 'HYUNDAI', 'KONA', 'SUV', 'MPV', 'FWD', 1, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 4, 155, 0, 3005, NULL, 'standard', 'meets', 'standard', 'meets', 'both', 'upgrade_only', 'both', 'standard_only', NULL, 'optional', 'standard', 'standard', 'These ratings do not apply to the N Line.' || char(10) || 'The rear door opened in the side test.'),
+  (3, 2023, 'HYUNDAI', 'KONA ELECTRIC', 'SUV', 'MPV', 'FWD', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'standard', 'pending', 'standard', 'pending', NULL, NULL, NULL, NULL, NULL, NULL, 'standard', 'standard', NULL),
+  (4, 2022, 'HYUNDAI', 'KONA', 'SUV', 'MPV', 'FWD', 2, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 150, 0, 2998, NULL, 'optional', NULL, 'optional', NULL, 'no', NULL, 'no', NULL, NULL, NULL, 'standard', 'standard', NULL),
+  (5, 2019, 'FORD', 'F-150 SUPER CREW', 'PU/CC', 'TRUCK', '4x4', 1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 191, 0, 5060, NULL, 'optional', NULL, 'optional', NULL, 'optional', NULL, 'optional', NULL, NULL, 'optional', 'standard', 'standard', NULL),
+  (6, 2019, 'B&B <script>alert(1)</script>', 'Model "<img src=x onerror=alert(1)>', '<b>Bold</b>', 'PC', NULL, 1, NULL, NULL, 4, 4, NULL, 4, NULL, NULL, NULL, NULL, NULL, 3, 200, 1, NULL, 'standard', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'A note with <script>alert(1)</script> in it.'),
+  (7, 1999, 'TOYOTA', 'COROLLA', '4-DR W/SAB', 'LIGHT PASSENGER CAR', NULL, 1, NULL, NULL, 4, 4, NULL, 4, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'no', 'no', NULL, 'no', NULL, 'no', NULL, 'no', NULL, NULL, NULL, NULL, 'optional', NULL);
+INSERT INTO rating_vehicle VALUES
+  (1, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact'),
+  (2, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact'),
+  (3, 2023, 498, 900, 'HYUNDAI', 'KONA ELECTRIC', 'base'),
+  (4, 2022, 498, 900, 'HYUNDAI', 'KONA', 'exact'),
+  (5, 2019, 460, 1801, 'FORD', 'F-150 SUPER CREW', 'base'),
+  (6, 2019, 6000, 9500, 'B&B <script>alert(1)</script>', 'Model "<img src=x onerror=alert(1)>', 'exact'),
+  (7, 1999, NULL, NULL, 'TOYOTA', 'COROLLA', NULL);
+"#;
+
+/// The rating tables and [`RATING_INSERTS`], as `rows` for
+/// [`app_with_shop`].
+pub fn rating_rows() -> String {
+    format!("{}{RATING_INSERTS}", wenmar_shopdata::schema::RATINGS)
+}
+
+/// The application over the small data file and a shop file holding the
+/// crash test ratings and nothing else.
+pub async fn ratings_app() -> TestApp {
+    app_with_shop(RATING_DATASETS, &rating_rows()).await
+}
+
+/// The same, with the recalls of both countries beside the ratings.
+pub async fn ratings_and_recalls_app() -> TestApp {
+    app_with_shop(
+        RECALL_AND_RATING_DATASETS,
+        &format!("{}{}", recall_rows(), rating_rows()),
+    )
+    .await
+}
+
 // ----- helpers for the pages -----
 
 /// `GET`s a page and reads its body as text.

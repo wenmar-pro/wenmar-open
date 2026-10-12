@@ -4,6 +4,7 @@ pub mod investigations;
 pub mod meta;
 pub mod overview;
 pub mod recalls;
+pub mod safety;
 pub mod types;
 pub mod vehicles;
 pub mod vin;
@@ -53,6 +54,7 @@ pub fn router() -> (axum::Router<AppState>, utoipa::openapi::OpenApi) {
         .routes(routes!(vehicles::engines))
         .routes(routes!(vehicles::search))
         .routes(routes!(vehicles::entry))
+        .routes(routes!(safety::vehicle_safety))
         .routes(routes!(recalls::vehicle_recalls))
         .routes(routes!(recalls::vin_recalls))
         .routes(routes!(recalls::recall_campaign))
