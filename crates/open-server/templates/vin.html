@@ -12,6 +12,11 @@
 {% endif -%}
 </p>
 {% endfor -%}
+{% if let Some(brief) = recalls -%}
+{% for line in brief.advisories -%}
+<p class="warning">Recall <a href="{{ line.href }}">{{ line.campaign }}</a> may apply to this vehicle. {{ line.advisory }} <a href="{{ brief.lookup.nhtsa }}">Check this VIN with NHTSA</a> before it is driven or parked inside.</p>
+{% endfor -%}
+{% endif -%}
 <div class="actions">
 <button type="button" data-copy-text="{{ copy }}" hidden>Copy</button>
 <button type="button" data-print hidden>Print</button>
@@ -27,6 +32,26 @@
 </tbody>
 </table>
 {% endfor -%}
+{% if let Some(brief) = recalls -%}
+<h2 id="recalls">Recalls that may apply</h2>
+<p>{{ brief.text }} to the {{ brief.name }}. This is a list for the model year, not a check of this VIN: only the manufacturer can say whether a recall applies to this vehicle.</p>
+{% if !brief.newest.is_empty() -%}
+<table class="prose">
+<caption>Newest recalls for the {{ brief.name }}</caption>
+<tbody>
+{% for line in brief.newest -%}
+<tr><th scope="row"><a class="mono" href="{{ line.href }}">{{ line.campaign }}</a></th><td>{{ line.date }}{% if !line.component.is_empty() %}. {{ line.component }}{% endif %}{% if !line.summary.is_empty() %}. {{ line.summary }}{% endif %}{% if !line.advisory.is_empty() %} <strong>{{ line.advisory }}</strong>{% endif %}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+{% endif -%}
+<p class="note">United States recalls are from NHTSA, {{ brief.us }}. Canadian recalls are from Transport Canada, {{ brief.ca }}.</p>
+<ul class="plain links">
+<li><a href="{{ brief.href }}">All recalls that may apply to the {{ brief.name }}</a></li>
+<li><a href="{{ brief.lookup.nhtsa }}">NHTSA recall lookup by VIN (United States)</a></li>
+<li><a href="{{ brief.lookup.tc }}">Transport Canada recall search (Canada)</a></li>
+</ul>
+{% endif -%}
 <ul class="plain links screen">
 {% if let Some(link) = model_year -%}
 <li><a href="{{ link.0 }}">All trims and engines for the {{ link.1 }}</a></li>

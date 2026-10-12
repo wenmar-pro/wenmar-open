@@ -56,6 +56,9 @@ struct Result {
     model_year: Option<(String, String)>,
     pro: String,
     report: report::ReportLinks,
+    /// Recalls that may apply to the model year the VIN decodes to. `None`
+    /// on a server that holds none, and for a VIN the catalog cannot place.
+    recalls: Option<site::recalls::Brief>,
 }
 
 /// The year, make, model and trim, or what there is of them.
@@ -377,6 +380,10 @@ pub async fn result(
         .collect();
     let groups = groups(&decode);
     let copy = summary(&headline, &decode.vin, &groups);
+    let recalls = match decode.catalog.as_ref() {
+        Some(selection) => site::recalls::brief(&state, &selection.vehicle_id).await,
+        None => None,
+    };
     // A report is public, so it names the vehicle by the first 11
     // characters of the VIN and never by the whole of it.
     let stem = report::vin_stem(&decode.vin);
@@ -402,6 +409,7 @@ pub async fn result(
             model_year,
             pro: site::pro_link("vin-result"),
             report,
+            recalls,
         },
     ))
 }
