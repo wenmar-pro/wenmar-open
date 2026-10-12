@@ -11,10 +11,17 @@ import type {
   Meta,
   Model,
   ModelsQuery,
+  RecallCampaign,
+  RecallList,
+  RecallSearchQuery,
   SearchQuery,
   Submodel,
   SubmodelsQuery,
+  VehicleRecalls,
+  VehicleRecallsQuery,
   VinDecode,
+  VinRecalls,
+  VinRecallsQuery,
   YearsQuery,
 } from "./types.js";
 
@@ -180,6 +187,44 @@ export class WenmarOpen {
   /** One make by its id, name or alias, such as `honda`, with the maker's own links. */
   async make(make: string, options: RequestOptions = {}): Promise<MakeDetail> {
     return this.#request("GET", `/v1/makes/${segment("make", make)}`, undefined, options);
+  }
+
+  /**
+   * Recalls that may apply to a model year, by its id such as
+   * `2018_ford_f-150`. The list is for the year, make and model: it is not
+   * a lookup by VIN, and `lookup` says where one vehicle can be checked.
+   */
+  async recalls(
+    id: string,
+    query: VehicleRecallsQuery = {},
+    options: RequestOptions = {},
+  ): Promise<VehicleRecalls> {
+    const path = `/v1/vehicles/${segment("id", id)}/recalls${queryString(query)}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /**
+   * Recalls that may apply to the model year a VIN decodes to. The VIN only
+   * names the model year: no public data says a recall applies to one VIN.
+   */
+  async vinRecalls(
+    vin: string,
+    query: VinRecallsQuery = {},
+    options: RequestOptions = {},
+  ): Promise<VinRecalls> {
+    const path = `/v1/vin/${segment("vin", vin)}/recalls${queryString(query)}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /** One recall campaign: `source` is `nhtsa` or `tc`. */
+  async recall(source: string, campaign: string, options: RequestOptions = {}): Promise<RecallCampaign> {
+    const path = `/v1/recalls/${segment("source", source)}/${segment("campaign", campaign)}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /** Recall campaigns, newest first, narrowed by what is given. */
+  async searchRecalls(query: RecallSearchQuery = {}, options: RequestOptions = {}): Promise<RecallList> {
+    return this.#request("GET", `/v1/recalls${queryString(query)}`, undefined, options);
   }
 
   /** The data version, the vPIC release it came from, and the build time. */

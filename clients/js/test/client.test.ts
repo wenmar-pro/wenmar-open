@@ -85,6 +85,26 @@ const calls: Record<string, { call: () => Promise<unknown>; method: string; url:
     method: "GET",
     url: "/v1/meta",
   },
+  vehicle_recalls: {
+    call: () => client.recalls("2018_ford_f-150", { country: "us" }),
+    method: "GET",
+    url: "/v1/vehicles/2018_ford_f-150/recalls?country=us",
+  },
+  vin_recalls: {
+    call: () => client.vinRecalls(KONA, { country: "ca", year: 2023 }),
+    method: "GET",
+    url: `/v1/vin/${KONA}/recalls?country=ca&year=2023`,
+  },
+  recall_campaign: {
+    call: () => client.recall("nhtsa", "19V888000"),
+    method: "GET",
+    url: "/v1/recalls/nhtsa/19V888000",
+  },
+  recall_search: {
+    call: () => client.searchRecalls({ make: "ford", year: 2018, q: "tailgate", limit: 5 }),
+    method: "GET",
+    url: "/v1/recalls?make=ford&year=2018&q=tailgate&limit=5",
+  },
 };
 
 test("there is a method for every operation of the description, and no other", () => {

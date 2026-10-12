@@ -21,6 +21,18 @@ export type Model = Schemas["Model"];
 export type Submodel = Schemas["Submodel"];
 export type EngineOption = Schemas["EngineOption"];
 export type Meta = Schemas["MetaResponse"];
+/** Recalls that may apply to one model year. Never a lookup by VIN. */
+export type VehicleRecalls = Schemas["VehicleRecalls"];
+/** Recalls that may apply to the model year a VIN decodes to. */
+export type VinRecalls = Schemas["VinRecalls"];
+/** One recall campaign with every vehicle it lists. */
+export type RecallCampaign = Schemas["RecallCampaign"];
+/** One page of recall campaigns, newest first. */
+export type RecallList = Schemas["RecallList"];
+/** One recall campaign in a list. */
+export type Recall = Schemas["Recall"];
+/** Where one vehicle can be checked for recalls by VIN. */
+export type RecallLookup = Schemas["RecallLookup"];
 /** The body of every error the API sends. */
 export type ErrorBody = Schemas["ErrorBody"];
 /** One answer of a batch: a decode, or the error for that VIN. */
@@ -34,3 +46,6 @@ export type ModelsQuery = Query<"models">;
 export type SubmodelsQuery = Query<"submodels">;
 export type EnginesQuery = Query<"engines">;
 export type SearchQuery = Query<"search">;
+export type VehicleRecallsQuery = Query<"vehicle_recalls">;
+export type VinRecallsQuery = Query<"vin_recalls">;
+export type RecallSearchQuery = Query<"recall_search">;
