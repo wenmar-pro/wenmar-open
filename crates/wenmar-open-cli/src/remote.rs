@@ -11,7 +11,7 @@ use crate::request::{
     current_year,
 };
 
-use crate::request::{CodeAction, CodeLookup};
+use crate::request::{CodeAction, CodeLookup, LaborAction, LaborLookup};
 
 /// The longest answer read from the API, in bytes.
 const LONGEST_ANSWER: u64 = 4 * 1024 * 1024;
@@ -208,6 +208,7 @@ impl Remote {
             Request::Vehicles { action, lookup } => self.vehicles(*action, lookup),
             Request::Recalls { action, lookup } => self.recalls(*action, lookup),
             Request::Codes { action, lookup } => self.codes(*action, lookup),
+            Request::Labor { action, lookup } => self.labor(*action, lookup),
             Request::Bulletins { action, lookup } => self.bulletins(*action, lookup),
         }
     }
@@ -228,6 +229,46 @@ impl Remote {
     fn overview(&self, path: &str, query: &[(&str, String)]) -> Result<Value, CliError> {
         let answer = self.get(path, query)?;
         if answer.get("links").is_some_and(Value::is_object) {
+            Ok(answer)
+        } else {
+            Err(self.not_the_api(200))
+        }
+    }
+
+    /// The job and labour routes. Only text with the form of a job id, a
+    /// vehicle id or a VIN is put in a path. Every answer has the field
+    /// named last: one without it did not come from the API.
+    fn labor(&self, action: LaborAction, lookup: &LaborLookup) -> Result<Value, CliError> {
+        use wenmar_shopdata::answer::NO_JOB;
+        use wenmar_vehicles::text::is_slug;
+
+        let job = match lookup.job.as_deref() {
+            Some(job) if !is_slug(job) => return Err(CliError::new(NOT_FOUND, NO_JOB)),
+            Some(job) => format!("/{job}"),
+            None => String::new(),
+        };
+        let mut query: Vec<(&str, String)> = Vec::new();
+        let (path, field) = match action {
+            LaborAction::Jobs if job.is_empty() => ("/v1/jobs".to_owned(), "jobs"),
+            LaborAction::Jobs => (format!("/v1/jobs{job}"), "includes"),
+            LaborAction::Vehicle => {
+                let id = lookup.id.clone().unwrap_or_default();
+                if VehicleId::parse(&id).is_none() {
+                    return Err(CliError::new(NOT_FOUND, "No vehicle has that id."));
+                }
+                (format!("/v1/vehicles/{id}/labor{job}"), "estimates")
+            }
+            LaborAction::Vin => {
+                if let Some(year) = lookup.year {
+                    query.push(("year", year.to_string()));
+                }
+                // `vin` is well formed, so it is safe in a path.
+                let vin = lookup.vin.clone().unwrap_or_default();
+                (format!("/v1/vin/{vin}/labor{job}"), "estimates")
+            }
+        };
+        let answer = self.get(&path, &query)?;
+        if answer.get(field).is_some() {
             Ok(answer)
         } else {
             Err(self.not_the_api(200))

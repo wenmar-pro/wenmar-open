@@ -20,7 +20,7 @@ use crate::request::{
     Action, Lookup, MOST, RecallAction, RecallLookup, Request, SEARCH_DEFAULT, Topic, current_year,
 };
 
-use crate::request::{CodeAction, CodeLookup};
+use crate::request::{CodeAction, CodeLookup, LaborAction, LaborLookup};
 
 /// What to do about a data file that cannot be used.
 pub const PULL_HINT: &str = "Run `wenmar-open data pull` to download the current data file.";
@@ -212,6 +212,49 @@ impl Local {
         json(answers.complaints(id).map_err(answer_error)?)
     }
 
+    /// The job list and the labour estimates, from the shop file beside
+    /// the data file, worded as the hosted API words them.
+    fn labor(&self, action: LaborAction, lookup: &LaborLookup) -> Result<Value, CliError> {
+        let asked = match (action, &lookup.job) {
+            (LaborAction::Jobs, _) => Dataset::Jobs,
+            _ => Dataset::Labor,
+        };
+        let Some(shop) = &self.shop else {
+            return Err(if self.shop_status.installed {
+                shop_unusable(&self.shop_status)
+            } else {
+                dataset_unavailable(asked)
+            });
+        };
+        let answers = Answers {
+            shop,
+            catalog: &self.catalog,
+            core: &self.core,
+            base: SITE,
+        };
+        let text = |field: &Option<String>| field.clone().unwrap_or_default();
+        let job = lookup.job.as_deref();
+        match action {
+            LaborAction::Jobs => match job {
+                Some(job) => json(answers.job(job).map_err(answer_error)?),
+                None => json(answers.jobs().map_err(answer_error)?),
+            },
+            LaborAction::Vehicle => json(
+                answers
+                    .vehicle_labor(&text(&lookup.id), job)
+                    .map_err(answer_error)?,
+            ),
+            LaborAction::Vin => {
+                // The API looks for the estimates before it decodes the
+                // VIN, so the same error comes first here.
+                shop.require(Dataset::Labor)
+                    .map_err(|error| answer_error(error.into()))?;
+                let decode = self.decode(&text(&lookup.vin), lookup.year)?;
+                json(answers.vin_labor(&decode, job).map_err(answer_error)?)
+            }
+        }
+    }
+
     /// Trouble codes, from the shop file beside the data file, worded as
     /// the hosted API words them. The bulletin parts of a vehicle's answer
     /// are always `null` here: bulletins are on the hosted service only.
@@ -381,6 +424,7 @@ impl Local {
             Request::Vehicles { action, lookup } => self.vehicles(*action, lookup),
             Request::Recalls { action, lookup } => self.recalls(*action, lookup),
             Request::Codes { action, lookup } => self.codes(*action, lookup),
+            Request::Labor { action, lookup } => self.labor(*action, lookup),
             // The files do not hold bulletins: the hosted API answers them.
             Request::Bulletins { .. } => Err(dataset_unavailable(Dataset::Bulletins)),
         }

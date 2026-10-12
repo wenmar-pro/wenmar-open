@@ -9,7 +9,7 @@ use serde_json::Value;
 
 use crate::request::{Action, BulletinAction, RecallAction, Request, Topic};
 
-use crate::request::CodeAction;
+use crate::request::{CodeAction, LaborAction};
 
 /// A value with every control character replaced, so that data cannot move
 /// the cursor, change colours or ring the bell.
@@ -1239,6 +1239,101 @@ fn facts(topic: Topic, value: &Value) -> String {
     text
 }
 
+/// The rows of a list of labour figures: the job, the three figures, and
+/// what the figure is for.
+fn labor_rows(estimates: &Value) -> Vec<Vec<String>> {
+    let mut rows = vec![
+        ["JOB", "LOW", "TYPICAL", "HIGH", "FOR", "BASIS"]
+            .iter()
+            .map(|heading| (*heading).to_owned())
+            .collect::<Vec<String>>(),
+    ];
+    for estimate in estimates.as_array().into_iter().flatten() {
+        let hours = &estimate["hours"];
+        let scope = cell(estimate, "scope");
+        let what = match scope.as_str() {
+            "class" => format!("class: {}", cell(estimate, "class_name")),
+            "engine" => format!("engine {}", cell(estimate, "engine")),
+            other => other.to_owned(),
+        };
+        let basis = match estimate["sample"]["jobs"].as_i64() {
+            Some(jobs) => format!("{} ({jobs} jobs)", cell(estimate, "basis")),
+            None => cell(estimate, "basis"),
+        };
+        rows.push(vec![
+            cell(estimate, "name"),
+            format!("{} h", cell(hours, "low")),
+            format!("{} h", cell(hours, "typical")),
+            format!("{} h", cell(hours, "high")),
+            what,
+            basis,
+        ]);
+    }
+    rows
+}
+
+/// A job list, a job or a vehicle's labour estimates, as text. Whatever
+/// shows a figure ends with the caution and the credit.
+fn labor(action: LaborAction, one_job: bool, value: &Value) -> String {
+    let footer = |text: &mut String| {
+        text.push_str(&format!("\n{}\n", cell(value, "note")));
+        for credit in value["attribution"].as_array().into_iter().flatten() {
+            text.push_str(&format!("{}\n", scalar(credit).unwrap_or_default()));
+        }
+    };
+    match action {
+        LaborAction::Jobs if !one_job => list(&value["jobs"], &["ID", "JOB", "SYSTEM"], |job| {
+            vec![cell(job, "id"), cell(job, "name"), cell(job, "system")]
+        }),
+        LaborAction::Jobs => {
+            let mut text = format!("{}  {}\n", cell(value, "id"), cell(value, "name"));
+            for (heading, key) in [("Includes", "includes"), ("Does not include", "excludes")] {
+                let entries = value[key].as_array().map(Vec::as_slice).unwrap_or_default();
+                if !entries.is_empty() {
+                    text.push_str(&format!("\n{heading}\n"));
+                    for entry in entries {
+                        text.push_str(&format!("  - {}\n", scalar(entry).unwrap_or_default()));
+                    }
+                }
+            }
+            if value["estimates"]
+                .as_array()
+                .is_some_and(|list| !list.is_empty())
+            {
+                text.push_str("\nTypical hours by class of vehicle\n");
+                text.push_str(&table(&labor_rows(&value["estimates"])));
+                text.push('\n');
+                footer(&mut text);
+            }
+            text
+        }
+        LaborAction::Vehicle | LaborAction::Vin => {
+            let vehicle = &value["vehicle"];
+            let mut text = if vehicle.is_object() {
+                format!(
+                    "{} {} {}: labour estimates\n\n",
+                    cell(vehicle, "year"),
+                    cell(vehicle, "make"),
+                    cell(vehicle, "model")
+                )
+            } else {
+                "No catalog vehicle for this VIN, so no labour estimates.\n\n".to_owned()
+            };
+            if value["estimates"]
+                .as_array()
+                .is_some_and(|list| !list.is_empty())
+            {
+                text.push_str(&table(&labor_rows(&value["estimates"])));
+                text.push('\n');
+            } else {
+                text.push_str("No estimate covers this vehicle.\n");
+            }
+            footer(&mut text);
+            text
+        }
+    }
+}
+
 /// A code's description, top to bottom. Nothing when there is none.
 fn code_description(value: &Value) -> String {
     if !value.is_object() {
@@ -1349,6 +1444,9 @@ pub fn text(request: &Request, value: &Value) -> String {
         }
         Request::Recalls { action, .. } => return recalls(*action, value),
         Request::Codes { action, .. } => return codes(*action, value),
+        Request::Labor { action, lookup } => {
+            return labor(*action, lookup.job.is_some(), value);
+        }
         Request::Bulletins { action, .. } => return bulletins(*action, value),
         Request::Vehicles { action, .. } => *action,
     };

@@ -123,6 +123,24 @@ Generic OBD-II trouble codes, described in Wenmar Open's own words. `codes get` 
 - Bulletins are on the hosted service only. Offline, `bulletins` and `related.bulletins` are `null`; that is not an error. Ask again with `--online` for them.
 - Offline, the codes are in the shop data file. Without it the error is `dataset_unavailable` and `details.hint` is `Run: wenmar-open data pull --shop`.
 
+## Labour estimates
+
+```bash
+wenmar-open labor jobs
+wenmar-open labor job brake-pads-front
+wenmar-open labor vehicle 2018_ford_f-150 --job brake-pads-front
+wenmar-open labor vin 1FTEW1EP5JFA00000
+```
+
+Wenmar's own estimates of the hours a repair job takes, written by people who do the work and never taken from a labour guide. `labor jobs` lists the jobs; `labor job` gives one, with what it `includes` and `excludes`. `labor vehicle` and `labor vin` give `estimates`: one entry for each job that has a figure covering the vehicle, with `hours.low`, `hours.typical` and `hours.high`.
+
+- **An estimate, not a quote.** Say so, and never turn hours into a price without the shop's own rate.
+- `scope` says what a figure is for: `engine`, `generation`, `model` or `class`. A `class` figure is typical for vehicles of that class (`class_name`) and was not worked out on this vehicle: say that too.
+- `basis` is `expert` (written by a person) or `observed` (measured from repair orders; `sample` says how many jobs and shops).
+- A job that is missing from `estimates` has no figure for the vehicle. Do not guess one.
+- Credit the data as `attribution` says: `Labour estimates by Wenmar Pro, CC BY 4.0`.
+- Offline, the estimates are in the shop data file. Without it the error is `dataset_unavailable` and `details.hint` is `Run: wenmar-open data pull --shop`.
+
 ## Recalls
 
 Recall campaigns from NHTSA (United States) and Transport Canada. A campaign lists a year, a make and a model, so every answer is about a model year and has `"may_apply": true`. A recall listed may apply to a vehicle; it is never a statement about one VIN. Neither government publishes recalls by VIN as data. To confirm, check the VIN with the manufacturer or at the addresses in `lookup` (`lookup.nhtsa` for the United States, `lookup.tc` for Canada). Say "may apply" when you report these.

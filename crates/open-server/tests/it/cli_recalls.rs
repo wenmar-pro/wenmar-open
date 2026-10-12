@@ -1171,3 +1171,126 @@ async fn the_tool_answers_code_questions_as_the_api_does_from_files_and_over_htt
         let _ = serving.await;
     }
 }
+
+#[tokio::test(flavor = "multi_thread")]
+async fn the_tool_answers_labor_questions_as_the_api_does_from_files_and_over_http() {
+    for held in ["labor", "recalls", "nothing"] {
+        let shop = match held {
+            "labor" => Some((common::LABOR_DATASETS, common::labor_rows())),
+            "recalls" => Some((common::RECALL_DATASETS, common::recall_rows())),
+            _ => None,
+        };
+        let app = match held {
+            "labor" => common::labor_app_at(SITE).await,
+            "recalls" => common::recalls_app_at(SITE).await,
+            _ => common::app_with(|config| config.base_url = SITE.to_owned()).await,
+        };
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address: SocketAddr = listener.local_addr().unwrap();
+        let (stop, stopped) = oneshot::channel::<()>();
+        let serving = tokio::spawn(serve(
+            listener,
+            app.router.clone(),
+            async move {
+                let _ = stopped.await;
+            },
+            Limits::default(),
+        ));
+        let api = format!("http://{address}");
+
+        let fixture = common::data_file();
+        let directory = tempfile::tempdir().unwrap();
+        std::fs::copy(fixture.path(), directory.path().join(DATA_FILE)).unwrap();
+        if let Some((datasets, rows)) = &shop {
+            common::add_shop_file(
+                &fixture,
+                wenmar_shopdata::schema::SCHEMA_VERSION,
+                "2026.09",
+                datasets,
+                rows,
+            );
+            std::fs::copy(fixture.shop_path(), directory.path().join(SHOP_FILE)).unwrap();
+        }
+
+        let vin_path = format!("/v1/vin/{}/labor/test-job-a", common::KONA);
+        let questions: [(&str, Vec<&'static str>); 8] = [
+            ("/v1/jobs", vec!["labor", "jobs"]),
+            ("/v1/jobs/test-job-a", vec!["labor", "job", "test-job-a"]),
+            ("/v1/jobs/test-job-z", vec!["labor", "job", "test-job-z"]),
+            (
+                "/v1/vehicles/2023_hyundai_kona/labor",
+                vec!["labor", "vehicle", "2023_hyundai_kona"],
+            ),
+            (
+                "/v1/vehicles/2023_hyundai_kona/labor/test-job-b",
+                vec![
+                    "labor",
+                    "vehicle",
+                    "2023_hyundai_kona",
+                    "--job",
+                    "test-job-b",
+                ],
+            ),
+            (
+                "/v1/vehicles/2023_hyundai_kona/labor/test-job-z",
+                vec![
+                    "labor",
+                    "vehicle",
+                    "2023_hyundai_kona",
+                    "--job",
+                    "test-job-z",
+                ],
+            ),
+            (
+                "/v1/vehicles/2019_honda_nothing/labor",
+                vec!["labor", "vehicle", "2019_honda_nothing"],
+            ),
+            (
+                vin_path.as_str(),
+                vec!["labor", "vin", common::KONA, "--job", "test-job-a"],
+            ),
+        ];
+        for (path, args) in questions {
+            let (status, served) = app.json(path).await;
+            let ask = |source: &'static str| {
+                let directory = directory.path().to_path_buf();
+                let api = api.clone();
+                let mut args = args.clone();
+                args.push(source);
+                tokio::task::spawn_blocking(move || tool(&directory, &api, &args))
+            };
+            let (local_code, local) = ask("--offline").await.unwrap();
+            let (remote_code, remote) = ask("--online").await.unwrap();
+            if status == StatusCode::OK {
+                assert_eq!(held, "labor", "{path}");
+                assert_eq!((local_code, remote_code), (0, 0), "{path}");
+                // Nothing is set aside: the files give every field.
+                assert_eq!(remote, served, "{path}");
+                assert_eq!(local, served, "{path}");
+                assert_eq!(
+                    local["attribution"]
+                        .as_array()
+                        .is_some_and(|credit| !credit.is_empty()),
+                    path != "/v1/jobs",
+                    "{path}"
+                );
+            } else {
+                assert_eq!(local_code, remote_code, "{path} {held}");
+                assert_ne!(local_code, 0, "{path}");
+                for told in [&local, &remote] {
+                    assert_eq!(told["error"]["code"], served["error"]["code"], "{path}");
+                    assert_eq!(
+                        told["error"]["message"], served["error"]["message"],
+                        "{path} {held}"
+                    );
+                }
+                if held != "labor" {
+                    assert_eq!(served["error"]["code"], "dataset_unavailable", "{path}");
+                }
+            }
+        }
+
+        let _ = stop.send(());
+        let _ = serving.await;
+    }
+}

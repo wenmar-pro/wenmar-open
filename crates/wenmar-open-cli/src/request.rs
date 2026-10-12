@@ -116,6 +116,91 @@ pub struct Lookup {
     pub limit: Option<usize>,
 }
 
+/// A question about jobs or labour estimates.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LaborAction {
+    /// The job list, or one job of it.
+    Jobs,
+    /// The estimates of a model year, by its vehicle id.
+    Vehicle,
+    /// The estimates of the vehicle a VIN decodes to.
+    Vin,
+}
+
+impl LaborAction {
+    pub const ALL: [LaborAction; 3] = [LaborAction::Jobs, LaborAction::Vehicle, LaborAction::Vin];
+
+    /// The name of the action in the `wenmar_labor` tool.
+    pub fn name(self) -> &'static str {
+        match self {
+            LaborAction::Jobs => "jobs",
+            LaborAction::Vehicle => "vehicle",
+            LaborAction::Vin => "vin",
+        }
+    }
+
+    fn parse(name: &str) -> Option<LaborAction> {
+        LaborAction::ALL
+            .into_iter()
+            .find(|action| action.name() == name)
+    }
+}
+
+/// What a question about labour is asked with. Which fields are used
+/// depends on the [`LaborAction`].
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct LaborLookup {
+    pub job: Option<String>,
+    pub id: Option<String>,
+    pub vin: Option<String>,
+    pub year: Option<u16>,
+}
+
+/// The fields an action uses, each present. A VIN is checked for its
+/// form here, as every VIN is; a job and a vehicle id are judged where
+/// the answer is made.
+fn checked_labor(
+    action: LaborAction,
+    lookup: LaborLookup,
+    current_year: u16,
+) -> Result<LaborLookup, CliError> {
+    let job = present(lookup.job.as_ref());
+    Ok(match action {
+        LaborAction::Jobs => LaborLookup {
+            job,
+            ..LaborLookup::default()
+        },
+        LaborAction::Vehicle => {
+            let Some(id) = present(lookup.id.as_ref()) else {
+                return Err(CliError::validation(
+                    "id",
+                    "id is required for action=vehicle",
+                ));
+            };
+            LaborLookup {
+                job,
+                id: Some(id),
+                ..LaborLookup::default()
+            }
+        }
+        LaborAction::Vin => {
+            let Some(vin) = present(lookup.vin.as_ref()) else {
+                return Err(CliError::validation(
+                    "vin",
+                    "vin is required for action=vin",
+                ));
+            };
+            vin_year(lookup.year, current_year)?;
+            LaborLookup {
+                job,
+                vin: Some(well_formed(&vin)?.as_str().to_owned()),
+                year: lookup.year,
+                ..LaborLookup::default()
+            }
+        }
+    })
+}
+
 /// A question about trouble codes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CodeAction {
@@ -395,6 +480,11 @@ pub enum Request {
     Codes {
         action: CodeAction,
         lookup: CodeLookup,
+    },
+    /// The job list and Wenmar's labour estimates.
+    Labor {
+        action: LaborAction,
+        lookup: LaborLookup,
     },
     /// Manufacturer bulletins. Served by the hosted API only.
     Bulletins {
@@ -701,6 +791,10 @@ impl Request {
                 action,
                 lookup: checked_codes(action, lookup)?,
             }),
+            Request::Labor { action, lookup } => Ok(Request::Labor {
+                action,
+                lookup: checked_labor(action, lookup, current_year)?,
+            }),
             Request::Bulletins { action, lookup } => Ok(Request::Bulletins {
                 action,
                 lookup: checked_bulletins(action, lookup, current_year)?,
@@ -835,6 +929,23 @@ impl Request {
                     "action must be decode, batch, overview, fuel, specs, fluids or tires",
                 )),
             };
+        }
+        if tool == "wenmar_labor" {
+            let Some(action) = LaborAction::parse(action) else {
+                return Err(CliError::validation(
+                    "action",
+                    "action must be jobs, vehicle or vin",
+                ));
+            };
+            return Ok(Request::Labor {
+                action,
+                lookup: LaborLookup {
+                    job: text(arguments, "job")?,
+                    id: text(arguments, "id")?,
+                    vin: text(arguments, "vin")?,
+                    year: number(arguments, "year")?,
+                },
+            });
         }
         if tool == "wenmar_codes" {
             let Some(action) = CodeAction::parse(action) else {
