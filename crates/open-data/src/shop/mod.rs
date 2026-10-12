@@ -23,5 +23,6 @@ pub mod nhtsa_vin_guides;
 pub mod nrcan_fuel;
 pub mod oil_grade;
 pub mod recalls;
+pub mod siblings;
 pub mod tc_recalls;
 pub mod xlsx;

@@ -217,6 +217,9 @@ pub fn after_sources(context: &mut ShapeContext<'_>) -> Result<()> {
     if bulletins {
         crate::shop::bulletin_text::shape(context)?;
     }
+    if recalls || bulletins {
+        crate::shop::siblings::shape(context)?;
+    }
     Ok(())
 }
 

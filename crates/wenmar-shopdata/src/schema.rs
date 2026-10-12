@@ -471,3 +471,30 @@ CREATE TABLE bulletin_topic (
 ) WITHOUT ROWID;
 CREATE INDEX bulletin_topic_topic ON bulletin_topic (topic);
 ";
+
+/// Models that share campaigns and bulletins with a model year.
+///
+/// Derived at build time: a row is written when at least
+/// [`SIBLING_FEWEST_SHARED`] recall campaigns and bulletins list both
+/// models for that model year, and those are at least one in
+/// [`SIBLING_SHARE`] of the documents that list `model_id`. Only documents
+/// that list at most [`SIBLING_MOST_MODELS`] catalog models are counted on
+/// either side. It says the two have documents in common, not that a part
+/// fits both.
+pub const SIBLINGS: &str = "
+CREATE TABLE vehicle_sibling (
+    model_id         INTEGER NOT NULL,
+    year             INTEGER NOT NULL,
+    sibling_model_id INTEGER NOT NULL,
+    shared           INTEGER NOT NULL,
+    total            INTEGER NOT NULL,
+    PRIMARY KEY (model_id, year, sibling_model_id)
+) WITHOUT ROWID;
+";
+
+/// A document listing more catalog models than this claims nothing.
+pub const SIBLING_MOST_MODELS: i64 = 4;
+/// A pair needs at least this many shared documents.
+pub const SIBLING_FEWEST_SHARED: i64 = 5;
+/// A pair needs shared documents at least a fifth of the model's total.
+pub const SIBLING_SHARE: i64 = 5;

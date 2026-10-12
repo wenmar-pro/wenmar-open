@@ -19,4 +19,5 @@ mod nhtsa_recalls;
 mod nhtsa_vin_guides;
 mod nrcan_fuel;
 mod recalls;
+mod siblings;
 mod tc_recalls;

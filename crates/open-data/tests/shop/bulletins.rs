@@ -290,7 +290,8 @@ fn the_offline_copy_leaves_out_what_only_the_hosted_service_carries() {
             "meta",
             "recall",
             "recall_component",
-            "recall_vehicle"
+            "recall_vehicle",
+            "vehicle_sibling"
         ]
     );
     assert_eq!(rows(&connection, "SELECT COUNT(*) FROM recall"), ["8"]);
