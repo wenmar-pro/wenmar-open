@@ -7,6 +7,7 @@
 pub mod assets;
 pub mod catalog;
 pub mod feedback;
+pub mod fuel;
 pub mod guides;
 pub mod home;
 pub mod investigations;

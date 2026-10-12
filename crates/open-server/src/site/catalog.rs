@@ -607,6 +607,8 @@ struct ModelYearPage {
     /// NHTSA's crash test ratings. `None` on a server that holds none, and
     /// for a model year NHTSA lists no vehicle of.
     safety: Option<site::safety::Section>,
+    /// Fuel consumption and engine oil. `None` when nothing is on file.
+    fuel: Option<site::fuel::Brief>,
 }
 
 fn model_year_markdown(view: &ModelYearView, report: &report::ReportLinks) -> String {
@@ -790,6 +792,8 @@ pub async fn model_year(
     // On a server that holds recalls, a line about this model year's.
     // Without them the page is as it always was.
     let recalls = site::recalls::brief(&state, &view.entry.id).await;
+    // The same for fuel consumption and engine oil.
+    let fuel = site::fuel::brief(&state, &view.entry.id).await;
     // On a server that holds crash test ratings, this model year's.
     let safety = site::safety::section(&state, &view.entry.id).await;
     let investigations = site::investigations::open_for(&state, &view.entry.id).await;
@@ -810,6 +814,9 @@ pub async fn model_year(
         }
         if let Some(notice) = &investigations {
             text.push_str(&site::investigations::notice_markdown(notice));
+        }
+        if let Some(brief) = &fuel {
+            text.push_str(&site::fuel::markdown(brief));
         }
         return markdown::response(text, &canonical);
     }
@@ -859,6 +866,7 @@ pub async fn model_year(
             recalls,
             investigations,
             safety,
+            fuel,
         },
     )
 }

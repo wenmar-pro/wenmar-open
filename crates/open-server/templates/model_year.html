@@ -57,6 +57,35 @@
 </table>
 <p class="note">Stars are NHTSA's, from 1 to 5, each for the vehicle NHTSA names in its row: a model year can have several ratings, and they can differ. From NHTSA's file as of {{ section.as_of }}. See <a href="{{ section.source_url }}">NHTSA's ratings</a>, or <a href="{{ section.json_path }}">the JSON</a>, which also lists safety features.</p>
 {% endif -%}
+{% if let Some(brief) = fuel -%}
+{% if !brief.fuel.is_empty() -%}
+<h2 id="fuel">Fuel economy</h2>
+<table>
+<caption>Fuel consumption of the {{ brief.name }}, combined, city and highway</caption>
+<thead>
+<tr><th scope="col">Engine</th><th scope="col">Source</th><th scope="col">Combined</th><th scope="col">City</th><th scope="col">Highway</th><th scope="col">Recommended fuel</th></tr>
+</thead>
+<tbody>
+{% for line in brief.fuel -%}
+<tr><th scope="row">{{ line.engine }}{% if !line.note.is_empty() %} <span class="note">{{ line.note }}</span>{% endif %}</th><td>{{ line.source }}</td><td>{{ line.combined }}</td><td>{{ line.city }}</td><td>{{ line.highway }}</td><td>{{ line.fuel }}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">A range covers the drives and transmissions rated with that engine. MPG is miles per US gallon. {{ brief.as_of }}{% for line in brief.attribution %} {{ line }}{% endfor %}</p>
+{% endif -%}
+{% if !brief.oil.is_empty() -%}
+<h2 id="oil">Engine oil</h2>
+<table>
+<caption>Engine oil viscosity grade of the {{ brief.name }}, {{ brief.oil_source }}</caption>
+<tbody>
+{% for line in brief.oil -%}
+<tr><th scope="row">{{ line.engine }}{% if !line.note.is_empty() %} <span class="note">{{ line.note }}</span>{% endif %}</th><td>{{ line.grades }}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">This is the grade the maker certified the engine with, as EPA records it. It is not a reading of the owner's manual, and it gives no capacity or specification: check the manual or the oil filler cap before filling.</p>
+{% endif -%}
+{% endif -%}
 {% include "maker_links.html" %}
 {% if view.years.len() > 1 -%}
 <h2 id="years">Other years of the {{ view.entry.model }}</h2>
