@@ -881,6 +881,75 @@ impl<S: Source> ShopData<S> {
     }
 }
 
+/// Most bulletins, and most recalls, a vehicle's answer about a trouble
+/// code lists of each kind.
+pub const MOST_FOR_CODE: usize = 10;
+
+impl<S: Source> ShopData<S> {
+    /// How many bulletins that list one model year name a trouble code in
+    /// their summary. `code` is in [`code_form`].
+    pub fn bulletins_naming_code_count(
+        &self,
+        model_id: i64,
+        year: u16,
+        code: &str,
+    ) -> Result<u64, ShopError> {
+        self.require(Dataset::Bulletins)?;
+        let sql = format!(
+            "SELECT COUNT(*) FROM bulletin_code c WHERE c.code = ?3 AND c.bulletin_id IN ({})",
+            OF_MODEL_YEAR.replace("{model}", "1").replace("{year}", "2")
+        );
+        let rows = self.query(
+            &sql,
+            &[model_id.into(), i64::from(year).into(), code.into()],
+        )?;
+        Ok(rows.first().map_or(0, |row| count(row, 0)))
+    }
+
+    /// The bulletins that list one model year and are about one of
+    /// `components` (ids of `components.yaml`) without naming `code` in
+    /// their summary, newest first, at most `limit`. Empty when
+    /// `components` is.
+    pub fn bulletins_about_for_vehicle(
+        &self,
+        model_id: i64,
+        year: u16,
+        components: &[String],
+        code: &str,
+        limit: usize,
+    ) -> Result<Vec<BulletinSummary>, ShopError> {
+        self.require(Dataset::Bulletins)?;
+        if components.is_empty() {
+            return Ok(Vec::new());
+        }
+        let limit = i64::try_from(limit.clamp(1, MOST_BULLETINS)).unwrap_or(1);
+        let mut params: Vec<Value> = vec![
+            model_id.into(),
+            i64::from(year).into(),
+            code.into(),
+            limit.into(),
+        ];
+        let mut marks: Vec<String> = Vec::with_capacity(components.len());
+        for component in components {
+            params.push(component.as_str().into());
+            marks.push(format!("?{}", params.len()));
+        }
+        let sql = format!(
+            "SELECT {COLUMNS} FROM bulletin b
+             WHERE b.id IN ({of_model_year})
+               AND b.id IN (SELECT bulletin_id FROM bulletin_component WHERE component_id IN ({marks}))
+               AND b.id NOT IN (SELECT bulletin_id FROM bulletin_code WHERE code = ?3)
+             ORDER BY b.added DESC, b.id DESC LIMIT ?4",
+            of_model_year = OF_MODEL_YEAR.replace("{model}", "1").replace("{year}", "2"),
+            marks = marks.join(", "),
+        );
+        self.query(&sql, &params)?
+            .iter()
+            .map(|row| summary(row))
+            .collect()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

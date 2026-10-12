@@ -307,3 +307,47 @@ impl<S: Source> ShopData<S> {
             .collect()
     }
 }
+
+impl<S: Source> ShopData<S> {
+    /// The campaigns that may apply to one model year and are about one of
+    /// `components` (ids of `components.yaml`), newest first. Empty when
+    /// `components` is, or when the file was built before recalls had
+    /// components. The file must hold a recall dataset.
+    pub fn recalls_about_for_vehicle(
+        &self,
+        make_id: i64,
+        model_id: i64,
+        year: u16,
+        components: &[String],
+    ) -> Result<Vec<crate::recalls::VehicleRecall>, ShopError> {
+        let all = self.recalls_for_vehicle(make_id, model_id, year, None)?;
+        if components.is_empty() || all.is_empty() || !self.has_table("recall_component")? {
+            return Ok(Vec::new());
+        }
+        let mut params: Vec<Value> = vec![make_id.into(), model_id.into(), i64::from(year).into()];
+        let mut marks: Vec<String> = Vec::with_capacity(components.len());
+        for component in components {
+            params.push(component.as_str().into());
+            marks.push(format!("?{}", params.len()));
+        }
+        let sql = format!(
+            "SELECT DISTINCT r.source, r.campaign FROM recall_vehicle v
+             JOIN recall r ON r.id = v.recall_id
+             JOIN recall_component c ON c.recall_id = r.id
+             WHERE v.make_id = ?1 AND v.model_id = ?2 AND v.year = ?3 AND c.component_id IN ({})",
+            marks.join(", ")
+        );
+        let mut about: Vec<(String, String)> = Vec::new();
+        for row in self.query(&sql, &params)? {
+            about.push((text(&row, 0)?, text(&row, 1)?));
+        }
+        Ok(all
+            .into_iter()
+            .filter(|found| {
+                about.iter().any(|(source, campaign)| {
+                    *source == found.recall.source && *campaign == found.recall.campaign
+                })
+            })
+            .collect())
+    }
+}
