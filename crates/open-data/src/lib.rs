@@ -6,6 +6,7 @@ pub mod catalog_parity;
 pub mod dump;
 pub mod fetch;
 pub mod inspect;
+pub mod links_check;
 pub mod parity;
 pub mod shop;
 pub mod sources;

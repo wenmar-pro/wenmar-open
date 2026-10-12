@@ -128,6 +128,20 @@ fi
 cargo run --release -q -p open-data -- catalog-parity --data "$data"
 '''
 
+[tasks.check-links]
+description = "Ask for every stored link to a maker's site, one at a time, and write data/build/link-report.md. Never fails because a link did"
+run = '''
+set -eu
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+# With a data file, each address pattern in makes.yaml is tried on a few
+# model years. Without one, only the addresses written out are asked for.
+if [ -n "$data" ]; then
+  cargo run --release -q -p open-data -- check-links --catalog "$data"
+else
+  cargo run --release -q -p open-data -- check-links
+fi
+'''
+
 [tasks.coverage]
 description = "Check how much of the newest shop file matched the catalog"
 run = '''

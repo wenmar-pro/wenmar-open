@@ -12,7 +12,7 @@ use open_data::shop::coverage;
 use open_data::shop::hand_coverage;
 use open_data::shop::nhtsa_vin_guides;
 use open_data::shop::{epa_guide, nrcan_fuel};
-use open_data::{catalog_parity, fetch, inspect, parity, sources};
+use open_data::{catalog_parity, fetch, inspect, links_check, parity, sources};
 use wenmar_shopdata::ShopData;
 use wenmar_shopdata::sqlite::ShopSource;
 use wenmar_vehicles::sqlite::SqliteSource;
@@ -185,6 +185,24 @@ enum Command {
         /// How many models with no record to name for each make.
         #[arg(long, default_value_t = 10)]
         list: usize,
+    },
+    /// Ask for every stored link to a maker's site, one at a time, and
+    /// write a report of the ones that no longer answer. It never fails
+    /// because a link did: some makers refuse a script.
+    CheckLinks {
+        /// Directory holding catalog/makes.yaml and fluids/.
+        #[arg(long, default_value = "data")]
+        curated: PathBuf,
+        /// The core data file. With it, each address pattern in
+        /// makes.yaml is tried on a few model years.
+        #[arg(long)]
+        catalog: Option<PathBuf>,
+        /// Where the report is written.
+        #[arg(long, default_value = "data/build/link-report.md")]
+        out: PathBuf,
+        /// Seconds to wait between two requests.
+        #[arg(long, default_value_t = 3)]
+        pause: u64,
     },
 }
 
@@ -553,6 +571,32 @@ fn main() -> Result<()> {
                 }
                 println!("matching is at or above every minimum");
             }
+        }
+        Command::CheckLinks {
+            curated,
+            catalog,
+            out,
+            pause,
+        } => {
+            let catalog = match &catalog {
+                Some(path) => Some(open_catalog(path)?.0),
+                None => None,
+            };
+            let links = links_check::stored_links(&curated, catalog.as_ref())?;
+            eprintln!("asking for {} links, {pause} seconds apart", links.len());
+            let results = links_check::check_all(&links, &mut links_check::probe, &mut || {
+                std::thread::sleep(std::time::Duration::from_secs(pause));
+            });
+            let day: String = now().chars().take(10).collect();
+            let report = links_check::report(&results, &day);
+            if let Some(parent) = out.parent() {
+                std::fs::create_dir_all(parent)
+                    .with_context(|| format!("creating {}", parent.display()))?;
+            }
+            std::fs::write(&out, &report).with_context(|| format!("writing {}", out.display()))?;
+            // The first paragraph: the counts.
+            println!("{}", report.lines().nth(2).unwrap_or_default());
+            println!("report written to {}", out.display());
         }
     }
     Ok(())
