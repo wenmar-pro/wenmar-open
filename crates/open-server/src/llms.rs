@@ -83,6 +83,7 @@ fn bulletin_text(base: &str) -> (String, String, String) {
 /// of the manufacturer's bulletins. `facts` names which of [`FACTS`] the
 /// server holds, and only their addresses are given. `complaints` says the
 /// same of what owners reported.
+#[allow(clippy::too_many_arguments)]
 pub fn text(
     base: &str,
     data_version: &str,
