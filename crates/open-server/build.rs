@@ -5,6 +5,8 @@
 
 #[path = "battery_build.rs"]
 mod battery_build;
+#[path = "battery_groups_build.rs"]
+mod battery_groups_build;
 #[path = "build_id.rs"]
 mod build_id;
 #[path = "links_build.rs"]
@@ -77,6 +79,14 @@ fn main() -> io::Result<()> {
     let code = wire_build::generate(&toml)
         .map_err(|why| io::Error::other(format!("{}: {why}", wire.display())))?;
     fs::write(out.join(wire_build::OUT), code)?;
+
+    // The battery group sizes, read and checked the same way.
+    let groups = root.join(battery_groups_build::PATH);
+    let toml = fs::read_to_string(&groups)
+        .map_err(|error| io::Error::other(format!("{}: {error}", groups.display())))?;
+    let code = battery_groups_build::generate(&toml)
+        .map_err(|why| io::Error::other(format!("{}: {why}", groups.display())))?;
+    fs::write(out.join(battery_groups_build::OUT), code)?;
 
     // The rules for repair shops, read and checked the same way.
     let rules = root.join(rules_build::PATH);

@@ -1,0 +1,29 @@
+# Made up for the tests of battery_groups_build.rs. No figure here is a real
+# battery's, and no group here exists.
+schema = 1
+name = "Made-up battery groups"
+as_of = "2026-01-31"
+confirmed = true
+missing = []
+notes = ["A note the page shows."]
+to_check = ["A weak point."]
+unit = "mm"
+sources = ["fake"]
+
+[source.fake]
+title = "A made-up page"
+url = "https://example.org/groups"
+
+[[group]]
+name = "T1 (made up)"
+length = "254"
+width = "127"
+height = "100.5"
+terminals = "Made-up posts on top, the positive one on the left."
+
+[[group]]
+name = "T2 (made up)"
+length = "999"
+width = "888"
+height = "777"
+terminals = "Made-up terminals on the side."
