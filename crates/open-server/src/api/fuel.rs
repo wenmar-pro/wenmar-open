@@ -88,9 +88,14 @@ pub fn country(text: Option<&str>) -> Result<Option<FuelSource>, ApiError> {
     let Some(text) = text.map(str::trim).filter(|text| !text.is_empty()) else {
         return Ok(None);
     };
+    // Worded as the recall routes word it, so that an answer from files
+    // can be the same.
     FuelSource::from_country(&text.to_ascii_lowercase())
         .map(Some)
-        .ok_or_else(|| ApiError::validation("country must be us or ca."))
+        .ok_or_else(|| ApiError::Validation {
+            message: "country must be us or ca".to_owned(),
+            details: json!({ "field": "country" }),
+        })
 }
 
 /// The shop file, if it holds the fuel ratings asked for.
