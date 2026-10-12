@@ -58,6 +58,21 @@ It cannot tell whether a figure is true. That is the reviewer's work.
 
 Record the figure and the name of the specification. Never copy a sentence, a table or a picture from the manual, and never take a figure from another website, an oil maker's product finder, a parts catalogue or a paid database.
 
+## Links to the manual itself
+
+While the maker's page for the model year is open, record its address. The file may carry a second list, `manuals`, beside `fluids`:
+
+| Field | Needed | Meaning |
+|---|---|---|
+| `year_from`, `year_to` | `year_from` | As for a fluid. A range only when the one address serves every year in it. |
+| `kind` | yes | `owner_manual` or `maintenance_schedule`. |
+| `url` | yes | The address on the maker's own site, starting `https://`. |
+| `market` | no | `us` or `ca`, when the page is for one country only. |
+| `checked` | yes | The day you opened it. |
+| `reviewer` | yes | As for a fluid. |
+
+A link has no `source`: the address is where it leads. A model year may have one link of each kind for each market. The build checks the shape of the address and never requests it; `mise run check-links` does that, and reports. Never download a manual into the repository, and never link to a copy on a site that is not the maker's.
+
 ## Entering a record, step by step
 
 1. See what is missing: `cargo run -q -p open-data -- hand-coverage --catalog data/build/wenmar-open-2026.09.sqlite3` lists the makes in the order of `data/catalog/makes.yaml` and, for each, the models with no record. The repository has no sales figures, so choosing which model to do first is yours.

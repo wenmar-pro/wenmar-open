@@ -153,6 +153,13 @@ pub const LICENCES: &[Licence] = &[
         licence_id: "mit",
         attribution: "Keep the copyright notice in LICENSE.",
     },
+    Licence {
+        dataset: "Links to owner manuals and maintenance schedules on the makers sites",
+        source: "Found and opened by a person, each with the day it was checked, collected in data/fluids/ and data/catalog/makes.yaml",
+        licence: "MIT for the collection. An address is a fact. The documents belong to the makers and are not copied.",
+        licence_id: "mit",
+        attribution: "Keep the copyright notice in LICENSE.",
+    },
 ];
 
 /// The row as `NOTICE.md` and the Markdown page write it.

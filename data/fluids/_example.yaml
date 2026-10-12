@@ -52,3 +52,11 @@ fluids:
     source: "Test manual, page 5"
     checked: 2026-10-12
     reviewer: test-reviewer
+# Links to the maker's own pages for a model year. example.org is a name
+# reserved for examples.
+manuals:
+  - year_from: 2001
+    kind: owner_manual
+    url: https://example.org/testmake/sampler/2001/manual
+    checked: 2026-10-12
+    reviewer: test-reviewer

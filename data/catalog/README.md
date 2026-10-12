@@ -96,6 +96,25 @@ A person opens each maker's site and records what they find, in pull requests of
 
 Leave a field out when the maker has no such page. Never guess an address and never copy one from another site's list.
 
+### An address pattern for one model year
+
+Where a maker's address for one model year's manuals or maintenance schedule follows a pattern, the make can carry it:
+
+```yaml
+    manual_url_template: https://.../{year}/{model}/...
+    maintenance_url_template: https://.../{model}/...
+```
+
+`{year}` is the model year and `{model}` is the catalog's id form of the model (`f-150`, `cr-v`), as in a vehicle id. A pattern needs at least one of the two and no other brace. The model-year page fills it in and shows the link under "Owner's manual and maintenance schedule", saying that the address was made from a pattern and that nobody opened that one. A link a person found for that model year (`manuals` in `data/fluids/`, see its README) is shown in its place.
+
+A pattern is only for a maker whose addresses really follow one. Before adding it:
+
+- [ ] You opened the filled-in address for at least five models of the make, old and new, among them one whose name has a space or a hyphen, and each showed that model year's page.
+- [ ] The maker spells its models in the address as the catalog's id form does. If it does not for some models, do not add a pattern; record those links by hand instead.
+- [ ] The address is the maker's page for the model year, not one PDF.
+
+`mise run check-links` asks for every address in this file and every link in `data/fluids/`, one at a time with a pause, tries each pattern on three model years, and writes `data/build/link-report.md`. Run it once a month. It never fails the build: some makers refuse any request from a script, and the report lists those as "could not be checked", apart from the links whose server answered 404 or 410, which it lists as dead. A person opens the first kind in a browser and fixes the second.
+
 ### Checklist for each make
 
 - [ ] You opened every address yourself, today, in a browser, and it showed the page the field names.

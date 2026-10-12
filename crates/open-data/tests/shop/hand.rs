@@ -515,6 +515,9 @@ fn the_files_in_the_repository_are_well_formed() {
     assert!(!fluids.records.is_empty());
     let tires = parse_tires("testmake_sampler", &example("tires")).unwrap();
     assert!(!tires.records.is_empty());
+    hand::load_manuals(&data).unwrap();
+    let manuals = hand::parse_manuals("testmake_sampler", &example("fluids")).unwrap();
+    assert!(!manuals.records.is_empty());
     for kind in ["fluids", "tires"] {
         assert!(data.join(kind).join("README.md").is_file(), "{kind}");
     }

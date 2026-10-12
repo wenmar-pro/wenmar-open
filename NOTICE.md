@@ -35,6 +35,7 @@ Every dataset Wenmar Open serves, where it comes from, and what its licence asks
 | Engine oil viscosity grade, as certified for fuel economy | EPA Fuel Economy Guide files, https://www.fueleconomy.gov/feg/download.shtml | Public domain (United States government work) | None required. This site credits EPA. |
 | Fluid specifications and capacities, read by hand | Owner manuals and under-hood labels of the makers, each named in its record, collected in data/fluids/ | MIT for the collection. A figure is a fact. | Keep the copyright notice in LICENSE. |
 | Original-equipment tire sizes, pressures and wheel nut torque, read by hand | Door placards and owner manuals of the makers, each named in its record, collected in data/tires/ | MIT for the collection. A figure is a fact. | Keep the copyright notice in LICENSE. |
+| Links to owner manuals and maintenance schedules on the makers sites | Found and opened by a person, each with the day it was checked, collected in data/fluids/ and data/catalog/makes.yaml | MIT for the collection. An address is a fact. The documents belong to the makers and are not copied. | Keep the copyright notice in LICENSE. |
 <!-- Shop-data plans add one row per dataset above this line, and the same row in crates/open-server/src/site/licences.rs. -->
 
 ## Fonts
