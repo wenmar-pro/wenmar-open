@@ -155,6 +155,26 @@ const calls: Record<string, { call: () => Promise<unknown>; method: string; url:
     method: "GET",
     url: "/v1/recalls?make=ford&year=2018&q=tailgate&limit=5",
   },
+  vehicle_bulletins: {
+    call: () => client.bulletins("2018_ford_f-150", { type: "warranty_extension", limit: 5 }),
+    method: "GET",
+    url: "/v1/vehicles/2018_ford_f-150/bulletins?type=warranty_extension&limit=5",
+  },
+  vin_bulletins: {
+    call: () => client.vinBulletins(KONA, { code: "P0420", year: 2023 }),
+    method: "GET",
+    url: `/v1/vin/${KONA}/bulletins?code=P0420&year=2023`,
+  },
+  bulletin: {
+    call: () => client.bulletin(10152456),
+    method: "GET",
+    url: "/v1/bulletins/10152456",
+  },
+  bulletin_search: {
+    call: () => client.searchBulletins({ make: "ford", year: 2018, q: "noise", limit: 5 }),
+    method: "GET",
+    url: "/v1/bulletins?make=ford&year=2018&q=noise&limit=5",
+  },
   vehicle_overview: {
     call: () => client.overview("2018_ford_f-150"),
     method: "GET",

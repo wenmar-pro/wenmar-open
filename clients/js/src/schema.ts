@@ -2,6 +2,49 @@
 // Do not edit. Run: npm run generate
 
 export interface paths {
+    "/v1/bulletins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Manufacturer communications, newest first: every one, or those
+         *     narrowed by make, model, year, type, component, trouble code, topic or
+         *     free text.
+         * @description A make or a model the catalog does not have gives an empty list.
+         */
+        get: operations["bulletin_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bulletins/{nhtsa_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One manufacturer communication, by NHTSA's id number, with every
+         *     vehicle it lists, the components it is about and the trouble codes its
+         *     summary names.
+         */
+        get: operations["bulletin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/makes/{make}": {
         parameters: {
             query?: never;
@@ -282,6 +325,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vehicles/{id}/bulletins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Manufacturer communications that list a model year: service bulletins,
+         *     service campaigns, warranty extensions and over-the-air updates.
+         * @description One page, newest first; `counts` says how many there are in all and of
+         *     what kind, so a caller can offer the narrowings that have something.
+         */
+        get: operations["vehicle_bulletins"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vehicles/{id}/fluids": {
         parameters: {
             query?: never;
@@ -489,6 +554,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vin/{vin}/bulletins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Manufacturer communications that list the year, make and model a VIN
+         *     decodes to.
+         * @description A VIN that decodes to no vehicle in the catalog gets an empty list and
+         *     the warning `no_catalog_vehicle`, not an error.
+         */
+        get: operations["vin_bulletins"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vin/{vin}/fluids": {
         parameters: {
             query?: never;
@@ -643,6 +730,194 @@ export interface components {
              *     ]
              */
             vins: string[];
+        };
+        /**
+         * @description One manufacturer communication in a list: a service bulletin, a
+         *     service campaign, a warranty extension or an over-the-air update.
+         */
+        Bulletin: {
+            /**
+             * @description NHTSA's components, in its words, separated by `; `.
+             * @example ENGINE AND ENGINE COOLING:EXHAUST SYSTEM
+             */
+            component?: string | null;
+            /**
+             * @description The manufacturer's own date.
+             * @example 2018-11-02
+             */
+            date?: string | null;
+            /**
+             * @description The day NHTSA published it. Lists are ordered by it.
+             * @example 2019-01-07
+             */
+            date_added: string;
+            document?: null | components["schemas"]["BulletinDocument"];
+            /**
+             * @description The manufacturer's own number for the document, which a dealer
+             *     looks it up by.
+             * @example TSB 18-2324
+             */
+            document_id?: string | null;
+            /** @description The manufacturer's campaign id or software version. */
+            mfr_campaign?: string | null;
+            /**
+             * Format: int64
+             * @description NHTSA's id number for the communication.
+             * @example 10152456
+             */
+            nhtsa_id: number;
+            /**
+             * @description NHTSA's summary of the communication. The document itself is the
+             *     manufacturer's and is not here.
+             */
+            summary?: string | null;
+            /**
+             * @description `service_bulletin`, `service_campaign`, `warranty_extension`,
+             *     `over_the_air`, `emissions` or `other`.
+             * @example service_bulletin
+             */
+            type: string;
+            /**
+             * @description The type in words.
+             * @example Service bulletin
+             */
+            type_name: string;
+            /**
+             * @description The bulletin's page on this site.
+             * @example https://open.wenmarpro.com/bulletins/10152456
+             */
+            url: string;
+        };
+        /** @description A component a bulletin is about. */
+        BulletinComponent: {
+            /** @example brake-pad */
+            id: string;
+            /** @example Brake pads */
+            name: string;
+            /**
+             * @description The system a part belongs to. `null` for a system.
+             * @example brakes
+             */
+            parent?: string | null;
+        };
+        /** @description How many bulletins have one type, component, code or topic. */
+        BulletinCount: {
+            /** Format: int64 */
+            count: number;
+            /**
+             * @description What to pass as `type`, `component`, `code` or `topic`.
+             * @example brake-pad
+             */
+            id: string;
+            /** @example Brake pads */
+            name: string;
+        };
+        /**
+         * @description What the bulletins of one model year are, in numbers. They count every
+         *     bulletin of the model year, whatever the list is narrowed by.
+         */
+        BulletinCounts: {
+            /** @description Every type with at least one bulletin. */
+            by_type: components["schemas"]["BulletinCount"][];
+            /** @description The trouble codes the summaries name most, up to 20. */
+            codes: components["schemas"]["BulletinCount"][];
+            /**
+             * @description Every component with at least one, commonest first. A bulletin
+             *     about a part is counted under the part and under its system.
+             */
+            components: components["schemas"]["BulletinCount"][];
+            /** Format: int64 */
+            count: number;
+            /** @description `maintenance`, when a bulletin is about a schedule or an interval. */
+            topics: components["schemas"]["BulletinCount"][];
+        };
+        /** @description One bulletin with every vehicle it lists. */
+        BulletinDetail: {
+            as_of?: string | null;
+            attribution: string[];
+            /** @description The trouble codes the summary names. */
+            codes: string[];
+            component?: string | null;
+            /** @description The components it is about, systems first. */
+            components: components["schemas"]["BulletinComponent"][];
+            date?: string | null;
+            date_added: string;
+            document?: null | components["schemas"]["BulletinDocument"];
+            document_id?: string | null;
+            mfr_campaign?: string | null;
+            /** @description The manufacturer's own words for the system. */
+            mfr_system?: string | null;
+            /**
+             * Format: int64
+             * @example 10152456
+             */
+            nhtsa_id: number;
+            note: string;
+            /**
+             * @description The number of the bulletin this one replaces. NHTSA no longer
+             *     fills it.
+             */
+            replaces?: string | null;
+            summary?: string | null;
+            topics: string[];
+            /** @example service_bulletin */
+            type: string;
+            type_name: string;
+            url: string;
+            vehicles: components["schemas"]["BulletinVehicle"][];
+        };
+        /** @description Where NHTSA's copy of a bulletin's document is expected to be. */
+        BulletinDocument: {
+            /**
+             * @description The address to try when `url` answers "not found": NHTSA files
+             *     documents under one of two endings, and the data does not say
+             *     which.
+             * @example https://static.nhtsa.gov/odi/tsbs/2018/MC-10152456-9999.pdf
+             */
+            alternate_url: string;
+            /**
+             * @description Always `false`. The addresses are built from a rule that held for
+             *     a sample of documents; this API has not asked NHTSA for this one.
+             */
+            confirmed: boolean;
+            /**
+             * @description The likelier address of NHTSA's copy (a PDF).
+             * @example https://static.nhtsa.gov/odi/tsbs/2018/MC-10152456-0001.pdf
+             */
+            url: string;
+        };
+        /** @description One page of bulletins, newest first. */
+        BulletinList: {
+            as_of?: string | null;
+            attribution: string[];
+            bulletins: components["schemas"]["Bulletin"][];
+            next_cursor?: string | null;
+            note: string;
+        };
+        /** @description The model years of one name a bulletin lists. */
+        BulletinVehicle: {
+            /**
+             * @description The make and model as the source words them.
+             * @example FORD
+             */
+            make: string;
+            /**
+             * @description `exact`, `base` or `curated`; `null` when the model is not in the
+             *     catalog for these years.
+             */
+            match?: string | null;
+            /** @example F-150 */
+            model: string;
+            /** @description The vehicle id of each model year in the run, when it matched. */
+            vehicle_ids: string[];
+            /**
+             * Format: int32
+             * @description The first and last model year of a run, inclusive. Both `null`
+             *     when the bulletin gave no model year.
+             */
+            year_from?: number | null;
+            /** Format: int32 */
+            year_to?: number | null;
         };
         CheckDigit: {
             /**
@@ -1862,6 +2137,24 @@ export interface components {
             /** @example EX-L */
             name: string;
         };
+        /** @description Bulletins that list one model year. */
+        VehicleBulletins: {
+            /**
+             * @description The day the bulletins were current.
+             * @example 2026-10-11
+             */
+            as_of?: string | null;
+            /** @description The credit lines the data's licences ask for. */
+            attribution: string[];
+            /** @description One page, newest first. */
+            bulletins: components["schemas"]["Bulletin"][];
+            counts: components["schemas"]["BulletinCounts"];
+            /** @description Pass it back as `cursor` for the next page. `null` on the last. */
+            next_cursor?: string | null;
+            /** @description What a bulletin is and is not. */
+            note: string;
+            vehicle: components["schemas"]["RecallVehicle"];
+        };
         /** @description The fluids of one model year. */
         VehicleFluids: {
             /** @example 2026-09-29 */
@@ -1945,6 +2238,18 @@ export interface components {
             attribution: string[];
             specs: components["schemas"]["Spec"][];
             vehicle: components["schemas"]["RecallVehicle"];
+        };
+        /** @description Bulletins that list the year, make and model a VIN decodes to. */
+        VinBulletins: {
+            as_of?: string | null;
+            attribution: string[];
+            bulletins: components["schemas"]["Bulletin"][];
+            counts: components["schemas"]["BulletinCounts"];
+            decode: components["schemas"]["RecallDecode"];
+            next_cursor?: string | null;
+            note: string;
+            vehicle?: null | components["schemas"]["RecallVehicle"];
+            warnings: components["schemas"]["Warning"][];
         };
         /** @description A decoded VIN. A field that could not be determined is left out. */
         VinDecode: {
@@ -2098,6 +2403,125 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    bulletin_search: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Only bulletins that list a vehicle of this make: a name, an alias
+                 *     or an id, as in `/v1/vehicles/models`.
+                 * @example ford
+                 */
+                make?: string;
+                /**
+                 * @description Only bulletins that list this model: a name or an id. Needs `make`.
+                 * @example f-150
+                 */
+                model?: string;
+                /**
+                 * @description Only bulletins that list this model year.
+                 * @example 2018
+                 */
+                year?: number;
+                /**
+                 * @description Only this type: `service_bulletin`, `service_campaign`,
+                 *     `warranty_extension`, `over_the_air`, `emissions` or `other`.
+                 * @example warranty_extension
+                 */
+                type?: string;
+                /**
+                 * @description Only bulletins about this component: an id such as `brakes` or
+                 *     `brake-pad`.
+                 * @example brakes
+                 */
+                component?: string;
+                /**
+                 * @description Only bulletins whose summary names this trouble code.
+                 * @example P0420
+                 */
+                code?: string;
+                /**
+                 * @description Only bulletins with this text in them, in either case. At most 100
+                 *     characters are read.
+                 * @example noise
+                 */
+                q?: string;
+                /** @description Only bulletins with this topic. `maintenance` is the only one. */
+                topic?: string;
+                /** @description At most this many, up to 100. The default is 25. */
+                limit?: number;
+                /** @description `next_cursor` from the page before, unchanged. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page of bulletins. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulletinList"];
+                };
+            };
+            /** @description `validation_failed`: a query value is wrong, or `model` was given without `make`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `dataset_unavailable`: this server holds no bulletins. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    bulletin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description NHTSA's id number for the communication.
+                 * @example 10152456
+                 */
+                nhtsa_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The bulletin. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulletinDetail"];
+                };
+            };
+            /** @description `not_found`: no bulletin has that id. `dataset_unavailable`: this server holds no bulletins. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     make: {
         parameters: {
             query?: never;
@@ -2738,6 +3162,85 @@ export interface operations {
             };
         };
     };
+    vehicle_bulletins: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Only this type: `service_bulletin`, `service_campaign`,
+                 *     `warranty_extension`, `over_the_air`, `emissions` or `other`.
+                 * @example warranty_extension
+                 */
+                type?: string;
+                /**
+                 * @description Only bulletins about this component: an id from `counts.components`,
+                 *     such as `brakes` or `brake-pad`.
+                 * @example brakes
+                 */
+                component?: string;
+                /**
+                 * @description Only bulletins whose summary names this trouble code. Letters may
+                 *     be in either case.
+                 * @example P0420
+                 */
+                code?: string;
+                /**
+                 * @description Only bulletins with this text in them, in either case: in the
+                 *     summary, the manufacturer's document number or campaign id, or the
+                 *     component. At most 100 characters are read.
+                 * @example noise
+                 */
+                q?: string;
+                /**
+                 * @description Only bulletins with this topic. `maintenance` is the only one.
+                 * @example maintenance
+                 */
+                topic?: string;
+                /** @description At most this many, up to 100. The default is 25. */
+                limit?: number;
+                /** @description `next_cursor` from the page before, unchanged. */
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description A vehicle id. Bulletins are listed by year, make and model; a submodel or an engine in the id is set aside.
+                 * @example 2018_ford_f-150
+                 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page of bulletins, newest first. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleBulletins"];
+                };
+            };
+            /** @description `validation_failed`: `type`, `component`, `code`, `topic`, `limit` or `cursor` is wrong. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no bulletins. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     vehicle_fluids: {
         parameters: {
             query?: never;
@@ -3148,6 +3651,85 @@ export interface operations {
             };
             /** @description `rate_limited`: over 600 requests a minute. See `Retry-After`. */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    vin_bulletins: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Use this model year instead of working it out from the VIN.
+                 * @example 2023
+                 */
+                year?: number;
+                /**
+                 * @description Only this type: `service_bulletin`, `service_campaign`,
+                 *     `warranty_extension`, `over_the_air`, `emissions` or `other`.
+                 * @example warranty_extension
+                 */
+                type?: string;
+                /**
+                 * @description Only bulletins about this component: an id such as `brakes` or
+                 *     `brake-pad`.
+                 * @example brakes
+                 */
+                component?: string;
+                /**
+                 * @description Only bulletins whose summary names this trouble code.
+                 * @example P0420
+                 */
+                code?: string;
+                /**
+                 * @description Only bulletins with this text in them, in either case. At most 100
+                 *     characters are read.
+                 * @example noise
+                 */
+                q?: string;
+                /** @description Only bulletins with this topic. `maintenance` is the only one. */
+                topic?: string;
+                /** @description At most this many, up to 100. The default is 25. */
+                limit?: number;
+                /** @description `next_cursor` from the page before, unchanged. */
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description A 17-character VIN.
+                 * @example KM8K2CAB4PU001140
+                 */
+                vin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page of bulletins, newest first. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VinBulletins"];
+                };
+            };
+            /** @description `invalid_vin`, or `validation_failed` for a query value. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no bulletins. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

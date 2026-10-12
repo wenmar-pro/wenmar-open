@@ -35,6 +35,20 @@ export type RecallList = Schemas["RecallList"];
 export type Recall = Schemas["Recall"];
 /** Where one vehicle can be checked for recalls by VIN. */
 export type RecallLookup = Schemas["RecallLookup"];
+/** Manufacturer communications that list one model year, one page. */
+export type VehicleBulletins = Schemas["VehicleBulletins"];
+/** Manufacturer communications for the model year a VIN decodes to. */
+export type VinBulletins = Schemas["VinBulletins"];
+/** One manufacturer communication with every vehicle it lists. */
+export type BulletinDetail = Schemas["BulletinDetail"];
+/** One page of manufacturer communications, newest first. */
+export type BulletinList = Schemas["BulletinList"];
+/** One manufacturer communication in a list. */
+export type Bulletin = Schemas["Bulletin"];
+/** A model year's bulletins counted by type, component, code and topic. */
+export type BulletinCounts = Schemas["BulletinCounts"];
+/** Where NHTSA's copy of a bulletin's document is expected to be. */
+export type BulletinDocument = Schemas["BulletinDocument"];
 /** Fuel consumption ratings of one model year, from EPA and Natural Resources Canada. */
 export type VehicleFuel = Schemas["VehicleFuel"];
 /** Fuel consumption ratings for the vehicle a VIN decodes to. */
@@ -103,5 +117,8 @@ export type VehicleFuelQuery = Query<"vehicle_fuel">;
 export type VinFuelQuery = Query<"vin_fuel">;
 export type VinYearQuery = Query<"vin_specs">;
 export type RecallSearchQuery = Query<"recall_search">;
+export type BulletinFilterQuery = Query<"vehicle_bulletins">;
+export type VinBulletinsQuery = Query<"vin_bulletins">;
+export type BulletinSearchQuery = Query<"bulletin_search">;
 export type VehicleInvestigationsQuery = Query<"vehicle_investigations">;
 export type RecentRecallsQuery = Query<"recent_recalls">;

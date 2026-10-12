@@ -2,6 +2,10 @@ import { MAX_BATCH } from "./batch.js";
 import { WenmarOpenError, parseRetryAfter } from "./errors.js";
 import type {
   BatchItem,
+  BulletinDetail,
+  BulletinFilterQuery,
+  BulletinList,
+  BulletinSearchQuery,
   EngineOption,
   EnginesQuery,
   Entry,
@@ -28,6 +32,7 @@ import type {
   VehicleFuelQuery,
   VehicleInvestigations,
   VehicleInvestigationsQuery,
+  VehicleBulletins,
   VehicleRecalls,
   VehicleRecallsQuery,
   VehicleSafety,
@@ -36,6 +41,8 @@ import type {
   VinFluids,
   VinFuel,
   VinFuelQuery,
+  VinBulletins,
+  VinBulletinsQuery,
   VinRecalls,
   VinRecallsQuery,
   VinSpecs,
@@ -261,6 +268,41 @@ export class WenmarOpen {
   /** Recall campaigns, newest first, narrowed by what is given. */
   async searchRecalls(query: RecallSearchQuery = {}, options: RequestOptions = {}): Promise<RecallList> {
     return this.#request("GET", `/v1/recalls${queryString(query)}`, undefined, options);
+  }
+
+  /**
+   * Manufacturer communications that list a model year: service bulletins,
+   * service campaigns, warranty extensions and over-the-air updates, one
+   * page, newest first. `counts` says how many there are of each kind.
+   */
+  async bulletins(
+    id: string,
+    query: BulletinFilterQuery = {},
+    options: RequestOptions = {},
+  ): Promise<VehicleBulletins> {
+    const path = `/v1/vehicles/${segment("id", id)}/bulletins${queryString(query)}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /** Manufacturer communications for the model year a VIN decodes to. */
+  async vinBulletins(
+    vin: string,
+    query: VinBulletinsQuery = {},
+    options: RequestOptions = {},
+  ): Promise<VinBulletins> {
+    const path = `/v1/vin/${segment("vin", vin)}/bulletins${queryString(query)}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /** One manufacturer communication, by NHTSA's id number. */
+  async bulletin(nhtsaId: number | string, options: RequestOptions = {}): Promise<BulletinDetail> {
+    const path = `/v1/bulletins/${segment("nhtsa_id", String(nhtsaId))}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /** Manufacturer communications, newest first, narrowed by what is given. */
+  async searchBulletins(query: BulletinSearchQuery = {}, options: RequestOptions = {}): Promise<BulletinList> {
+    return this.#request("GET", `/v1/bulletins${queryString(query)}`, undefined, options);
   }
 
   /**
