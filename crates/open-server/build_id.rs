@@ -21,13 +21,14 @@ use std::path::Path;
 /// the code that reads them, the refrigerant chart's and the battery table's
 /// reference tables with the code that reads them, the makers' links in makes.yaml with the code
 /// that reads them, and the versions of everything else.
-pub const PARTS: [&str; 14] = [
+pub const PARTS: [&str; 15] = [
     "Cargo.toml",
     "assets",
     "links_build.rs",
     "rates_build.rs",
     "refrigerant_build.rs",
     "battery_build.rs",
+    "wire_build.rs",
     "src",
     "templates",
     "../wenmar-vehicles/src",

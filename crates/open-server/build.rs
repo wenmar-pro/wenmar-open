@@ -12,6 +12,8 @@ mod links_build;
 mod rates_build;
 #[path = "refrigerant_build.rs"]
 mod refrigerant_build;
+#[path = "wire_build.rs"]
+mod wire_build;
 
 use std::fs;
 use std::io;
@@ -64,5 +66,13 @@ fn main() -> io::Result<()> {
     let code = links_build::generate(&yaml)
         .map_err(|why| io::Error::other(format!("{}: {why}", makes.display())))?;
     fs::write(out.join(links_build::OUT), code)?;
+
+    // The wire table, read and checked the same way.
+    let wire = root.join(wire_build::PATH);
+    let toml = fs::read_to_string(&wire)
+        .map_err(|error| io::Error::other(format!("{}: {error}", wire.display())))?;
+    let code = wire_build::generate(&toml)
+        .map_err(|why| io::Error::other(format!("{}: {why}", wire.display())))?;
+    fs::write(out.join(wire_build::OUT), code)?;
     Ok(())
 }

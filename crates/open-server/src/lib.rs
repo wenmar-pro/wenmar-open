@@ -32,6 +32,9 @@ mod rates_build;
 #[cfg(test)]
 #[path = "../refrigerant_build.rs"]
 mod refrigerant_build;
+#[cfg(test)]
+#[path = "../wire_build.rs"]
+mod wire_build;
 
 use std::sync::Arc;
 use std::time::Duration;

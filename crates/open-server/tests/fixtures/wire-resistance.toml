@@ -1,0 +1,26 @@
+# Made up for the tests of wire_build.rs. No figure here is a real wire's.
+schema = 1
+name = "Made-up wire"
+as_of = "2026-01-31"
+confirmed = true
+missing = []
+conditions = ["A condition the page shows."]
+to_check = ["A weak point."]
+unit = "ohm_per_km"
+sources = ["fake"]
+
+[source.fake]
+title = "A made-up page"
+url = "https://example.org/wire"
+
+[[gauge]]
+name = "T1 (made up)"
+resistance = "10"
+
+[[gauge]]
+name = "T2 (made up)"
+resistance = "5"
+
+[[gauge]]
+name = "T3 (made up)"
+resistance = "2"
