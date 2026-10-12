@@ -7,6 +7,7 @@
 pub mod assets;
 pub mod bulletins;
 pub mod catalog;
+pub mod codes;
 pub mod feedback;
 pub mod fuel;
 pub mod guides;
@@ -464,6 +465,9 @@ pub fn router() -> Router<AppState> {
         )
         .route("/bulletins", get(bulletins::index))
         .route("/bulletins/{nhtsa_id}", get(bulletins::bulletin))
+        .route("/codes", get(codes::index))
+        .route("/codes.md", get(codes::index_md))
+        .route("/codes/{code}", get(codes::code))
         .route("/recalls", get(recalls::index))
         .route("/recalls/{source}/{campaign}", get(recalls::campaign))
         .route("/wmi/{code}", get(wmi::wmi))

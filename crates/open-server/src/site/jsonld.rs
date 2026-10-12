@@ -168,6 +168,23 @@ pub fn recall(
     recall
 }
 
+/// One trouble code as a term this site defines, in the set of them.
+/// `description` is the code's title: the record's own words.
+pub fn defined_term(base: &str, code: &str, description: &str) -> Value {
+    json!({
+        "@type": "DefinedTerm",
+        "name": code,
+        "termCode": code,
+        "description": description,
+        "url": format!("{base}/codes/{code}"),
+        "inDefinedTermSet": {
+            "@type": "DefinedTermSet",
+            "name": "OBD-II trouble codes",
+            "url": format!("{base}/codes")
+        }
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Trouble codes</h1>
+<p>Generic OBD-II trouble codes, each described for this site in its own words. {{ note }}</p>
+<form class="vin" action="/codes" method="get" role="search">
+<label for="code-q">Find a code</label>
+<input id="code-q" name="q" type="text" maxlength="100" value="{{ q }}" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="search" aria-describedby="code-help">
+<button class="primary" type="submit">Search</button>
+<p class="help" id="code-help">A code such as P0420, or a word from its title.</p>
+</form>
+{% if searched -%}
+<p>{% if total == 0 %}No code found for{% else if total == 1 %}1 code found for{% else %}{{ total }} codes found for{% endif %} <q>{{ q }}</q>. <a href="/codes">Show every code</a></p>
+{% else -%}
+<p>{% if total == 1 %}1 code described{% else %}{{ total }} codes described{% endif %}, {{ dated }}.</p>
+{% endif -%}
+{% for group in groups -%}
+<table class="prose">
+<caption>{{ group.name }}</caption>
+<tbody>
+{% for (code, title) in group.codes -%}
+<tr><th scope="row"><a class="mono" href="/codes/{{ code }}">{{ code }}</a></th><td>{{ title }}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+{% endfor -%}
+<p class="note">Only codes every manufacturer uses the same way are described: P0, P2, P3400 and up, B0, C0, U0 and U3. A manufacturer-specific code has no page here. To see the bulletins that name any code on a vehicle, open the vehicle's page and follow "Bulletins".</p>
+{% endblock %}

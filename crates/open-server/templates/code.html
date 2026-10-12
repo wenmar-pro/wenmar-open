@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<h1><span class="mono">{{ code.code }}</span> {{ code.title }}</h1>
+<p>{{ code.meaning }}</p>
+<h2>Common causes</h2>
+<ul>
+{% for cause in code.common_causes -%}
+<li>{{ cause }}</li>
+{% endfor -%}
+</ul>
+<h2>Check first</h2>
+<ul>
+{% for check in code.checks -%}
+<li>{{ check }}</li>
+{% endfor -%}
+</ul>
+<table class="prose">
+<caption>About this code</caption>
+<tbody>
+<tr><th scope="row">System</th><td>{{ code.system_name }}</td></tr>
+{% if !code.components.is_empty() -%}
+<tr><th scope="row">Components</th><td>{% for component in code.components %}{% if !loop.first %}, {% endif %}{{ component.name }}{% endfor %}</td></tr>
+{% endif -%}
+{% if !code.related.is_empty() -%}
+<tr><th scope="row">Related codes</th><td>{% for other in code.related %}{% if !loop.first %}, {% endif %}<a class="mono" href="/codes/{{ other.code }}">{{ other.code }}</a> {{ other.title }}{% endfor %}</td></tr>
+{% endif -%}
+</tbody>
+</table>
+<p class="note">{{ code.note }} Reviewed by {{ code.reviewer }} on {{ code.checked }}.</p>
+<p class="note">For the bulletins and recalls about this code on one vehicle, open the vehicle's page, follow "Bulletins" and choose the code.</p>
+<ul class="plain links">
+<li><a href="/codes">Every trouble code</a></li>
+<li><a href="{% if let Some(form) = report.form %}{{ form }}{% else %}{{ report.issue }}{% endif %}">Report an error on this page</a></li>
+{% if let Some(mail) = report.mail -%}
+<li><a href="{{ mail }}">Report an error by email</a></li>
+{% endif -%}
+</ul>
+{% endblock %}
