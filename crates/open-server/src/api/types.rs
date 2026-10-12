@@ -72,6 +72,11 @@ pub struct VinDecode {
     /// Left out when the catalog cannot place the vehicle.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub catalog: Option<Selection>,
+    /// How many recall campaigns may apply to the model year. Only in a
+    /// batch asked with `include=recalls`, and only when the VIN reaches a
+    /// model year of the catalog.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recalls: Option<VinRecallCount>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
@@ -336,6 +341,7 @@ impl VinDecode {
             },
             warnings: decoded.warnings.into_iter().map(Warning::from).collect(),
             catalog: selection.map(Selection::from),
+            recalls: None,
         }
     }
 }
@@ -735,6 +741,190 @@ pub struct RecallList {
     pub as_of: RecallAsOf,
     pub recalls: Vec<Recall>,
     /// Hand this back as `cursor` for the next page. `null` on the last.
+    pub next_cursor: Option<String>,
+    pub lookup: RecallLookup,
+    pub attribution: Vec<String>,
+}
+
+// ----- the overview -----
+
+/// How many recall campaigns list a model year, for each country. `null`
+/// for a country this server holds no recalls for; `0` when it holds them
+/// and none lists the model year.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, ToSchema)]
+pub struct RecallCount {
+    #[schema(example = 7)]
+    pub us: Option<u32>,
+    #[schema(example = 5)]
+    pub ca: Option<u32>,
+}
+
+/// What a batch decode says of recalls when `include=recalls` is asked:
+/// how many campaigns may apply to the model year the VIN decodes to.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct VinRecallCount {
+    /// Always `true`. The count is for the year, make and model, not for
+    /// the VIN: check the VIN at the addresses in `lookup`.
+    pub may_apply: bool,
+    pub count: RecallCount,
+    /// Whether any of them carries NHTSA's advisory not to drive.
+    pub do_not_drive: bool,
+    /// Whether any of them carries NHTSA's advisory to park outside.
+    pub park_outside: bool,
+    pub lookup: RecallLookup,
+}
+
+/// The recalls of a model year, in brief.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct OverviewRecalls {
+    /// Always `true`. A campaign lists a year, make and model; only the
+    /// manufacturer can say whether one vehicle is in it.
+    pub may_apply: bool,
+    pub count: RecallCount,
+    pub as_of: RecallAsOf,
+    /// Whether any campaign carries NHTSA's advisory not to drive.
+    pub do_not_drive: bool,
+    /// Whether any campaign carries NHTSA's advisory to park outside.
+    pub park_outside: bool,
+    /// The three newest campaigns. The whole list is at
+    /// `/v1/vehicles/{id}/recalls`.
+    pub newest: Vec<Recall>,
+    pub lookup: RecallLookup,
+    /// The model year's recall page on this site.
+    #[schema(example = "https://open.wenmarpro.com/makes/ford/f-150/2018/recalls")]
+    pub url: String,
+}
+
+/// What the VIN of an overview decoded to.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct OverviewDecode {
+    #[schema(example = "KM8K2CAB4PU001140")]
+    pub vin: String,
+    /// Whether the check digit, position 9, is right.
+    pub valid: bool,
+    pub year: Option<u16>,
+    pub make: Option<String>,
+    pub model: Option<String>,
+    pub trim: Option<String>,
+    /// The engine in short form, such as `2.0L`, when the VIN names one.
+    #[schema(example = "2.0L")]
+    pub engine: Option<String>,
+    /// Whether the VIN settles on one engine of the catalog.
+    pub engine_settled: bool,
+    /// The most specific catalog entry the VIN reaches.
+    #[schema(example = "2023_hyundai_kona_se")]
+    pub entry_id: Option<String>,
+}
+
+/// Where to read more.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct OverviewLinks {
+    /// The model year's page on this site. `null` when the VIN reaches no
+    /// model year of the catalog.
+    #[schema(example = "https://open.wenmarpro.com/makes/ford/f-150/2018")]
+    pub page: Option<String>,
+    /// The maker's own pages. `null` when none are recorded for the make.
+    pub maker: Option<MakeLinks>,
+}
+
+/// Everything held for one model year, in one answer.
+///
+/// A block this server has no data for is `null`: `specs`, `fuel`,
+/// `fluids`, `tires`, `labor` and `bulletins` are `null` in every answer
+/// today, and each is filled when its data arrives. A client must accept
+/// an object there.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct Overview {
+    /// The model year. `null` when a VIN reaches no model year of the
+    /// catalog; every block is then `null` too.
+    pub vehicle: Option<RecallVehicle>,
+    /// What the VIN decoded to. `null` when the overview was asked for by
+    /// vehicle id.
+    pub decode: Option<OverviewDecode>,
+    #[schema(value_type = Option<Object>)]
+    pub specs: Option<serde_json::Value>,
+    #[schema(value_type = Option<Object>)]
+    pub fuel: Option<serde_json::Value>,
+    #[schema(value_type = Option<Object>)]
+    pub fluids: Option<serde_json::Value>,
+    #[schema(value_type = Option<Object>)]
+    pub tires: Option<serde_json::Value>,
+    /// `null` when this server holds no recalls. A count of `0` with a
+    /// day in `as_of` means none was found.
+    pub recalls: Option<OverviewRecalls>,
+    #[schema(value_type = Option<Object>)]
+    pub labor: Option<serde_json::Value>,
+    #[schema(value_type = Option<Object>)]
+    pub bulletins: Option<serde_json::Value>,
+    pub links: OverviewLinks,
+    /// The credit lines the data's licences ask for.
+    pub attribution: Vec<String>,
+    pub warnings: Vec<Warning>,
+}
+
+/// A make or a model: its id form and its name.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct NamedId {
+    #[schema(example = "ford")]
+    pub id: String,
+    #[schema(example = "Ford")]
+    pub name: String,
+}
+
+/// One model year of a model.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct ModelYearSummary {
+    /// The vehicle id of the year, make and model.
+    #[schema(example = "2018_ford_f-150")]
+    pub id: String,
+    pub year: u16,
+    /// How many recall campaigns may apply. `null` when this server holds
+    /// no recalls.
+    pub recalls: Option<RecallCount>,
+    /// How many service bulletins are on file. `null` until this server
+    /// holds bulletins.
+    pub bulletins: Option<u32>,
+    /// The model year's page on this site.
+    #[schema(example = "https://open.wenmarpro.com/makes/ford/f-150/2018")]
+    pub url: String,
+}
+
+/// Every model year of one model, newest first.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct ModelYears {
+    pub make: NamedId,
+    pub model: NamedId,
+    /// Always `true`: a recall count is of campaigns that may apply to the
+    /// model year.
+    pub may_apply: bool,
+    pub as_of: RecallAsOf,
+    pub years: Vec<ModelYearSummary>,
+    pub lookup: RecallLookup,
+    pub attribution: Vec<String>,
+}
+
+/// One campaign of the recent list, with the vehicles it lists.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct RecentRecall {
+    pub recall: Recall,
+    /// The vehicles the campaign lists: at most 200 of them. Every one is
+    /// at `/v1/recalls/{source}/{campaign}`.
+    pub vehicles: Vec<RecallCampaignVehicle>,
+    /// How many vehicles the campaign lists in all.
+    pub vehicles_listed: u32,
+}
+
+/// Campaigns reported on or after a day, newest first.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct RecentRecalls {
+    /// Always `true`: a campaign may apply to the vehicles it lists.
+    pub may_apply: bool,
+    /// The day asked for.
+    #[schema(example = "2026-09-01")]
+    pub since: String,
+    pub as_of: RecallAsOf,
+    pub recalls: Vec<RecentRecall>,
+    /// Hand it back as `cursor` for the next page. `null` on the last.
     pub next_cursor: Option<String>,
     pub lookup: RecallLookup,
     pub attribution: Vec<String>,
