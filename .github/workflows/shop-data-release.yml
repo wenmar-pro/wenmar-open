@@ -1,0 +1,357 @@
+name: Shop data release
+
+# Builds the shop file (recalls, and the datasets later plans add) from the
+# sources as they are today, matched against the newest released data file,
+# checks how much of it matched, and attaches it to a GitHub release tagged
+# shop-YYYY.MM.DD. It always builds the code on main, and it never builds a
+# data file: a shop file holds the catalog ids of one data file, so it is
+# built against the file of the newest data-YYYY.MM release, which is the one
+# people and the hosted server have.
+#
+# It runs every Monday, and again whenever "Data release" finishes, because a
+# new data file needs a shop file built against it before anything can use
+# the two together.
+#
+# A schedule, and a workflow_run trigger, only fire for the copy of this file
+# on the default branch.
+#
+# The same file is then published to npm as wenmar-open-data-shop, with
+# trusted publishing: no token is stored. npm trusts this file, in this
+# repository, in the environment `shop-data-release`. See docs/releasing.md.
+
+on:
+  schedule:
+    # 09:00 UTC every Monday. The monthly data release starts at 06:00 on the
+    # 10th and is given an hour.
+    - cron: "0 9 * * 1"
+  workflow_run:
+    workflows: ["Data release"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      data_version:
+        description: "Shop data version to publish, such as 2026.10.12.1 for a rebuild. Empty for today's date."
+        required: false
+        default: ""
+      accept_dataset_changes:
+        description: "Publish even though a dataset of the previous release is missing, empty or halved. Only after reading why."
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: shop-data-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # After a data release that failed there is no new data file to pair with.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    outputs:
+      version: ${{ steps.pick.outputs.version }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Refuse to run from a branch other than main
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+        run: |
+          echo "Start this workflow from main, not from $GITHUB_REF." >&2
+          exit 1
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+
+      # scripts/shop-manifest.mjs reads the shop file with node:sqlite.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+
+      - name: Test the release scripts
+        run: node --test scripts/shop-release.test.mjs
+
+      - name: Choose the data file and the version
+        id: pick
+        env:
+          VERSION_INPUT: ${{ inputs.data_version }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          tags=$(gh release list --limit 200 --exclude-drafts --exclude-pre-releases --json tagName --jq '.[].tagName')
+          # The newest data release, by the numbers of its version.
+          core=$(echo "$tags" | grep -E '^data-[0-9]{4}\.[0-9]{2}(\.[0-9]+)?$' | sed 's/^data-//' |
+            sort -t. -k1,1n -k2,2n -k3,3n | tail -n 1 || true)
+          if [ -z "$core" ]; then
+            echo "There is no data-YYYY.MM release to build a shop file against." >&2
+            exit 1
+          fi
+          # The newest shop release, if there is one, and the data file it pairs with.
+          previous=$(echo "$tags" | grep -E '^shop-[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]+)?$' | sed 's/^shop-//' |
+            sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -n 1 || true)
+          paired() {
+            gh release download "shop-$1" --pattern "wenmar-open-shop-$1.json" --output - | jq -r .catalog_data_version
+          }
+          version="${VERSION_INPUT:-}"
+          exists=false
+          if [ -n "$version" ]; then
+            if ! echo "$version" | grep -Eq '^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[1-9][0-9]{0,3})?$'; then
+              echo "$version is not a shop data version like 2026.10.12 or 2026.10.12.1." >&2
+              exit 1
+            fi
+            if gh release view "shop-$version" >/dev/null 2>&1; then
+              exists=true
+            fi
+          elif [ "$EVENT" = "workflow_run" ] && [ -n "$previous" ] && [ "$(paired "$previous")" = "$core" ]; then
+            # The data release that just finished published nothing new.
+            version="$previous"
+            exists=true
+          else
+            today=$(date -u +%Y.%m.%d)
+            version="$today"
+            rebuild=0
+            # Today's release is there already: done if it pairs with the
+            # newest data file, and otherwise this is a rebuild of the day.
+            while gh release view "shop-$version" >/dev/null 2>&1; do
+              if [ "$(paired "$version")" = "$core" ]; then
+                exists=true
+                break
+              fi
+              rebuild=$((rebuild + 1))
+              version="$today.$rebuild"
+            done
+          fi
+          {
+            echo "core=$core"
+            echo "version=$version"
+            echo "previous=$previous"
+            echo "exists=$exists"
+          } >> "$GITHUB_OUTPUT"
+          echo "data $core, shop data $version, previous ${previous:-none}, exists $exists"
+
+      - name: Nothing new to release
+        if: steps.pick.outputs.exists == 'true'
+        run: echo "shop-${{ steps.pick.outputs.version }} is already released. Nothing to do." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install pinned toolchain
+        if: steps.pick.outputs.exists == 'false'
+        run: rustup toolchain install
+
+      - name: Build the data tool
+        if: steps.pick.outputs.exists == 'false'
+        run: cargo build --release --locked -p open-data
+
+      - name: Download the released data file and check it
+        if: steps.pick.outputs.exists == 'false'
+        env:
+          CORE: ${{ steps.pick.outputs.core }}
+        run: |
+          set -euo pipefail
+          mkdir -p data/build
+          cd data/build
+          file="wenmar-open-$CORE.sqlite3"
+          gh release download "data-$CORE" --pattern "$file.gz" --pattern "$file.gz.sha256"
+          sha256sum --check "$file.gz.sha256"
+          gunzip "$file.gz"
+          ls -l "$file"
+
+      - name: Fetch every source
+        if: steps.pick.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          for source in nhtsa-recalls tc-recalls; do
+            ./target/release/open-data fetch "$source" --dir data/build
+            cat "data/build/sources/$source/source.json"
+          done
+
+      - name: Build the shop file
+        if: steps.pick.outputs.exists == 'false'
+        env:
+          CORE: ${{ steps.pick.outputs.core }}
+          VERSION: ${{ steps.pick.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p data/build/shop
+          ./target/release/open-data build-shop \
+            --catalog "data/build/wenmar-open-$CORE.sqlite3" \
+            --out "data/build/shop/wenmar-open-shop-$VERSION.sqlite3" \
+            --data-version "$VERSION" \
+            --curated data \
+            --nhtsa-recalls data/build/sources/nhtsa-recalls \
+            --tc-recalls data/build/sources/tc-recalls | tee build.txt
+
+      - name: Check how much matched the catalog
+        if: steps.pick.outputs.exists == 'false'
+        env:
+          CORE: ${{ steps.pick.outputs.core }}
+          VERSION: ${{ steps.pick.outputs.version }}
+        run: |
+          set -euo pipefail
+          ./target/release/open-data coverage \
+            --shop "data/build/shop/wenmar-open-shop-$VERSION.sqlite3" \
+            --catalog "data/build/wenmar-open-$CORE.sqlite3" | tee coverage.txt
+
+      - name: Compress and describe
+        if: steps.pick.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.pick.outputs.version }}
+        run: |
+          set -euo pipefail
+          file="wenmar-open-shop-$VERSION.sqlite3"
+          (
+            cd data/build/shop
+            gzip -9 -k "$file"
+            sha256sum "$file.gz" > "$file.gz.sha256"
+            ls -l "$file" "$file.gz"
+          )
+          node scripts/shop-manifest.mjs "data/build/shop/$file" "data/build/shop/$file.gz" \
+            > "data/build/shop/wenmar-open-shop-$VERSION.json"
+          cat "data/build/shop/wenmar-open-shop-$VERSION.json"
+          # The manifest and the checksum file must agree, and the manifest
+          # must name the version and the data file this run chose.
+          [ "$(jq -r .sha256 "data/build/shop/wenmar-open-shop-$VERSION.json")" = "$(cut -d' ' -f1 "data/build/shop/$file.gz.sha256")" ]
+          [ "$(jq -r .data_version "data/build/shop/wenmar-open-shop-$VERSION.json")" = "$VERSION" ]
+          [ "$(jq -r .catalog_data_version "data/build/shop/wenmar-open-shop-$VERSION.json")" = "${{ steps.pick.outputs.core }}" ]
+
+      - name: No dataset of the previous release is missing
+        if: steps.pick.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.pick.outputs.version }}
+          PREVIOUS: ${{ steps.pick.outputs.previous }}
+          ACCEPT: ${{ inputs.accept_dataset_changes }}
+        run: |
+          set -euo pipefail
+          new="data/build/shop/wenmar-open-shop-$VERSION.json"
+          if [ -n "$PREVIOUS" ]; then
+            gh release download "shop-$PREVIOUS" --pattern "wenmar-open-shop-$PREVIOUS.json" --output previous.json
+            set -- "$new" previous.json
+          else
+            set -- "$new"
+          fi
+          if node scripts/shop-datasets-check.mjs "$@" | tee datasets.txt; then
+            exit 0
+          fi
+          if [ "$ACCEPT" = "true" ]; then
+            echo "Published with accept_dataset_changes, although the check above refused it." | tee -a datasets.txt
+            exit 0
+          fi
+          exit 1
+
+      - name: Publish the release
+        if: steps.pick.outputs.exists == 'false'
+        env:
+          CORE: ${{ steps.pick.outputs.core }}
+          VERSION: ${{ steps.pick.outputs.version }}
+        run: |
+          set -euo pipefail
+          base="data/build/shop/wenmar-open-shop-$VERSION"
+          {
+            echo "Wenmar Open shop data $VERSION: recall campaigns from NHTSA and Transport Canada, matched to the catalog of data $CORE. It is used together with that data file and no other."
+            echo
+            echo "A campaign lists a year, a make and a model. It may apply to a vehicle of that model year; only the manufacturer can say whether it applies to one vehicle."
+            echo
+            echo "Unpack it with \`gunzip\`. It is a plain SQLite file. \`wenmar-open data pull --shop\` downloads it and puts it in place."
+            echo
+            echo '```'
+            cat build.txt
+            echo
+            grep -E '^[a-z_]+: |^  matched ' coverage.txt
+            tail -n 1 coverage.txt
+            echo
+            cat datasets.txt
+            echo '```'
+          } > notes.md
+          gh release create "shop-$VERSION" "$base.sqlite3.gz" "$base.sqlite3.gz.sha256" "$base.json" \
+            --target main \
+            --title "Shop data $VERSION" \
+            --notes-file notes.md \
+            --latest=false
+
+  npm:
+    needs: release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: shop-data-release
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SHOP_VERSION: ${{ needs.release.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: npm is new enough for trusted publishing
+        run: |
+          set -euo pipefail
+          version=$(npm --version)
+          echo "npm $version"
+          node -e '
+            const [major, minor, patch] = process.argv[1].split(".").map(Number);
+            const enough = major > 11 || (major === 11 && (minor > 5 || (minor === 5 && patch >= 1)));
+            if (!enough) {
+              console.error("Trusted publishing needs npm 11.5.1 or later.");
+              process.exit(1);
+            }
+          ' "$version"
+
+      - name: Test the package's scripts
+        run: node --test clients/data-shop/test/data-shop.test.mjs
+
+      - name: Download the released shop file and its data file, and check them
+        id: files
+        run: |
+          set -euo pipefail
+          shop="wenmar-open-shop-$SHOP_VERSION"
+          gh release download "shop-$SHOP_VERSION" --repo "$GITHUB_REPOSITORY" \
+            --pattern "$shop.sqlite3.gz" --pattern "$shop.sqlite3.gz.sha256" --pattern "$shop.json"
+          sha256sum --check "$shop.sqlite3.gz.sha256"
+          gunzip "$shop.sqlite3.gz"
+          core=$(jq -r .catalog_data_version "$shop.json")
+          data="wenmar-open-$core.sqlite3"
+          gh release download "data-$core" --repo "$GITHUB_REPOSITORY" \
+            --pattern "$data.gz" --pattern "$data.gz.sha256"
+          sha256sum --check "$data.gz.sha256"
+          gunzip "$data.gz"
+          ls -l "$shop.sqlite3" "$data"
+          echo "core=$core" >> "$GITHUB_OUTPUT"
+
+      - name: Assemble the package
+        id: package
+        env:
+          CORE: ${{ steps.files.outputs.core }}
+        run: |
+          set -euo pipefail
+          node clients/data-shop/scripts/prepare.mjs \
+            "wenmar-open-shop-$SHOP_VERSION.sqlite3" "wenmar-open-$CORE.sqlite3" clients/data-shop/build
+          version=$(node -p 'require("./clients/data-shop/build/package.json").version')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          (cd clients/data-shop/build && npm pack --dry-run)
+
+      - name: Publish, unless this version is already on npm
+        working-directory: clients/data-shop/build
+        env:
+          VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          set -euo pipefail
+          published=$(npm view "wenmar-open-data-shop@$VERSION" version 2>/dev/null || true)
+          if [ "$published" = "$VERSION" ]; then
+            echo "wenmar-open-data-shop $VERSION is already on npm." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          npm publish --provenance --access public
+          echo "Published wenmar-open-data-shop $VERSION (shop data $SHOP_VERSION)." >> "$GITHUB_STEP_SUMMARY"
