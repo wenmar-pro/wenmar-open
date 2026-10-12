@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% import "tool.html" as piece %}
+{% block content %}
+{% call piece::opening(tool) %}
+<p class="note">{{ limits }}</p>
+{% if covered.is_empty() -%}
+<p class="warning">{{ none_checked }}</p>
+{% else -%}
+<form class="calc" id="calc" action="{{ tool.path() }}#result" method="get">
+{% if example -%}
+<p class="note">The form is filled in with an example. Change the figures and press the button.</p>
+{% endif -%}
+{% if let Some(battery) = battery -%}
+{% for line in battery.conditions -%}
+<p class="help">{{ line }}</p>
+{% endfor -%}
+{% endif -%}
+<div class="field">
+<label for="battery">{{ form.battery.label }}</label>
+<select id="battery" name="battery"{% if form.battery.error.is_some() %} aria-invalid="true" aria-describedby="{{ form.battery.error_id() }}"{% endif %}>
+{% for choice in covered -%}
+<option value="{{ choice.code }}"{% if choice.selected %} selected{% endif %}>{{ choice.name }}</option>
+{% endfor -%}
+{% if !not_covered.is_empty() -%}
+<optgroup label="Not yet checked">
+{% for choice in not_covered -%}
+<option value="{{ choice.code }}" disabled>{{ choice.name }}</option>
+{% endfor -%}
+</optgroup>
+{% endif -%}
+</select>
+{% if let Some(error) = form.battery.error -%}
+<p class="warning" id="{{ form.battery.error_id() }}">{{ error }}</p>
+{% endif -%}
+</div>
+{% call piece::field(form.volts) %}
+<div class="field">
+<label for="temperature">{{ form.temperature.label }}</label>
+<input id="temperature" name="temperature" type="text" autocomplete="off" value="{{ form.temperature.value }}"{% if form.temperature.error.is_some() %} aria-invalid="true" aria-describedby="{{ form.temperature.error_id() }}"{% endif %}>
+{% if let Some(error) = form.temperature.error -%}
+<p class="warning" id="{{ form.temperature.error_id() }}">{{ error }}</p>
+{% endif -%}
+</div>
+<div class="field">
+<label for="unit">{{ form.unit.label }}</label>
+<select id="unit" name="unit"><option value="c"{% if !form.fahrenheit() %} selected{% endif %}>&deg;C</option><option value="f"{% if form.fahrenheit() %} selected{% endif %}>&deg;F</option></select>
+</div>
+<div class="screen"><button class="primary" type="submit">Work it out</button></div>
+</form>
+<h2 id="result">Result</h2>
+{% if let Some(shown) = shown -%}
+{% if example -%}
+<p class="note">This is the result of the example in the form.</p>
+{% endif -%}
+{% call piece::actions() %}
+{% call piece::table(shown.reading) %}
+<p><strong>{{ shown.finding }}</strong></p>
+<p>{{ shown.correction }}</p>
+{% if let Some(battery) = battery -%}
+{% for note in battery.notes -%}
+<p class="note">{{ note }}</p>
+{% endfor -%}
+{% endif -%}
+{% else -%}
+{% call piece::no_result(troubles) %}
+{% endif -%}
+{% if let Some(battery) = battery -%}
+<h2 id="sources">Table and sources for {{ battery.name }}</h2>
+<p>{{ battery.checked }}</p>
+{% call piece::table(battery.chart) %}
+<p>It was read from these pages:</p>
+<ul class="plain links">
+{% for source in battery.sources -%}
+<li><a href="{{ source.1 }}">{{ source.0 }}</a></li>
+{% endfor -%}
+</ul>
+{% endif -%}
+{% endif -%}
+{% call piece::how(how) %}
+{% if !waiting.is_empty() -%}
+<h2 id="not-checked">Not yet checked</h2>
+{% for place in waiting -%}
+<p>{{ place.0 }}: {{ place.1 }}</p>
+{% endfor -%}
+{% endif -%}
+<p class="pro"><a href="{{ tool.pro_link() }}">Wenmar Pro</a> {{ tool.pro_does }}</p>
+{% endblock %}

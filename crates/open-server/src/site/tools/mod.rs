@@ -6,6 +6,7 @@
 //! page. [`TOOLS`] is the one list of calculators: the index, the home
 //! page, the sitemap and `llms.txt` all read it.
 
+pub mod battery_soc;
 pub mod canada_invoice_tax;
 pub mod field;
 pub mod gross_profit;
@@ -69,13 +70,14 @@ impl Tool {
 
 /// Every calculator that exists, in the order they are listed. A new one
 /// is added here and nowhere else.
-pub static TOOLS: [&Tool; 6] = [
+pub static TOOLS: [&Tool; 7] = [
     &parts_matrix::TOOL,
     &labor_rate::TOOL,
     &gross_profit::TOOL,
     &canada_invoice_tax::TOOL,
     &tire_size::TOOL,
     &refrigerant_pt::TOOL,
+    &battery_soc::TOOL,
 ];
 
 /// How long a browser may keep a page worked out from a query string. It
