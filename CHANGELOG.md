@@ -12,6 +12,8 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - `open-data build-shop` matches a source's make and model names to the catalog: by name, then by the longest catalog model the name starts with (`SILVERADO 1500` is `Silverado`), then through the new curated file `data/shop/models.yaml`, where a family name such as BMW `3 SERIES` lists its models. A model matches only for a model year the catalog has it in. Rows that match nothing are kept with the source's own text. No dataset uses it yet.
 - `open-data coverage --shop <shop file> --catalog <data file>` reports how much of each dataset in a shop file matched the catalog, by kind of match, with the 25 commonest unmatched names, measured over light makes and model years from 2000. It fails below the minimums in the new `data/coverage.yaml`; `--write` records new ones. `bin/coverage` runs it on the newest files. No dataset has rows to measure yet.
 - Website: the VIN result page and every model-year page (and its Markdown version) link to a GitHub issue form already filled in with the page and the vehicle. A VIN page fills in only the first 11 characters of the VIN. With `OPEN_FEEDBACK_EMAIL` set, an email link is shown beside it. `OPEN_GITHUB_REPO` names the repository.
+- Website: `/data` and `/data.md` list every dataset served with its source, its licence and the attribution it requires. `NOTICE.md` holds the same table, and a test keeps the two the same.
+- `CONTRIBUTING.md`: rules for hand-written data. Where a record may not come from, the `source` and `checked` it must carry, what a pull request must show, and who approves it.
 
 ### Internal
 
