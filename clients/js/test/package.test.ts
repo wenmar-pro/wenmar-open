@@ -14,7 +14,7 @@ const manifest = JSON.parse(readFileSync(new URL("package.json", ROOT), "utf8"))
 const HOSTED = ["batch.js", "client.js", "errors.js", "index.js", "schema.js", "types.js"];
 const OFFLINE = ["client.js", "engine.js", "index.js", "node.js", "store.js"];
 
-/** The most the WebAssembly may weigh. It was 449,772 bytes when this was written. */
+/** The most the WebAssembly may weigh. It was 449,772 bytes before recalls and 542,281 with them. */
 const WASM_BUDGET = 600_000;
 
 function wasmBytes(): Buffer {

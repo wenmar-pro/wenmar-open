@@ -238,7 +238,7 @@ One address may make 600 requests a minute. A server that calls the API for many
 
 ## Offline
 
-`wenmar-open/offline` answers the same questions with no network. It runs the same decoder the API runs, compiled to WebAssembly and shipped inside this package, over a Wenmar Open data file: a plain SQLite database of about 167 MB. The methods, their answers and the error codes are those of `WenmarOpen`, with three more codes for the data ([below](#switching-between-the-api-and-the-data-file)), so code written for one works with the other.
+`wenmar-open/offline` answers the same questions with no network. It runs the same decoder the API runs, compiled to WebAssembly and shipped inside this package, over a Wenmar Open data file: a plain SQLite database of about 167 MB. Recalls come from a second, smaller file ([below](#recalls-offline)). The methods, their answers and the error codes are those of `WenmarOpen`, with three more codes for the data ([below](#switching-between-the-api-and-the-data-file)), so code written for one works with the other.
 
 The hosted client does not load any of this. An application that imports only `wenmar-open` gets the small client and nothing else.
 
@@ -288,6 +288,44 @@ const database = new Database(path, { readonly: true });
 const open = new WenmarOpenOffline({ store: syncStore(database) });
 ```
 
+### Recalls offline
+
+The recalls are in a second file, the shop file, published as `wenmar-open-data-shop` (17 MB to download, 77 MB on disk, a new version each week):
+
+```bash
+npm install wenmar-open wenmar-open-data wenmar-open-data-shop
+```
+
+```ts
+import { openOffline } from "wenmar-open/offline/node";
+
+const open = await openOffline();
+
+const answer = await open.vinRecalls("KM8K2CAB4PU001140");
+console.log(`${answer.recalls.length} recall campaigns may apply.`);
+console.log("Check the VIN:", answer.lookup.nhtsa, answer.lookup.tc);
+console.log((await open.meta()).datasets);
+open.close();
+```
+
+`openOffline()` uses the shop file of `wenmar-open-data-shop` when that package is installed. Pass `{ shopPath }` to read one from somewhere else, such as the file `wenmar-open data pull --shop` downloads, or `{ shopPath: false }` to open none. The four recall methods are those of `WenmarOpen` and give the same answers, with one difference listed below. Without a shop file they fail with `dataset_unavailable`, and everything else works.
+
+A shop file holds the ids of one data file's catalog, so it is read only with the data file it was built against: `wenmar-open-data-shop` names that exact version of `wenmar-open-data` as its peer. A pair that does not go together is refused with `data_invalid`, by `openOffline()` before it returns and otherwise by the first recall question. Update the two packages together.
+
+With a store of your own, the shop file is a second store:
+
+```ts
+import { WenmarOpenOffline } from "wenmar-open/offline";
+import type { Store } from "wenmar-open/offline";
+
+declare const data: Store;
+declare const shop: Store;
+
+export const open = new WenmarOpenOffline({ store: data, shop });
+```
+
+Each statement goes to the store of its file; a statement for the shop file is marked `db: "shop"`, which a store may ignore. The shop file is opened when a question first needs it, so a decode never reads it.
+
 ### Switching between the API and the data file
 
 Both clients have the same methods, so the choice can be one line:
@@ -313,13 +351,15 @@ What differs offline:
 - Three more codes: `no_data` (no data file where one was looked for), `data_invalid` (the database is not a data file this version reads) and `store_error` (the database failed while it was read, including while it was first opened, so a retry may succeed; `data_invalid` is for rows that were read and are not a data file, and for a schema version this client does not read).
 - `search` reads the text as a year, a make, a model and a submodel, in that order. The API also finds a model from its words in any order, with an index the data file does not have. `search({ q: "civic type r" })` finds the Civic Type R in both; `search({ q: "type r" })` finds it only through the API.
 - `meta().server_version` is the version of this package.
-- `meta().datasets` is always `{}` offline: the data file holds the VIN decoder and the catalog only.
+- `meta().datasets` lists what the shop file holds, and is `{}` when no shop file is open: the data file holds the VIN decoder and the catalog only.
+- `lookup.maker` in a recall answer is always `null`. The makers' own recall lookups are part of the hosted service and are in neither file. `lookup.nhtsa` and `lookup.tc` are always there.
+- A recall's `url` is its page on `https://open.wenmarpro.com`, whichever server you would otherwise ask.
 - `timeoutMs` and `signal` are checked each time the client goes back to the database, not while the database is working. There is no time limit unless you set one.
 - The current year, which bounds the model years a VIN can have, comes from the device's clock. Pass `currentYear` to set it.
 
 ### In Cloudflare Workers
 
-A Worker cannot carry a 167 MB file. Import the data into a D1 database once (see the [`wenmar-open-data` README](https://www.npmjs.com/package/wenmar-open-data)), or use the hosted API.
+A Worker cannot carry a 167 MB file. Import the data into a D1 database once (see the [`wenmar-open-data` README](https://www.npmjs.com/package/wenmar-open-data)), or use the hosted API. For recalls, import the shop file into a second D1 database (see the [`wenmar-open-data-shop` README](https://www.npmjs.com/package/wenmar-open-data-shop)) and pass it as `shop: d1Store(env.SHOP_DB)`.
 
 ```js
 import { WenmarOpenOffline, d1Store } from "wenmar-open/offline";
@@ -360,15 +400,15 @@ Rows must be arrays, not objects keyed by column name: two columns of one statem
 
 ### Data versions
 
-A version of `wenmar-open` reads data files of one schema version, and `wenmar-open-data`'s major version is that schema version: `wenmar-open-data@3.202609.0` is the data of September 2026 in schema version 3. A file of another schema version is refused with `data_invalid` and a message naming both versions.
+A version of `wenmar-open` reads data files of one schema version, and `wenmar-open-data`'s major version is that schema version: `wenmar-open-data@3.202609.0` is the data of September 2026 in schema version 3. A file of another schema version is refused with `data_invalid` and a message naming both versions. The shop file has a schema version of its own, and `wenmar-open-data-shop@1.20261012.0` is the shop file of 12 October 2026 in schema version 1.
 
-| `wenmar-open` | reads `wenmar-open-data` |
-|---|---|
-| 0.2 | 3.x |
+| `wenmar-open` | reads `wenmar-open-data` | reads `wenmar-open-data-shop` |
+|---|---|---|
+| 0.2 | 3.x | 1.x |
 
 ### Size
 
-The decoder is 450 kB of WebAssembly (163 kB compressed). The package holds it twice, as a file and as text inside a module, so the package is 1.1 MB unpacked. None of it is loaded by `import "wenmar-open"`.
+The decoder is 542 kB of WebAssembly (195 kB compressed). The package holds it twice, as a file and as text inside a module, so the package is 1.4 MB unpacked. None of it is loaded by `import "wenmar-open"`.
 
 In a browser the page's content security policy must allow WebAssembly (`'wasm-unsafe-eval'`). The data file is too large to send to a browser; use the hosted API there.
 
