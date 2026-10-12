@@ -6,6 +6,7 @@
 
 pub mod build;
 pub mod coverage;
+pub mod epa_match;
 pub mod epa_vehicles;
 pub mod matcher;
 pub mod nhtsa_investigations;

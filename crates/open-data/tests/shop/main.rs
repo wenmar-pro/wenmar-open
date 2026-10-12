@@ -3,6 +3,7 @@
 mod build;
 mod common;
 mod coverage;
+mod epa_match;
 mod epa_vehicles;
 mod matcher;
 mod nhtsa_investigations;

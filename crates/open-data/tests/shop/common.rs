@@ -383,3 +383,61 @@ pub fn epa_vehicles_dir(scratch: &Scratch) -> PathBuf {
     .unwrap();
     directory
 }
+
+/// Engines, details and submodels for some vehicles of the fixture
+/// catalog, copied from the 2026.09 data file: real ids and labels. The
+/// details are joined to the fixture's model years by `UPDATE`, since the
+/// fixture's `catalog_vehicle` rows have no detail.
+pub const ENGINE_ROWS: &str = "
+INSERT INTO catalog_detail VALUES
+  (16775, 'Pickup', NULL, NULL),
+  (17499, 'Sedan', '4x2', NULL),
+  (14723, NULL, NULL, NULL),
+  (13495, NULL, '4x2', NULL),
+  (17599, NULL, NULL, NULL),
+  (18215, NULL, NULL, NULL),
+  (15499, NULL, NULL, NULL);
+
+INSERT INTO catalog_engine VALUES
+  (120814, 13495, '1.8L Hybrid', 'U', 'vpic'),
+  (120815, 13495, '1.8L PHEV', 'P', 'vpic'),
+  (130489, 14723, '2.0L Diesel', '5', 'vpic'),
+  (138067, 15499, '1.5L', NULL, 'vpic'),
+  (138068, 15499, '1.5L Hybrid', NULL, 'vpic'),
+  (138069, 15499, '1.5L Turbo', NULL, 'vpic'),
+  (138071, 15499, '2.0L', NULL, 'vpic'),
+  (144955, 16775, '2.7L V6', 'P', 'vpic'),
+  (144956, 16775, '3.0L V6 Diesel', '1', 'vpic'),
+  (144957, 16775, '3.3L V6', 'B', 'vpic'),
+  (144958, 16775, '3.5L Turbo V6', 'G', 'vpic'),
+  (144959, 16775, '5.0L V8', '5', 'vpic'),
+  (147955, 17499, '1.5L Turbo', NULL, 'vpic'),
+  (147956, 17499, '2.0L Hybrid', '7', 'vpic'),
+  (147957, 17499, '2.0L Turbo', NULL, 'vpic'),
+  (148370, 17599, '5.7L V8', 'T', 'vpic'),
+  (148371, 17599, '6.4L V8', 'J', 'vpic'),
+  (155276, 18215, '4.3L V6', 'H', 'vpic'),
+  (155277, 18215, '5.3L', 'DF', 'vpic'),
+  (155278, 18215, '6.2L V8', 'L', 'vpic');
+
+INSERT INTO catalog_submodel (id, detail_id, name, norm, kind, listed) VALUES
+  (47514, 16775, 'Raptor', 'raptor', 'preset', 1),
+  (47516, 16775, 'XL', 'xl', 'preset', 1),
+  (47517, 16775, 'XLT', 'xlt', 'preset', 1),
+  (90001, 17499, 'Hybrid', 'hybrid', 'preset', 1),
+  (90002, 17499, 'Hidden', 'hidden', 'preset', 0);
+
+UPDATE catalog_vehicle SET detail_id = 16775 WHERE year = 2018 AND model_id = 1801;
+UPDATE catalog_vehicle SET detail_id = 18215 WHERE year = 2020 AND model_id = 1850;
+UPDATE catalog_vehicle SET detail_id = 17499 WHERE year = 2020 AND model_id = 1861;
+UPDATE catalog_vehicle SET detail_id = 15499 WHERE year = 2016 AND model_id = 1863;
+UPDATE catalog_vehicle SET detail_id = 14723 WHERE year = 2015 AND model_id = 2173;
+UPDATE catalog_vehicle SET detail_id = 13495 WHERE year = 2013 AND model_id = 2209;
+UPDATE catalog_vehicle SET detail_id = 17599 WHERE year = 2019 AND model_id = 13620;
+";
+
+/// Adds [`ENGINE_ROWS`] to the scratch core file.
+pub fn add_engines(scratch: &Scratch) {
+    let connection = Connection::open(scratch.core()).unwrap();
+    connection.execute_batch(ENGINE_ROWS).unwrap();
+}
