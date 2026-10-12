@@ -1,5 +1,6 @@
 //! The JSON API under `/v1`.
 
+pub mod fuel;
 pub mod investigations;
 pub mod meta;
 pub mod overview;
@@ -65,6 +66,12 @@ pub fn router() -> (axum::Router<AppState>, utoipa::openapi::OpenApi) {
         .routes(routes!(overview::vehicle_overview))
         .routes(routes!(overview::vin_overview))
         .routes(routes!(overview::model_years))
+        .routes(routes!(fuel::vehicle_fuel))
+        .routes(routes!(fuel::vin_fuel))
+        .routes(routes!(fuel::vehicle_specs))
+        .routes(routes!(fuel::vin_specs))
+        .routes(routes!(fuel::vehicle_fluids))
+        .routes(routes!(fuel::vin_fluids))
         .routes(routes!(vehicles::make))
         .routes(routes!(meta::meta));
     OpenApiRouter::with_openapi(ApiDoc::openapi())

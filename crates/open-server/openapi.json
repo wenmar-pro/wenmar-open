@@ -1020,6 +1020,113 @@
         }
       }
     },
+    "/v1/vehicles/{id}/fluids": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Fluids of a model year. Today: the engine oil viscosity grade.",
+        "description": "The grade is the one the maker certified the engine with, as EPA's\nFuel Economy Guide records it. It is not read from the owner's manual,\nand it gives no capacity and no specification. One entry per engine.",
+        "operationId": "vehicle_fluids",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A vehicle id.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2018_ford_f-150"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The engine oil grades, by engine.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleFluids"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no oil grades.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vehicles/{id}/fuel": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Fuel consumption ratings of a model year.",
+        "description": "EPA's ratings and Natural Resources Canada's, each matched to the\nmodel year. `confidence` says how far: `model`, `engine` or\n`submodel`. `engine` is the catalog engine only when the match settled\none. `l_100km` and `mpg` (US gallons) are the same figures in two\nunits; both are null for a fuel not sold by the litre.",
+        "operationId": "vehicle_fuel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A vehicle id. Ratings are listed by year, make and model; a submodel or an engine in the id is set aside.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2018_ford_f-150"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "description": "`us` for EPA's ratings, `ca` for Natural Resources Canada's.\nLeave out for both.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The ratings, EPA's first, each by engine size.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleFuel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: `country` is not `us` or `ca`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no fuel ratings, or none for the country asked for.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vehicles/{id}/investigations": {
       "get": {
         "tags": [
@@ -1236,6 +1343,50 @@
         }
       }
     },
+    "/v1/vehicles/{id}/specs": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Specifications of a model year from EPA's files.",
+        "description": "One entry per EPA rating: transmission and gears, drive, recommended\nfuel, forced induction, stop-start, cylinder deactivation, valves,\npassenger and luggage volume, hybrid battery, and the emission\nstandards it was certified to. A field EPA does not give is null.",
+        "operationId": "vehicle_specs",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A vehicle id.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2018_ford_f-150"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The specifications, by engine size.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleSpecs"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no specifications.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vin/batch": {
       "post": {
         "tags": [
@@ -1399,6 +1550,145 @@
         }
       }
     },
+    "/v1/vin/{vin}/fluids": {
+      "get": {
+        "tags": [
+          "VIN"
+        ],
+        "summary": "Fluids for the vehicle a VIN decodes to.",
+        "description": "When the decode settles the engine, `engine_oil` holds the one entry\nof that engine, or none. Otherwise it holds every engine's.",
+        "operationId": "vin_fluids",
+        "parameters": [
+          {
+            "name": "vin",
+            "in": "path",
+            "description": "A 17-character VIN.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "KM8K2CAB4PU001140"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "The model year, when the VIN's tenth character leaves two possible.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The engine oil grades.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinFluids"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`invalid_vin`, or `validation_failed` for `year`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no oil grades.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vin/{vin}/fuel": {
+      "get": {
+        "tags": [
+          "VIN"
+        ],
+        "summary": "Fuel consumption ratings for the vehicle a VIN decodes to.",
+        "description": "When the decode settles the engine, `engine_settled` is `true` and\n`ratings` holds only the ratings matched to that engine. Otherwise it\nholds every rating of the model year, as the vehicle route does.",
+        "operationId": "vin_fuel",
+        "parameters": [
+          {
+            "name": "vin",
+            "in": "path",
+            "description": "A 17-character VIN.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "KM8K2CAB4PU001140"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "description": "`us` or `ca`. Leave out for both.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "The model year, when the VIN's tenth character leaves two possible.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The ratings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinFuel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`invalid_vin`, or `validation_failed` for `country` or `year`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no fuel ratings, or none for the country asked for.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vin/{vin}/overview": {
       "get": {
         "tags": [
@@ -1540,6 +1830,71 @@
           }
         }
       }
+    },
+    "/v1/vin/{vin}/specs": {
+      "get": {
+        "tags": [
+          "VIN"
+        ],
+        "summary": "Specifications for the vehicle a VIN decodes to.",
+        "description": "Narrowed to the decoded engine when the decode settles it, as the\nfuel route is.",
+        "operationId": "vin_specs",
+        "parameters": [
+          {
+            "name": "vin",
+            "in": "path",
+            "description": "A 17-character VIN.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "KM8K2CAB4PU001140"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "The model year, when the VIN's tenth character leaves two possible.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The specifications.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinSpecs"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`invalid_vin`, or `validation_failed` for `year`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no specifications.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1595,6 +1950,33 @@
           },
           "valid": {
             "type": "boolean"
+          }
+        }
+      },
+      "Consumption": {
+        "type": "object",
+        "description": "City, highway and combined consumption in litres per 100 km.",
+        "properties": {
+          "city": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "combined": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "highway": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
           }
         }
       },
@@ -1698,6 +2080,71 @@
           }
         }
       },
+      "EngineOil": {
+        "type": "object",
+        "description": "The engine oil viscosity grade of one engine.",
+        "required": [
+          "confidence",
+          "grades",
+          "as_written",
+          "source"
+        ],
+        "properties": {
+          "as_written": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The maker's own spellings the grades were read from.",
+            "example": [
+              "5W30 GF-5"
+            ]
+          },
+          "confidence": {
+            "type": "string",
+            "description": "`engine` when the grade is for one catalog engine; `model` when\nonly the model year is known, and then `engine` is null."
+          },
+          "cylinders": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "displacement_l": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "engine": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EngineRef"
+              }
+            ]
+          },
+          "grades": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Standard grades. More than one when the maker listed more than one.",
+            "example": [
+              "5W-30"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "description": "Always `EPA fuel economy certification`: the grade the maker\ncertified with, not a reading of the owner's manual."
+          }
+        }
+      },
       "EngineOption": {
         "type": "object",
         "description": "An engine in the engine step.",
@@ -1725,6 +2172,33 @@
               "null"
             ],
             "description": "The characters in position 8 of a VIN that mean this engine and no\nother for this model year, where the data settles it."
+          }
+        }
+      },
+      "EngineRef": {
+        "type": "object",
+        "description": "A catalog engine of the model year.",
+        "required": [
+          "id",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The engine's id form, as in a vehicle id.",
+            "example": "2-7l-v6"
+          },
+          "label": {
+            "type": "string",
+            "example": "2.7L V6"
+          },
+          "vin8": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The characters in position 8 of a VIN that mean this engine.",
+            "example": "P"
           }
         }
       },
@@ -1833,6 +2307,180 @@
             "type": "string",
             "description": "A sentence for a person to read.",
             "example": "a VIN has 17 characters, this has 16"
+          }
+        }
+      },
+      "FuelAsOf": {
+        "type": "object",
+        "description": "The day each country's fuel ratings were current. Null for a country\nthis server holds no ratings for.",
+        "properties": {
+          "ca": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "2026-10-06"
+          },
+          "us": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "2026-09-29"
+          }
+        }
+      },
+      "FuelRating": {
+        "type": "object",
+        "description": "One fuel consumption rating.",
+        "required": [
+          "source",
+          "country",
+          "match",
+          "confidence",
+          "described_as",
+          "fuel_grade"
+        ],
+        "properties": {
+          "co2_g_km": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Tailpipe carbon dioxide, combined.",
+            "minimum": 0
+          },
+          "confidence": {
+            "type": "string",
+            "description": "How far the rating was matched: `model` (the model year only),\n`engine` (one engine) or `submodel` (an engine and a trim).",
+            "example": "engine"
+          },
+          "country": {
+            "type": "string",
+            "description": "`us` or `ca`.",
+            "example": "us"
+          },
+          "cylinders": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "described_as": {
+            "type": "string",
+            "description": "The source's own name for the vehicle rated.",
+            "example": "F150 Pickup 2WD"
+          },
+          "displacement_l": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "drive": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Rear-Wheel Drive"
+          },
+          "engine": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EngineRef",
+                "description": "The catalog engine. Null unless `confidence` is `engine` or `submodel`."
+              }
+            ]
+          },
+          "fuel_grade": {
+            "type": "string",
+            "description": "The fuel the figures are for, which is the recommended grade.",
+            "example": "Regular Gasoline"
+          },
+          "kwh_100km": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Combined electricity use."
+          },
+          "l_100km": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Consumption",
+                "description": "Null when the fuel is not sold by the litre."
+              }
+            ]
+          },
+          "match": {
+            "type": "string",
+            "description": "How the model was found: `exact`, `base` or `curated`.",
+            "example": "exact"
+          },
+          "mpg": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Mpg"
+              }
+            ]
+          },
+          "range_km": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "On a full battery.",
+            "minimum": 0
+          },
+          "range_mi": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "second_fuel": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A second fuel the vehicle takes, such as `E85` or `Electricity`."
+          },
+          "source": {
+            "type": "string",
+            "description": "`epa` or `nrcan`.",
+            "example": "epa"
+          },
+          "source_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "EPA's id for the rating. Null for one from Natural Resources Canada.",
+            "example": "39241"
+          },
+          "transmission": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Automatic (S10)"
           }
         }
       },
@@ -2240,6 +2888,36 @@
             "items": {
               "$ref": "#/components/schemas/ModelYearSummary"
             }
+          }
+        }
+      },
+      "Mpg": {
+        "type": "object",
+        "description": "City, highway and combined economy in miles per US gallon.",
+        "properties": {
+          "city": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "combined": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "highway": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
           }
         }
       },
@@ -3784,6 +4462,262 @@
           }
         }
       },
+      "Spec": {
+        "type": "object",
+        "description": "The specifications that come with one EPA rating.",
+        "required": [
+          "source",
+          "source_id",
+          "confidence",
+          "described_as",
+          "fuel_grade",
+          "size_class",
+          "turbo",
+          "supercharger",
+          "emission_standards"
+        ],
+        "properties": {
+          "battery_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Lithium Ion"
+          },
+          "battery_voltage": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "confidence": {
+            "type": "string",
+            "description": "`model`, `engine` or `submodel`, as on a fuel rating."
+          },
+          "cylinder_deactivation": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "cylinder_deactivation_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The maker's name for it, such as `Active Fuel Management`."
+          },
+          "described_as": {
+            "type": "string",
+            "example": "F150 Pickup 2WD"
+          },
+          "drive": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "electrification": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "EPA's kind of alternative powertrain: `Hybrid`, `Plug-in Hybrid`, `EV`, `FFV`, `Diesel`."
+          },
+          "emission_standards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpecEmission"
+            }
+          },
+          "engine": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EngineRef"
+              }
+            ]
+          },
+          "ev_motor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "exhaust_valves": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "fuel_grade": {
+            "type": "string",
+            "example": "Regular Gasoline"
+          },
+          "fuel_usage": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Whether the grade is recommended or required, in EPA's words.",
+            "example": "Gasoline (Premium Unleaded Required)"
+          },
+          "gears": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "intake_valves": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Per cylinder.",
+            "minimum": 0
+          },
+          "luggage_volume_ft3": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "luggage_volume_l": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "motor_kw": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Rated motor power in kW, as EPA's file writes it: `135`, `8 and 30`."
+          },
+          "passenger_volume_ft3": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "passenger_volume_l": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "size_class": {
+            "type": "string",
+            "example": "Standard Pickup Trucks 2WD"
+          },
+          "source": {
+            "type": "string",
+            "example": "epa"
+          },
+          "source_id": {
+            "type": "string",
+            "example": "39241"
+          },
+          "start_stop": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "supercharger": {
+            "type": "boolean"
+          },
+          "transmission": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "transmission_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Semi-Automatic"
+          },
+          "turbo": {
+            "type": "boolean"
+          },
+          "variable_valve_lift": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "variable_valve_timing": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "SpecEmission": {
+        "type": "object",
+        "description": "An emission standard a vehicle was certified to.",
+        "required": [
+          "sales_area",
+          "standard",
+          "engine_family"
+        ],
+        "properties": {
+          "engine_family": {
+            "type": "string",
+            "description": "The engine family (test group).",
+            "example": "JFMXT02.73JK"
+          },
+          "sales_area": {
+            "type": "integer",
+            "format": "int32",
+            "description": "EPA's sales area code, a number. EPA's column list does not say\nwhat each number means, so no name is given.",
+            "example": 3,
+            "minimum": 0
+          },
+          "smog_score": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "EPA's smog rating, 1 (worst) to 10 (best).",
+            "minimum": 0
+          },
+          "standard": {
+            "type": "string",
+            "example": "T3B70"
+          },
+          "standard_text": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Federal Tier 3 Bin 70"
+          }
+        }
+      },
       "Submodel": {
         "type": "object",
         "description": "A submodel: a trim, or a series where the data has no trim.",
@@ -3805,6 +4739,69 @@
           "name": {
             "type": "string",
             "example": "EX-L"
+          }
+        }
+      },
+      "VehicleFluids": {
+        "type": "object",
+        "description": "The fluids of one model year.",
+        "required": [
+          "vehicle",
+          "engine_oil",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "2026-09-29"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "engine_oil": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EngineOil"
+            }
+          },
+          "vehicle": {
+            "$ref": "#/components/schemas/RecallVehicle"
+          }
+        }
+      },
+      "VehicleFuel": {
+        "type": "object",
+        "description": "The fuel ratings of one model year.",
+        "required": [
+          "vehicle",
+          "as_of",
+          "ratings",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "$ref": "#/components/schemas/FuelAsOf"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ratings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FuelRating"
+            }
+          },
+          "vehicle": {
+            "$ref": "#/components/schemas/RecallVehicle"
           }
         }
       },
@@ -3928,6 +4925,39 @@
             "type": "string",
             "description": "NHTSA's own pages of ratings.",
             "example": "https://www.nhtsa.gov/ratings"
+          },
+          "vehicle": {
+            "$ref": "#/components/schemas/RecallVehicle"
+          }
+        }
+      },
+      "VehicleSpecs": {
+        "type": "object",
+        "description": "The specifications of one model year.",
+        "required": [
+          "vehicle",
+          "specs",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "2026-09-29"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "specs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Spec"
+            }
           },
           "vehicle": {
             "$ref": "#/components/schemas/RecallVehicle"
@@ -4134,6 +5164,134 @@
           }
         }
       },
+      "VinFluids": {
+        "type": "object",
+        "description": "The fluids for the vehicle a VIN decodes to.",
+        "required": [
+          "decode",
+          "engine_settled",
+          "engine_oil",
+          "attribution",
+          "warnings"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "decode": {
+            "$ref": "#/components/schemas/RecallDecode"
+          },
+          "engine": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EngineRef"
+              }
+            ]
+          },
+          "engine_oil": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EngineOil"
+            }
+          },
+          "engine_settled": {
+            "type": "boolean",
+            "description": "Whether `engine_oil` is narrowed to `engine`."
+          },
+          "vehicle": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecallVehicle"
+              }
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            }
+          }
+        }
+      },
+      "VinFuel": {
+        "type": "object",
+        "description": "The fuel ratings for the vehicle a VIN decodes to.",
+        "required": [
+          "decode",
+          "engine_settled",
+          "as_of",
+          "ratings",
+          "attribution",
+          "warnings"
+        ],
+        "properties": {
+          "as_of": {
+            "$ref": "#/components/schemas/FuelAsOf"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "decode": {
+            "$ref": "#/components/schemas/RecallDecode"
+          },
+          "engine": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EngineRef",
+                "description": "The engine the decode settled. Null when it settled none."
+              }
+            ]
+          },
+          "engine_settled": {
+            "type": "boolean",
+            "description": "Whether `ratings` is narrowed to `engine`."
+          },
+          "ratings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FuelRating"
+            }
+          },
+          "vehicle": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecallVehicle",
+                "description": "Null when the VIN decodes to no vehicle in the catalog."
+              }
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            }
+          }
+        }
+      },
       "VinRecallCount": {
         "type": "object",
         "description": "What a batch decode says of recalls when `include=recalls` is asked:\nhow many campaigns may apply to the model year the VIN decodes to.",
@@ -4220,6 +5378,70 @@
               "$ref": "#/components/schemas/Warning"
             },
             "description": "The decode's warnings, and `no_catalog_vehicle` when the VIN names\nno model year to list recalls for."
+          }
+        }
+      },
+      "VinSpecs": {
+        "type": "object",
+        "description": "The specifications for the vehicle a VIN decodes to.",
+        "required": [
+          "decode",
+          "engine_settled",
+          "specs",
+          "attribution",
+          "warnings"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "decode": {
+            "$ref": "#/components/schemas/RecallDecode"
+          },
+          "engine": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EngineRef"
+              }
+            ]
+          },
+          "engine_settled": {
+            "type": "boolean",
+            "description": "Whether `specs` is narrowed to `engine`."
+          },
+          "specs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Spec"
+            }
+          },
+          "vehicle": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecallVehicle"
+              }
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            }
           }
         }
       },

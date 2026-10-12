@@ -1187,3 +1187,251 @@ pub struct VehicleSafety {
     /// The credit lines the data's licence asks for. NHTSA's asks for none.
     pub attribution: Vec<String>,
 }
+
+/// The day each country's fuel ratings were current. Null for a country
+/// this server holds no ratings for.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct FuelAsOf {
+    #[schema(example = "2026-09-29")]
+    pub us: Option<String>,
+    #[schema(example = "2026-10-06")]
+    pub ca: Option<String>,
+}
+
+/// A catalog engine of the model year.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct EngineRef {
+    /// The engine's id form, as in a vehicle id.
+    #[schema(example = "2-7l-v6")]
+    pub id: String,
+    #[schema(example = "2.7L V6")]
+    pub label: String,
+    /// The characters in position 8 of a VIN that mean this engine.
+    #[schema(example = "P")]
+    pub vin8: Option<String>,
+}
+
+/// City, highway and combined consumption in litres per 100 km.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, ToSchema)]
+pub struct Consumption {
+    pub city: Option<f64>,
+    pub highway: Option<f64>,
+    pub combined: Option<f64>,
+}
+
+/// City, highway and combined economy in miles per US gallon.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, ToSchema)]
+pub struct Mpg {
+    pub city: Option<u16>,
+    pub highway: Option<u16>,
+    pub combined: Option<u16>,
+}
+
+/// One fuel consumption rating.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct FuelRating {
+    /// `epa` or `nrcan`.
+    #[schema(example = "epa")]
+    pub source: String,
+    /// `us` or `ca`.
+    #[schema(example = "us")]
+    pub country: String,
+    /// EPA's id for the rating. Null for one from Natural Resources Canada.
+    #[schema(example = "39241")]
+    pub source_id: Option<String>,
+    /// How the model was found: `exact`, `base` or `curated`.
+    #[serde(rename = "match")]
+    #[schema(example = "exact")]
+    pub matched: String,
+    /// How far the rating was matched: `model` (the model year only),
+    /// `engine` (one engine) or `submodel` (an engine and a trim).
+    #[schema(example = "engine")]
+    pub confidence: String,
+    /// The catalog engine. Null unless `confidence` is `engine` or `submodel`.
+    pub engine: Option<EngineRef>,
+    /// The source's own name for the vehicle rated.
+    #[schema(example = "F150 Pickup 2WD")]
+    pub described_as: String,
+    pub displacement_l: Option<f64>,
+    pub cylinders: Option<u8>,
+    #[schema(example = "Automatic (S10)")]
+    pub transmission: Option<String>,
+    #[schema(example = "Rear-Wheel Drive")]
+    pub drive: Option<String>,
+    /// The fuel the figures are for, which is the recommended grade.
+    #[schema(example = "Regular Gasoline")]
+    pub fuel_grade: String,
+    /// A second fuel the vehicle takes, such as `E85` or `Electricity`.
+    pub second_fuel: Option<String>,
+    /// Null when the fuel is not sold by the litre.
+    pub l_100km: Option<Consumption>,
+    pub mpg: Option<Mpg>,
+    /// Combined electricity use.
+    pub kwh_100km: Option<f64>,
+    /// On a full battery.
+    pub range_km: Option<u32>,
+    pub range_mi: Option<u32>,
+    /// Tailpipe carbon dioxide, combined.
+    pub co2_g_km: Option<u32>,
+}
+
+/// The fuel ratings of one model year.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct VehicleFuel {
+    pub vehicle: RecallVehicle,
+    pub as_of: FuelAsOf,
+    pub ratings: Vec<FuelRating>,
+    pub attribution: Vec<String>,
+}
+
+/// The fuel ratings for the vehicle a VIN decodes to.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct VinFuel {
+    pub decode: RecallDecode,
+    /// Null when the VIN decodes to no vehicle in the catalog.
+    pub vehicle: Option<RecallVehicle>,
+    /// The engine the decode settled. Null when it settled none.
+    pub engine: Option<EngineRef>,
+    /// Whether `ratings` is narrowed to `engine`.
+    pub engine_settled: bool,
+    pub as_of: FuelAsOf,
+    pub ratings: Vec<FuelRating>,
+    pub attribution: Vec<String>,
+    pub warnings: Vec<Warning>,
+}
+
+/// An emission standard a vehicle was certified to.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct SpecEmission {
+    /// EPA's sales area code, a number. EPA's column list does not say
+    /// what each number means, so no name is given.
+    #[schema(example = 3)]
+    pub sales_area: u8,
+    #[schema(example = "T3B70")]
+    pub standard: String,
+    #[schema(example = "Federal Tier 3 Bin 70")]
+    pub standard_text: Option<String>,
+    /// EPA's smog rating, 1 (worst) to 10 (best).
+    pub smog_score: Option<u8>,
+    /// The engine family (test group).
+    #[schema(example = "JFMXT02.73JK")]
+    pub engine_family: String,
+}
+
+/// The specifications that come with one EPA rating.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct Spec {
+    #[schema(example = "epa")]
+    pub source: String,
+    #[schema(example = "39241")]
+    pub source_id: String,
+    /// `model`, `engine` or `submodel`, as on a fuel rating.
+    pub confidence: String,
+    pub engine: Option<EngineRef>,
+    #[schema(example = "F150 Pickup 2WD")]
+    pub described_as: String,
+    pub transmission: Option<String>,
+    #[schema(example = "Semi-Automatic")]
+    pub transmission_type: Option<String>,
+    pub gears: Option<u8>,
+    pub drive: Option<String>,
+    #[schema(example = "Regular Gasoline")]
+    pub fuel_grade: String,
+    /// Whether the grade is recommended or required, in EPA's words.
+    #[schema(example = "Gasoline (Premium Unleaded Required)")]
+    pub fuel_usage: Option<String>,
+    #[schema(example = "Standard Pickup Trucks 2WD")]
+    pub size_class: String,
+    pub turbo: bool,
+    pub supercharger: bool,
+    pub start_stop: Option<bool>,
+    /// EPA's kind of alternative powertrain: `Hybrid`, `Plug-in Hybrid`, `EV`, `FFV`, `Diesel`.
+    pub electrification: Option<String>,
+    pub ev_motor: Option<String>,
+    pub cylinder_deactivation: Option<bool>,
+    /// The maker's name for it, such as `Active Fuel Management`.
+    pub cylinder_deactivation_name: Option<String>,
+    pub variable_valve_timing: Option<bool>,
+    pub variable_valve_lift: Option<bool>,
+    /// Per cylinder.
+    pub intake_valves: Option<u8>,
+    pub exhaust_valves: Option<u8>,
+    pub passenger_volume_l: Option<u32>,
+    pub passenger_volume_ft3: Option<u16>,
+    pub luggage_volume_l: Option<u32>,
+    pub luggage_volume_ft3: Option<u16>,
+    #[schema(example = "Lithium Ion")]
+    pub battery_type: Option<String>,
+    pub battery_voltage: Option<u16>,
+    /// Rated motor power in kW, as EPA's file writes it: `135`, `8 and 30`.
+    pub motor_kw: Option<String>,
+    pub emission_standards: Vec<SpecEmission>,
+}
+
+/// The specifications of one model year.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct VehicleSpecs {
+    pub vehicle: RecallVehicle,
+    #[schema(example = "2026-09-29")]
+    pub as_of: Option<String>,
+    pub specs: Vec<Spec>,
+    pub attribution: Vec<String>,
+}
+
+/// The specifications for the vehicle a VIN decodes to.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct VinSpecs {
+    pub decode: RecallDecode,
+    pub vehicle: Option<RecallVehicle>,
+    pub engine: Option<EngineRef>,
+    /// Whether `specs` is narrowed to `engine`.
+    pub engine_settled: bool,
+    pub as_of: Option<String>,
+    pub specs: Vec<Spec>,
+    pub attribution: Vec<String>,
+    pub warnings: Vec<Warning>,
+}
+
+/// The engine oil viscosity grade of one engine.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct EngineOil {
+    /// `engine` when the grade is for one catalog engine; `model` when
+    /// only the model year is known, and then `engine` is null.
+    pub confidence: String,
+    pub engine: Option<EngineRef>,
+    pub displacement_l: Option<f64>,
+    pub cylinders: Option<u8>,
+    /// Standard grades. More than one when the maker listed more than one.
+    #[schema(example = json!(["5W-30"]))]
+    pub grades: Vec<String>,
+    /// The maker's own spellings the grades were read from.
+    #[schema(example = json!(["5W30 GF-5"]))]
+    pub as_written: Vec<String>,
+    /// Always `EPA fuel economy certification`: the grade the maker
+    /// certified with, not a reading of the owner's manual.
+    pub source: String,
+}
+
+/// The fluids of one model year.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct VehicleFluids {
+    pub vehicle: RecallVehicle,
+    #[schema(example = "2026-09-29")]
+    pub as_of: Option<String>,
+    pub engine_oil: Vec<EngineOil>,
+    pub attribution: Vec<String>,
+}
+
+/// The fluids for the vehicle a VIN decodes to.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct VinFluids {
+    pub decode: RecallDecode,
+    pub vehicle: Option<RecallVehicle>,
+    pub engine: Option<EngineRef>,
+    /// Whether `engine_oil` is narrowed to `engine`.
+    pub engine_settled: bool,
+    pub as_of: Option<String>,
+    pub engine_oil: Vec<EngineOil>,
+    pub attribution: Vec<String>,
+    pub warnings: Vec<Warning>,
+}

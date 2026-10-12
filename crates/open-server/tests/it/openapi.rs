@@ -50,14 +50,20 @@ fn the_description_lists_every_route_and_no_others() {
             "/v1/vehicles/trims",
             "/v1/vehicles/years",
             "/v1/vehicles/{id}",
+            "/v1/vehicles/{id}/fluids",
+            "/v1/vehicles/{id}/fuel",
             "/v1/vehicles/{id}/investigations",
             "/v1/vehicles/{id}/overview",
             "/v1/vehicles/{id}/recalls",
             "/v1/vehicles/{id}/safety",
+            "/v1/vehicles/{id}/specs",
             "/v1/vin/batch",
             "/v1/vin/{vin}",
+            "/v1/vin/{vin}/fluids",
+            "/v1/vin/{vin}/fuel",
             "/v1/vin/{vin}/overview",
             "/v1/vin/{vin}/recalls",
+            "/v1/vin/{vin}/specs",
         ]
     );
     // `/health` is for the deploy proxy and is not part of the API.
@@ -88,6 +94,14 @@ fn the_description_lists_every_route_and_no_others() {
         "VinRecallCount",
         "VehicleSafety",
         "SafetyRating",
+        "VehicleFuel",
+        "VinFuel",
+        "FuelRating",
+        "VehicleSpecs",
+        "VinSpecs",
+        "VehicleFluids",
+        "VinFluids",
+        "EngineOil",
     ] {
         assert!(schemas.contains_key(name), "no schema for {name}");
     }

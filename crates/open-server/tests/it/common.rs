@@ -1041,3 +1041,51 @@ pub fn investigation_rows() -> String {
 pub async fn investigations_app() -> TestApp {
     app_with_shop(INVESTIGATION_DATASETS, &investigation_rows()).await
 }
+
+/// A datasets JSON with the four fuel datasets.
+pub const FUEL_DATASETS: &str = r#"{"fuel_us":{"as_of":"2026-09-29","rows":5,"licence":"public-domain","attribution":""},"fuel_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence – Canada."},"specs":{"as_of":"2026-09-29","rows":5,"licence":"public-domain","attribution":""},"oil_grade":{"as_of":"2026-09-29","rows":3,"licence":"public-domain","attribution":""}}"#;
+
+/// EPA's ratings alone: no Canadian ratings, no specifications, no oil.
+pub const FUEL_DATASETS_US: &str =
+    r#"{"fuel_us":{"as_of":"2026-09-29","rows":5,"licence":"public-domain","attribution":""}}"#;
+
+/// Ratings against the small data file's catalog. The columns are those
+/// of `wenmar_shopdata::schema::FUEL`, in order. Every figure is made up
+/// for the test; none is a real rating. The Kona of model year 2023 (make
+/// 498, model 900), which [`KONA`] decodes to with the 2.0L engine
+/// (catalog engine 8), has two ratings on that engine, one on the 1.6L
+/// turbo (engine 9), one electric rating matched to the model year only,
+/// and one Canadian rating. The 2019 Civic has one, matched to no engine.
+pub const FUEL_INSERTS: &str = r#"
+INSERT INTO fuel_rating VALUES
+  (1, 'epa', 46001, 2023, 498, 900, 'Hyundai', 'Kona FWD', 'exact', 8, NULL, 'engine', 'FWD', NULL, NULL, 2.0, 4, 'Automatic (variable gear ratios)', 'Front-Wheel Drive', 'Regular Gasoline', NULL, 7.8, 6.7, 7.4, 30, 35, 32, NULL, NULL, 172),
+  (2, 'epa', 46002, 2023, 498, 900, 'Hyundai', 'Kona AWD', 'exact', 8, NULL, 'engine', 'AWD', NULL, NULL, 2.0, 4, 'Automatic (variable gear ratios)', 'All-Wheel Drive', 'Regular Gasoline', NULL, 8.4, 7.1, 7.8, 28, 33, 30, NULL, NULL, 184),
+  (3, 'epa', 46003, 2023, 498, 900, 'Hyundai', 'Kona N Line AWD', 'base', 9, NULL, 'engine', 'AWD', NULL, NULL, 1.6, 4, 'Automatic (AM7)', 'All-Wheel Drive', 'Regular Gasoline', NULL, 8.7, 7.4, 8.1, 27, 32, 29, NULL, NULL, 190),
+  (4, 'epa', 46004, 2023, 498, 900, 'Hyundai', 'Kona Electric', 'base', NULL, NULL, 'model', NULL, NULL, NULL, NULL, NULL, 'Automatic (A1)', 'Front-Wheel Drive', 'Electricity', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 17.4, 415, 0),
+  (5, 'nrcan', NULL, 2023, 498, 900, 'Hyundai', 'Kona', 'exact', 8, NULL, 'engine', NULL, NULL, NULL, 2.0, 4, 'AV', NULL, 'Regular Gasoline', NULL, 7.9, 6.6, 7.3, 30, 36, 32, NULL, NULL, 171),
+  (6, 'epa', 46010, 2019, 474, 1863, 'Honda', 'Civic 4Dr', 'base', NULL, NULL, 'model', NULL, NULL, NULL, 1.8, 4, 'Manual 6-spd', 'Front-Wheel Drive', 'Regular Gasoline', NULL, 9.4, 6.7, 8.1, 25, 35, 29, NULL, NULL, 189);
+INSERT INTO vehicle_spec VALUES
+  (46001, 'Small Sport Utility Vehicle 2WD', 0, 0, 1, NULL, NULL, NULL, NULL, 94, NULL, NULL, 19, NULL, 1, 'Continuously Variable', 'Gasoline (Regular Unleaded Recommended)', 0, NULL, 1, 0, 2, 2, NULL, NULL, NULL),
+  (46002, 'Small Sport Utility Vehicle 4WD', 0, 0, 1, NULL, NULL, NULL, NULL, 94, NULL, NULL, 19, NULL, 1, 'Continuously Variable', 'Gasoline (Regular Unleaded Recommended)', 0, NULL, 1, 0, 2, 2, NULL, NULL, NULL),
+  (46003, 'Small Sport Utility Vehicle 4WD', 1, 0, 1, NULL, NULL, NULL, NULL, 94, NULL, NULL, 19, NULL, 8, 'Automatic', 'Gasoline (Regular Unleaded Recommended)', 1, 'Half Engine Mode', 1, 0, 2, 2, NULL, NULL, NULL),
+  (46004, 'Small Sport Utility Vehicle 2WD', 0, 0, NULL, 'EV', '150 kW AC 3-Phase', NULL, NULL, 94, NULL, NULL, 19, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Lithium Ion', 400, '150');
+INSERT INTO emission_standard VALUES
+  (46001, 3, 'T3B30', 'Federal Tier 3 Bin 30', 7, 'PHYXV02.0AAA'),
+  (46001, 7, 'L3SULEV30', 'California LEV-III SULEV30', 7, 'PHYXV02.0AAA');
+INSERT INTO oil_grade VALUES
+  (46001, '0W-20', '0W-20'),
+  (46002, '0W-20', 'SAE 0W-20'),
+  (46003, '5W-30, 0W-30', '5W-30/0W-30'),
+  (46010, '0W-20', '0W20');
+"#;
+
+/// The fuel tables with [`FUEL_INSERTS`], as `rows` for [`app_with_shop`].
+pub fn fuel_rows() -> String {
+    format!("{}{FUEL_INSERTS}", wenmar_shopdata::schema::FUEL)
+}
+
+/// The application over the small data file and a shop file holding fuel
+/// ratings of both countries, specifications and oil grades.
+pub async fn fuel_app() -> TestApp {
+    app_with_shop(FUEL_DATASETS, &fuel_rows()).await
+}
