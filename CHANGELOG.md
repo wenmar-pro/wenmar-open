@@ -17,6 +17,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - `CONTRIBUTING.md`: rules for hand-written data. Where a record may not come from, the `source` and `checked` it must carry, what a pull request must show, and who approves it.
 - The tire size comparison calculator, at `/tools/tire-size`: the sidewall, diameter, circumference and revolutions per kilometre of two metric sizes, the difference between them and the speedometer error. Its arithmetic is in `shop-math`, in whole hundredths of a millimetre.
 - Website: `/feedback`, a form for reporting an error without a GitHub account. With `OPEN_GITHUB_TOKEN` set the server files the report as an issue in `OPEN_GITHUB_REPO`, and the "Report an error" links lead to the form. It has a trap field for programs, length limits, and a limit of 3 reports a minute from one address. Without a token it shows the GitHub and email links.
+- The refrigerant pressure-temperature chart, at `/tools/refrigerant-pt`, for R-134a and R-1234yf. Its figures are in `data/reference/refrigerant-pt.toml`, each table with its source and the day it was read; the build refuses a malformed file, and a refrigerant with no checked table says "Not yet checked".
 
 ### Internal
 
