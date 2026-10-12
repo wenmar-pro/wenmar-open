@@ -616,3 +616,38 @@ pub fn zip_bytes(path: &std::path::Path, inner: &str, bytes: &[u8]) {
     archive.write_all(bytes).unwrap();
     archive.finish().unwrap();
 }
+
+/// The archives of the `nhtsa-mfr-comms` fixture, oldest first.
+pub const MFR_COMMS_ARCHIVES: [&str; 4] = [
+    "TSBS_RECEIVED_2000-2004",
+    "TSBS_RECEIVED_2015-2019",
+    "TSBS_RECEIVED_2020-2024",
+    "TSBS_RECEIVED_2025-2026",
+];
+
+/// A fetched `nhtsa-mfr-comms` directory made from the fixture, under
+/// `scratch`: each text file zipped under the name `open-data fetch`
+/// saves, with `TSBS.txt` and `source.json` beside them.
+pub fn mfr_comms_dir(scratch: &Scratch) -> PathBuf {
+    use std::io::Write;
+
+    let directory = scratch.path("sources/nhtsa-mfr-comms");
+    std::fs::create_dir_all(&directory).unwrap();
+    for stem in MFR_COMMS_ARCHIVES {
+        let bytes = std::fs::read(fixture("nhtsa-mfr-comms").join(format!("{stem}.txt"))).unwrap();
+        let file = std::fs::File::create(directory.join(format!("{stem}.zip"))).unwrap();
+        let mut archive = zip::ZipWriter::new(file);
+        archive
+            .start_file(
+                format!("{stem}.txt"),
+                zip::write::SimpleFileOptions::default(),
+            )
+            .unwrap();
+        archive.write_all(&bytes).unwrap();
+        archive.finish().unwrap();
+    }
+    for name in ["TSBS.txt", "source.json"] {
+        std::fs::copy(fixture("nhtsa-mfr-comms").join(name), directory.join(name)).unwrap();
+    }
+    directory
+}

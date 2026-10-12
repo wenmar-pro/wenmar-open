@@ -1,0 +1,37 @@
+{
+  "source": "nhtsa-mfr-comms",
+  "fetched_at": "2026-10-12 09:29:00",
+  "as_of": "2026-10-11",
+  "files": [
+    {
+      "name": "TSBS_RECEIVED_2000-2004.zip",
+      "url": "https://static.nhtsa.gov/odi/ffdd/tsbs/TSBS_RECEIVED_2000-2004.zip",
+      "last_modified": "Sun, 11 Oct 2026 10:14:59 GMT",
+      "bytes": 1
+    },
+    {
+      "name": "TSBS_RECEIVED_2015-2019.zip",
+      "url": "https://static.nhtsa.gov/odi/ffdd/tsbs/TSBS_RECEIVED_2015-2019.zip",
+      "last_modified": "Sun, 11 Oct 2026 10:14:59 GMT",
+      "bytes": 1
+    },
+    {
+      "name": "TSBS_RECEIVED_2020-2024.zip",
+      "url": "https://static.nhtsa.gov/odi/ffdd/tsbs/TSBS_RECEIVED_2020-2024.zip",
+      "last_modified": "Sun, 11 Oct 2026 10:14:59 GMT",
+      "bytes": 1
+    },
+    {
+      "name": "TSBS_RECEIVED_2025-2026.zip",
+      "url": "https://static.nhtsa.gov/odi/ffdd/tsbs/TSBS_RECEIVED_2025-2026.zip",
+      "last_modified": "Sun, 11 Oct 2026 10:14:59 GMT",
+      "bytes": 1
+    },
+    {
+      "name": "TSBS.txt",
+      "url": "https://static.nhtsa.gov/odi/ffdd/tsbs/TSBS.txt",
+      "last_modified": "Sun, 11 Oct 2026 10:14:59 GMT",
+      "bytes": 1
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+Manufacturer Communications
+
+FIELDS
+=======
+Field# Name Type & Max Size/Format Description
+------ -------------------------------------------- ---------------------- -------------------------------------------------------------------------------------------------------------------------------------------------------
+1 "NHTSA ID Number" NUMBER(9) NHTSA identifier for this communication.
+2 "Replacement Service Bulletin Number" CHAR(16) Replacement service bulletin number.
+3 "Date Added to File" DATE (YYYYMMDD) Date this communication was added to this file.
+4 "TSB/Document ID" CHAR(128) Identifier the manufacturer uses to identify the communication and the way it can be located by those searching for it.
+5 "Mfr Communication Date" DATE (YYYYMMDD) Date the communication was disseminated by the manufacturer.
+6 "Mfr Internal Campaign ID/Software Version" CHAR(128) Manufacturer's unique identifier for the service campaign if this communication is a related one.
+7 "Communication Type" CHAR(40) Communication Type. Valid values are below (a link to the valid values will be provided in the future):
+8 "Make" CHAR(128) Make for the product(s) involved in the communication.
+9 "Model" CHAR(256) Model for the product(s) involved in the communication.
+10 "Model Year" CHAR(4) Model Year for the product(s) involved in the communication, 9999 if unknown.
+11 "NHTSA Components" CHAR(256) NHTSA Component(s) of the products involved in communications, up to five comma separated values.
+12 "Mfr Component System" CHAR(516) Manufacturer's top-level component of the products involved in communications.
+13 "Mfr Component Subsystem" CHAR(516) Manufacturer's component subsystem of the top-level component identified above.
+14 "Summary" CHAR(4000) Description of the communication’s most pertinent information, any related vehicle component information, and the general purpose for the communication.

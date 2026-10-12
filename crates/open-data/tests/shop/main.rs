@@ -9,6 +9,7 @@ mod epa_match;
 mod epa_vehicles;
 mod fuel;
 mod matcher;
+mod mfr_comms;
 mod nhtsa_investigations;
 mod nhtsa_ratings;
 mod nhtsa_recall_reports;
