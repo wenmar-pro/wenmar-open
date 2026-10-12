@@ -1346,6 +1346,7 @@ dependencies = [
  "open-mcp",
  "rusqlite",
  "serde",
+ "serde-saphyr",
  "serde_json",
  "shop-math",
  "tempfile",

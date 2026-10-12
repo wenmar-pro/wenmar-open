@@ -21,6 +21,9 @@ pub mod vin_rows;
 #[path = "../build_id.rs"]
 mod build_id;
 #[cfg(test)]
+#[path = "../links_build.rs"]
+mod links_build;
+#[cfg(test)]
 #[path = "../rates_build.rs"]
 mod rates_build;
 

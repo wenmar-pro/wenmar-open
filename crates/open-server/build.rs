@@ -4,6 +4,8 @@
 
 #[path = "build_id.rs"]
 mod build_id;
+#[path = "links_build.rs"]
+mod links_build;
 #[path = "rates_build.rs"]
 mod rates_build;
 
@@ -34,5 +36,13 @@ fn main() -> io::Result<()> {
         .map(PathBuf::from)
         .ok_or_else(|| io::Error::other("OUT_DIR is not set"))?;
     fs::write(out.join(rates_build::OUT), code)?;
+
+    // The makers' own links: one that is not as makes.yaml says stops the build.
+    let makes = root.join(links_build::PATH);
+    let yaml = fs::read_to_string(&makes)
+        .map_err(|error| io::Error::other(format!("{}: {error}", makes.display())))?;
+    let code = links_build::generate(&yaml)
+        .map_err(|why| io::Error::other(format!("{}: {why}", makes.display())))?;
+    fs::write(out.join(links_build::OUT), code)?;
     Ok(())
 }
