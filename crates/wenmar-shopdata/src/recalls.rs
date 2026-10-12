@@ -159,6 +159,16 @@ pub struct RecallDetail {
     pub vehicles: Vec<RecallVehicle>,
 }
 
+/// How many campaigns list one model year, for each country. `None` for a
+/// country the file holds no recalls for; `Some(0)` when it holds them and
+/// none lists the year.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub struct RecallYearCount {
+    pub year: u16,
+    pub us: Option<u32>,
+    pub ca: Option<u32>,
+}
+
 /// Where a list left off. Its text form is for handing back unchanged.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RecallCursor {
@@ -305,6 +315,17 @@ pub const RECALL_MODELS: &str = "
 SELECT DISTINCT make_id, model_id FROM recall_vehicle
 WHERE year = ?1 AND make_id IS NOT NULL AND model_id IS NOT NULL
 ORDER BY make_id, model_id";
+
+/// How many campaigns list each model year of one model, by source. `?1`
+/// make id, `?2` model id, `?3` and `?4` the sources. A campaign counts
+/// once for a year, however many of its vehicle lines reach the model.
+pub const RECALL_COUNTS_BY_YEAR: &str = "
+SELECT v.year, r.source, COUNT(DISTINCT r.id)
+FROM recall_vehicle v
+JOIN recall r ON r.id = v.recall_id
+WHERE v.make_id = ?1 AND v.model_id = ?2 AND v.year IS NOT NULL AND r.source IN (?3, ?4)
+GROUP BY v.year, r.source
+ORDER BY v.year DESC, r.source";
 
 const TABLE: &str = "recall";
 
@@ -597,6 +618,52 @@ impl<S: Source> ShopData<S> {
             .iter()
             .filter_map(|row| Some((optional_integer(row, 0)?, optional_integer(row, 1)?)))
             .collect())
+    }
+
+    /// The campaigns that list each model year of one model, counted by
+    /// country, newest year first. Only years with a campaign are given.
+    pub fn recall_counts_by_year(
+        &self,
+        make_id: i64,
+        model_id: i64,
+        source: Option<RecallSource>,
+    ) -> Result<Vec<RecallYearCount>, ShopError> {
+        let sources = self.require_recalls(source)?;
+        let (first, last) = (sources[0], sources[sources.len() - 1]);
+        let held = |source: RecallSource| sources.contains(&source).then_some(0u32);
+        let rows = self.query(
+            RECALL_COUNTS_BY_YEAR,
+            &[
+                make_id.into(),
+                model_id.into(),
+                first.id().into(),
+                last.id().into(),
+            ],
+        )?;
+        let mut found: Vec<RecallYearCount> = Vec::new();
+        for row in &rows {
+            let year = optional_integer(row, 0)
+                .and_then(|year| u16::try_from(year).ok())
+                .ok_or(ShopError::Shape(TABLE))?;
+            let source = RecallSource::parse(&text(row, 1)?).ok_or(ShopError::Shape(TABLE))?;
+            let count = optional_integer(row, 2)
+                .and_then(|count| u32::try_from(count).ok())
+                .ok_or(ShopError::Shape(TABLE))?;
+            if found.last().is_none_or(|last| last.year != year) {
+                found.push(RecallYearCount {
+                    year,
+                    us: held(RecallSource::Nhtsa),
+                    ca: held(RecallSource::Tc),
+                });
+            }
+            if let Some(entry) = found.last_mut() {
+                match source {
+                    RecallSource::Nhtsa => entry.us = Some(count),
+                    RecallSource::Tc => entry.ca = Some(count),
+                }
+            }
+        }
+        Ok(found)
     }
 }
 

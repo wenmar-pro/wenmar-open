@@ -577,3 +577,61 @@ fn the_years_and_models_with_a_matched_campaign_are_listed() {
     assert!(shop.recall_models(2016).unwrap().is_empty());
     assert!(shop.recall_models(2026).unwrap().is_empty());
 }
+
+#[test]
+fn a_models_years_are_counted_by_country() {
+    use wenmar_shopdata::recalls::RecallYearCount;
+    let held = both();
+    // The F-150 of 2018: three NHTSA campaigns and one of Transport Canada.
+    assert_eq!(
+        held.recall_counts_by_year(460, 1801, None).unwrap(),
+        [RecallYearCount {
+            year: 2018,
+            us: Some(3),
+            ca: Some(1)
+        }]
+    );
+    // Campaign 19V888000 reaches the 2019 Silverado on two lines and is
+    // counted once. 2020 has no Canadian campaign: zero, not unknown.
+    assert_eq!(
+        held.recall_counts_by_year(467, 1850, None).unwrap(),
+        [
+            RecallYearCount {
+                year: 2020,
+                us: Some(1),
+                ca: Some(0)
+            },
+            RecallYearCount {
+                year: 2019,
+                us: Some(1),
+                ca: Some(1)
+            },
+        ]
+    );
+    // One country asked for: the other is not counted at all.
+    assert_eq!(
+        held.recall_counts_by_year(467, 1850, Some(RecallSource::Tc))
+            .unwrap(),
+        [RecallYearCount {
+            year: 2019,
+            us: None,
+            ca: Some(1)
+        }]
+    );
+    // A file with one country says nothing of the other.
+    let american = shop(US, true);
+    assert_eq!(
+        american.recall_counts_by_year(460, 1801, None).unwrap(),
+        [RecallYearCount {
+            year: 2018,
+            us: Some(3),
+            ca: None
+        }]
+    );
+    assert!(held.recall_counts_by_year(1, 2, None).unwrap().is_empty());
+    let empty = shop("", false);
+    assert!(matches!(
+        empty.recall_counts_by_year(460, 1801, None).unwrap_err(),
+        ShopError::DatasetUnavailable(Dataset::RecallsUs)
+    ));
+}
