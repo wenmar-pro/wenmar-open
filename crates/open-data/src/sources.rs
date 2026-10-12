@@ -57,6 +57,19 @@ pub const SOURCES: &[FetchSource] = &[
             name: "vrdb_full_monthly.csv",
         }],
     },
+    FetchSource {
+        id: "nhtsa-investigations",
+        files: &[
+            FetchFile {
+                url: "https://static.nhtsa.gov/odi/ffdd/inv/FLAT_INV.zip",
+                name: "FLAT_INV.zip",
+            },
+            FetchFile {
+                url: "https://static.nhtsa.gov/odi/ffdd/inv/INV.txt",
+                name: "INV.txt",
+            },
+        ],
+    },
 ];
 
 pub fn find(id: &str) -> Option<&'static FetchSource> {
@@ -222,7 +235,10 @@ mod tests {
 
     #[test]
     fn the_sources_are_the_ones_the_roadmap_names() {
-        assert_eq!(ids(), ["nhtsa-recalls", "tc-recalls"]);
+        assert_eq!(
+            ids(),
+            ["nhtsa-recalls", "tc-recalls", "nhtsa-investigations"]
+        );
         let names = |id: &str| -> Vec<&str> {
             find(id)
                 .unwrap()
@@ -236,6 +252,7 @@ mod tests {
             ["FLAT_RCL_PRE_2010.zip", "FLAT_RCL_POST_2010.zip", "RCL.txt"]
         );
         assert_eq!(names("tc-recalls"), ["vrdb_full_monthly.csv"]);
+        assert_eq!(names("nhtsa-investigations"), ["FLAT_INV.zip", "INV.txt"]);
         assert!(find("vpic").is_none());
         assert!(find("").is_none());
         for source in SOURCES {
