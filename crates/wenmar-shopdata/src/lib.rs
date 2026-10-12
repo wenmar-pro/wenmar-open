@@ -6,6 +6,7 @@
 //! `rusqlite` one, behind the `sqlite` feature.
 
 pub mod answer;
+pub mod bulletins;
 pub mod dataset;
 pub mod error;
 pub mod fuel;

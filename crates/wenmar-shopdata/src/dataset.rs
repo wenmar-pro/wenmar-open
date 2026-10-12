@@ -77,6 +77,13 @@ impl Dataset {
         }
     }
 
+    /// Whether only the hosted service carries the dataset: it is too
+    /// large for the shop file that the command-line tool and the npm
+    /// package download. Measured on 2026-10-12, bulletins add 144 MB.
+    pub fn hosted_only(&self) -> bool {
+        matches!(self, Dataset::Bulletins)
+    }
+
     pub fn parse(id: &str) -> Option<Dataset> {
         Dataset::ALL.into_iter().find(|dataset| dataset.id() == id)
     }

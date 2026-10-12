@@ -329,3 +329,92 @@ CREATE TABLE IF NOT EXISTS emission_standard (
 );
 CREATE INDEX IF NOT EXISTS emission_standard_epa ON emission_standard (epa_id);
 ";
+
+/// Manufacturer communications and the vehicles each lists: the
+/// `bulletins` dataset.
+///
+/// `bulletin.id` is NHTSA's own id number. `type` is one of
+/// `wenmar_shopdata::bulletins::BulletinType`'s ids. `added` is the day
+/// NHTSA published the communication and is never empty; `date` is the
+/// manufacturer's own date. `component` holds every NHTSA component the
+/// communication names, separated by `; `.
+///
+/// A communication lists four million vehicles between them, so the
+/// vehicle rows are compacted. `bulletin_model` holds each distinct make
+/// and model text once for each catalog model it matched (`model_id` and
+/// `"match"` are NULL together for a name that matched nothing).
+/// `bulletin_vehicle` holds one row for each communication, name and run
+/// of consecutive model years, `year_from` to `year_to` inclusive. A
+/// communication that gave no model year has `year_from = year_to = 0`.
+/// `bulletin_year` holds every year from 1900 to 2100 once: joined to a
+/// range, it gives one row for each model year.
+pub const BULLETINS: &str = "
+CREATE TABLE bulletin (
+    id           INTEGER PRIMARY KEY,
+    type         TEXT NOT NULL,
+    added        TEXT NOT NULL,
+    date         TEXT,
+    document_id  TEXT,
+    mfr_campaign TEXT,
+    replaces     TEXT,
+    component    TEXT,
+    mfr_system   TEXT,
+    summary      TEXT
+);
+CREATE INDEX bulletin_added ON bulletin (added);
+
+CREATE TABLE bulletin_model (
+    id         INTEGER PRIMARY KEY,
+    make_text  TEXT NOT NULL,
+    model_text TEXT NOT NULL,
+    make_id    INTEGER,
+    model_id   INTEGER,
+    \"match\"    TEXT
+);
+CREATE INDEX bulletin_model_model ON bulletin_model (model_id);
+
+CREATE TABLE bulletin_vehicle (
+    bulletin_id       INTEGER NOT NULL,
+    bulletin_model_id INTEGER NOT NULL,
+    year_from         INTEGER NOT NULL,
+    year_to           INTEGER NOT NULL,
+    PRIMARY KEY (bulletin_id, bulletin_model_id, year_from)
+) WITHOUT ROWID;
+CREATE INDEX bulletin_vehicle_model ON bulletin_vehicle (bulletin_model_id, year_from, year_to);
+
+CREATE TABLE bulletin_year (
+    year INTEGER PRIMARY KEY
+);
+";
+
+/// What `year_from` and `year_to` hold when a communication gave no model
+/// year.
+pub const BULLETIN_NO_YEAR: i64 = 0;
+
+/// The first and last year in `bulletin_year`.
+pub const BULLETIN_YEARS: (i64, i64) = (1900, 2100);
+
+/// `bulletin_vehicle` with one row for each model year, in the columns
+/// `open-data coverage` reads. A row with no model year has `year` NULL.
+pub const BULLETIN_VEHICLE_YEARS: &str = "(SELECT y.year AS year, m.make_id AS make_id, m.model_id AS model_id, m.make_text AS make_text, m.model_text AS model_text, m.\"match\" AS \"match\"
+ FROM bulletin_vehicle v
+ JOIN bulletin_model m ON m.id = v.bulletin_model_id
+ JOIN bulletin_year y ON y.year BETWEEN v.year_from AND v.year_to
+ UNION ALL
+ SELECT NULL, m.make_id, m.model_id, m.make_text, m.model_text, m.\"match\"
+ FROM bulletin_vehicle v
+ JOIN bulletin_model m ON m.id = v.bulletin_model_id
+ WHERE v.year_from = 0)";
+
+/// Every table of a dataset that only the hosted service carries, by
+/// dataset id. `open-data build-shop --offline-out` drops these from the
+/// copy it makes for offline use.
+pub const HOSTED_ONLY_TABLES: &[(&str, &[&str])] = &[(
+    "bulletins",
+    &[
+        "bulletin_vehicle",
+        "bulletin_model",
+        "bulletin_year",
+        "bulletin",
+    ],
+)];
