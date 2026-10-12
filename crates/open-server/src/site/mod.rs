@@ -10,6 +10,7 @@ pub mod catalog;
 pub mod feedback;
 pub mod fuel;
 pub mod guides;
+pub mod hand;
 pub mod home;
 pub mod investigations;
 pub mod jsonld;

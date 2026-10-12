@@ -116,6 +116,52 @@
 <p class="note">This is the grade the maker certified the engine with, as EPA records it. It is not a reading of the owner's manual, and it gives no capacity or specification: check the manual or the oil filler cap before filling.</p>
 {% endif -%}
 {% endif -%}
+{% if let Some(section) = hand -%}
+{% if !section.oil.is_empty() -%}
+<h2 id="oil">Engine oil</h2>
+<table>
+<caption>Engine oil of the {{ section.name }}, by engine</caption>
+<thead>
+<tr><th scope="col">Engine</th><th scope="col">Grade, per EPA fuel economy certification</th><th scope="col">Read from the maker's document</th></tr>
+</thead>
+<tbody>
+{% for row in section.oil -%}
+<tr><th scope="row">{{ row.engine }}{% if !row.note.is_empty() %} <span class="note">{{ row.note }}</span>{% endif %}</th><td>{{ row.epa }}</td><td>{% for figure in row.figures %}{% if !loop.first %}<br>{% endif %}{{ figure.text }} <span class="note">Source: {{ figure.origin.source }}, checked {{ figure.origin.checked }}. <a href="{{ figure.origin.report }}">Report an error</a></span>{% endfor %}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">The grade in the second column is the one the maker certified the engine with, as EPA records it. The third column was read by a person from the document named beside it; an empty cell means nobody has recorded it. Check the manual or the oil filler cap before filling.</p>
+{% endif -%}
+{% if !section.fluids.is_empty() -%}
+<h2 id="fluids">Other fluids</h2>
+<table>
+<caption>Fluids of the {{ section.name }}, read from the maker's documents</caption>
+<thead>
+<tr><th scope="col">Fluid</th><th scope="col">For</th><th scope="col">Specification</th><th scope="col">Source</th></tr>
+</thead>
+<tbody>
+{% for row in section.fluids -%}
+<tr><th scope="row">{{ row.fluid }}</th><td>{{ row.applies }}</td><td>{{ row.text }}</td><td>{{ row.origin.source }}, checked {{ row.origin.checked }}. <a href="{{ row.origin.report }}">Report an error</a></td></tr>
+{% endfor -%}
+</tbody>
+</table>
+{% endif -%}
+{% if !section.tires.is_empty() -%}
+<h2 id="tires">Tires and wheels</h2>
+<table>
+<caption>Original-equipment tire sizes of the {{ section.name }}</caption>
+<thead>
+<tr><th scope="col">Size</th><th scope="col">Trims</th><th scope="col">Cold pressure</th><th scope="col">Wheel nut torque</th><th scope="col">Bolt pattern</th><th scope="col">Source</th></tr>
+</thead>
+<tbody>
+{% for row in section.tires -%}
+<tr><th scope="row">{{ row.size }}</th><td>{{ row.trims }}</td><td>{{ row.pressure }}</td><td>{{ row.torque }}</td><td>{{ row.bolt_pattern }}</td><td>{{ row.origin.source }}, checked {{ row.origin.checked }}. <a href="{{ row.origin.report }}">Report an error</a></td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">Every original-equipment size on record is listed with the trims it covers; none is picked. The door placard of a vehicle says which it has. Pressures are cold.</p>
+{% endif -%}
+{% endif -%}
 {% include "maker_links.html" %}
 {% if view.years.len() > 1 -%}
 <h2 id="years">Other years of the {{ view.entry.model }}</h2>

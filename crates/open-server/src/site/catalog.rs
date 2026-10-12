@@ -792,6 +792,9 @@ struct ModelYearPage {
     safety: Option<site::safety::Section>,
     /// Fuel consumption and engine oil. `None` when nothing is on file.
     fuel: Option<site::fuel::Brief>,
+    /// The fluids and tire fitments read by hand. `None` when nothing is
+    /// recorded for the model year.
+    hand: Option<site::hand::Section>,
     /// Models that share campaigns and bulletins with this one. Empty when
     /// there are none, and on a server with no such data.
     siblings: Vec<SiblingLine>,
@@ -997,7 +1000,16 @@ pub async fn model_year(
     // The same for the manufacturer's bulletins.
     let bulletins = site::bulletins::brief(&state, &view.entry.id).await;
     // The same for fuel consumption and engine oil.
-    let fuel = site::fuel::brief(&state, &view.entry.id).await;
+    let mut fuel = site::fuel::brief(&state, &view.entry.id).await;
+    // The same for what a person read from the maker's documents. Where
+    // an engine's oil was recorded, one table shows EPA's grade and the
+    // record side by side, so EPA's own table is not shown twice.
+    let hand = site::hand::section(&state, &view.entry.id, &path, fuel.as_ref()).await;
+    if hand.as_ref().is_some_and(|section| !section.oil.is_empty())
+        && let Some(brief) = fuel.as_mut()
+    {
+        brief.oil.clear();
+    }
     // On a server that holds crash test ratings, this model year's.
     let safety = site::safety::section(&state, &view.entry.id).await;
     let investigations = site::investigations::open_for(&state, &view.entry.id).await;
@@ -1088,6 +1100,9 @@ pub async fn model_year(
         if let Some(brief) = &fuel {
             text.push_str(&site::fuel::markdown(brief));
         }
+        if let Some(section) = &hand {
+            text.push_str(&site::hand::markdown(section));
+        }
         return markdown::response(text, &canonical);
     }
     let page = Page::new(
@@ -1138,6 +1153,7 @@ pub async fn model_year(
             investigations,
             safety,
             fuel,
+            hand,
             siblings,
             sibling_caveat: SIBLING_CAVEAT,
             maintenance,
