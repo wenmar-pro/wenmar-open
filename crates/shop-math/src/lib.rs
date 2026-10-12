@@ -22,6 +22,7 @@ mod percent;
 mod quantity;
 pub mod targets;
 pub mod tire_size;
+pub mod voltage_drop;
 
 pub use decimal::{ParseError, TooLarge};
 pub use money::Money;
