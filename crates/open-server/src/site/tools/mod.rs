@@ -16,6 +16,7 @@ pub mod pieces;
 pub mod refrigerant_pt;
 pub mod target;
 pub mod tire_size;
+pub mod wire_gauge;
 
 use axum::extract::rejection::{PathRejection, QueryRejection};
 use axum::extract::{Path, Query, State};
@@ -70,7 +71,7 @@ impl Tool {
 
 /// Every calculator that exists, in the order they are listed. A new one
 /// is added here and nowhere else.
-pub static TOOLS: [&Tool; 7] = [
+pub static TOOLS: [&Tool; 8] = [
     &parts_matrix::TOOL,
     &labor_rate::TOOL,
     &gross_profit::TOOL,
@@ -78,6 +79,7 @@ pub static TOOLS: [&Tool; 7] = [
     &tire_size::TOOL,
     &refrigerant_pt::TOOL,
     &battery_soc::TOOL,
+    &wire_gauge::TOOL,
 ];
 
 /// How long a browser may keep a page worked out from a query string. It
