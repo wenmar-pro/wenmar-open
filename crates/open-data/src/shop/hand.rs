@@ -13,7 +13,7 @@ use std::path::Path;
 use anyhow::{Context, Result, bail};
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::Deserialize;
-use wenmar_shopdata::hand::FLUID_KINDS;
+use wenmar_shopdata::hand::{FLUID_KINDS, MANUAL_KINDS};
 use wenmar_shopdata::{Dataset, DatasetEntry, licence, schema};
 use wenmar_vehicles::text::{is_slug, slug, squeeze};
 
@@ -256,6 +256,30 @@ pub struct TireRecord {
     pub provenance: Provenance,
 }
 
+/// One checked link of the `manuals` list of a fluids file.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ManualRecord {
+    pub kind: String,
+    pub url: String,
+    /// `source` holds the address: a link is its own source.
+    pub provenance: Provenance,
+}
+
+/// The longest address accepted, as in `crates/open-server/links_build.rs`.
+pub const LONGEST_ADDRESS: usize = 300;
+
+/// An address safe in an `href` and in a Markdown link: `https://`, a
+/// dot in the host, and no space, quote, bracket or parenthesis.
+pub fn is_address(text: &str) -> bool {
+    text.len() <= LONGEST_ADDRESS
+        && text.strip_prefix("https://").is_some_and(|rest| {
+            rest.contains('.')
+                && rest
+                    .chars()
+                    .all(|c| !c.is_whitespace() && !c.is_control() && !"\"<>()".contains(c))
+        })
+}
+
 /// One file: the records of one make and model.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HandFile<R> {
@@ -274,6 +298,35 @@ struct RawFluids {
     model: String,
     #[serde(default)]
     fluids: Vec<RawFluid>,
+    /// Read by [`parse_manuals`], which reads the same file.
+    #[serde(default)]
+    #[allow(dead_code)]
+    manuals: Vec<serde::de::IgnoredAny>,
+}
+
+/// The same file, for its links.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawManuals {
+    make: String,
+    model: String,
+    #[serde(default)]
+    #[allow(dead_code)]
+    fluids: Vec<serde::de::IgnoredAny>,
+    #[serde(default)]
+    manuals: Vec<RawManual>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawManual {
+    year_from: u16,
+    year_to: Option<u16>,
+    kind: String,
+    url: String,
+    market: Option<String>,
+    checked: String,
+    reviewer: String,
 }
 
 #[derive(Deserialize)]
@@ -551,6 +604,54 @@ pub fn parse_fluids(name: &str, yaml: &str) -> Result<HandFile<FluidRecord>> {
     })
 }
 
+/// Reads the `manuals` list of one fluids file and checks every link's
+/// shape. Nothing is requested: whether a link still works is for
+/// `open-data check-links`.
+pub fn parse_manuals(name: &str, yaml: &str) -> Result<HandFile<ManualRecord>> {
+    let raw: RawManuals =
+        serde_saphyr::from_str(yaml).with_context(|| format!("fluids/{name}.yaml"))?;
+    let (make, model) = (raw.make.trim(), raw.model.trim());
+    head(name, make, model).with_context(|| format!("fluids/{name}.yaml"))?;
+    let mut records = Vec::with_capacity(raw.manuals.len());
+    for (index, record) in raw.manuals.iter().enumerate() {
+        let place = || format!("fluids/{name}.yaml, manual {}", index + 1);
+        let kind = record.kind.trim();
+        if !MANUAL_KINDS.contains(&kind) {
+            return Err(anyhow::anyhow!(
+                "kind {kind:?} is not one of {}",
+                MANUAL_KINDS.join(", ")
+            ))
+            .with_context(place);
+        }
+        let url = record.url.trim();
+        if !is_address(url) {
+            return Err(anyhow::anyhow!(
+                "url must be an https:// address of at most {LONGEST_ADDRESS} characters with no space, quote, bracket or parenthesis, but it is {url:?}"
+            ))
+            .with_context(place);
+        }
+        records.push(ManualRecord {
+            kind: kind.to_owned(),
+            url: url.to_owned(),
+            provenance: provenance(
+                record.year_from,
+                record.year_to,
+                record.market.as_deref(),
+                url,
+                &record.checked,
+                &record.reviewer,
+            )
+            .with_context(place)?,
+        });
+    }
+    Ok(HandFile {
+        name: name.to_owned(),
+        make: make.to_owned(),
+        model: model.to_owned(),
+        records,
+    })
+}
+
 /// Reads the text of one tires file and checks every record's shape.
 pub fn parse_tires(name: &str, yaml: &str) -> Result<HandFile<TireRecord>> {
     let raw: RawTires =
@@ -605,6 +706,14 @@ pub fn load_fluids(curated: &Path) -> Result<Vec<HandFile<FluidRecord>>> {
     files(&curated.join("fluids"))?
         .iter()
         .map(|(name, text)| parse_fluids(name, text))
+        .collect()
+}
+
+/// The links of every fluids file under `curated/fluids`, checked.
+pub fn load_manuals(curated: &Path) -> Result<Vec<HandFile<ManualRecord>>> {
+    files(&curated.join("fluids"))?
+        .iter()
+        .map(|(name, text)| parse_manuals(name, text))
         .collect()
 }
 
@@ -881,9 +990,62 @@ pub fn shape_tires(context: &mut ShapeContext<'_>) -> Result<()> {
     context.register(Dataset::Tires, entry(rows, as_of))
 }
 
-/// Both shape steps. `build-shop` always runs it: the records are in the
-/// repository, so there is no directory to pass.
+/// Writes the `manual_link` table and registers `manuals`. With no link
+/// in any file of `curated/fluids` it does nothing.
+pub fn shape_manuals(context: &mut ShapeContext<'_>) -> Result<()> {
+    let files = load_manuals(context.curated)?;
+    if files.iter().all(|file| file.records.is_empty()) {
+        return Ok(());
+    }
+    context.transaction.execute_batch(schema::MANUALS)?;
+    let (mut rows, mut as_of) = (0_u64, String::new());
+    for file in &files {
+        let place = format!("fluids/{}.yaml", file.name);
+        let (make_id, model_id) =
+            catalog_model(context.catalog, &file.make, &file.model).context(place.clone())?;
+        let mut taken: HashSet<(u16, String, Option<String>)> = HashSet::new();
+        for (index, record) in file.records.iter().enumerate() {
+            let place = format!("{place}, manual {}", index + 1);
+            let provenance = &record.provenance;
+            not_ahead(&provenance.checked, context).context(place.clone())?;
+            for year in provenance.year_from..=provenance.year_to {
+                // Only to learn that the catalog has the model year.
+                catalog_engines(context.catalog, make_id, model_id, year).context(place.clone())?;
+                let key = (year, record.kind.clone(), provenance.market.clone());
+                if !taken.insert(key) {
+                    bail!(
+                        "{place}: model year {year} already has a {} link for the same market",
+                        record.kind
+                    );
+                }
+                context.transaction.execute(
+                    "INSERT INTO manual_link (make_id, model_id, year, kind, url, market, checked, reviewer)
+                     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+                    params![
+                        make_id,
+                        model_id,
+                        year,
+                        record.kind,
+                        record.url,
+                        provenance.market,
+                        provenance.checked,
+                        provenance.reviewer,
+                    ],
+                )?;
+                rows += 1;
+            }
+            if provenance.checked > as_of {
+                as_of.clone_from(&provenance.checked);
+            }
+        }
+    }
+    context.register(Dataset::Manuals, entry(rows, as_of))
+}
+
+/// The three shape steps. `build-shop` always runs it: the records are in
+/// the repository, so there is no directory to pass.
 pub fn shape(context: &mut ShapeContext<'_>) -> Result<()> {
     shape_fluids(context)?;
-    shape_tires(context)
+    shape_tires(context)?;
+    shape_manuals(context)
 }

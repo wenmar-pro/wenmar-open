@@ -555,3 +555,198 @@ fn the_report_lists_ranked_makes_and_their_models_with_no_record() {
     // With no names asked for, only the counts.
     assert!(!table(&found, 2000, 0).contains("none yet"));
 }
+
+/// Links for the vehicle that does not exist, as the end of a fluids
+/// file. `example.org` is a name reserved for examples.
+const MANUALS_YAML: &str = "manuals:
+  - year_from: 2001
+    year_to: 2002
+    kind: owner_manual
+    url: https://example.org/testmake/sampler/manual.pdf
+    checked: 2026-10-12
+    reviewer: test-reviewer
+  - year_from: 2001
+    kind: maintenance_schedule
+    url: https://example.org/testmake/sampler/2001/schedule
+    market: ca
+    checked: 2026-10-11
+    reviewer: test-reviewer
+";
+
+/// The fluids fixture with [`MANUALS_YAML`] after it.
+fn with_manuals(scratch: &Scratch) -> std::path::PathBuf {
+    let path = scratch.curated().join("fluids/testmake_sampler.yaml");
+    let text = format!("{}{MANUALS_YAML}", fixture_text("fluids"));
+    std::fs::write(&path, text).unwrap();
+    path
+}
+
+#[test]
+fn the_links_of_a_fluids_file_build_into_their_own_table() {
+    let scratch = scratch("hand-manuals");
+    with_manuals(&scratch);
+    let summary = build_with(
+        &scratch.core(),
+        &scratch.out(),
+        &scratch.curated(),
+        &info(),
+        hand::shape,
+    )
+    .unwrap();
+    let manuals = summary.datasets.get(Dataset::Manuals).unwrap();
+    assert_eq!((manuals.rows, manuals.as_of.as_str()), (3, "2026-10-12"));
+    assert_eq!(manuals.licence, "mit");
+    // The fluids of the same file are built as before.
+    assert_eq!(summary.datasets.get(Dataset::Fluids).unwrap().rows, 11);
+    let shop = Connection::open(scratch.out()).unwrap();
+    assert_eq!(
+        rows(
+            &shop,
+            "SELECT make_id, model_id, year, kind, url, market, checked, reviewer
+             FROM manual_link ORDER BY id"
+        ),
+        [
+            "7000|7001|2001|owner_manual|https://example.org/testmake/sampler/manual.pdf|-|2026-10-12|test-reviewer",
+            "7000|7001|2002|owner_manual|https://example.org/testmake/sampler/manual.pdf|-|2026-10-12|test-reviewer",
+            "7000|7001|2001|maintenance_schedule|https://example.org/testmake/sampler/2001/schedule|ca|2026-10-11|test-reviewer",
+        ]
+    );
+}
+
+#[test]
+fn a_file_may_hold_links_alone_and_a_build_without_links_has_no_dataset() {
+    // No link anywhere: the fixture as plan I1 left it.
+    let scratch = self::scratch("hand-manuals-none");
+    let summary = build_with(
+        &scratch.core(),
+        &scratch.out(),
+        &scratch.curated(),
+        &info(),
+        hand::shape,
+    )
+    .unwrap();
+    assert!(!summary.datasets.contains(Dataset::Manuals));
+    // Links and no fluid.
+    let scratch = self::scratch("hand-manuals-alone");
+    std::fs::write(
+        scratch.curated().join("fluids/testmake_sampler.yaml"),
+        format!("make: testmake\nmodel: sampler\n{MANUALS_YAML}"),
+    )
+    .unwrap();
+    let summary = build_with(
+        &scratch.core(),
+        &scratch.out(),
+        &scratch.curated(),
+        &info(),
+        hand::shape,
+    )
+    .unwrap();
+    assert_eq!(summary.datasets.get(Dataset::Manuals).unwrap().rows, 3);
+    assert!(!summary.datasets.contains(Dataset::Fluids));
+}
+
+#[test]
+fn a_malformed_link_is_refused_and_one_the_catalog_does_not_know_stops_the_build() {
+    let head = "make: testmake\nmodel: sampler\n";
+    for (from, to, expected) in [
+        (
+            "kind: owner_manual",
+            "kind: brochure",
+            "fluids/testmake_sampler.yaml, manual 1: kind \"brochure\" is not one of owner_manual, maintenance_schedule",
+        ),
+        (
+            "url: https://example.org/testmake/sampler/manual.pdf",
+            "url: http://example.org/manual.pdf",
+            "manual 1: url must be an https:// address",
+        ),
+        (
+            "url: https://example.org/testmake/sampler/manual.pdf",
+            "url: \"https://example.org/a b\"",
+            "manual 1: url must be an https:// address",
+        ),
+        (
+            "    url: https://example.org/testmake/sampler/2001/schedule\n",
+            "",
+            "missing field `url`",
+        ),
+        ("    checked: 2026-10-11\n", "", "missing field `checked`"),
+        (
+            "checked: 2026-10-11",
+            "checked: yesterday",
+            "manual 2: checked \"yesterday\" is not a day like 2026-10-12",
+        ),
+        (
+            "market: ca",
+            "market: eu",
+            "manual 2: market \"eu\" must be us or ca, or left out",
+        ),
+        ("market: ca", "source: \"x\"", "unknown field `source`"),
+    ] {
+        assert!(MANUALS_YAML.contains(from), "{from}");
+        let yaml = format!("{head}{}", MANUALS_YAML.replacen(from, to, 1));
+        let error = hand::parse_manuals("testmake_sampler", &yaml).unwrap_err();
+        assert!(
+            format!("{error:#}").contains(expected),
+            "{from:?} -> {to:?}\n{error:#}"
+        );
+    }
+    // The fluids reader lets the list through without reading it.
+    let yaml = format!("{}{MANUALS_YAML}", fixture_text("fluids"));
+    assert_eq!(
+        parse_fluids("testmake_sampler", &yaml)
+            .unwrap()
+            .records
+            .len(),
+        6
+    );
+    assert_eq!(
+        hand::parse_manuals("testmake_sampler", &yaml)
+            .unwrap()
+            .records
+            .len(),
+        2
+    );
+
+    for (from, to, expected) in [
+        (
+            "year_to: 2002",
+            "year_to: 2004",
+            "fluids/testmake_sampler.yaml, manual 1: the catalog has no model year 2004 of this model",
+        ),
+        (
+            "kind: maintenance_schedule",
+            "kind: owner_manual",
+            "manual 2: model year 2001 already has a owner_manual link for the same market",
+        ),
+        (
+            "checked: 2026-10-12",
+            "checked: 2026-10-13",
+            "manual 1: checked 2026-10-13 is after the day of the build, 2026-10-12",
+        ),
+    ] {
+        let scratch = scratch(&format!("hand-manuals-bad-{}", to.len()));
+        // The links alone. For the repeat, the second link also loses its
+        // market, so that it is the first one again.
+        let mut links = MANUALS_YAML.replacen(from, to, 1);
+        if from == "kind: maintenance_schedule" {
+            links = links.replacen("    market: ca\n", "", 1);
+        }
+        std::fs::write(
+            scratch.curated().join("fluids/testmake_sampler.yaml"),
+            format!("{head}{links}"),
+        )
+        .unwrap();
+        let error = build_with(
+            &scratch.core(),
+            &scratch.out(),
+            &scratch.curated(),
+            &info(),
+            hand::shape,
+        )
+        .unwrap_err();
+        assert!(
+            format!("{error:#}").contains(expected),
+            "{from:?} -> {to:?}\n{error:#}"
+        );
+    }
+}
