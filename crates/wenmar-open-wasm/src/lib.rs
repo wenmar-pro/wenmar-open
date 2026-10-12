@@ -25,3 +25,6 @@ pub use replay::{Replay, Statement};
 
 /// The data file layout this build reads.
 pub const SCHEMA_VERSION: &str = wenmar_vehicles::schema::SCHEMA_VERSION;
+
+/// The shop file layout this build reads.
+pub const SHOP_SCHEMA_VERSION: &str = wenmar_shopdata::schema::SCHEMA_VERSION;

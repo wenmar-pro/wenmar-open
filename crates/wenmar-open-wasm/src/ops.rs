@@ -3,6 +3,9 @@
 
 use serde::Serialize;
 use serde_json::{Value, json};
+use wenmar_shopdata::ShopError;
+use wenmar_shopdata::answer::{self, AnswerError, Answers, Search};
+use wenmar_shopdata::recalls::RecallSource;
 use wenmar_vehicles::{Catalog, Scope, vin_rows};
 use wenmar_vin::{DecodeOptions, Decoder, Vin};
 
@@ -203,4 +206,85 @@ pub fn vehicle(catalog: &Catalog<Replay>, args: &Value) -> Result<Value, OpError
         Some(entry) => json(entry),
         None => Err(OpError::not_found("No vehicle has that id.")),
     }
+}
+
+// ----- recalls -----
+
+/// The answers about recalls: the shop file, the catalog, and the data
+/// file itself, all read through the rows the caller has sent.
+pub type RecallAnswers<'a> = Answers<'a, Replay, Replay>;
+
+/// What the recall operation `op` gets when no shop file has been opened:
+/// the API's own `dataset_unavailable`, naming the dataset asked for. What
+/// the API refuses before it looks for the recalls is refused first here
+/// too: a country that is not one, and a publisher it does not know.
+pub fn no_recalls(op: &str, args: &Value) -> OpError {
+    let missing =
+        |dataset| OpError::from(AnswerError::Shop(ShopError::DatasetUnavailable(dataset)));
+    let asked = |field: &str| text(args, field).map(Option::unwrap_or_default);
+    if op == "recall" {
+        return match asked("source") {
+            Err(error) => error,
+            Ok(source) => match RecallSource::parse(&source) {
+                Some(source) => missing(source.dataset()),
+                None => AnswerError::NotFound("No recall campaign has that number.").into(),
+            },
+        };
+    }
+    match asked("country") {
+        Err(error) => error,
+        Ok(country) => match answer::country(Some(&country)) {
+            Err(error) => error.into(),
+            Ok(_) => missing(answer::dataset_asked(Some(&country), None)),
+        },
+    }
+}
+
+/// `{ "id", "country"? }`: the recalls that may apply to a model year.
+pub fn recalls_vehicle(answers: &RecallAnswers, args: &Value) -> Result<Value, OpError> {
+    let id = text(args, "id")?.unwrap_or_default();
+    let country = text(args, "country")?;
+    json(answers.vehicle(&id, country.as_deref())?)
+}
+
+/// `{ "vin", "year"?, "country"? }`: the recalls that may apply to the
+/// model year a VIN decodes to. The country is read and the recalls looked
+/// for before the VIN is decoded, as the API does it, so that the same
+/// error comes first.
+pub fn recalls_vin(
+    answers: &RecallAnswers,
+    args: &Value,
+    current_year: u16,
+) -> Result<Value, OpError> {
+    let country = text(args, "country")?;
+    let source = answer::country(country.as_deref())?;
+    answers
+        .shop
+        .require_recalls(source)
+        .map_err(AnswerError::Shop)?;
+    let decoded = decode(answers.catalog, answers.core, args, current_year)?;
+    json(answers.vin(&decoded, country.as_deref())?)
+}
+
+/// `{ "source", "campaign" }`: one campaign with every vehicle it lists.
+pub fn recall(answers: &RecallAnswers, args: &Value) -> Result<Value, OpError> {
+    let source = text(args, "source")?.unwrap_or_default();
+    let campaign = text(args, "campaign")?.unwrap_or_default();
+    json(answers.campaign(&source, &campaign)?)
+}
+
+/// `{ "make"?, "model"?, "year"?, "component"?, "q"?, "country"?,
+/// "limit"?, "cursor"? }`: campaigns, newest first.
+pub fn recalls_search(answers: &RecallAnswers, args: &Value) -> Result<Value, OpError> {
+    let query = Search {
+        make: text(args, "make")?,
+        model: text(args, "model")?,
+        year: year(args)?,
+        component: text(args, "component")?,
+        q: text(args, "q")?,
+        country: text(args, "country")?,
+        limit: whole(args, "limit")?.map(|limit| usize::try_from(limit).unwrap_or(usize::MAX)),
+        cursor: text(args, "cursor")?,
+    };
+    json(answers.search(&query)?)
 }

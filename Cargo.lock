@@ -2432,6 +2432,7 @@ dependencies = [
  "rusqlite",
  "serde",
  "serde_json",
+ "wenmar-shopdata",
  "wenmar-vehicles",
  "wenmar-vin",
 ]

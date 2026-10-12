@@ -118,7 +118,7 @@ fn nothing_but_version_is_answered_before_the_data_is_opened() {
     let mut engine = Engine::new();
     assert_eq!(
         call(&mut engine, json!({ "op": "version" })),
-        json!({ "ok": { "version": env!("CARGO_PKG_VERSION"), "schema_version": "3" } })
+        json!({ "ok": { "version": env!("CARGO_PKG_VERSION"), "schema_version": "3", "shop_schema_version": "1" } })
     );
     for op in [
         "meta",

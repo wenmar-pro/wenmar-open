@@ -350,3 +350,170 @@ pub fn cases() -> Vec<(&'static str, &'static str, Value)> {
         ("meta", "meta", json!({})),
     ]
 }
+
+// ----- the shop file -----
+
+/// The `datasets` value of the fixture shop file: the recalls of both
+/// countries.
+pub const SHOP_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":3,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."}}"#;
+
+/// Four campaigns against the catalog above. The columns are those of
+/// `wenmar_shopdata::schema::RECALLS`, in order. The Kona of model year
+/// 2023, which [`KONA`] decodes to, has three: one with the "do not drive"
+/// advisory, one with "park outside" and one Canadian.
+const SHOP_ROWS: &str = "
+INSERT INTO recall VALUES
+  (1, 'nhtsa', '19V888000', 'General Motors LLC', '2019-12-12', '2020-03-09', 'ELECTRICAL SYSTEM:12V/24V/48V BATTERY:CABLES', NULL, NULL, NULL, 'The battery cable nut may be loose.', 'A fire may start.', 'Dealers will tighten the nut.', NULL, NULL, 'N192273510', NULL, 350371, 0, 0),
+  (2, 'nhtsa', '23V123000', 'Hyundai Motor America', '2023-03-02', '2023-04-20', 'ELECTRICAL SYSTEM:WIRING', NULL, NULL, NULL, 'A wiring harness may overheat.', 'A fire may start while the vehicle is parked.', 'Dealers will replace the harness.', NULL, NULL, '240', '91850-J9000', 5000, 0, 1),
+  (3, 'nhtsa', '24V456000', 'Hyundai Motor America', '2024-05-10', NULL, 'SERVICE BRAKES, HYDRAULIC', NULL, NULL, NULL, 'The brake control unit may fail.', 'Braking distance may increase.', 'Dealers will replace the unit.', NULL, NULL, '257', NULL, 800, 1, 0),
+  (4, 'tc', '2023101', NULL, '2023-03-10', NULL, 'Electrical', 'Circuit electrique', 'Safety Mfr', 'Securite - fabricant', 'Issue: a wiring harness may overheat.', NULL, NULL, NULL, 'Un faisceau peut surchauffer.', '240', NULL, 410, NULL, NULL);
+INSERT INTO recall_vehicle VALUES
+  (1, 2019, 467, 1850, 'CHEVROLET', 'SILVERADO 1500', 'base', '2018-07-11', '2019-11-22'),
+  (1, 2019, NULL, NULL, 'GMC', 'SIERRA 1500', NULL, NULL, NULL),
+  (2, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact', '2022-09-01', '2023-01-31'),
+  (3, 2023, 498, 900, 'HYUNDAI', 'KONA ELECTRIC', 'base', NULL, NULL),
+  (4, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact', NULL, NULL);
+";
+
+/// The whole shop file as SQL, matched against the data file of version
+/// `catalog_data_version`. `clients/js` loads the same text into
+/// `node:sqlite`.
+pub fn shop_fixture_sql(schema_version: &str, catalog_data_version: &str) -> String {
+    format!(
+        "{}\nINSERT INTO meta VALUES\n  ('schema_version', '{schema_version}'),\n  ('data_version', '2026.10.12'),\n  ('catalog_data_version', '{catalog_data_version}'),\n  ('built_at', '2026-10-12 06:00:00'),\n  ('datasets', '{SHOP_DATASETS}');\n{}\n{SHOP_ROWS}",
+        wenmar_shopdata::schema::META.trim(),
+        wenmar_shopdata::schema::RECALLS.trim(),
+    )
+}
+
+/// The shop file, in memory, matched against the fixture data file.
+pub fn shop() -> Connection {
+    shop_at(wenmar_open_wasm::SHOP_SCHEMA_VERSION, "2026.09")
+}
+
+pub fn shop_at(schema_version: &str, catalog_data_version: &str) -> Connection {
+    let connection = Connection::open_in_memory().unwrap();
+    connection
+        .execute_batch(&shop_fixture_sql(schema_version, catalog_data_version))
+        .unwrap();
+    connection
+}
+
+/// [`run`] with a shop file: a statement marked `"db": "shop"` is run on
+/// `shop`, and its rows are sent back with the same mark.
+pub fn run_with_shop(
+    engine: &mut Engine,
+    connection: &Connection,
+    shop: &Connection,
+    op: &str,
+    args: Value,
+) -> Run {
+    let mut answers: Vec<Value> = Vec::new();
+    let mut statements = Vec::new();
+    for steps in 0..32 {
+        let request = json!({ "op": op, "args": args, "current_year": YEAR, "answers": answers });
+        let answer: Value = serde_json::from_str(&engine.call(&request.to_string())).unwrap();
+        let Some(need) = answer.get("need").and_then(Value::as_array) else {
+            return Run {
+                answer,
+                steps,
+                statements,
+            };
+        };
+        assert!(!need.is_empty(), "asked for nothing");
+        for statement in need {
+            let mut answered = statement.clone();
+            answered["rows"] = match statement.get("db").and_then(Value::as_str) {
+                None => rows(connection, statement),
+                Some("shop") => rows(shop, statement),
+                Some(other) => panic!("a statement for a database called {other}"),
+            };
+            answers.push(answered);
+            statements.push(statement.clone());
+        }
+    }
+    panic!("{op} did not finish in 32 steps");
+}
+
+/// An engine with the data and the shop file opened.
+pub fn opened_with_shop(connection: &Connection, shop: &Connection) -> Engine {
+    let mut engine = opened(connection);
+    let run = run_with_shop(&mut engine, connection, shop, "open_shop", json!({}));
+    assert!(run.answer.get("ok").is_some(), "{}", run.answer);
+    engine
+}
+
+/// Questions about recalls with a name each, asked of the two fixtures by
+/// every test that compares answers.
+pub fn shop_cases() -> Vec<(&'static str, &'static str, Value)> {
+    vec![
+        (
+            "recalls of a model year",
+            "recalls_vehicle",
+            json!({ "id": "2023_hyundai_kona" }),
+        ),
+        (
+            "recalls of a model year, one country",
+            "recalls_vehicle",
+            json!({ "id": "2023_hyundai_kona_se", "country": "ca" }),
+        ),
+        (
+            "recalls of a model year, none",
+            "recalls_vehicle",
+            json!({ "id": "2019_honda_civic" }),
+        ),
+        (
+            "recalls of a model year, unknown vehicle",
+            "recalls_vehicle",
+            json!({ "id": "2019_honda_nothing" }),
+        ),
+        (
+            "recalls of a model year, bad country",
+            "recalls_vehicle",
+            json!({ "id": "2023_hyundai_kona", "country": "mx" }),
+        ),
+        ("recalls of a VIN", "recalls_vin", json!({ "vin": KONA })),
+        (
+            "recalls of a VIN, no catalog vehicle",
+            "recalls_vin",
+            json!({ "vin": BUS_LATE }),
+        ),
+        (
+            "recalls of a VIN, illegal character",
+            "recalls_vin",
+            json!({ "vin": "KM8K2CAB4PUO01140" }),
+        ),
+        (
+            "recall campaign",
+            "recall",
+            json!({ "source": "nhtsa", "campaign": "19V888000" }),
+        ),
+        (
+            "recall campaign, Canadian",
+            "recall",
+            json!({ "source": "tc", "campaign": "2023101" }),
+        ),
+        (
+            "recall campaign, unknown",
+            "recall",
+            json!({ "source": "nhtsa", "campaign": "00V000000" }),
+        ),
+        ("recall list", "recalls_search", json!({ "limit": 3 })),
+        (
+            "recall list, next page",
+            "recalls_search",
+            json!({ "limit": 3, "cursor": "2023-03-02_2" }),
+        ),
+        (
+            "recall list, narrowed",
+            "recalls_search",
+            json!({ "make": "hyundai", "year": 2023, "q": "wiring harness" }),
+        ),
+        (
+            "recall list, model without make",
+            "recalls_search",
+            json!({ "model": "kona" }),
+        ),
+        ("meta, with the shop file", "meta", json!({})),
+    ]
+}

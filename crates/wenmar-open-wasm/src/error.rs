@@ -1,6 +1,8 @@
 //! The one error every operation fails with, in the hosted API's shape.
 
 use serde_json::{Value, json};
+use wenmar_shopdata::ShopError;
+use wenmar_shopdata::answer::AnswerError;
 use wenmar_vehicles::CatalogError;
 use wenmar_vin::{DecodeError, VinError};
 
@@ -8,6 +10,7 @@ use wenmar_vin::{DecodeError, VinError};
 pub const INVALID_VIN: &str = "invalid_vin";
 pub const VALIDATION_FAILED: &str = "validation_failed";
 pub const NOT_FOUND: &str = "not_found";
+pub const DATASET_UNAVAILABLE: &str = "dataset_unavailable";
 pub const INTERNAL_ERROR: &str = "internal_error";
 /// The database is not a data file this build can read. The command-line
 /// tool uses the same code for the same thing.
@@ -89,6 +92,31 @@ impl From<CatalogError> for OpError {
             ),
         }
     }
+}
+
+impl From<AnswerError> for OpError {
+    fn from(error: AnswerError) -> OpError {
+        match error {
+            AnswerError::Validation { field, message } => OpError::validation(field, message),
+            AnswerError::NotFound(message) => OpError::not_found(message),
+            AnswerError::Shop(ShopError::DatasetUnavailable(dataset)) => OpError::new(
+                DATASET_UNAVAILABLE,
+                ShopError::DatasetUnavailable(dataset).to_string(),
+            )
+            .with_details(json!({ "dataset": dataset.id() })),
+            AnswerError::Shop(other) => shop_invalid(&other),
+            AnswerError::Catalog(error) => OpError::from(error),
+        }
+    }
+}
+
+/// A shop file this build cannot read, or one that does not go with the
+/// data file that is open.
+pub fn shop_invalid(error: &ShopError) -> OpError {
+    OpError::new(
+        DATA_INVALID,
+        format!("The shop file cannot be used: {error}."),
+    )
 }
 
 /// A row that does not have the columns or the kinds of value this build

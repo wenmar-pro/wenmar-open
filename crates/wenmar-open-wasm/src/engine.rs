@@ -3,16 +3,22 @@
 use std::collections::HashMap;
 
 use serde_json::{Map, Value, json};
+use wenmar_shopdata::ShopData;
+use wenmar_shopdata::answer::SITE;
 use wenmar_vehicles::{Catalog, Source};
 
-use crate::SCHEMA_VERSION;
 use crate::cells::{from_json, to_json};
-use crate::error::{DATA_INVALID, OpError};
+use crate::error::{DATA_INVALID, OpError, shop_invalid};
 use crate::ops;
 use crate::replay::{Answer, Replay, Statement};
+use crate::{SCHEMA_VERSION, SHOP_SCHEMA_VERSION};
 
 /// Every row of `meta`: the data file's versions.
 pub const META_SQL: &str = "SELECT key, value FROM meta";
+
+/// What a statement for the shop file is marked with, and the rows sent
+/// back for it: `"db": "shop"`. A statement for the data file has no `db`.
+pub const SHOP_DB: &str = "shop";
 
 /// What `meta` says about an opened data file.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -35,7 +41,8 @@ struct Opened {
 ///
 /// - `{ "need": [{ "sql", "params" }, ...] }`: run these statements and send
 ///   the request again with their rows added to `answers`, each as
-///   `{ "sql", "params", "rows" }`;
+///   `{ "sql", "params", "rows" }`. A statement with `"db": "shop"` is run
+///   on the shop file, and its rows are sent back with the same `db`;
 /// - `{ "ok": ... }`: the answer, as the hosted API would send it;
 /// - `{ "error": { "code", "message", "details" } }`.
 ///
@@ -43,10 +50,17 @@ struct Opened {
 /// `meta` first and checks the schema version, then reads the makes once
 /// and keeps them, as the server does at startup. Nothing
 /// else is kept from one request to the next.
+///
+/// `open_shop`, after `open`, reads the shop file's `meta` and keeps what
+/// it says. Without it the recall operations answer `dataset_unavailable`,
+/// as a server with no shop file does.
 #[derive(Debug, Default)]
 pub struct Engine {
     replay: Replay,
+    /// The rows of the shop file. It is a database of its own.
+    shop_replay: Replay,
     opened: Option<Opened>,
+    shop: Option<ShopData<Replay>>,
 }
 
 fn statement_json(statement: &Statement) -> Value {
@@ -56,15 +70,23 @@ fn statement_json(statement: &Statement) -> Value {
     })
 }
 
+fn shop_statement_json(statement: &Statement) -> Value {
+    let mut value = statement_json(statement);
+    value["db"] = json!(SHOP_DB);
+    value
+}
+
 fn bad_request(what: &str) -> OpError {
     OpError::internal(format!("the request is not one this build reads: {what}"))
 }
 
-/// The rows the caller sends back. A value that is neither a number, text
-/// nor null is refused: it came from a database that returns values oddly.
-fn answers(request: &Map<String, Value>) -> Result<Vec<Answer>, OpError> {
+/// The rows the caller sends back, for the data file and for the shop
+/// file. An answer says which it is of with `"db": "shop"`; one with no
+/// `db` is of the data file. A value that is neither a number, text nor
+/// null is refused: it came from a database that returns values oddly.
+fn answers(request: &Map<String, Value>) -> Result<(Vec<Answer>, Vec<Answer>), OpError> {
     let Some(list) = request.get("answers") else {
-        return Ok(Vec::new());
+        return Ok((Vec::new(), Vec::new()));
     };
     let list = list.as_array().ok_or_else(|| bad_request("answers"))?;
     let odd = || {
@@ -73,8 +95,13 @@ fn answers(request: &Map<String, Value>) -> Result<Vec<Answer>, OpError> {
             "The database returned a value that is not a number, text or null.",
         )
     };
-    let mut found = Vec::with_capacity(list.len());
+    let (mut core, mut shop) = (Vec::with_capacity(list.len()), Vec::new());
     for answer in list {
+        let of_shop = match answer.get("db") {
+            None | Some(Value::Null) => false,
+            Some(Value::String(name)) if name == SHOP_DB => true,
+            Some(_) => return Err(bad_request("answers[].db")),
+        };
         let sql = answer
             .get("sql")
             .and_then(Value::as_str)
@@ -99,15 +126,20 @@ fn answers(request: &Map<String, Value>) -> Result<Vec<Answer>, OpError> {
                     .collect::<Result<Vec<_>, _>>()
             })
             .collect::<Result<Vec<_>, _>>()?;
-        found.push(Answer {
+        let found = Answer {
             statement: Statement {
                 sql: sql.to_owned(),
                 params,
             },
             rows,
-        });
+        };
+        if of_shop {
+            shop.push(found);
+        } else {
+            core.push(found);
+        }
     }
-    Ok(found)
+    Ok((core, shop))
 }
 
 impl Engine {
@@ -119,8 +151,13 @@ impl Engine {
     pub fn call(&mut self, request: &str) -> String {
         let answer = match self.answer(request) {
             Ok(Outcome::Done(value)) => json!({ "ok": value }),
-            Ok(Outcome::Need(statements)) => {
-                json!({ "need": statements.iter().map(statement_json).collect::<Vec<_>>() })
+            Ok(Outcome::Need(core, shop)) => {
+                let need: Vec<Value> = core
+                    .iter()
+                    .map(statement_json)
+                    .chain(shop.iter().map(shop_statement_json))
+                    .collect();
+                json!({ "need": need })
             }
             Err(error) => json!({ "error": error.body() }),
         };
@@ -139,13 +176,16 @@ impl Engine {
             .ok_or_else(|| bad_request("op"))?;
         let empty = json!({});
         let args = request.get("args").unwrap_or(&empty);
-        self.replay.load(answers(request)?);
+        let (core, shop) = answers(request)?;
+        self.replay.load(core);
+        self.shop_replay.load(shop);
         let result = self.run(op, args, request.get("current_year"));
         // A statement went unanswered, so whatever came out was worked out
         // on partial rows. Only the list of what is missing is of any use.
         let missing = self.replay.finish();
-        if !missing.is_empty() {
-            return Ok(Outcome::Need(missing));
+        let missing_shop = self.shop_replay.finish();
+        if !missing.is_empty() || !missing_shop.is_empty() {
+            return Ok(Outcome::Need(missing, missing_shop));
         }
         result.map(Outcome::Done)
     }
@@ -161,9 +201,11 @@ impl Engine {
                 return Ok(json!({
                     "version": env!("CARGO_PKG_VERSION"),
                     "schema_version": SCHEMA_VERSION,
+                    "shop_schema_version": SHOP_SCHEMA_VERSION,
                 }));
             }
             "open" => return self.open(),
+            "open_shop" => return self.open_shop(),
             _ => {}
         }
         let Some(opened) = &self.opened else {
@@ -178,9 +220,9 @@ impl Engine {
                 "vpic_release": opened.meta.vpic_release,
                 "built_at": opened.meta.built_at,
                 "server_version": env!("CARGO_PKG_VERSION"),
-                // The offline engine reads the data file alone. The key is
-                // here so the answer has the same shape as the API's.
-                "datasets": {},
+                // The datasets of the shop file, when one has been opened:
+                // what the API lists for a server that has one.
+                "datasets": self.shop.as_ref().map_or_else(|| json!({}), |shop| json!(shop.datasets())),
             })),
             "decode" => {
                 // This build has no clock, and the decoder would stop the
@@ -198,6 +240,29 @@ impl Engine {
             "engines" => ops::engines(catalog, args),
             "search" => ops::search(catalog, args),
             "vehicle" => ops::vehicle(catalog, args),
+            "recalls_vehicle" | "recalls_vin" | "recall" | "recalls_search" => {
+                let Some(shop) = &self.shop else {
+                    return Err(ops::no_recalls(op, args));
+                };
+                let answers = ops::RecallAnswers {
+                    shop,
+                    catalog,
+                    core: &self.replay,
+                    base: SITE,
+                };
+                match op {
+                    "recalls_vehicle" => ops::recalls_vehicle(&answers, args),
+                    "recalls_vin" => {
+                        let current_year = current_year
+                            .and_then(Value::as_u64)
+                            .and_then(|year| u16::try_from(year).ok())
+                            .ok_or_else(|| bad_request("current_year"))?;
+                        ops::recalls_vin(&answers, args, current_year)
+                    }
+                    "recall" => ops::recall(&answers, args),
+                    _ => ops::recalls_search(&answers, args),
+                }
+            }
             _ => Err(bad_request("op")),
         }
     }
@@ -209,6 +274,8 @@ impl Engine {
     /// by its version before a table it may lack is named.
     fn open(&mut self) -> Result<Value, OpError> {
         self.opened = None;
+        // A shop file goes with one data file, so it is opened again too.
+        self.shop = None;
         let rows = self
             .replay
             .query(META_SQL, &[])
@@ -266,9 +333,42 @@ impl Engine {
         });
         Ok(answer)
     }
+
+    /// Checks the shop file's layout and that it goes with the data file
+    /// that is open, in one read of the shop database: its `meta` table.
+    /// The data file must be opened first.
+    fn open_shop(&mut self) -> Result<Value, OpError> {
+        self.shop = None;
+        let Some(opened) = &self.opened else {
+            return Err(OpError::internal(
+                "the data must be opened before the shop file is",
+            ));
+        };
+        // Asked for here first: with no rows yet, the reader would take
+        // the file for one that is not a shop file.
+        self.shop_replay
+            .query(META_SQL, &[])
+            .map_err(|error| OpError::new(DATA_INVALID, error.to_string()))?;
+        if self.shop_replay.incomplete() {
+            return Ok(Value::Null);
+        }
+        let shop = ShopData::new(self.shop_replay.clone()).map_err(|error| shop_invalid(&error))?;
+        shop.check_catalog(&opened.meta.data_version)
+            .map_err(|error| shop_invalid(&error))?;
+        let answer = json!({
+            "data_version": shop.data_version(),
+            "catalog_data_version": shop.catalog_data_version(),
+            "built_at": shop.built_at(),
+            "schema_version": wenmar_shopdata::schema::SCHEMA_VERSION,
+            "datasets": shop.datasets(),
+        });
+        self.shop = Some(shop);
+        Ok(answer)
+    }
 }
 
 enum Outcome {
     Done(Value),
-    Need(Vec<Statement>),
+    /// Statements for the data file, then statements for the shop file.
+    Need(Vec<Statement>, Vec<Statement>),
 }
