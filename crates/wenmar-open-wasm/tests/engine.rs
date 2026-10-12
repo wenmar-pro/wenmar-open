@@ -329,6 +329,7 @@ fn the_catalog_answers_as_the_api_does() {
             "vpic_release": "vPICList_lite_2026_09",
             "built_at": "2026-10-01 04:25:57",
             "server_version": env!("CARGO_PKG_VERSION"),
+            "datasets": {},
         })
     );
 }

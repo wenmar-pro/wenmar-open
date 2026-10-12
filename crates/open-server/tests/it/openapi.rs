@@ -51,7 +51,14 @@ fn the_description_lists_every_route_and_no_others() {
     // `/health` is for the deploy proxy and is not part of the API.
     assert!(description["paths"].get("/health").is_none());
     let schemas = description["components"]["schemas"].as_object().unwrap();
-    for name in ["VinDecode", "ErrorBody", "Entry", "Make", "MetaResponse"] {
+    for name in [
+        "VinDecode",
+        "ErrorBody",
+        "Entry",
+        "Make",
+        "MetaResponse",
+        "DatasetInfo",
+    ] {
         assert!(schemas.contains_key(name), "no schema for {name}");
     }
     assert_eq!(description["info"]["title"], "Wenmar Open");

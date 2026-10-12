@@ -178,6 +178,9 @@ impl Engine {
                 "vpic_release": opened.meta.vpic_release,
                 "built_at": opened.meta.built_at,
                 "server_version": env!("CARGO_PKG_VERSION"),
+                // The offline engine reads the data file alone. The key is
+                // here so the answer has the same shape as the API's.
+                "datasets": {},
             })),
             "decode" => {
                 // This build has no clock, and the decoder would stop the

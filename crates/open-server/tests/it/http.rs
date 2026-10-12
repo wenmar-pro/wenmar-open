@@ -17,7 +17,8 @@ async fn meta_says_what_is_being_served() {
             "data_version": "2026.09",
             "vpic_release": "vPICList_lite_2026_09",
             "built_at": "2026-10-01 04:25:57",
-            "server_version": env!("CARGO_PKG_VERSION")
+            "server_version": env!("CARGO_PKG_VERSION"),
+            "datasets": {}
         })
     );
 }

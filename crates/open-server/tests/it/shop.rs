@@ -4,6 +4,7 @@
 use axum::http::StatusCode;
 use open_server::error::ApiError;
 use open_server::state::AppState;
+use serde_json::json;
 use wenmar_shopdata::Dataset;
 use wenmar_shopdata::schema::SCHEMA_VERSION;
 
@@ -158,4 +159,33 @@ async fn the_etag_changes_with_the_shop_file() {
     // The data version header still names the core data file alone.
     let response = with.get("/v1/meta").await;
     assert_eq!(common::header(&response, "x-data-version"), "2026.09");
+}
+
+#[tokio::test]
+async fn meta_lists_the_datasets_of_the_shop_file() {
+    let app = common::app_with_shop(SHOP_DATASETS, "").await;
+    let (status, body) = app.json("/v1/meta").await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(
+        body,
+        json!({
+            "data_version": "2026.09",
+            "vpic_release": "vPICList_lite_2026_09",
+            "built_at": "2026-10-01 04:25:57",
+            "server_version": env!("CARGO_PKG_VERSION"),
+            "datasets": {
+                "recalls_us": {
+                    "as_of": "2026-10-11", "rows": 2,
+                    "licence": "public-domain", "attribution": ""
+                },
+                "recalls_ca": {
+                    "as_of": "2026-10-10", "rows": 1, "licence": "ogl-canada",
+                    "attribution": "Contains information licensed under the Open Government Licence - Canada."
+                }
+            }
+        })
+    );
+    // A shop file with no datasets is still an object.
+    let empty = common::app_with_shop("{}", "").await;
+    assert_eq!(empty.json("/v1/meta").await.1["datasets"], json!({}));
 }

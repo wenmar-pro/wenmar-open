@@ -799,6 +799,40 @@
           }
         }
       },
+      "DatasetInfo": {
+        "type": "object",
+        "description": "One dataset the server holds beside the catalog.",
+        "required": [
+          "as_of",
+          "rows",
+          "licence",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "description": "The day the source was current.",
+            "example": "2026-10-11"
+          },
+          "attribution": {
+            "type": "string",
+            "description": "The credit to show with this data. Empty when none is asked for.",
+            "example": ""
+          },
+          "licence": {
+            "type": "string",
+            "description": "`public-domain`, `ogl-canada`, `cc-by-4.0` or `mit`.",
+            "example": "public-domain"
+          },
+          "rows": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Rows in the dataset.",
+            "example": 26394,
+            "minimum": 0
+          }
+        }
+      },
       "Engine": {
         "type": "object",
         "properties": {
@@ -989,7 +1023,7 @@
         "properties": {
           "code": {
             "type": "string",
-            "description": "A stable code to branch on. One of `invalid_vin`, `validation_failed`,\n`not_found`, `method_not_allowed`, `payload_too_large`,\n`uri_too_long`, `rate_limited`, `unavailable`, `internal_error`.",
+            "description": "A stable code to branch on. One of `invalid_vin`, `validation_failed`,\n`not_found`, `dataset_unavailable`, `method_not_allowed`,\n`payload_too_large`, `uri_too_long`, `rate_limited`, `unavailable`,\n`internal_error`.",
             "example": "invalid_vin"
           },
           "details": {
@@ -1064,7 +1098,8 @@
           "data_version",
           "vpic_release",
           "built_at",
-          "server_version"
+          "server_version",
+          "datasets"
         ],
         "properties": {
           "built_at": {
@@ -1076,6 +1111,16 @@
             "type": "string",
             "description": "The data release, such as `2026.09`. Also sent as `X-Data-Version`.",
             "example": "2026.09"
+          },
+          "datasets": {
+            "type": "object",
+            "description": "The datasets served beside the catalog, such as `recalls_us`, by\nid. Empty when the server has none. A route for a dataset that is\nnot listed answers `404` with the code `dataset_unavailable`.",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DatasetInfo"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
           },
           "server_version": {
             "type": "string",
