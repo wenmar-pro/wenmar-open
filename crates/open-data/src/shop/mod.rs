@@ -5,6 +5,8 @@
 //! (rows to tables).
 
 pub mod build;
+pub mod bulletin_text;
+pub mod components;
 pub mod coverage;
 pub mod epa_emissions;
 pub mod epa_guide;

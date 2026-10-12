@@ -416,5 +416,58 @@ pub const HOSTED_ONLY_TABLES: &[(&str, &[&str])] = &[(
         "bulletin_model",
         "bulletin_year",
         "bulletin",
+        "bulletin_component",
+        "bulletin_code",
+        "bulletin_topic",
     ],
 )];
+
+/// The components of `data/components.yaml`, and which of them each recall
+/// and each bulletin is about. `component.parent` is the id of the broad
+/// system a part belongs to, and NULL for a system. A shape step that
+/// follows the sources creates these; `recall_component` exists when the
+/// file holds a recall dataset and `bulletin_component` when it holds
+/// bulletins.
+pub const COMPONENTS: &str = "
+CREATE TABLE component (
+    id     TEXT PRIMARY KEY,
+    name   TEXT NOT NULL,
+    parent TEXT
+) WITHOUT ROWID;
+";
+
+pub const RECALL_COMPONENTS: &str = "
+CREATE TABLE recall_component (
+    recall_id    INTEGER NOT NULL,
+    component_id TEXT NOT NULL,
+    PRIMARY KEY (recall_id, component_id)
+) WITHOUT ROWID;
+CREATE INDEX recall_component_component ON recall_component (component_id);
+";
+
+pub const BULLETIN_COMPONENTS: &str = "
+CREATE TABLE bulletin_component (
+    bulletin_id  INTEGER NOT NULL,
+    component_id TEXT NOT NULL,
+    PRIMARY KEY (bulletin_id, component_id)
+) WITHOUT ROWID;
+CREATE INDEX bulletin_component_component ON bulletin_component (component_id);
+";
+
+/// What a bulletin's summary names: trouble codes such as `P0420`, and
+/// topics such as `maintenance`.
+pub const BULLETIN_TEXT: &str = "
+CREATE TABLE bulletin_code (
+    bulletin_id INTEGER NOT NULL,
+    code        TEXT NOT NULL,
+    PRIMARY KEY (bulletin_id, code)
+) WITHOUT ROWID;
+CREATE INDEX bulletin_code_code ON bulletin_code (code);
+
+CREATE TABLE bulletin_topic (
+    bulletin_id INTEGER NOT NULL,
+    topic       TEXT NOT NULL,
+    PRIMARY KEY (bulletin_id, topic)
+) WITHOUT ROWID;
+CREATE INDEX bulletin_topic_topic ON bulletin_topic (topic);
+";
