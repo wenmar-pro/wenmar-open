@@ -79,7 +79,8 @@ fn a_client_can_initialize_and_list_the_tools() {
             "wenmar_vin",
             "wenmar_vehicles",
             "wenmar_recalls",
-            "wenmar_bulletins"
+            "wenmar_bulletins",
+            "wenmar_codes"
         ]
     );
     assert_eq!(answers[1]["result"]["tools"], open_mcp::tools());

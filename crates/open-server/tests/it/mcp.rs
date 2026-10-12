@@ -86,7 +86,8 @@ async fn a_client_can_initialize_and_list_the_tools() {
             "wenmar_vin",
             "wenmar_vehicles",
             "wenmar_recalls",
-            "wenmar_bulletins"
+            "wenmar_bulletins",
+            "wenmar_codes"
         ]
     );
     for tool in tools {
@@ -448,7 +449,8 @@ async fn a_client_with_no_handshake_discovers_lists_and_calls() {
             "wenmar_vin",
             "wenmar_vehicles",
             "wenmar_recalls",
-            "wenmar_bulletins"
+            "wenmar_bulletins",
+            "wenmar_codes"
         ]
     );
     assert_eq!(answer["result"]["resultType"], "complete");
@@ -632,7 +634,7 @@ async fn a_client_that_shakes_hands_is_answered_as_before() {
     for headers in [&[][..], &[("mcp-protocol-version", "2025-06-18")][..]] {
         let (status, answer) = raw(&app, headers, &list).await;
         assert_eq!(status, StatusCode::OK, "{headers:?}");
-        assert_eq!(answer["result"]["tools"].as_array().unwrap().len(), 4);
+        assert_eq!(answer["result"]["tools"].as_array().unwrap().len(), 5);
         assert!(answer["result"].get("resultType").is_none(), "{answer}");
         assert!(answer["result"].get("_meta").is_none());
     }
@@ -1313,5 +1315,85 @@ async fn the_fuel_specs_fluids_and_tires_actions_give_what_the_api_gives() {
             format!("The {dataset} dataset is not available."),
             "{topic}"
         );
+    }
+}
+
+#[tokio::test]
+async fn the_codes_tool_gives_what_the_api_gives() {
+    let app = common::codes_app().await;
+    let cases = [
+        (
+            json!({ "action": "get", "code": "p0420" }),
+            "/v1/codes/P0420",
+        ),
+        (
+            json!({ "action": "search", "system": "powertrain", "query": "title", "limit": 1 }),
+            "/v1/codes?system=powertrain&q=title&limit=1",
+        ),
+        (
+            json!({ "action": "search", "cursor": "P0300" }),
+            "/v1/codes?cursor=P0300",
+        ),
+        (
+            json!({ "action": "vehicle", "id": "2023_hyundai_kona", "code": "P0420" }),
+            "/v1/vehicles/2023_hyundai_kona/codes/P0420",
+        ),
+        (
+            json!({ "action": "vehicle", "id": "2023_hyundai_kona", "code": "C1234" }),
+            "/v1/vehicles/2023_hyundai_kona/codes/C1234",
+        ),
+    ];
+    for (arguments, path) in cases {
+        let result = call(&app, "wenmar_codes", arguments.clone()).await;
+        assert_eq!(result["isError"], false, "{arguments}");
+        let (status, served) = app.json(path).await;
+        assert_eq!(status, StatusCode::OK, "{path}");
+        assert_eq!(text(&result), served, "{arguments}");
+        assert_eq!(result["structuredContent"], served, "{arguments}");
+    }
+}
+
+#[tokio::test]
+async fn the_codes_tool_fails_as_a_tool_error_the_model_can_read() {
+    // The recalls alone: no codes and no bulletins in the shop file.
+    let app = common::recalls_app().await;
+    for arguments in [
+        json!({ "action": "get", "code": "P0420" }),
+        json!({ "action": "search" }),
+        json!({ "action": "vehicle", "id": "2023_hyundai_kona", "code": "P0420" }),
+    ] {
+        let result = call(&app, "wenmar_codes", arguments.clone()).await;
+        assert_eq!(result["isError"], true, "{arguments}");
+        assert_eq!(
+            result["structuredContent"]["error"]["message"], "The codes dataset is not available.",
+            "{arguments}"
+        );
+    }
+    let app = common::codes_app().await;
+    for (arguments, words) in [
+        (
+            json!({ "action": "get" }),
+            "code is required for action=get",
+        ),
+        (
+            json!({ "action": "vehicle", "code": "P0420" }),
+            "id is required for action=vehicle",
+        ),
+        (
+            json!({ "action": "vehicle", "id": "2023_hyundai_kona" }),
+            "code is required for action=vehicle",
+        ),
+        (
+            json!({ "action": "nonsense" }),
+            "action must be get, search or vehicle",
+        ),
+        (
+            json!({ "action": "get", "code": "P1234" }),
+            "specific to a manufacturer",
+        ),
+    ] {
+        let result = call(&app, "wenmar_codes", arguments.clone()).await;
+        assert_eq!(result["isError"], true, "{arguments}");
+        assert!(result.to_string().contains(words), "{arguments}: {result}");
     }
 }

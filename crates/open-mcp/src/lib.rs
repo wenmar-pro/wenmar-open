@@ -50,14 +50,15 @@ pub enum Era {
 pub const SERVER_NAME: &str = "wenmar-open";
 
 /// What a model is told about the server as a whole.
-pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. The overview action of either gives everything held for one vehicle in one answer. Use wenmar_recalls to list the recall campaigns from NHTSA and Transport Canada that may apply to a model year. A recall listed may apply: only the manufacturer can confirm it for one VIN. Use wenmar_bulletins to list the manufacturer service bulletins, warranty extensions and software updates that NHTSA publishes for a model year, or to search them by trouble code or by text. Every call is read-only and needs no key.";
+pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. The overview action of either gives everything held for one vehicle in one answer. Use wenmar_recalls to list the recall campaigns from NHTSA and Transport Canada that may apply to a model year. A recall listed may apply: only the manufacturer can confirm it for one VIN. Use wenmar_bulletins to list the manufacturer service bulletins, warranty extensions and software updates that NHTSA publishes for a model year, or to search them by trouble code or by text. Use wenmar_codes to read what a generic OBD-II trouble code means and what bulletins and recalls a model year has for it. Every call is read-only and needs no key.";
 
 /// The names of the tools, in the order `tools/list` gives them.
-pub const TOOL_NAMES: [&str; 4] = [
+pub const TOOL_NAMES: [&str; 5] = [
     "wenmar_vin",
     "wenmar_vehicles",
     "wenmar_recalls",
     "wenmar_bulletins",
+    "wenmar_codes",
 ];
 
 /// The Server Card schema a card must conform to. The schema's own pattern
@@ -205,6 +206,25 @@ pub fn tools() -> Value {
                     "code": { "type": "string" },
                     "topic": { "type": "string", "enum": ["maintenance"] },
                     "query": { "type": "string" },
+                    "limit": { "type": "integer" },
+                    "cursor": { "type": "string" }
+                },
+                "required": ["action"]
+            },
+            "annotations": { "readOnlyHint": true, "openWorldHint": false }
+        },
+        {
+            "name": "wenmar_codes",
+            "title": "Trouble codes",
+            "description": "Generic OBD-II trouble codes, described in Wenmar Open's own words: a title, what the code means, common causes, first checks, the components it concerns and related codes. Only codes every maker uses the same way are described (P0, P2, P3400 and up, B0, C0, U0, U3). Manufacturer-specific codes are not described. action=get takes `code`, such as \"P0420\", and gives its description. action=search lists the described codes by code, narrowed by `query` (text in the code, title or meaning) and `system` (powertrain, body, chassis, network, or an area such as powertrain/emissions); pass `next_cursor` back as `cursor`. action=vehicle takes `id`, a vehicle id such as \"2018_ford_f-150\", and `code`, any code, a manufacturer-specific one included: it gives the description (null when there is none), the bulletins of that model year whose NHTSA summary names the code, and the bulletins and recalls of that model year about the same components. A part of that answer is null where the data is not held. A description is general and is not a diagnosis; a bulletin or recall listed may apply to the model year and is not confirmed for one vehicle.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "action": { "type": "string", "enum": ["get", "search", "vehicle"] },
+                    "code": { "type": "string", "description": "A trouble code, such as P0420. Either case." },
+                    "id": { "type": "string", "description": "A vehicle id, such as 2018_ford_f-150." },
+                    "query": { "type": "string" },
+                    "system": { "type": "string" },
                     "limit": { "type": "integer" },
                     "cursor": { "type": "string" }
                 },
@@ -397,7 +417,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn there_are_four_gateway_tools_and_each_needs_an_action() {
+    fn the_codes_tool_describes_and_never_diagnoses() {
+        let tools = tools();
+        let tool = tools
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|tool| tool["name"] == "wenmar_codes")
+            .unwrap();
+        let description = tool["description"].as_str().unwrap();
+        assert!(description.contains("own words"), "{description}");
+        assert!(
+            description.contains("Manufacturer-specific codes are not described"),
+            "{description}"
+        );
+        assert!(description.contains("not a diagnosis"), "{description}");
+        assert_eq!(
+            tool["inputSchema"]["properties"]["action"]["enum"],
+            json!(["get", "search", "vehicle"])
+        );
+        assert!(INSTRUCTIONS.contains("wenmar_codes"));
+    }
+
+    #[test]
+    fn there_are_five_gateway_tools_and_each_needs_an_action() {
         let tools = tools();
         let tools = tools.as_array().unwrap();
         let names: Vec<&str> = tools
@@ -482,7 +525,7 @@ mod tests {
                 .unwrap()
                 .clone()
         };
-        assert_eq!(TOOL_NAMES.len(), 4);
+        assert_eq!(TOOL_NAMES.len(), 5);
         assert!(actions("wenmar_vin").contains(&json!("overview")));
         for action in ["entry", "overview", "model_years"] {
             assert!(
@@ -524,7 +567,7 @@ mod tests {
         assert!(description.contains("safety (`id`"), "{description}");
         assert!(description.contains("NHTSA"), "{description}");
         // An action of a tool that exists: no tool was added.
-        assert_eq!(TOOL_NAMES.len(), 4);
+        assert_eq!(TOOL_NAMES.len(), 5);
     }
 
     #[test]
@@ -553,7 +596,7 @@ mod tests {
             }
         }
         // Actions of tools that exist: no tool was added.
-        assert_eq!(TOOL_NAMES.len(), 4);
+        assert_eq!(TOOL_NAMES.len(), 5);
     }
 
     #[test]

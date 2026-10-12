@@ -28,7 +28,7 @@ use serde::Deserialize;
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 
-use crate::api::{bulletins, fuel, hand, overview, recalls, vehicles, vin};
+use crate::api::{bulletins, codes, fuel, hand, overview, recalls, vehicles, vin};
 use crate::error::ApiError;
 use crate::state::AppState;
 
@@ -327,6 +327,53 @@ async fn bulletins_tool(state: &AppState, action: &str, given: &Value) -> Result
     }
 }
 
+/// What a `wenmar_codes` call may carry.
+#[derive(Debug, Default, Deserialize)]
+struct CodeArguments {
+    id: Option<String>,
+    code: Option<String>,
+    query: Option<String>,
+    system: Option<String>,
+    limit: Option<usize>,
+    cursor: Option<String>,
+}
+
+/// Trouble codes. Each action is the function behind a `/v1` code route,
+/// so a server without the data answers with the same
+/// `dataset_unavailable` error, as a tool error the model can read.
+async fn codes_tool(state: &AppState, action: &str, given: &Value) -> Result<Value, ApiError> {
+    let asked: CodeArguments = arguments(given)?;
+    match action {
+        "get" => {
+            let Some(code) = asked.code else {
+                return Err(ApiError::validation("code is required for action=get"));
+            };
+            to_value(codes::code_op(state, code).await?)
+        }
+        "search" => {
+            let query = codes::CodeSearchQuery {
+                q: asked.query,
+                system: asked.system,
+                limit: asked.limit,
+                cursor: asked.cursor,
+            };
+            to_value(codes::code_search_op(state, query).await?)
+        }
+        "vehicle" => {
+            let Some(id) = asked.id else {
+                return Err(ApiError::validation("id is required for action=vehicle"));
+            };
+            let Some(code) = asked.code else {
+                return Err(ApiError::validation("code is required for action=vehicle"));
+            };
+            to_value(codes::vehicle_code_op(state, id, code).await?)
+        }
+        _ => Err(ApiError::validation(
+            "action must be get, search or vehicle",
+        )),
+    }
+}
+
 /// Runs one `tools/call`. `Err` is a protocol error; a tool that fails
 /// answers `Ok` with `isError`.
 async fn call(state: &AppState, params: &Value) -> Result<Value, (i64, String)> {
@@ -349,6 +396,7 @@ async fn call(state: &AppState, params: &Value) -> Result<Value, (i64, String)> 
         "wenmar_vehicles" => vehicles_tool(state, action, given).await,
         "wenmar_recalls" => recalls_tool(state, action, given).await,
         "wenmar_bulletins" => bulletins_tool(state, action, given).await,
+        "wenmar_codes" => codes_tool(state, action, given).await,
         _ => return Err((INVALID_PARAMS, format!("Unknown tool: {name:.60}"))),
     };
     Ok(match outcome {
