@@ -861,6 +861,7 @@
         "ok": {
           "attribution": [],
           "bulletins": null,
+          "complaints": null,
           "decode": null,
           "fluids": null,
           "fuel": null,
@@ -909,6 +910,7 @@
         "ok": {
           "attribution": [],
           "bulletins": null,
+          "complaints": null,
           "decode": {
             "engine": "2.0L",
             "engine_settled": true,
@@ -4538,6 +4540,7 @@
             "Contains information licensed under the Open Government Licence - Canada."
           ],
           "bulletins": null,
+          "complaints": null,
           "decode": null,
           "fluids": null,
           "fuel": null,
@@ -4801,6 +4804,7 @@
             "Contains information licensed under the Open Government Licence - Canada."
           ],
           "bulletins": null,
+          "complaints": null,
           "decode": null,
           "fluids": null,
           "fuel": null,
@@ -4867,6 +4871,7 @@
             "Contains information licensed under the Open Government Licence - Canada."
           ],
           "bulletins": null,
+          "complaints": null,
           "decode": {
             "engine": "2.0L",
             "engine_settled": true,
@@ -5138,6 +5143,7 @@
         "ok": {
           "attribution": [],
           "bulletins": null,
+          "complaints": null,
           "decode": {
             "engine": null,
             "engine_settled": false,

@@ -1313,10 +1313,12 @@ impl<'a, S: Source, C: Source> Overviews<'a, S, C> {
     /// [`Overviews::vehicle_with_complaints`] does it.
     pub fn vin_with_complaints(&self, decode: &Json) -> Result<Overview, AnswerError> {
         let mut overview = self.vin(decode)?;
-        if let Some(vehicle) = overview.vehicle.as_ref() {
-            if let Some(found) = model_year_in(self.catalog, self.core, &vehicle.id)? {
-                overview.complaints = self.complaints_block(&found)?;
-            }
+        let found = match overview.vehicle.as_ref() {
+            Some(vehicle) => model_year_in(self.catalog, self.core, &vehicle.id)?,
+            None => None,
+        };
+        if let Some(found) = found {
+            overview.complaints = self.complaints_block(&found)?;
         }
         Ok(overview)
     }
