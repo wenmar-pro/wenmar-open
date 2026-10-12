@@ -12,6 +12,17 @@ Decoding data is built from the Product Information Catalog and Vehicle Listing 
 
 Wenmar Open is not affiliated with or endorsed by NHTSA. The data is provided as manufacturers reported it and comes with no warranty of accuracy or completeness. Do not rely on it as the sole source for safety-critical decisions; confirm against the vehicle and the manufacturer's service information.
 
+## Datasets and their licences
+
+Every dataset Wenmar Open serves, where it comes from, and what its licence asks of anyone who republishes it. The website shows the same table at `/data`. A test in `crates/open-server/src/site/licences.rs` fails when the two differ, so add a row in both places in the same pull request.
+
+| Dataset | Source | Licence | Required attribution |
+| --- | --- | --- | --- |
+| VIN decoding data and vehicle catalog | NHTSA vPIC, the Product Information Catalog and Vehicle Listing, https://vpic.nhtsa.dot.gov/ | Public domain (United States government work) | None required. This site credits NHTSA. |
+| Popular makes, aliases, trim spellings and added trims | Written by hand for this project: data/catalog/makes.yaml, data/catalog/names.yaml and data/presets.yaml | MIT | Keep the copyright notice in LICENSE. |
+| Canadian sales tax and tire fee rates | Government and stewardship pages, each named on the calculator page, collected in data/rates/canada.toml | MIT for the collection. A rate is a fact. | Keep the copyright notice in LICENSE. |
+<!-- Shop-data plans add one row per dataset above this line, and the same row in crates/open-server/src/site/licences.rs. -->
+
 ## Fonts
 
 The website serves two typefaces from its own address. Both are licensed under the SIL Open Font License, Version 1.1. The full licence text of each is in `crates/open-server/assets/fonts/` and is served beside the font.
@@ -27,4 +38,4 @@ The icon files and the share image in `crates/open-server/assets/` show the Wenm
 
 ## Adding to this file
 
-When a pull request brings in code or data from another project, add its name, source, and license text here in the same pull request.
+When a pull request brings in code or data from another project, add its name, source, and license text here in the same pull request. When it brings in a dataset, also add a row to "Datasets and their licences" above and to crates/open-server/src/site/licences.rs.
