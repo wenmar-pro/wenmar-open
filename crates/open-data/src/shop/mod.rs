@@ -16,3 +16,4 @@ pub mod nhtsa_recalls;
 pub mod nhtsa_vin_guides;
 pub mod recalls;
 pub mod tc_recalls;
+pub mod xlsx;
