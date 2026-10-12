@@ -4,6 +4,7 @@ pub mod api;
 pub mod config;
 pub mod db;
 pub mod error;
+pub mod github;
 pub mod headers;
 pub mod limit;
 pub mod llms;
