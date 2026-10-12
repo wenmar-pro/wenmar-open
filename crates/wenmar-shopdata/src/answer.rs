@@ -30,6 +30,7 @@ use wenmar_vehicles::{Catalog, CatalogError, Scope, Source, Value, VehicleId};
 
 use crate::dataset::Dataset;
 use crate::error::ShopError;
+use crate::ratings::{RatingFeatures, RatingStars, VehicleRating};
 use crate::recalls::{
     MOST_RECALLS, RecallCursor, RecallQuery, RecallSource, RecallSummary, VehicleRecall,
 };
@@ -53,6 +54,12 @@ pub const LIST_DEFAULT: usize = 25;
 
 /// Longest campaign number read.
 pub const LONGEST_CAMPAIGN: usize = 20;
+
+/// Who rates the vehicles, as a safety answer names it.
+pub const SAFETY_SOURCE: &str = "NHTSA New Car Assessment Program";
+
+/// NHTSA's own pages of ratings, where a rating can be read in full.
+pub const SAFETY_SOURCE_URL: &str = "https://www.nhtsa.gov/ratings";
 
 /// `?1` make id, `?2` the model's id form, `?3` year.
 pub const MODEL_YEAR_SQL: &str = "
@@ -423,6 +430,43 @@ pub struct Recent {
     pub make: Option<String>,
     pub limit: Option<usize>,
     pub cursor: Option<String>,
+}
+
+/// One rating NHTSA gave a vehicle of a model year: an entry of the API's
+/// `ratings`. A field NHTSA's file does not give is `null`.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct SafetyRating {
+    /// The vehicle NHTSA rated, in NHTSA's words, on one line.
+    pub description: String,
+    pub model: String,
+    pub body_style: Option<String>,
+    pub vehicle_type: Option<String>,
+    pub drive: Option<String>,
+    pub release: u8,
+    #[serde(rename = "match")]
+    pub matched: String,
+    pub stars: RatingStars,
+    /// The chance of a rollover in a single-vehicle crash, in percent.
+    pub rollover_risk_percent: Option<f64>,
+    pub rollover_tip: Option<bool>,
+    /// Worked out from the pounds NHTSA gives, and rounded.
+    pub curb_weight_kg: Option<u32>,
+    pub curb_weight_lb: Option<u32>,
+    pub features: RatingFeatures,
+    pub notes: Vec<String>,
+}
+
+/// NHTSA's crash test ratings for one model year. Every rating is given;
+/// none is picked.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct VehicleSafety {
+    pub vehicle: Vehicle,
+    /// The day NHTSA's file was current.
+    pub as_of: String,
+    pub ratings: Vec<SafetyRating>,
+    pub source: String,
+    pub source_url: String,
+    pub attribution: Vec<String>,
 }
 
 /// Reads `country`: `us`, `ca` (either case), or nothing for both.
@@ -1299,6 +1343,66 @@ impl<'a, S: Source, C: Source> Overviews<'a, S, C> {
     }
 }
 
+/// Pounds as whole kilograms. A pound is 0.45359237 kg exactly.
+pub fn kilograms(pounds: u32) -> u32 {
+    (f64::from(pounds) * 0.453_592_37).round() as u32
+}
+
+/// One rating of the reader, as the API words it.
+fn rating(found: VehicleRating) -> SafetyRating {
+    SafetyRating {
+        description: found.description(),
+        model: found.model,
+        body_style: found.body_style,
+        vehicle_type: found.vehicle_type,
+        drive: found.drive,
+        release: found.release,
+        matched: found.matched,
+        stars: found.stars,
+        rollover_risk_percent: found
+            .rollover_risk_permille
+            .map(|share| f64::from(share) / 10.0),
+        rollover_tip: found.rollover_tip,
+        curb_weight_kg: found.curb_weight_lb.map(kilograms),
+        curb_weight_lb: found.curb_weight_lb,
+        features: found.features,
+        notes: found.notes,
+    }
+}
+
+impl<S: Source, C: Source> Answers<'_, S, C> {
+    /// The ratings of one model year. The shop file must hold them.
+    fn safety_of(&self, found: &ModelYear) -> Result<VehicleSafety, AnswerError> {
+        let ratings =
+            self.shop
+                .ratings_for_vehicle(found.make_id, found.model_id, found.vehicle.year)?;
+        let entry = self.shop.datasets().get(Dataset::Ratings);
+        Ok(VehicleSafety {
+            vehicle: found.vehicle.clone(),
+            as_of: entry.map(|entry| entry.as_of.clone()).unwrap_or_default(),
+            ratings: ratings.into_iter().map(rating).collect(),
+            source: SAFETY_SOURCE.to_owned(),
+            source_url: SAFETY_SOURCE_URL.to_owned(),
+            attribution: entry
+                .map(|entry| entry.attribution.clone())
+                .filter(|credit| !credit.is_empty())
+                .into_iter()
+                .collect(),
+        })
+    }
+
+    /// `GET /v1/vehicles/{id}/safety`. The ratings are looked for before
+    /// the vehicle is, as the API does it, so that the same error comes
+    /// first.
+    pub fn safety(&self, id: &str) -> Result<VehicleSafety, AnswerError> {
+        self.shop.require(Dataset::Ratings)?;
+        let Some(found) = self.model_year(id)? else {
+            return Err(AnswerError::NotFound("No vehicle has that id."));
+        };
+        self.safety_of(&found)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1404,6 +1508,51 @@ mod tests {
         for bad in ["", "2026-9-1", "2026/09/01", "20260901", "soon"] {
             assert!(!is_day(bad), "{bad}");
         }
+    }
+
+    #[test]
+    fn pounds_become_whole_kilograms() {
+        assert_eq!(kilograms(5060), 2295);
+        assert_eq!(kilograms(2735), 1241);
+        assert_eq!(kilograms(1000), 454);
+        assert_eq!(kilograms(0), 0);
+    }
+
+    #[test]
+    fn a_rating_is_worded_as_the_api_words_it() {
+        let found = VehicleRating {
+            model: "KONA".to_owned(),
+            body_style: Some("SUV".to_owned()),
+            vehicle_type: Some("MPV".to_owned()),
+            drive: Some("AWD".to_owned()),
+            release: 1,
+            matched: "exact".to_owned(),
+            stars: RatingStars {
+                overall: Some(5),
+                ..RatingStars::default()
+            },
+            rollover_risk_permille: Some(148),
+            rollover_tip: Some(false),
+            curb_weight_lb: Some(3225),
+            features: RatingFeatures::default(),
+            notes: Vec::new(),
+        };
+        let worded = serde_json::to_value(rating(found)).unwrap();
+        assert_eq!(worded["description"], "KONA, SUV, AWD");
+        assert_eq!(worded["match"], "exact");
+        assert_eq!(worded["stars"]["overall"], 5);
+        assert_eq!(worded["stars"]["rollover"], Json::Null);
+        assert_eq!(worded["rollover_risk_percent"], 14.8);
+        assert_eq!(worded["rollover_tip"], false);
+        assert_eq!(worded["curb_weight_kg"], 1463);
+        assert_eq!(worded["curb_weight_lb"], 3225);
+        assert_eq!(worded["features"]["esc"], Json::Null);
+        assert_eq!(worded["notes"], serde_json::json!([]));
+        // Every field is there, known or not.
+        assert_eq!(worded.as_object().unwrap().len(), 14);
+        assert_eq!(worded["stars"].as_object().unwrap().len(), 12);
+        assert_eq!(worded["features"].as_object().unwrap().len(), 13);
+        assert_eq!(SAFETY_SOURCE_URL, "https://www.nhtsa.gov/ratings");
     }
 
     #[test]
