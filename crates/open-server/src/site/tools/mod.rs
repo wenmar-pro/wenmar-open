@@ -109,6 +109,16 @@ pub fn index(base: &str) -> Doc {
         section("Guides", &["Longer answers that go with the calculators."]),
         &guides,
     ));
+    sections.push(with_links(
+        section(
+            "Rules for repair shops",
+            &["What provincial law asks of a repair shop in Canada, each rule with its source. This is not legal advice."],
+        ),
+        &[(
+            crate::site::rules::INDEX_TITLE,
+            format!("{base}{}", crate::site::rules::INDEX_PATH),
+        )],
+    ));
     sections.push(section(
         "How they work",
         &[

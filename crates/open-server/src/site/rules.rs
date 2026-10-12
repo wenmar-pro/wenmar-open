@@ -8,8 +8,15 @@
 
 pub use crate::site::tools::canada_invoice_tax::rates::Source;
 
-use crate::site::markdown::{Doc, Section};
+use axum::extract::rejection::PathRejection;
+use axum::extract::{Path, State};
+use axum::response::Response;
+
+use crate::site::markdown::{self, Doc, Format, Section};
+use crate::site::pages::render;
 use crate::site::tools::canada_invoice_tax::doc::source_text;
+use crate::site::{self, Page, jsonld, seo};
+use crate::state::AppState;
 
 /// One topic of one province, as the law's own pages state it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -197,6 +204,97 @@ pub fn index_doc(base: &str) -> Doc {
             ),
         ],
     }
+}
+
+/// The page, as HTML or as Markdown. Only a page that is `indexed` is
+/// given a canonical address and may be indexed; the structured data is
+/// built for every page, and the layout shows it on an indexed one.
+#[allow(clippy::too_many_arguments)]
+fn show(
+    state: &AppState,
+    path: &str,
+    title: &str,
+    description: &str,
+    doc: Doc,
+    crumbs: Vec<(String, String)>,
+    indexed: bool,
+    format: Format,
+) -> Response {
+    if format == Format::Markdown {
+        let canonical = format!("{}{path}", state.config().base_url);
+        return markdown::response(markdown::doc(&doc), &canonical);
+    }
+    let base = &state.config().base_url;
+    let mut page = Page::new(state, seo::title(title), description);
+    if indexed {
+        page = page.indexed(state, path);
+    }
+    let page = page
+        .with_markdown(&format!("{path}.md"))
+        .in_section("tools")
+        .under(crumbs)
+        .as_article()
+        .without_vehicle_data();
+    let things = vec![
+        page.trail(&doc.title),
+        jsonld::article(base, path, &doc.title, description),
+        jsonld::organization(base),
+    ];
+    render(page.describing(things), doc)
+}
+
+fn tools_crumb() -> (String, String) {
+    ("Tools".to_owned(), "/tools".to_owned())
+}
+
+fn show_index(state: &AppState, format: Format) -> Response {
+    let doc = index_doc(&state.config().base_url);
+    show(
+        state,
+        INDEX_PATH,
+        INDEX_TITLE,
+        INDEX_DESCRIPTION,
+        doc,
+        vec![tools_crumb()],
+        true,
+        format,
+    )
+}
+
+pub async fn index_html(State(state): State<AppState>) -> Response {
+    show_index(&state, Format::Html)
+}
+
+pub async fn index_md(State(state): State<AppState>) -> Response {
+    show_index(&state, Format::Markdown)
+}
+
+/// One province's page. An address that names no province is not found.
+pub async fn province(
+    State(state): State<AppState>,
+    path: Result<Path<String>, PathRejection>,
+) -> Response {
+    let Ok(Path(segment)) = path else {
+        return site::not_found(&state);
+    };
+    let (code, format) = markdown::split(&segment);
+    let Some(province) = find(code) else {
+        return site::not_found(&state);
+    };
+    let doc = province_doc(&state.config().base_url, province);
+    show(
+        &state,
+        &province.path(),
+        &province.title(),
+        &province.description(),
+        doc,
+        vec![
+            tools_crumb(),
+            ("Rules in Canada".to_owned(), INDEX_PATH.to_owned()),
+        ],
+        province.confirmed,
+        format,
+    )
 }
 
 #[cfg(test)]

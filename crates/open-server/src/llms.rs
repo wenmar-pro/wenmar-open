@@ -86,6 +86,11 @@ Vehicle ids such as `2019_honda_civic_si` are built from the year and the names,
 
 - [Shop calculators]({base}/tools.md): the list of calculators
 {tools}
+## Rules for repair shops
+
+- [Canadian rules for repair shops, by province]({base}/rules/canada.md): what provincial law asks of a repair shop, each rule with its source and the day it was read; a province not yet checked shows no rule
+- [One province, such as Ontario]({base}/rules/canada/on.md): `/rules/canada/{{code}}.md`
+
 ## Reference pages
 
 - [Makes]({base}/makes.md): each make links to its models, and each model year to its trims and engines
@@ -115,6 +120,13 @@ pub fn full(state: &AppState) -> String {
     let mut docs = vec![pages::docs(state)];
     docs.extend(GUIDES.iter().map(|guide| guide.doc(base)));
     docs.extend(TOOLS.iter().map(|tool| tool.doc(base)));
+    docs.push(crate::site::rules::index_doc(base));
+    docs.extend(
+        crate::site::rules::PROVINCES
+            .iter()
+            .filter(|province| province.confirmed)
+            .map(|province| crate::site::rules::province_doc(base, province)),
+    );
     docs.push(pages::data(state));
     docs.push(pages::about(state));
     for doc in &docs {

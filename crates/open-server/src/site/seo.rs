@@ -301,6 +301,13 @@ pub async fn sitemap(
             if recall_shop(&state, None).is_ok() {
                 paths.push("/recalls".to_owned());
             }
+            paths.push(site::rules::INDEX_PATH.to_owned());
+            paths.extend(
+                site::rules::PROVINCES
+                    .iter()
+                    .filter(|province| province.confirmed)
+                    .map(|province| province.path()),
+            );
             paths.extend(["/docs", "/data", "/about"].map(str::to_owned));
             Ok(Some(paths))
         }

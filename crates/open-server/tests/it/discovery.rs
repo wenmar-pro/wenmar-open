@@ -42,6 +42,7 @@ async fn llms_txt_follows_the_convention() {
             "API",
             "Docs",
             "Shop calculators",
+            "Rules for repair shops",
             "Reference pages",
             "Optional"
         ]
@@ -115,6 +116,7 @@ async fn llms_full_txt_is_the_pages_themselves() {
         "/tools/refrigerant-pt.md",
         "/tools/battery-state-of-charge.md",
         "/tools/wire-gauge.md",
+        "/rules/canada.md",
         "/data.md",
         "/about.md",
     ] {

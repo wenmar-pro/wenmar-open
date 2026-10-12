@@ -36,6 +36,7 @@ mod site_pages;
 mod site_recall_lines;
 mod site_recalls;
 mod site_refrigerant_pt;
+mod site_rules;
 mod site_seo;
 mod site_tire_size;
 mod site_tools;
