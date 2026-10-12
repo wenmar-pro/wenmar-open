@@ -234,6 +234,16 @@ pub struct EffectiveRate {
     pub labor_gross_profit: Option<Percent>,
 }
 
+/// What `hours` of labour come to at `rate` an hour, to the cent.
+pub fn labor_charge(rate: Money, hours: Hours) -> Result<Money, LaborRateError> {
+    let cents = not_below_zero(rate.cents(), LaborField::PostedRate)?;
+    let hundredths = not_below_zero(hours.hundredths(), LaborField::HoursBilled)?;
+    Ok(money(div_round(
+        product(&[cents, hundredths]),
+        Some(PER_HOUR),
+    ))?)
+}
+
 /// The rate the shop is getting.
 pub fn effective_rate(input: &EffectiveRateInput) -> Result<EffectiveRate, LaborRateError> {
     use LaborField as Field;
