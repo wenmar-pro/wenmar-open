@@ -129,6 +129,47 @@ If you would rather keep a local table, fill it once a month from the data file 
 
 **What to store.** Store the names you show, and the vehicle id (`catalog.entry.id` from a decode, or `id` from a search). An id such as `2019_honda_civic_si` is made of the year and the names, and stays the same from one data release to the next for as long as the names do.
 
+## Recalls, in place of NHTSA's recall API
+
+NHTSA's recall API (`api.nhtsa.gov/recalls/…`) answers for the United States by make, model and model year. Wenmar Open answers the same question for the United States and Canada together, by vehicle id or by VIN.
+
+| NHTSA | Wenmar Open |
+|---|---|
+| `recalls/recallsByVehicle?make={make}&model={model}&modelYear={year}` | `GET /v1/vehicles/{id}/recalls?country=us`, where the id is the year and the names, such as `2019_honda_civic`. Or `GET /v1/recalls?make={make}&model={model}&year={year}&country=us` |
+| `recalls/campaignNumber?campaignNumber={number}` | `GET /v1/recalls/nhtsa/{number}` |
+| `products/vehicle/modelYears`, `…/makes`, `…/models` (the pickers of the recall API) | `GET /v1/vehicles/years`, `/v1/vehicles/makes`, `/v1/vehicles/models` |
+| nothing: Canada | the same routes with `country=ca`, or with no `country` for both; a Canadian campaign is `GET /v1/recalls/tc/{number}` |
+| nothing | `GET /v1/vin/{vin}/recalls`: decode the VIN, then the recalls of its model year |
+| nothing | `GET /v1/recalls/recent?since=`: campaigns reported since a day, to check your own vehicles against |
+
+Neither government publishes recalls by VIN as data, and neither does this. **A recall listed for a model year may apply to a vehicle of that year, make and model; only the manufacturer can say whether it applies to one vehicle.** Every answer has `may_apply: true` and a `lookup` object with NHTSA's and Transport Canada's lookups by VIN, and the maker's own where one is on file. Show those links wherever you show the list.
+
+What is different in the answers (NHTSA's names are those its API returned on 2026-10-12):
+
+| NHTSA | Wenmar Open |
+|---|---|
+| `{ "Count", "Message", "results": [ … ] }` | An object with `vehicle`, `may_apply`, `as_of`, `recalls`, `lookup` and `attribution` |
+| `NHTSACampaignNumber` | `campaign`, with `source` (`nhtsa` or `tc`) and `country` (`us` or `ca`) beside it |
+| `ReportReceivedDate`, written `28/05/2020` | `date`, written `2020-05-28` |
+| `Manufacturer`, `Component`, `Summary` | `manufacturer`, `component`, `summary` |
+| `Consequence`, `Remedy`, `Notes` | `consequence`, `remedy`, `notes`, on the campaign route only; a list carries the summary |
+| `PotentialNumberofUnitsAffected` | `units` |
+| `parkIt` | `do_not_drive` |
+| `parkOutSide` | `park_outside` |
+| `overTheAirUpdate` | not carried |
+| `ModelYear`, `Make`, `Model` | `vehicle`, once for the answer; `models` on each recall lists the model names the campaign used |
+| nothing | `match`: how the campaign's wording reached this model, `exact`, `base` (it named a series or trim) or `curated` |
+| nothing | `mfr_campaign`, the manufacturer's own campaign number, which a dealer looks a recall up by; `built_from` and `built_to`, to compare with the date on the door sticker |
+| nothing | `as_of`: the day each country's data was current |
+
+- **A value that is not known is `null`** in a recall answer, not left out as it is in a decode.
+- **Canadian data needs a credit.** `attribution` holds the lines the data's licences ask for; show them with the data. For Canadian recalls it is `Contains information licensed under the Open Government Licence – Canada.`
+- **A campaign may be listed that NHTSA's API does not return for the same model, and the reverse.** NHTSA's API matches its own model names; this matches them to the catalog's. A campaign for `SILVERADO 1500` is listed under the catalog's `Silverado` with `"match": "base"`.
+- **The data is as fresh as the shop file.** `as_of` says how fresh. The hosted service takes a new shop file about once a week.
+- A server run without recall data answers these routes `404` with the code `dataset_unavailable`.
+
+Offline, the same answers come from the shop file beside the data file: `wenmar-open data pull --shop` for the command-line tool, and the `wenmar-open-data-shop` package for the npm client. One field differs: `lookup.maker` is always `null` offline, because the makers' links are part of the server and are in neither file.
+
 ## Caching
 
 An answer changes only when the data does, about once a month.
@@ -236,6 +277,8 @@ gunzip "wenmar-open-$version.sqlite3.gz"
 - **Replacing it.** Never write a new file over one a program has open. Put the new file beside the old one, rename it over the old one, and have the program open it again (or restart it). A program that built the file into its container image gets the new one with its next deploy.
 - **Schema version.** The file's `meta` table has a `schema_version`. A version of the crates reads one schema version and refuses any other, with a message that names both. The changelog says when it changes; take the new crates and the new file together.
 - The tables are this project's own and can change with the schema version. Read them through the crates or the command-line tool, not with your own SQL.
+
+**The shop file.** Recalls are in a second file, released weekly as `shop-YYYY.MM.DD` with three assets: `wenmar-open-shop-<version>.sqlite3.gz`, its `.sha256`, and `wenmar-open-shop-<version>.json`, a manifest whose `catalog_data_version` names the data file it was built against. Use the two together and never mix: a shop file holds the ids of one data file's catalog, and the readers refuse a pair that disagree.
 
 **From another language**, the `wenmar-open` command-line tool reads the same file and prints JSON:
 
