@@ -355,6 +355,8 @@ open.close();
 
 `fuel`, `specs`, `fluids` and `tires`, and `vinFuel`, `vinSpecs`, `vinFluids` and `vinTires`, are those of `WenmarOpen`, read from the shop file.
 
+`code(code)`, `codes(query)` and `vehicleCode(id, code)` are those of `WenmarOpen`: generic OBD-II trouble codes described in this project's own words, read from the shop file. Offline, `vehicleCode` gives the description and the recalls about the same components; its `bulletins` and `related.bulletins` are always `null`, because bulletins are on the hosted service only.
+
 `safety(id)` is that of `WenmarOpen`: NHTSA's crash test ratings for a model year, read from the shop file.
 
 ```ts

@@ -11,6 +11,9 @@ import type {
   Meta,
   Model,
   ModelsQuery,
+  Code,
+  CodeList,
+  CodeSearchQuery,
   ModelYears,
   Overview,
   RecallCampaign,
@@ -27,6 +30,7 @@ import type {
   VehicleFuelQuery,
   VehicleRecalls,
   VehicleRecallsQuery,
+  VehicleCode,
   VehicleSafety,
   VehicleSpecs,
   VehicleTires,
@@ -92,9 +96,12 @@ const keyOf = (statement: Statement): string =>
  */
 const READS_SHOP = new Set(["meta", "overview_vehicle", "overview_vin", "model_years"]);
 
+/** The operations about trouble codes. Each needs the shop file. */
+const CODE_OPS = new Set(["code", "codes", "vehicle_code"]);
+
 /** Whether a question reads the shop file, when there is one. */
 const needsShop = (question: Question): boolean =>
-  READS_SHOP.has(question.op) || question.op.startsWith("recall") || question.op === "safety" || question.op === "complaints" || FACTS.test(question.op);
+  READS_SHOP.has(question.op) || question.op.startsWith("recall") || question.op === "safety" || question.op === "complaints" || FACTS.test(question.op) || CODE_OPS.has(question.op);
 
 /** The operations for fuel, specifications, fluids and tire fitments, such as `fuel_vin`. */
 const FACTS = /^(fuel|specs|fluids|tires)_(vehicle|vin)$/;
@@ -290,6 +297,29 @@ export class WenmarOpenOffline {
   /** Tire fitments of the model year a VIN decodes to. Never narrowed: a VIN does not name the wheels. */
   async vinTires(vin: string, query: VinYearQuery = {}, options: RequestOptions = {}): Promise<VinTires> {
     return this.#one({ op: "tires_vin", args: { ...query, vin: String(vin) } }, options);
+  }
+
+  /**
+   * One generic trouble code, such as `P0420`, described in this project's
+   * own words. Needs a shop file that holds the codes: without one it
+   * fails with `dataset_unavailable`.
+   */
+  async code(code: string, options: RequestOptions = {}): Promise<Code> {
+    return this.#one({ op: "code", args: { code: String(code) } }, options);
+  }
+
+  /** The trouble codes that are described, by code, narrowed by text or system. */
+  async codes(query: CodeSearchQuery = {}, options: RequestOptions = {}): Promise<CodeList> {
+    return this.#one({ op: "codes", args: { ...query } }, options);
+  }
+
+  /**
+   * A trouble code on one model year: its description and the recalls
+   * about the same components. `bulletins` and `related.bulletins` are
+   * always `null` offline: bulletins are on the hosted service only.
+   */
+  async vehicleCode(id: string, code: string, options: RequestOptions = {}): Promise<VehicleCode> {
+    return this.#one({ op: "vehicle_code", args: { id: String(id), code: String(code) } }, options);
   }
 
   /**

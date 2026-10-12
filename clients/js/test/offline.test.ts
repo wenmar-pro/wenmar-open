@@ -845,3 +845,22 @@ test("with no shop store each of the eight is dataset_unavailable, and nothing i
   // Only the data file was opened.
   assert.equal(store.steps, 2);
 });
+
+// ----- trouble codes, from the shop file -----
+
+test("without the codes in the shop file every code method is dataset_unavailable", async () => {
+  // The fixture shop file holds recalls and ratings, and no codes. The
+  // answers themselves are held to the API in crates/open-server.
+  for (const { client } of [withShop(), { client: offline(new RecordedStore()) }]) {
+    for (const asked of [
+      client.code("P0420"),
+      client.codes({ system: "powertrain" }),
+      client.vehicleCode("2023_hyundai_kona", "P0420"),
+    ]) {
+      const error = await failure(asked);
+      assert.equal(error.code, "dataset_unavailable");
+      assert.equal(error.message, "The codes dataset is not available.");
+      assert.deepEqual(error.details, { dataset: "codes" });
+    }
+  }
+});
