@@ -212,6 +212,8 @@ fn shape_all(context: &mut ShapeContext<'_>, inputs: &ShopInputs) -> Result<()> 
     // The hand-written trouble codes are in the curated directory, not
     // fetched.
     crate::shop::codes::shape(context)?;
+    // So is the job list.
+    crate::shop::jobs::shape(context)?;
     after_sources(context)
 }
 
@@ -225,7 +227,9 @@ pub fn after_sources(context: &mut ShapeContext<'_>) -> Result<()> {
     let complaints = datasets.contains(Dataset::Complaints);
     // A code names its components, so the file must be able to name them.
     let codes = datasets.contains(Dataset::Codes);
-    if recalls || bulletins || complaints || codes {
+    // A job names its components and its system too.
+    let jobs = datasets.contains(Dataset::Jobs);
+    if recalls || bulletins || complaints || codes || jobs {
         crate::shop::components::shape(context)?;
     }
     if bulletins {

@@ -13,6 +13,7 @@ mod epa_match;
 mod epa_vehicles;
 mod fuel;
 mod hand;
+mod jobs;
 mod matcher;
 mod mfr_comms;
 mod nhtsa_investigations;

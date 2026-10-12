@@ -1,0 +1,104 @@
+# [REVIEW] A starter list drafted on 2026-10-12: ids and names only. What each
+# job includes and excludes is not written yet. A person who does this work
+# completes every job, then changes `status` to `reviewed`.
+#
+# Jobs: the repair jobs a labour time can be about. Written by hand for
+# this project; see jobs.md beside this file for the fields and the rules.
+# An id never changes once a labour record or a repair order uses it.
+status: draft
+updated: 2026-10-12
+jobs:
+  - id: oil-service
+    name: "Change engine oil and filter"
+    system: engine
+    components: [engine-oil]
+  - id: brake-pads-front
+    name: "Replace front brake pads"
+    system: brakes
+    components: [brake-pad]
+    related: [brake-pads-and-rotors-front]
+  - id: brake-pads-rear
+    name: "Replace rear brake pads"
+    system: brakes
+    components: [brake-pad]
+    related: [brake-pads-and-rotors-rear]
+  - id: brake-pads-and-rotors-front
+    name: "Replace front brake pads and rotors"
+    system: brakes
+    components: [brake-pad, brake-rotor]
+    related: [brake-pads-front]
+  - id: brake-pads-and-rotors-rear
+    name: "Replace rear brake pads and rotors"
+    system: brakes
+    components: [brake-pad, brake-rotor]
+    related: [brake-pads-rear]
+  - id: brake-fluid-exchange
+    name: "Exchange brake fluid"
+    system: brakes
+    components: [brake-fluid]
+  - id: battery-replacement
+    name: "Replace the 12-volt battery"
+    system: electrical
+    components: [battery]
+  - id: alternator-replacement
+    name: "Replace the alternator"
+    system: electrical
+    components: [alternator]
+  - id: starter-replacement
+    name: "Replace the starter motor"
+    system: electrical
+    components: [starter]
+  - id: spark-plugs
+    name: "Replace spark plugs"
+    system: electrical
+    components: [spark-plug]
+  - id: drive-belt-replacement
+    name: "Replace the accessory drive belt"
+    system: engine
+    components: [drive-belt]
+  - id: water-pump-replacement
+    name: "Replace the water pump"
+    system: engine
+    components: [water-pump]
+    related: [timing-belt-replacement]
+  - id: timing-belt-replacement
+    name: "Replace the timing belt"
+    system: engine
+    components: [timing-belt]
+    related: [water-pump-replacement]
+  - id: radiator-replacement
+    name: "Replace the radiator"
+    system: engine
+    components: [radiator]
+  - id: struts-front
+    name: "Replace front struts"
+    system: suspension
+    components: [shock-strut]
+  - id: shocks-rear
+    name: "Replace rear shock absorbers"
+    system: suspension
+    components: [shock-strut]
+  - id: wheel-bearing-front
+    name: "Replace a front wheel bearing"
+    system: suspension
+    components: [wheel-bearing]
+  - id: wheel-bearing-rear
+    name: "Replace a rear wheel bearing"
+    system: suspension
+    components: [wheel-bearing]
+  - id: tie-rod-end
+    name: "Replace an outer tie rod end"
+    system: steering
+    components: [tie-rod]
+  - id: ac-compressor-replacement
+    name: "Replace the A/C compressor"
+    system: hvac
+    components: [ac-compressor]
+  - id: fuel-pump-replacement
+    name: "Replace the fuel pump"
+    system: fuel-system
+    components: [fuel-pump]
+  - id: oxygen-sensor-replacement
+    name: "Replace an oxygen sensor"
+    system: exhaust-emissions
+    components: [oxygen-sensor]
