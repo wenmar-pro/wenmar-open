@@ -265,8 +265,9 @@ pub struct ManualRecord {
     pub provenance: Provenance,
 }
 
-/// The longest address accepted, as in `crates/open-server/links_build.rs`.
-pub const LONGEST_ADDRESS: usize = 300;
+/// The longest address accepted. A link is its own source, and a source is
+/// one line of at most [`LONGEST`] characters, so an address is held to that.
+pub const LONGEST_ADDRESS: usize = LONGEST;
 
 /// An address safe in an `href` and in a Markdown link: `https://`, a
 /// dot in the host, and no space, quote, bracket or parenthesis.
