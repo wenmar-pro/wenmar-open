@@ -72,6 +72,7 @@ fn the_description_lists_every_route_and_no_others() {
         "VehicleRecalls",
         "VinRecalls",
         "RecallCampaign",
+        "RecallCompletion",
         "RecallList",
         "Recall",
         "RecallLookup",

@@ -19,6 +19,7 @@ mod log;
 mod mcp;
 mod offline;
 mod openapi;
+mod recall_completion;
 mod search;
 mod search_runtime;
 mod search_speed;

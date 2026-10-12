@@ -338,6 +338,7 @@ async fn one_campaign_comes_with_every_vehicle_it_lists() {
             "mfr_campaign": "N192273510",
             "part_number": null,
             "units": 350371,
+            "completion": null,
             "do_not_drive": false,
             "park_outside": false,
             "notification": null,

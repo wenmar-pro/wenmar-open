@@ -611,6 +611,73 @@ pub async fn recalls_app_at(base_url: &str) -> TestApp {
     .await
 }
 
+// ----- recall remedy progress -----
+
+/// The `datasets` value of the recall fixture with the manufacturers'
+/// reports of remedy progress beside the recalls of both countries.
+pub const REPORT_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":7,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":2,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence – Canada."},"recall_reports":{"as_of":"2026-10-12","rows":4,"licence":"public-domain","attribution":""}}"#;
+
+/// Four reports. The columns are those of
+/// `wenmar_shopdata::schema::RECALL_REPORTS`, in order. `19V888000` has
+/// the figures of its real last report. The trailer's report gives no
+/// vehicles involved and no day filed. The last row has the number of the
+/// Canadian campaign of [`RECALL_INSERTS`]: reports are NHTSA's, so it
+/// must never be shown.
+pub const REPORT_INSERTS: &str = "
+INSERT INTO recall_report VALUES
+  ('19V500000', 'quarterly', 1, '2019-3', '2019-3', NULL, 0, 22, 0, 5),
+  ('19V888000', 'quarterly', 6, '2021-2', '2021-2', '2021-07-19', 350371, 333125, 551, 46),
+  ('2023101', 'quarterly', 1, '2023-2', '2023-2', '2023-07-01', 410, 400, 0, 0),
+  ('24V456000', 'annual', 2, '2025-2', '2026-1', '2026-04-13', 800, 536, 12, 3);
+";
+
+/// [`recall_rows`], then the report table and [`REPORT_INSERTS`].
+pub fn report_rows() -> String {
+    format!(
+        "{}{}{REPORT_INSERTS}",
+        recall_rows(),
+        wenmar_shopdata::schema::RECALL_REPORTS
+    )
+}
+
+/// The application over the small data file and a shop file holding the
+/// recalls of both countries and the reports of remedy progress.
+pub async fn reports_app() -> TestApp {
+    app_with_shop(REPORT_DATASETS, &report_rows()).await
+}
+
+/// [`reports_app`], saying its pages are at `base_url`, and the directory
+/// holding its two files under the names the command-line tool looks for.
+pub async fn reports_app_at(base_url: &str) -> (TestApp, TempDir) {
+    let fixture = data_file();
+    add_shop_file(
+        &fixture,
+        wenmar_shopdata::schema::SCHEMA_VERSION,
+        "2026.09",
+        REPORT_DATASETS,
+        &report_rows(),
+    );
+    let files = tempfile::tempdir().unwrap();
+    std::fs::copy(
+        fixture.path(),
+        files.path().join(wenmar_open_cli::env::DATA_FILE),
+    )
+    .unwrap();
+    std::fs::copy(
+        fixture.shop_path(),
+        files.path().join(wenmar_open_cli::env::SHOP_FILE),
+    )
+    .unwrap();
+    let shop = fixture.shop_path();
+    let base_url = base_url.to_owned();
+    let app = app_over(fixture, |config| {
+        config.shop_data = Some(shop);
+        config.base_url = base_url;
+    })
+    .await;
+    (app, files)
+}
+
 // ----- helpers for the pages -----
 
 /// `GET`s a page and reads its body as text.
