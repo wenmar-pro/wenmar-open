@@ -75,6 +75,9 @@ enum Command {
         /// The fetched nhtsa-investigations directory. Adds the investigations dataset.
         #[arg(long)]
         nhtsa_investigations: Option<PathBuf>,
+        /// The fetched nhtsa-recall-reports directory. Adds the recall_reports dataset.
+        #[arg(long)]
+        nhtsa_recall_reports: Option<PathBuf>,
     },
     /// Decode one VIN against a data file and print the JSON.
     Decode {
@@ -263,6 +266,7 @@ fn main() -> Result<()> {
             nhtsa_recalls,
             tc_recalls,
             nhtsa_investigations,
+            nhtsa_recall_reports,
         } => {
             let built_at = now();
             let data_version = data_version.unwrap_or_else(|| {
@@ -280,6 +284,7 @@ fn main() -> Result<()> {
                 nhtsa_recalls,
                 tc_recalls,
                 nhtsa_investigations,
+                nhtsa_recall_reports,
             };
             let summary = build_shop(&catalog, &out, &curated, &info, &inputs)?;
             println!(

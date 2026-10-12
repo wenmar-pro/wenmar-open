@@ -268,3 +268,38 @@ pub fn nhtsa_investigations_dir(scratch: &Scratch) -> PathBuf {
     }
     directory
 }
+
+/// A fetched `nhtsa-recall-reports` directory made from the fixture, under
+/// `scratch`: the two text files zipped under the names `open-data fetch`
+/// saves, with the CR LF line ends NHTSA writes, and the two layout files
+/// and `source.json` beside them.
+pub fn nhtsa_recall_reports_dir(scratch: &Scratch) -> PathBuf {
+    use std::io::Write;
+
+    let directory = scratch.path("sources/nhtsa-recall-reports");
+    std::fs::create_dir_all(&directory).unwrap();
+    for stem in ["FLAT_RCL_Qrtly_Rpts", "FLAT_RCL_Annual_Rpts"] {
+        let text =
+            std::fs::read_to_string(fixture("nhtsa-recall-reports").join(format!("{stem}.txt")))
+                .unwrap()
+                .replace('\n', "\r\n");
+        let file = std::fs::File::create(directory.join(format!("{stem}.zip"))).unwrap();
+        let mut archive = zip::ZipWriter::new(file);
+        archive
+            .start_file(
+                format!("{stem}.txt"),
+                zip::write::SimpleFileOptions::default(),
+            )
+            .unwrap();
+        archive.write_all(text.as_bytes()).unwrap();
+        archive.finish().unwrap();
+    }
+    for name in ["RCL_Qtrly_Rpts.txt", "RCL_Annual_Rpts.txt", "source.json"] {
+        std::fs::copy(
+            fixture("nhtsa-recall-reports").join(name),
+            directory.join(name),
+        )
+        .unwrap();
+    }
+    directory
+}

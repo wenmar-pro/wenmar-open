@@ -8,6 +8,7 @@ pub mod build;
 pub mod coverage;
 pub mod matcher;
 pub mod nhtsa_investigations;
+pub mod nhtsa_recall_reports;
 pub mod nhtsa_recalls;
 pub mod recalls;
 pub mod tc_recalls;
