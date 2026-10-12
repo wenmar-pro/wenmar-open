@@ -7,6 +7,7 @@ use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 use open_data::build::{BuildInfo, build};
 use open_data::catalog::curated::Curated;
+use open_data::shop::build::{ShopBuildInfo, ShopInputs, build_shop};
 use open_data::{catalog_parity, fetch, inspect, parity, sources};
 use wenmar_vehicles::sqlite::SqliteSource;
 use wenmar_vehicles::{Catalog, Scope};
@@ -45,6 +46,21 @@ enum Command {
         #[arg(long)]
         data_version: Option<String>,
         /// Directory holding catalog/makes.yaml, catalog/names.yaml and presets.yaml.
+        #[arg(long, default_value = "data")]
+        curated: PathBuf,
+    },
+    /// Build a shop file: the datasets matched against a data file's catalog.
+    BuildShop {
+        /// The core data file whose catalog the datasets are matched against.
+        #[arg(long)]
+        catalog: PathBuf,
+        /// The shop file to create.
+        #[arg(long)]
+        out: PathBuf,
+        /// Data version such as 2026.10.12. Defaults to today's date, UTC.
+        #[arg(long)]
+        data_version: Option<String>,
+        /// Directory holding the curated files, such as shop/models.yaml.
         #[arg(long, default_value = "data")]
         curated: PathBuf,
     },
@@ -210,6 +226,36 @@ fn main() -> Result<()> {
             }
             for entry in &summary.catalog.unmatched {
                 eprintln!("warning: nothing in vPIC matches {entry}");
+            }
+        }
+        Command::BuildShop {
+            catalog,
+            out,
+            data_version,
+            curated,
+        } => {
+            let built_at = now();
+            let data_version = data_version.unwrap_or_else(|| {
+                built_at
+                    .chars()
+                    .take(10)
+                    .collect::<String>()
+                    .replace('-', ".")
+            });
+            let info = ShopBuildInfo {
+                data_version,
+                built_at,
+            };
+            let summary = build_shop(&catalog, &out, &curated, &info, &ShopInputs::default())?;
+            println!(
+                "{}: shop data {}, matched against data {}, {} datasets",
+                out.display(),
+                summary.data_version,
+                summary.catalog_data_version,
+                summary.datasets.len()
+            );
+            for (dataset, entry) in summary.datasets.iter() {
+                println!("{dataset}: {} rows, as of {}", entry.rows, entry.as_of);
             }
         }
         Command::Decode { data, vin } => {

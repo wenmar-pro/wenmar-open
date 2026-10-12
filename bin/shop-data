@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Build the shop file from the newest data file in data/build.
+# Thin wrapper over `mise run shop-data`.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec mise run shop-data "$@"

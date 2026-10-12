@@ -66,6 +66,24 @@ rm -f "$out"
 cargo run --release -q -p open-data -- build --dump "$dump" --out "$out"
 '''
 
+[tasks.shop-data]
+description = "Build the shop file from the newest data file in data/build"
+run = '''
+set -eu
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+if [ -z "$data" ]; then
+  echo "No data file in data/build. Run: mise run data" >&2
+  exit 1
+fi
+version=$(date -u +%Y.%m.%d)
+# In a directory of its own: everything that looks for the newest data file
+# reads data/build/wenmar-open-*.sqlite3, and a shop file there would match.
+mkdir -p data/build/shop
+out="data/build/shop/wenmar-open-shop-$version.sqlite3"
+rm -f "$out"
+cargo run --release -q -p open-data -- build-shop --catalog "$data" --out "$out" --data-version "$version"
+'''
+
 [tasks.parity]
 description = "Compare decodes with NHTSA's recorded answers"
 run = '''
