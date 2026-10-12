@@ -10,10 +10,14 @@ import type {
   MakesQuery,
   Meta,
   Model,
+  ModelYears,
   ModelsQuery,
+  Overview,
   RecallCampaign,
   RecallList,
   RecallSearchQuery,
+  RecentRecalls,
+  RecentRecallsQuery,
   SearchQuery,
   Submodel,
   SubmodelsQuery,
@@ -76,6 +80,14 @@ export interface DecodeOptions extends RequestOptions {
   year?: number;
 }
 
+export interface BatchOptions extends RequestOptions {
+  /**
+   * `"recalls"` adds to each decode the number of recall campaigns that may
+   * apply to the model year it reaches, as `recalls`.
+   */
+  include?: "recalls";
+}
+
 type QueryValue = string | number | undefined;
 
 function queryString(query: object | undefined): string {
@@ -133,7 +145,7 @@ export class WenmarOpen {
    * decode, or the error a single request for that VIN would have given.
    * Tell them apart with `isBatchError`.
    */
-  async decodeVins(vins: readonly string[], options: RequestOptions = {}): Promise<BatchItem[]> {
+  async decodeVins(vins: readonly string[], options: BatchOptions = {}): Promise<BatchItem[]> {
     if (vins.length > MAX_BATCH) {
       throw new WenmarOpenError({
         code: "validation_failed",
@@ -141,7 +153,8 @@ export class WenmarOpen {
         details: { field: "vins", max: MAX_BATCH, received: vins.length },
       });
     }
-    return this.#request("POST", "/v1/vin/batch", { vins }, options);
+    const path = `/v1/vin/batch${queryString({ include: options.include })}`;
+    return this.#request("POST", path, { vins }, options);
   }
 
   /** Model years, newest first. */
@@ -225,6 +238,43 @@ export class WenmarOpen {
   /** Recall campaigns, newest first, narrowed by what is given. */
   async searchRecalls(query: RecallSearchQuery = {}, options: RequestOptions = {}): Promise<RecallList> {
     return this.#request("GET", `/v1/recalls${queryString(query)}`, undefined, options);
+  }
+
+  /**
+   * Everything held for a model year in one answer, by its id such as
+   * `2018_ford_f-150`. A block the server has no data for is `null`.
+   * `recalls` counts the campaigns that may apply to the year, make and
+   * model: it is not a lookup by VIN.
+   */
+  async overview(id: string, options: RequestOptions = {}): Promise<Overview> {
+    return this.#request("GET", `/v1/vehicles/${segment("id", id)}/overview`, undefined, options);
+  }
+
+  /**
+   * The overview of the model year a VIN decodes to, with `decode`. The VIN
+   * only names the model year: no public data says a recall applies to one
+   * VIN.
+   */
+  async vinOverview(vin: string, options: DecodeOptions = {}): Promise<Overview> {
+    const path = `/v1/vin/${segment("vin", vin)}/overview${queryString({ year: options.year })}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /**
+   * Every model year of one model, newest first, each with its vehicle id
+   * and the number of recall campaigns that may apply to it.
+   */
+  async modelYears(make: string, model: string, options: RequestOptions = {}): Promise<ModelYears> {
+    const path = `/v1/models/${segment("make", make)}/${segment("model", model)}`;
+    return this.#request("GET", path, undefined, options);
+  }
+
+  /**
+   * Recall campaigns reported on or after `since` (a day such as
+   * `2026-09-01`), newest first, each with the vehicles it may apply to.
+   */
+  async recentRecalls(query: RecentRecallsQuery, options: RequestOptions = {}): Promise<RecentRecalls> {
+    return this.#request("GET", `/v1/recalls/recent${queryString(query)}`, undefined, options);
   }
 
   /** The data version, the vPIC release it came from, and the build time. */

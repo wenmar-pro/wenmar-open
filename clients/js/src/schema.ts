@@ -36,6 +36,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/models/{make}/{model}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every model year of one model, newest first, each with its vehicle id
+         *     and the number of recall campaigns that may apply to it.
+         */
+        get: operations["model_years"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/recalls": {
         parameters: {
             query?: never;
@@ -50,6 +70,29 @@ export interface paths {
          *     catalog does not have gives an empty list.
          */
         get: operations["recall_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/recalls/recent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recall campaigns reported on or after a day, newest first, each with
+         *     the vehicles it lists.
+         * @description For an application that keeps a list of vehicles: ask once a day with
+         *     the day of the last answer, and compare `vehicles[].vehicle_id` with
+         *     its own. Each campaign may apply to the vehicles it lists.
+         */
+        get: operations["recent_recalls"];
         put?: never;
         post?: never;
         delete?: never;
@@ -217,6 +260,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vehicles/{id}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Everything held for a model year, in one answer.
+         * @description A block this server has no data for is `null`. The `recalls` block
+         *     counts the campaigns that may apply to the year, make and model; it is
+         *     not a lookup by VIN.
+         */
+        get: operations["vehicle_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vehicles/{id}/recalls": {
         parameters: {
             query?: never;
@@ -252,6 +317,11 @@ export interface paths {
          * Decode up to 50 VINs.
          * @description The answer is an array in the order asked. Each item is a decode, or the
          *     error object a single request for that VIN would have returned.
+         *
+         *     With `?include=recalls`, each decode that reaches a model year of the
+         *     catalog also carries `recalls`: how many campaigns may apply to that
+         *     model year. It is a count for the year, make and model, never a lookup
+         *     by VIN.
          */
         post: operations["batch"];
         delete?: never;
@@ -274,6 +344,29 @@ export interface paths {
          *     warning says so.
          */
         get: operations["decode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vin/{vin}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Everything held for the model year a VIN decodes to, in one answer.
+         * @description The VIN only names the model year: `recalls` counts the campaigns that
+         *     may apply to it, and no public data says a recall applies to one VIN. A
+         *     VIN that decodes to no vehicle in the catalog gets `vehicle: null`,
+         *     every block `null` and the warning `no_catalog_vehicle`, not an error.
+         */
+        get: operations["vin_overview"];
         put?: never;
         post?: never;
         delete?: never;
@@ -547,6 +640,131 @@ export interface components {
             /** Format: int32 */
             year_to: number;
         };
+        /** @description One model year of a model. */
+        ModelYearSummary: {
+            /**
+             * Format: int32
+             * @description How many service bulletins are on file. `null` until this server
+             *     holds bulletins.
+             */
+            bulletins?: number | null;
+            /**
+             * @description The vehicle id of the year, make and model.
+             * @example 2018_ford_f-150
+             */
+            id: string;
+            recalls?: null | components["schemas"]["RecallCount"];
+            /**
+             * @description The model year's page on this site.
+             * @example https://open.wenmarpro.com/makes/ford/f-150/2018
+             */
+            url: string;
+            /** Format: int32 */
+            year: number;
+        };
+        /** @description Every model year of one model, newest first. */
+        ModelYears: {
+            as_of: components["schemas"]["RecallAsOf"];
+            attribution: string[];
+            lookup: components["schemas"]["RecallLookup"];
+            make: components["schemas"]["NamedId"];
+            /**
+             * @description Always `true`: a recall count is of campaigns that may apply to the
+             *     model year.
+             */
+            may_apply: boolean;
+            model: components["schemas"]["NamedId"];
+            years: components["schemas"]["ModelYearSummary"][];
+        };
+        /** @description A make or a model: its id form and its name. */
+        NamedId: {
+            /** @example ford */
+            id: string;
+            /** @example Ford */
+            name: string;
+        };
+        /**
+         * @description Everything held for one model year, in one answer.
+         *
+         *     A block this server has no data for is `null`: `specs`, `fuel`,
+         *     `fluids`, `tires`, `labor` and `bulletins` are `null` in every answer
+         *     today, and each is filled when its data arrives. A client must accept
+         *     an object there.
+         */
+        Overview: {
+            /** @description The credit lines the data's licences ask for. */
+            attribution: string[];
+            bulletins?: Record<string, unknown> | null;
+            decode?: null | components["schemas"]["OverviewDecode"];
+            fluids?: Record<string, unknown> | null;
+            fuel?: Record<string, unknown> | null;
+            labor?: Record<string, unknown> | null;
+            links: components["schemas"]["OverviewLinks"];
+            recalls?: null | components["schemas"]["OverviewRecalls"];
+            specs?: Record<string, unknown> | null;
+            tires?: Record<string, unknown> | null;
+            vehicle?: null | components["schemas"]["RecallVehicle"];
+            warnings: components["schemas"]["Warning"][];
+        };
+        /** @description What the VIN of an overview decoded to. */
+        OverviewDecode: {
+            /**
+             * @description The engine in short form, such as `2.0L`, when the VIN names one.
+             * @example 2.0L
+             */
+            engine?: string | null;
+            /** @description Whether the VIN settles on one engine of the catalog. */
+            engine_settled: boolean;
+            /**
+             * @description The most specific catalog entry the VIN reaches.
+             * @example 2023_hyundai_kona_se
+             */
+            entry_id?: string | null;
+            make?: string | null;
+            model?: string | null;
+            trim?: string | null;
+            /** @description Whether the check digit, position 9, is right. */
+            valid: boolean;
+            /** @example KM8K2CAB4PU001140 */
+            vin: string;
+            /** Format: int32 */
+            year?: number | null;
+        };
+        /** @description Where to read more. */
+        OverviewLinks: {
+            maker?: null | components["schemas"]["MakeLinks"];
+            /**
+             * @description The model year's page on this site. `null` when the VIN reaches no
+             *     model year of the catalog.
+             * @example https://open.wenmarpro.com/makes/ford/f-150/2018
+             */
+            page?: string | null;
+        };
+        /** @description The recalls of a model year, in brief. */
+        OverviewRecalls: {
+            as_of: components["schemas"]["RecallAsOf"];
+            count: components["schemas"]["RecallCount"];
+            /** @description Whether any campaign carries NHTSA's advisory not to drive. */
+            do_not_drive: boolean;
+            lookup: components["schemas"]["RecallLookup"];
+            /**
+             * @description Always `true`. A campaign lists a year, make and model; only the
+             *     manufacturer can say whether one vehicle is in it.
+             */
+            may_apply: boolean;
+            /**
+             * @description The three newest campaigns. The whole list is at
+             *     `/v1/vehicles/{id}/recalls`.
+             */
+            newest: components["schemas"]["Recall"][];
+            /** @description Whether any campaign carries NHTSA's advisory to park outside. */
+            park_outside: boolean;
+            /**
+             * @description The model year's recall page on this site.
+             * @example https://open.wenmarpro.com/makes/ford/f-150/2018/recalls
+             */
+            url: string;
+        };
         /** @description Where the vehicle was built. `code` is position 11 of the VIN. */
         Plant: {
             city?: string | null;
@@ -704,6 +922,23 @@ export interface components {
             /** Format: int32 */
             year?: number | null;
         };
+        /**
+         * @description How many recall campaigns list a model year, for each country. `null`
+         *     for a country this server holds no recalls for; `0` when it holds them
+         *     and none lists the model year.
+         */
+        RecallCount: {
+            /**
+             * Format: int32
+             * @example 5
+             */
+            ca?: number | null;
+            /**
+             * Format: int32
+             * @example 7
+             */
+            us?: number | null;
+        };
         /** @description What a VIN decoded to, as far as recalls need it. */
         RecallDecode: {
             make?: string | null;
@@ -762,6 +997,36 @@ export interface components {
             model: string;
             /** Format: int32 */
             year: number;
+        };
+        /** @description One campaign of the recent list, with the vehicles it lists. */
+        RecentRecall: {
+            recall: components["schemas"]["Recall"];
+            /**
+             * @description The vehicles the campaign lists: at most 200 of them. Every one is
+             *     at `/v1/recalls/{source}/{campaign}`.
+             */
+            vehicles: components["schemas"]["RecallCampaignVehicle"][];
+            /**
+             * Format: int32
+             * @description How many vehicles the campaign lists in all.
+             */
+            vehicles_listed: number;
+        };
+        /** @description Campaigns reported on or after a day, newest first. */
+        RecentRecalls: {
+            as_of: components["schemas"]["RecallAsOf"];
+            attribution: string[];
+            lookup: components["schemas"]["RecallLookup"];
+            /** @description Always `true`: a campaign may apply to the vehicles it lists. */
+            may_apply: boolean;
+            /** @description Hand it back as `cursor` for the next page. `null` on the last. */
+            next_cursor?: string | null;
+            recalls: components["schemas"]["RecentRecall"][];
+            /**
+             * @description The day asked for.
+             * @example 2026-09-01
+             */
+            since: string;
         };
         /**
          * @description Safety equipment as the manufacturer reported it: `Standard`, `Optional`,
@@ -856,6 +1121,7 @@ export interface components {
             /** @example Kona */
             model?: string | null;
             plant: components["schemas"]["Plant"];
+            recalls?: null | components["schemas"]["VinRecallCount"];
             safety?: null | components["schemas"]["Safety"];
             /** Format: int32 */
             seat_rows?: number | null;
@@ -891,6 +1157,23 @@ export interface components {
              * @example 2023
              */
             year?: number | null;
+        };
+        /**
+         * @description What a batch decode says of recalls when `include=recalls` is asked:
+         *     how many campaigns may apply to the model year the VIN decodes to.
+         */
+        VinRecallCount: {
+            count: components["schemas"]["RecallCount"];
+            /** @description Whether any of them carries NHTSA's advisory not to drive. */
+            do_not_drive: boolean;
+            lookup: components["schemas"]["RecallLookup"];
+            /**
+             * @description Always `true`. The count is for the year, make and model, not for
+             *     the VIN: check the VIN at the addresses in `lookup`.
+             */
+            may_apply: boolean;
+            /** @description Whether any of them carries NHTSA's advisory to park outside. */
+            park_outside: boolean;
         };
         /** @description Recalls that may apply to the year, make and model a VIN decodes to. */
         VinRecalls: {
@@ -986,6 +1269,46 @@ export interface operations {
             };
         };
     };
+    model_years: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description A make's id, name or alias.
+                 * @example ford
+                 */
+                make: string;
+                /**
+                 * @description A model's id or name.
+                 * @example f-150
+                 */
+                model: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The model years. `recalls` is `null` in each when this server holds no recalls. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelYears"];
+                };
+            };
+            /** @description `not_found`: no model has that id. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     recall_search: {
         parameters: {
             query?: {
@@ -1042,6 +1365,63 @@ export interface operations {
                 };
             };
             /** @description `validation_failed`: `country`, `year`, `limit` or `cursor` is wrong, or `model` was given without `make`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `dataset_unavailable`: this server holds no recalls, or none for the country asked for. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    recent_recalls: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Only campaigns reported on or after this day, as `2026-09-01`.
+                 *     Required.
+                 * @example 2026-09-01
+                 */
+                since?: string;
+                /** @description `us` or `ca`. Left out: both, where the server holds both. */
+                country?: string;
+                /**
+                 * @description Only campaigns that list a vehicle of this make: a name, an alias
+                 *     or an id.
+                 * @example ford
+                 */
+                make?: string;
+                /** @description At most this many, up to 100. The default is 25. */
+                limit?: number;
+                /** @description `next_cursor` from the page before, unchanged. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page of campaigns. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecentRecalls"];
+                };
+            };
+            /** @description `validation_failed`: `since` is missing or is not a day, or `country`, `limit` or `cursor` is wrong. */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -1434,6 +1814,41 @@ export interface operations {
             };
         };
     };
+    vehicle_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description A vehicle id. The overview is of the year, make and model; a submodel or an engine in the id is set aside.
+                 * @example 2018_ford_f-150
+                 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The overview. `decode` is `null`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Overview"];
+                };
+            };
+            /** @description `not_found`: no vehicle has that id. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     vehicle_recalls: {
         parameters: {
             query?: {
@@ -1486,7 +1901,14 @@ export interface operations {
     };
     batch: {
         parameters: {
-            query?: never;
+            query?: {
+                /**
+                 * @description `recalls` adds to each decode the number of recall campaigns that
+                 *     may apply to the model year it reaches. Left out: nothing is added.
+                 * @example recalls
+                 */
+                include?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1506,8 +1928,17 @@ export interface operations {
                     "application/json": components["schemas"]["BatchItem"][];
                 };
             };
-            /** @description `validation_failed`: the body is not `{ "vins": [...] }` or lists more than 50. */
+            /** @description `validation_failed`: the body is not `{ "vins": [...] }` or lists more than 50, or `include` is not `recalls`. */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `dataset_unavailable`: `include=recalls` was asked of a server that holds no recalls. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1585,6 +2016,56 @@ export interface operations {
             };
             /** @description `rate_limited`: over 600 requests a minute. See `Retry-After`. */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    vin_overview: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Use this model year instead of working it out from the VIN.
+                 * @example 2023
+                 */
+                year?: number;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description A 17-character VIN.
+                 * @example KM8K2CAB4PU001140
+                 */
+                vin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The overview, with `decode`. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Overview"];
+                };
+            };
+            /** @description `invalid_vin`, or `validation_failed` for `year`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `not_found`: no manufacturer is registered for the first three characters. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

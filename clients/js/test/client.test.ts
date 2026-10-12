@@ -105,6 +105,26 @@ const calls: Record<string, { call: () => Promise<unknown>; method: string; url:
     method: "GET",
     url: "/v1/recalls?make=ford&year=2018&q=tailgate&limit=5",
   },
+  vehicle_overview: {
+    call: () => client.overview("2018_ford_f-150"),
+    method: "GET",
+    url: "/v1/vehicles/2018_ford_f-150/overview",
+  },
+  vin_overview: {
+    call: () => client.vinOverview(KONA, { year: 2023 }),
+    method: "GET",
+    url: `/v1/vin/${KONA}/overview?year=2023`,
+  },
+  model_years: {
+    call: () => client.modelYears("ford", "f-150"),
+    method: "GET",
+    url: "/v1/models/ford/f-150",
+  },
+  recent_recalls: {
+    call: () => client.recentRecalls({ since: "2026-09-01", country: "ca", make: "ford" }),
+    method: "GET",
+    url: "/v1/recalls/recent?since=2026-09-01&country=ca&make=ford",
+  },
 };
 
 test("there is a method for every operation of the description, and no other", () => {
@@ -145,6 +165,16 @@ test("a batch is sent as { vins } in JSON and keeps its order", async () => {
   assert.equal(isBatchError(first), false);
   assert.ok(isBatchError(second));
   assert.equal(second.error.code, "invalid_vin");
+});
+
+test("a batch asks for the recall count only when told to", async () => {
+  api.next({ body: [exampleResponse("decode")] });
+  await client.decodeVins([KONA]);
+  assert.equal(api.last.url, "/v1/vin/batch");
+  api.next({ body: [exampleResponse("decode")] });
+  await client.decodeVins([KONA], { include: "recalls" });
+  assert.equal(api.last.url, "/v1/vin/batch?include=recalls");
+  assert.deepEqual(JSON.parse(api.last.body), { vins: [KONA] });
 });
 
 test("a batch over the limit is refused without a request", async () => {

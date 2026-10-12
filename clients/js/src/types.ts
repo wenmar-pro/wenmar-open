@@ -33,6 +33,21 @@ export type RecallList = Schemas["RecallList"];
 export type Recall = Schemas["Recall"];
 /** Where one vehicle can be checked for recalls by VIN. */
 export type RecallLookup = Schemas["RecallLookup"];
+/**
+ * Everything held for one model year. A block the server has no data for is
+ * `null`; `recalls` counts campaigns that may apply, never a lookup by VIN.
+ */
+export type Overview = Schemas["Overview"];
+/** The recalls of a model year, in brief. */
+export type OverviewRecalls = Schemas["OverviewRecalls"];
+/** How many recall campaigns list a model year, for each country. */
+export type RecallCount = Schemas["RecallCount"];
+/** Every model year of one model, newest first. */
+export type ModelYears = Schemas["ModelYears"];
+/** Campaigns reported on or after a day, each with the vehicles it lists. */
+export type RecentRecalls = Schemas["RecentRecalls"];
+/** What a batch decode says of recalls when `include: "recalls"` is asked. */
+export type VinRecallCount = Schemas["VinRecallCount"];
 /** The body of every error the API sends. */
 export type ErrorBody = Schemas["ErrorBody"];
 /** One answer of a batch: a decode, or the error for that VIN. */
@@ -49,3 +64,4 @@ export type SearchQuery = Query<"search">;
 export type VehicleRecallsQuery = Query<"vehicle_recalls">;
 export type VinRecallsQuery = Query<"vin_recalls">;
 export type RecallSearchQuery = Query<"recall_search">;
+export type RecentRecallsQuery = Query<"recent_recalls">;
