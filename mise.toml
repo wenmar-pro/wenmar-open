@@ -101,7 +101,7 @@ cargo run --release -q -p open-data -- build-shop --catalog "$data" --out "$out"
 '''
 
 [tasks.shop-pull]
-description = "Fetch the newest shop data release that pairs with DATA_VERSION in config/deploy.yml, and name it there"
+description = "Fetch the full file of the newest shop data release that pairs with DATA_VERSION in config/deploy.yml, and name it there"
 run = "node scripts/shop-pull.mjs"
 
 [tasks.parity]
@@ -133,6 +133,9 @@ description = "Check how much of the newest shop file matched the catalog"
 run = '''
 set -eu
 data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+# The full file. The pattern does not reach into data/build/shop/offline/,
+# where the copy without bulletins is: data/coverage.yaml has a minimum for
+# bulletins, which that copy would fail.
 shop=$(ls data/build/shop/wenmar-open-shop-*.sqlite3 2>/dev/null | sort | tail -1)
 if [ -z "$data" ] || [ -z "$shop" ]; then
   echo "No data file or no shop file. Run: mise run data, then mise run shop-data" >&2
@@ -143,7 +146,7 @@ cargo run --release -q -p open-data -- coverage --shop "$shop" --catalog "$data"
 
 
 [tasks.serve]
-description = "Run the website and the API on http://localhost:3000 with the newest data file in data/build, and the newest shop file in data/build/shop if there is one"
+description = "Run the website and the API on http://localhost:3000 with the newest data file in data/build, and the newest full shop file in data/build/shop if there is one"
 run = '''
 set -eu
 data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
@@ -154,6 +157,9 @@ fi
 # The newest shop file, when there is one, so the recall pages can be looked
 # at. It must have been built against the data file above, or the server says
 # so and stops: build one with `mise run shop-data`.
+# It is the full file, with bulletins, as the hosted server has. The pattern
+# does not reach into data/build/shop/offline/, where the copy for the
+# command-line tool and the npm package is.
 shop=$(ls data/build/shop/wenmar-open-shop-*.sqlite3 2>/dev/null | sort -V | tail -1)
 if [ -n "$shop" ]; then
   export OPEN_SHOP_DATA="$shop"

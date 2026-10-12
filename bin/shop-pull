@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Fetch the shop data release the server image will be built around.
+# Fetch the shop data release the server image will be built around: its
+# full file, the one that also holds bulletins.
 # Thin wrapper over `mise run shop-pull`.
 set -euo pipefail
 cd "$(dirname "$0")/.."

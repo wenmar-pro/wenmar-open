@@ -476,3 +476,31 @@ test("the release workflow builds two files and publishes each under its own nam
   assert.ok(!/--pattern "[^"]*full/.test(npm));
   assert.ok(!npm.includes("wenmar-open-shop-full"));
 });
+
+// ----- where each file is, in this repository -----
+
+test("nothing that picks the newest shop file reaches into data/build/shop/offline", () => {
+  const top = join(scripts, "..");
+  const mise = readFileSync(join(top, "mise.toml"), "utf8");
+  // `mise run coverage` and `mise run serve` each pick the newest shop file.
+  const picks = mise.split("\n").filter((line) => /^shop=\$\(ls data\/build\/shop\//.test(line));
+  assert.ok(picks.length >= 2, picks.join("\n"));
+  // The newest file of all is an offline copy, and is not the one picked.
+  const root = join(directory, "picks");
+  mkdirSync(join(root, "data/build/shop/offline"), { recursive: true });
+  for (const name of ["wenmar-open-shop-2026.10.05.sqlite3", "wenmar-open-shop-2026.10.12.sqlite3", "offline/wenmar-open-shop-2026.10.12.sqlite3", "offline/wenmar-open-shop-2026.10.19.sqlite3"]) {
+    writeFileSync(join(root, "data/build/shop", name), "");
+  }
+  for (const pick of picks) {
+    const done = spawnSync("bash", ["-c", `${pick}\nprintf '%s' "$shop"`], { cwd: root, encoding: "utf8" });
+    assert.equal(done.stdout, "data/build/shop/wenmar-open-shop-2026.10.12.sqlite3", pick);
+  }
+  // `mise run shop-data` writes the full file there and the offline copy below it.
+  assert.ok(mise.includes('out="data/build/shop/wenmar-open-shop-$version.sqlite3"'));
+  assert.ok(mise.includes('offline="data/build/shop/offline/wenmar-open-shop-$version.sqlite3"'));
+  // The image is built from the one directory: `*` in .dockerignore does not cross a `/`.
+  const ignored = readFileSync(join(top, ".dockerignore"), "utf8").split("\n").filter((line) => line.includes("data/build/shop"));
+  assert.deepEqual(ignored, ["!data/build/shop/wenmar-open-shop-*.sqlite3"]);
+  const copied = readFileSync(join(top, "Dockerfile"), "utf8").split("\n").filter((line) => line.startsWith("COPY") && line.includes("data/build/shop"));
+  assert.deepEqual(copied, ["COPY --chmod=0444 data/build/shop/wenmar-open-shop-${SHOP_VERSION}.sqlite3 /app/data/wenmar-open-shop.sqlite3"]);
+});

@@ -55,5 +55,6 @@ builder:
     # The shop data release baked into the image. data/build/shop must hold
     # wenmar-open-shop-<SHOP_VERSION>.sqlite3, built against the data file
     # above. bin/shop-pull fetches the newest release that is, and writes
-    # this line.
+    # this line. It takes the release's full file, the one that also holds
+    # bulletins, and stores it under this name.
     SHOP_VERSION: "2026.10.12"
