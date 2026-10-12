@@ -5,4 +5,5 @@
 //! (rows to tables).
 
 pub mod build;
+pub mod coverage;
 pub mod matcher;

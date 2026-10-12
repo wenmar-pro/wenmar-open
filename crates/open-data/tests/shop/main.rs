@@ -2,4 +2,5 @@
 
 mod build;
 mod common;
+mod coverage;
 mod matcher;

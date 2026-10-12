@@ -1,0 +1,9 @@
+# Minimum share of each dataset's vehicle rows that must match a catalog
+# model, in percent. Measured over rows whose make is a light make in the
+# catalog (cars, MPVs and trucks) and whose model year is 2000 or later.
+#
+# Check:   open-data coverage --shop <shop file> --catalog <data file>
+# Record:  the same command with --write, after reading the report.
+# Raise a figure by hand when matching improves; never lower one to make a
+# build pass without saying why in the commit.
+datasets: {}
