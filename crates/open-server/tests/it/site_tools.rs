@@ -703,6 +703,24 @@ async fn the_calculators_are_reached_from_the_home_page_the_sitemap_and_llms_txt
     {
         assert!(all.contains(line), "missing: {line}");
     }
+    // The battery calculator is in each of the same places.
+    assert!(home.contains(
+        r#"<li><a href="/tools/battery-state-of-charge">Battery state of charge from resting voltage</a></li>"#
+    ));
+    assert!(sitemap.contains("<loc>https://open.example/tools/battery-state-of-charge</loc>"));
+    assert!(!sitemap.contains("battery-state-of-charge?"));
+    assert!(text.contains(
+        "- [Battery state of charge from resting voltage](https://open.example/tools/battery-state-of-charge.md): Reads a 12 V battery"
+    ));
+    let (_, battery_soc) = page(&app, "/tools/battery-state-of-charge.md").await;
+    let (_, all) = page(&app, "/llms-full.txt").await;
+    assert!(all.contains("\n## Battery state of charge from resting voltage\n"));
+    for line in battery_soc
+        .lines()
+        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+    {
+        assert!(all.contains(line), "missing: {line}");
+    }
     // llms-full.txt holds the calculator's Markdown, line for line.
     let (_, full) = page(&app, "/llms-full.txt").await;
     assert!(full.contains("\n## Parts markup matrix calculator\n"));

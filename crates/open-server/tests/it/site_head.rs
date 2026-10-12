@@ -260,6 +260,10 @@ async fn titles_and_descriptions_are_for_what_people_search_and_are_unique() {
             "Tire size comparison calculator - Wenmar Open",
         ),
         (
+            "/tools/battery-state-of-charge",
+            "Battery state of charge from resting voltage - Wenmar Open",
+        ),
+        (
             "/tools/refrigerant-pt",
             "R-134a and R-1234yf pressure-temperature chart - Wenmar Open",
         ),

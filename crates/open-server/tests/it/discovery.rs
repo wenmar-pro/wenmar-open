@@ -113,6 +113,7 @@ async fn llms_full_txt_is_the_pages_themselves() {
         "/tools/labor-rate.md",
         "/tools/tire-size.md",
         "/tools/refrigerant-pt.md",
+        "/tools/battery-state-of-charge.md",
         "/data.md",
         "/about.md",
     ] {

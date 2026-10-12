@@ -247,6 +247,7 @@ mod tests {
             include_str!("../../templates/labor_rate.html"),
             include_str!("../../templates/tire_size.html"),
             include_str!("../../templates/refrigerant_pt.html"),
+            include_str!("../../templates/battery_soc.html"),
         ];
         let uses: usize = templates
             .iter()

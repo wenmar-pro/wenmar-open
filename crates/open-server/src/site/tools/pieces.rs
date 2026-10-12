@@ -276,6 +276,18 @@ mod tests {
                 "refrigerant_pt/doc.rs",
                 include_str!("refrigerant_pt/doc.rs"),
             ),
+            (
+                "battery_soc.html",
+                include_str!("../../../templates/battery_soc.html"),
+            ),
+            ("battery_soc/mod.rs", include_str!("battery_soc/mod.rs")),
+            ("battery_soc/data.rs", include_str!("battery_soc/data.rs")),
+            ("battery_soc/form.rs", include_str!("battery_soc/form.rs")),
+            (
+                "battery_soc/result.rs",
+                include_str!("battery_soc/result.rs"),
+            ),
+            ("battery_soc/doc.rs", include_str!("battery_soc/doc.rs")),
         ];
         for (name, text) in files {
             let code = text.split("#[cfg(test)]").next().unwrap();

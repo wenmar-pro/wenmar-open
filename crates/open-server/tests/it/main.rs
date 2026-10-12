@@ -22,6 +22,7 @@ mod serve;
 mod shop;
 mod site;
 mod site_assets;
+mod site_battery_soc;
 mod site_canada_invoice_tax;
 mod site_catalog;
 mod site_design;
