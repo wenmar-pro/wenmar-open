@@ -740,6 +740,18 @@ test("an overview has the crash test ratings when the shop file holds them", asy
   assert.equal((await offline().overview("2023_hyundai_kona")).safety, null);
 });
 
+test("what owners report comes from the shop file, and an unknown id is not_found", async () => {
+  const { client } = withShop();
+  const complaints = await client.complaints("2023_hyundai_kona");
+  assert.equal(complaints.vehicle.id, "2023_hyundai_kona");
+  assert.equal(complaints.as_of, "2026-10-11");
+  assert.equal(complaints.complaints, 60);
+  assert.equal((await failure(client.complaints("2019_honda_nothing"))).code, "not_found");
+  const error = await failure(offline().complaints("2023_hyundai_kona"));
+  assert.equal(error.code, "dataset_unavailable");
+  assert.deepEqual(error.details, { dataset: "complaints" });
+});
+
 test("close closes both stores", () => {
   const closed: string[] = [];
   const client = new WenmarOpenOffline({

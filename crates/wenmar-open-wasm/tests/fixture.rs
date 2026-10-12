@@ -78,6 +78,7 @@ fn the_fixtures_of_the_npm_package_are_up_to_date() {
         .into_iter()
         .chain(common::safety_cases())
         .chain(common::facts_cases())
+        .chain(common::complaints_cases())
         .chain(common::overview_cases())
         .map(|(name, op, args)| {
             let run = common::run_with_shop(&mut engine, &connection, &shop, op, args.clone());

@@ -47,6 +47,7 @@ export type {
   TireFitment,
   VehicleFluids,
   VehicleFuel,
+  VehicleComplaints,
   VehicleFuelQuery,
   VehicleRecalls,
   VehicleRecallsQuery,

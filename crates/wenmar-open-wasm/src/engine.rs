@@ -253,6 +253,18 @@ impl Engine {
                 };
                 ops::safety(&answers, args)
             }
+            "complaints" => {
+                let Some(shop) = &self.shop else {
+                    return Err(ops::no_complaints());
+                };
+                let answers = ops::RecallAnswers {
+                    shop,
+                    catalog,
+                    core: &self.replay,
+                    base: SITE,
+                };
+                ops::complaints(&answers, args)
+            }
             _ if ops::topic_of(op).is_some() => {
                 let (topic, by_vin) = ops::topic_of(op).unwrap_or(("fuel", false));
                 let Some(shop) = &self.shop else {

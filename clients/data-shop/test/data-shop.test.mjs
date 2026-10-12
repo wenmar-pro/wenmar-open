@@ -90,7 +90,7 @@ test("prepare writes the package: the file, its versions, and the one data packa
   assert.equal(built.catalogDataVersion, "2026.09");
   assert.equal(built.schemaVersion, "1");
   assert.equal(built.builtAt, "2026-10-12 06:00:00");
-  assert.deepEqual(Object.keys(built.datasets), ["recalls_us", "recalls_ca", "ratings", "fuel_us", "fuel_ca", "specs", "oil_grade", "fluids", "tires"]);
+  assert.deepEqual(Object.keys(built.datasets), ["recalls_us", "recalls_ca", "ratings", "fuel_us", "fuel_ca", "specs", "oil_grade", "fluids", "tires", "complaints"]);
   assert.equal(built.datasets.recalls_ca.licence, "ogl-canada");
   // The file in the package is the file that was given.
   assert.deepEqual(readFileSync(built.path), readFileSync(shop));

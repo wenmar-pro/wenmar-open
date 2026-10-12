@@ -128,6 +128,7 @@ export type Client = Pick<
   | "recall"
   | "searchRecalls"
   | "safety"
+  | "complaints"
   | "fuel"
   | "vinFuel"
   | "specs"
@@ -178,6 +179,8 @@ export function ask(client: Client, { op, args }: Case): Promise<unknown> {
       return client.searchRecalls(query);
     case "safety":
       return client.safety(String(args["id"]));
+    case "complaints":
+      return client.complaints(String(args["id"]));
     case "fuel_vehicle":
       return client.fuel(String(args["id"]), args["country"] === undefined ? {} : { country: String(args["country"]) });
     case "fuel_vin":

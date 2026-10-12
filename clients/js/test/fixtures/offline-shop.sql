@@ -7,7 +7,7 @@ INSERT INTO meta VALUES
   ('data_version', '2026.10.12'),
   ('catalog_data_version', '2026.09'),
   ('built_at', '2026-10-12 06:00:00'),
-  ('datasets', '{"recalls_us":{"as_of":"2026-10-11","rows":3,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."},"ratings":{"as_of":"2026-08-07","rows":3,"licence":"public-domain","attribution":""},"fuel_us":{"as_of":"2026-09-29","rows":3,"licence":"public-domain","attribution":""},"fuel_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."},"specs":{"as_of":"2026-09-29","rows":3,"licence":"public-domain","attribution":""},"oil_grade":{"as_of":"2026-09-29","rows":2,"licence":"public-domain","attribution":""},"fluids":{"as_of":"2026-10-09","rows":3,"licence":"mit","attribution":""},"tires":{"as_of":"2026-10-09","rows":1,"licence":"mit","attribution":""}}');
+  ('datasets', '{"recalls_us":{"as_of":"2026-10-11","rows":3,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."},"ratings":{"as_of":"2026-08-07","rows":3,"licence":"public-domain","attribution":""},"fuel_us":{"as_of":"2026-09-29","rows":3,"licence":"public-domain","attribution":""},"fuel_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."},"specs":{"as_of":"2026-09-29","rows":3,"licence":"public-domain","attribution":""},"oil_grade":{"as_of":"2026-09-29","rows":2,"licence":"public-domain","attribution":""},"fluids":{"as_of":"2026-10-09","rows":3,"licence":"mit","attribution":""},"tires":{"as_of":"2026-10-09","rows":1,"licence":"mit","attribution":""},"complaints":{"as_of":"2026-10-11","rows":8,"licence":"public-domain","attribution":""}}');
 CREATE TABLE IF NOT EXISTS recall (
     id              INTEGER PRIMARY KEY,
     source          TEXT NOT NULL,
@@ -225,6 +225,24 @@ CREATE TABLE IF NOT EXISTS tire_fitment (
     reviewer           TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS tire_fitment_ymm ON tire_fitment (make_id, model_id, year);
+CREATE TABLE component (
+    id     TEXT PRIMARY KEY,
+    name   TEXT NOT NULL,
+    parent TEXT
+) WITHOUT ROWID;
+CREATE TABLE complaint_count (
+    make_id      INTEGER NOT NULL,
+    model_id     INTEGER NOT NULL,
+    year         INTEGER NOT NULL,
+    component_id TEXT NOT NULL,
+    complaints   INTEGER NOT NULL,
+    crashes      INTEGER NOT NULL,
+    fires        INTEGER NOT NULL,
+    injuries     INTEGER NOT NULL,
+    with_miles   INTEGER NOT NULL,
+    median_miles INTEGER,
+    PRIMARY KEY (model_id, year, component_id)
+) WITHOUT ROWID;
 
 INSERT INTO recall VALUES
   (1, 'nhtsa', '19V888000', 'General Motors LLC', '2019-12-12', '2020-03-09', 'ELECTRICAL SYSTEM:12V/24V/48V BATTERY:CABLES', NULL, NULL, NULL, 'The battery cable nut may be loose.', 'A fire may start.', 'Dealers will tighten the nut.', NULL, NULL, 'N192273510', NULL, 350371, 0, 0),
@@ -266,3 +284,19 @@ INSERT INTO fluid VALUES
   (3, 498, 900, 2023, 'brake', NULL, NULL, NULL, 'TEST BRAKE 9', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Test manual K, page 3', '2026-10-09', 'test-reviewer');
 INSERT INTO tire_fitment VALUES
   (1, 498, 900, 2023, '996/96R96', NULL, '["SE"]', 990, 980, 144, 142, 'kpa', NULL, NULL, NULL, NULL, NULL, 'Test door placard K', '2026-10-09', 'test-reviewer');
+
+INSERT INTO component VALUES
+  ('steering', 'Steering', NULL),
+  ('power-steering', 'Power steering', 'steering'),
+  ('electrical', 'Electrical system', NULL),
+  ('engine', 'Engine', NULL),
+  ('brakes', 'Brakes', NULL);
+INSERT INTO complaint_count VALUES
+  (498, 900, 2023, '', 60, 3, 1, 2, 40, 30000),
+  (498, 900, 2023, 'steering', 25, 1, 0, 1, 20, 39000),
+  (498, 900, 2023, 'power-steering', 12, 0, 0, 0, 4, 41000),
+  (498, 900, 2023, 'electrical', 25, 2, 1, 0, 12, 25500),
+  (498, 900, 2023, 'engine', 5, 0, 0, 1, 5, 61000),
+  (498, 900, 2023, 'brakes', 4, 1, 0, 0, 4, 12000),
+  (498, 900, 2022, '', 3, 0, 0, 0, 2, 8000),
+  (498, 900, 2022, 'engine', 3, 0, 0, 0, 2, 8000);

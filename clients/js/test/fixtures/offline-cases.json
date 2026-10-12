@@ -2525,7 +2525,7 @@
         ],
         [
           "datasets",
-          "{\"recalls_us\":{\"as_of\":\"2026-10-11\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"recalls_ca\":{\"as_of\":\"2026-10-06\",\"rows\":1,\"licence\":\"ogl-canada\",\"attribution\":\"Contains information licensed under the Open Government Licence - Canada.\"},\"ratings\":{\"as_of\":\"2026-08-07\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"fuel_us\":{\"as_of\":\"2026-09-29\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"fuel_ca\":{\"as_of\":\"2026-10-06\",\"rows\":1,\"licence\":\"ogl-canada\",\"attribution\":\"Contains information licensed under the Open Government Licence - Canada.\"},\"specs\":{\"as_of\":\"2026-09-29\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"oil_grade\":{\"as_of\":\"2026-09-29\",\"rows\":2,\"licence\":\"public-domain\",\"attribution\":\"\"},\"fluids\":{\"as_of\":\"2026-10-09\",\"rows\":3,\"licence\":\"mit\",\"attribution\":\"\"},\"tires\":{\"as_of\":\"2026-10-09\",\"rows\":1,\"licence\":\"mit\",\"attribution\":\"\"}}"
+          "{\"recalls_us\":{\"as_of\":\"2026-10-11\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"recalls_ca\":{\"as_of\":\"2026-10-06\",\"rows\":1,\"licence\":\"ogl-canada\",\"attribution\":\"Contains information licensed under the Open Government Licence - Canada.\"},\"ratings\":{\"as_of\":\"2026-08-07\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"fuel_us\":{\"as_of\":\"2026-09-29\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"fuel_ca\":{\"as_of\":\"2026-10-06\",\"rows\":1,\"licence\":\"ogl-canada\",\"attribution\":\"Contains information licensed under the Open Government Licence - Canada.\"},\"specs\":{\"as_of\":\"2026-09-29\",\"rows\":3,\"licence\":\"public-domain\",\"attribution\":\"\"},\"oil_grade\":{\"as_of\":\"2026-09-29\",\"rows\":2,\"licence\":\"public-domain\",\"attribution\":\"\"},\"fluids\":{\"as_of\":\"2026-10-09\",\"rows\":3,\"licence\":\"mit\",\"attribution\":\"\"},\"tires\":{\"as_of\":\"2026-10-09\",\"rows\":1,\"licence\":\"mit\",\"attribution\":\"\"},\"complaints\":{\"as_of\":\"2026-10-11\",\"rows\":8,\"licence\":\"public-domain\",\"attribution\":\"\"}}"
         ]
       ],
       "sql": "SELECT key, value FROM meta"
@@ -3687,6 +3687,87 @@
     {
       "db": "shop",
       "params": [
+        900,
+        2023
+      ],
+      "rows": [
+        [
+          60,
+          3,
+          1,
+          2,
+          40,
+          30000
+        ]
+      ],
+      "sql": "SELECT complaints, crashes, fires, injuries, with_miles, median_miles\n             FROM complaint_count WHERE model_id = ?1 AND year = ?2 AND component_id = ''"
+    },
+    {
+      "db": "shop",
+      "params": [
+        900,
+        2023
+      ],
+      "rows": [
+        [
+          "electrical",
+          "Electrical system",
+          null,
+          25,
+          2,
+          1,
+          0,
+          12,
+          25500
+        ],
+        [
+          "steering",
+          "Steering",
+          null,
+          25,
+          1,
+          0,
+          1,
+          20,
+          39000
+        ],
+        [
+          "power-steering",
+          "Power steering",
+          "steering",
+          12,
+          0,
+          0,
+          0,
+          4,
+          41000
+        ],
+        [
+          "engine",
+          "Engine",
+          null,
+          5,
+          0,
+          0,
+          1,
+          5,
+          61000
+        ]
+      ],
+      "sql": "SELECT k.id, k.name, k.parent, c.complaints, c.crashes, c.fires, c.injuries, c.with_miles, c.median_miles\n                 FROM complaint_count c JOIN component k ON k.id = c.component_id\n                 WHERE c.model_id = ?1 AND c.year = ?2 AND c.complaints >= 5\n                 ORDER BY c.complaints DESC, k.name LIMIT 12"
+    },
+    {
+      "db": "shop",
+      "params": [
+        1863,
+        2019
+      ],
+      "rows": [],
+      "sql": "SELECT complaints, crashes, fires, injuries, with_miles, median_miles\n             FROM complaint_count WHERE model_id = ?1 AND year = ?2 AND component_id = ''"
+    },
+    {
+      "db": "shop",
+      "params": [
         498,
         900,
         "nhtsa",
@@ -4753,6 +4834,12 @@
           "built_at": "2026-10-01 04:25:57",
           "data_version": "2026.09",
           "datasets": {
+            "complaints": {
+              "as_of": "2026-10-11",
+              "attribution": "",
+              "licence": "public-domain",
+              "rows": 8
+            },
             "fluids": {
               "as_of": "2026-10-09",
               "attribution": "",
@@ -6407,11 +6494,176 @@
     {
       "answer": {
         "ok": {
+          "as_of": "2026-10-11",
+          "attribution": [],
+          "complaints": 60,
+          "components": [
+            {
+              "complaints": 25,
+              "crashes": 2,
+              "fires": 1,
+              "id": "electrical",
+              "injuries": 0,
+              "median_km": 41038,
+              "median_miles": 25500,
+              "name": "Electrical system",
+              "parent": null
+            },
+            {
+              "complaints": 25,
+              "crashes": 1,
+              "fires": 0,
+              "id": "steering",
+              "injuries": 1,
+              "median_km": 62764,
+              "median_miles": 39000,
+              "name": "Steering",
+              "parent": null
+            },
+            {
+              "complaints": 12,
+              "crashes": 0,
+              "fires": 0,
+              "id": "power-steering",
+              "injuries": 0,
+              "median_km": null,
+              "median_miles": null,
+              "name": "Power steering",
+              "parent": "steering"
+            },
+            {
+              "complaints": 5,
+              "crashes": 0,
+              "fires": 0,
+              "id": "engine",
+              "injuries": 1,
+              "median_km": 98170,
+              "median_miles": 61000,
+              "name": "Engine",
+              "parent": null
+            }
+          ],
+          "crashes": 3,
+          "fires": 1,
+          "injuries": 2,
+          "median_km": 48280,
+          "median_miles": 30000,
+          "note": "These are counts of the complaints owners filed with NHTSA about this model year. A complaint is an owner's report: it is not verified by NHTSA or by this site, and it is not a finding that anything is wrong with the vehicle. A count is not a rate: a model that sold more has more complaints. A complaint may name several components, so the components do not add up to the total.",
+          "report_url": "https://www.nhtsa.gov/report-a-safety-problem",
+          "vehicle": {
+            "id": "2023_hyundai_kona",
+            "make": "Hyundai",
+            "model": "Kona",
+            "year": 2023
+          },
+          "verified": false
+        }
+      },
+      "args": {
+        "id": "2023_hyundai_kona"
+      },
+      "name": "complaints of a model year",
+      "op": "complaints",
+      "steps": 5
+    },
+    {
+      "answer": {
+        "ok": {
+          "as_of": "2026-10-11",
+          "attribution": [],
+          "complaints": 0,
+          "components": [],
+          "crashes": 0,
+          "fires": 0,
+          "injuries": 0,
+          "median_km": null,
+          "median_miles": null,
+          "note": "These are counts of the complaints owners filed with NHTSA about this model year. A complaint is an owner's report: it is not verified by NHTSA or by this site, and it is not a finding that anything is wrong with the vehicle. A count is not a rate: a model that sold more has more complaints. A complaint may name several components, so the components do not add up to the total.",
+          "report_url": "https://www.nhtsa.gov/report-a-safety-problem",
+          "vehicle": {
+            "id": "2019_honda_civic",
+            "make": "Honda",
+            "model": "Civic",
+            "year": 2019
+          },
+          "verified": false
+        }
+      },
+      "args": {
+        "id": "2019_honda_civic"
+      },
+      "name": "complaints, none recorded",
+      "op": "complaints",
+      "steps": 4
+    },
+    {
+      "answer": {
+        "error": {
+          "code": "not_found",
+          "details": {},
+          "message": "No vehicle has that id."
+        }
+      },
+      "args": {
+        "id": "2019_honda_nothing"
+      },
+      "name": "complaints, unknown vehicle",
+      "op": "complaints",
+      "steps": 1
+    },
+    {
+      "answer": {
+        "ok": {
           "attribution": [
             "Contains information licensed under the Open Government Licence - Canada."
           ],
           "bulletins": null,
-          "complaints": null,
+          "complaints": {
+            "as_of": "2026-10-11",
+            "complaints": 60,
+            "crashes": 3,
+            "fires": 1,
+            "injuries": 2,
+            "median_km": 48280,
+            "median_miles": 30000,
+            "top": [
+              {
+                "complaints": 25,
+                "crashes": 2,
+                "fires": 1,
+                "id": "electrical",
+                "injuries": 0,
+                "median_km": 41038,
+                "median_miles": 25500,
+                "name": "Electrical system",
+                "parent": null
+              },
+              {
+                "complaints": 25,
+                "crashes": 1,
+                "fires": 0,
+                "id": "steering",
+                "injuries": 1,
+                "median_km": 62764,
+                "median_miles": 39000,
+                "name": "Steering",
+                "parent": null
+              },
+              {
+                "complaints": 12,
+                "crashes": 0,
+                "fires": 0,
+                "id": "power-steering",
+                "injuries": 0,
+                "median_km": null,
+                "median_miles": null,
+                "name": "Power steering",
+                "parent": "steering"
+              }
+            ],
+            "url": "https://open.wenmarpro.com/makes/hyundai/kona/2023#owners-report",
+            "verified": false
+          },
           "decode": null,
           "fluids": {
             "brake": [
@@ -7028,7 +7280,7 @@
       },
       "name": "overview of a model year",
       "op": "overview_vehicle",
-      "steps": 5
+      "steps": 6
     },
     {
       "answer": {
@@ -7037,7 +7289,18 @@
             "Contains information licensed under the Open Government Licence - Canada."
           ],
           "bulletins": null,
-          "complaints": null,
+          "complaints": {
+            "as_of": "2026-10-11",
+            "complaints": 0,
+            "crashes": 0,
+            "fires": 0,
+            "injuries": 0,
+            "median_km": null,
+            "median_miles": null,
+            "top": [],
+            "url": "https://open.wenmarpro.com/makes/honda/civic/2019#owners-report",
+            "verified": false
+          },
           "decode": null,
           "fluids": {
             "brake": [],
@@ -7111,7 +7374,52 @@
             "Contains information licensed under the Open Government Licence - Canada."
           ],
           "bulletins": null,
-          "complaints": null,
+          "complaints": {
+            "as_of": "2026-10-11",
+            "complaints": 60,
+            "crashes": 3,
+            "fires": 1,
+            "injuries": 2,
+            "median_km": 48280,
+            "median_miles": 30000,
+            "top": [
+              {
+                "complaints": 25,
+                "crashes": 2,
+                "fires": 1,
+                "id": "electrical",
+                "injuries": 0,
+                "median_km": 41038,
+                "median_miles": 25500,
+                "name": "Electrical system",
+                "parent": null
+              },
+              {
+                "complaints": 25,
+                "crashes": 1,
+                "fires": 0,
+                "id": "steering",
+                "injuries": 1,
+                "median_km": 62764,
+                "median_miles": 39000,
+                "name": "Steering",
+                "parent": null
+              },
+              {
+                "complaints": 12,
+                "crashes": 0,
+                "fires": 0,
+                "id": "power-steering",
+                "injuries": 0,
+                "median_km": null,
+                "median_miles": null,
+                "name": "Power steering",
+                "parent": "steering"
+              }
+            ],
+            "url": "https://open.wenmarpro.com/makes/hyundai/kona/2023#owners-report",
+            "verified": false
+          },
           "decode": {
             "engine": "2.0L",
             "engine_settled": true,
@@ -7576,7 +7884,7 @@
       },
       "name": "overview of a VIN",
       "op": "overview_vin",
-      "steps": 8
+      "steps": 9
     },
     {
       "answer": {

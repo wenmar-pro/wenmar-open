@@ -244,15 +244,16 @@ fn overview_statements_say_which_file_they_are_for_and_fit_cloudflare_d1() {
     for statement in &all {
         let sql = statement["sql"].as_str().unwrap();
         let params = statement["params"].as_array().unwrap();
-        // The recall, rating, fuel, fluid and tire tables are in the shop
-        // file and nothing else is. Every fuel table is read through
-        // `fuel_rating`.
+        // The recall, rating, fuel, fluid, tire and complaint tables are in
+        // the shop file and nothing else is. Every fuel table is read
+        // through `fuel_rating`.
         assert_eq!(
             statement.get("db").and_then(Value::as_str) == Some("shop"),
             sql.contains("recall")
                 || sql.contains("rating")
                 || sql.contains("FROM fluid")
-                || sql.contains("FROM tire_fitment"),
+                || sql.contains("FROM tire_fitment")
+                || sql.contains("complaint_count"),
             "{sql}"
         );
         // D1: at most 100 bound parameters and 100,000 bytes a statement.

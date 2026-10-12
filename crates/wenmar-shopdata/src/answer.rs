@@ -371,8 +371,7 @@ pub struct Overview {
     pub labor: Option<Json>,
     pub bulletins: Option<Json>,
     /// What owners reported to NHTSA, in brief. `null` when the shop file
-    /// holds no complaints, and always from [`Overviews::vehicle`] and
-    /// [`Overviews::vin`]: see [`Overviews::vehicle_with_complaints`].
+    /// holds no complaints.
     pub complaints: Option<OverviewComplaints>,
     pub links: Links,
     pub attribution: Vec<String>,
@@ -1267,6 +1266,10 @@ impl<'a, S: Source, C: Source> Overviews<'a, S, C> {
                 attribution.push(line);
             }
         }
+        let complaints = match found {
+            Some(found) => self.complaints_block(found)?,
+            None => None,
+        };
         Ok(Overview {
             vehicle: found.map(|found| found.vehicle.clone()),
             decode,
@@ -1278,8 +1281,7 @@ impl<'a, S: Source, C: Source> Overviews<'a, S, C> {
             safety,
             labor: None,
             bulletins: None,
-            // Filled by `vehicle_with_complaints` and `vin_with_complaints`.
-            complaints: None,
+            complaints,
             links: Links {
                 page: found.map(|found| self.page(found)),
                 maker: None,
@@ -1322,32 +1324,6 @@ impl<'a, S: Source, C: Source> Overviews<'a, S, C> {
             as_of: answer.as_of,
             url: format!("{}#owners-report", self.page(found)),
         }))
-    }
-
-    /// `GET /v1/vehicles/{id}/overview`, with the complaints block filled
-    /// from the shop file: what the command-line tool answers. The offline
-    /// engine answers [`Overviews::vehicle`], whose block is `null`, so
-    /// that its build stays within the size budget.
-    pub fn vehicle_with_complaints(&self, id: &str) -> Result<Overview, AnswerError> {
-        let mut overview = self.vehicle(id)?;
-        if let Some(found) = model_year_in(self.catalog, self.core, id)? {
-            overview.complaints = self.complaints_block(&found)?;
-        }
-        Ok(overview)
-    }
-
-    /// `GET /v1/vin/{vin}/overview`, with the complaints block filled as
-    /// [`Overviews::vehicle_with_complaints`] does it.
-    pub fn vin_with_complaints(&self, decode: &Json) -> Result<Overview, AnswerError> {
-        let mut overview = self.vin(decode)?;
-        let found = match overview.vehicle.as_ref() {
-            Some(vehicle) => model_year_in(self.catalog, self.core, &vehicle.id)?,
-            None => None,
-        };
-        if let Some(found) = found {
-            overview.complaints = self.complaints_block(&found)?;
-        }
-        Ok(overview)
     }
 
     /// `GET /v1/vehicles/{id}/overview`.

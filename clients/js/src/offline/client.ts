@@ -23,6 +23,7 @@ import type {
   SubmodelsQuery,
   VehicleFluids,
   VehicleFuel,
+  VehicleComplaints,
   VehicleFuelQuery,
   VehicleRecalls,
   VehicleRecallsQuery,
@@ -93,7 +94,7 @@ const READS_SHOP = new Set(["meta", "overview_vehicle", "overview_vin", "model_y
 
 /** Whether a question reads the shop file, when there is one. */
 const needsShop = (question: Question): boolean =>
-  READS_SHOP.has(question.op) || question.op.startsWith("recall") || question.op === "safety" || FACTS.test(question.op);
+  READS_SHOP.has(question.op) || question.op.startsWith("recall") || question.op === "safety" || question.op === "complaints" || FACTS.test(question.op);
 
 /** The operations for fuel, specifications, fluids and tire fitments, such as `fuel_vin`. */
 const FACTS = /^(fuel|specs|fluids|tires)_(vehicle|vin)$/;
@@ -228,6 +229,15 @@ export class WenmarOpenOffline {
    */
   async safety(id: string, options: RequestOptions = {}): Promise<VehicleSafety> {
     return this.#one({ op: "safety", args: { id: String(id) } }, options);
+  }
+
+  /**
+   * What owners reported to NHTSA about a model year, as counts by component
+   * with the median mileage they gave. Without a shop file that holds the
+   * complaints it fails with `dataset_unavailable`.
+   */
+  async complaints(id: string, options: RequestOptions = {}): Promise<VehicleComplaints> {
+    return this.#one({ op: "complaints", args: { id: String(id) } }, options);
   }
 
   /**

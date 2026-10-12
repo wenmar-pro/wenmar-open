@@ -352,6 +352,22 @@ pub fn safety(answers: &RecallAnswers, args: &Value) -> Result<Value, OpError> {
     json(answers.safety(&id)?)
 }
 
+// ----- what owners report -----
+
+/// What `complaints` gets when no shop file has been opened: the API's own
+/// `dataset_unavailable`, naming the complaints. The API looks for them
+/// before it reads the vehicle id, so nothing else is checked first.
+pub fn no_complaints() -> OpError {
+    AnswerError::Shop(ShopError::DatasetUnavailable(Dataset::Complaints)).into()
+}
+
+/// `{ "id" }`: what owners reported to NHTSA about a model year, as counts
+/// by component, with the median mileage they gave.
+pub fn complaints(answers: &RecallAnswers, args: &Value) -> Result<Value, OpError> {
+    let id = text(args, "id")?.unwrap_or_default();
+    json(answers.complaints(&id)?)
+}
+
 // ----- fuel, specifications, fluids and tire fitments -----
 
 /// The four topics an operation name may start with.

@@ -371,6 +371,8 @@ open.close();
 
 NHTSA rates a vehicle by body style and drive, so `ratings` often has several entries and their stars can differ: `description` says which vehicle each is for, in NHTSA's words. Show them all, or the one whose body style and drive you know. A rating with every star `null` is a vehicle NHTSA lists and has not tested, and `ratings` is empty when NHTSA lists none. Without a shop file, or with one that holds no ratings, `safety` fails with `dataset_unavailable` and `details.dataset` is `ratings`. The answer is the hosted API's, field for field.
 
+`complaints(id)` is that of `WenmarOpen` too: what owners reported to NHTSA about a model year, as counts by component with the median mileage they gave. These are owners' reports and are not verified, and a count is not a rate. Without a shop file that holds the complaints, it fails with `dataset_unavailable` and `details.dataset` is `complaints`.
+
 ### Switching between the API and the data file
 
 Both clients have the same methods, so the choice can be one line:

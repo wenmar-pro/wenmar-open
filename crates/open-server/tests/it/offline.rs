@@ -655,14 +655,10 @@ fn overview_questions() -> Vec<(&'static str, &'static str, Value)> {
 
 /// The blocks of an overview that the hosted API fills where its server
 /// holds their data, and that the files do not give yet: from files they
-/// are `null` whatever the shop file holds. `specs`, `fuel`, `fluids` and
-/// `tires` are given from files now. `bulletins` is hosted only by design:
-/// the offline shop file does not hold them. `complaints` is left out of
-/// the offline engine until the size budget is raised (plan H8): with the
-/// complaints op the engine's WebAssembly is 602,315 bytes against a budget
-/// of 600,000, and without it 595,435 (measured 2026-10-12). Its overview
-/// block is `null` in the engine.
-const HOSTED_ONLY: [&str; 2] = ["bulletins", "complaints"];
+/// are `null` whatever the shop file holds. `specs`, `fuel`, `fluids`,
+/// `tires` and `complaints` are given from files now. `bulletins` is hosted
+/// only by design: the offline shop file does not hold them.
+const HOSTED_ONLY: [&str; 1] = ["bulletins"];
 
 /// An answer of the API as the files give it. What is set aside before
 /// two answers are compared, and why:
@@ -1021,6 +1017,80 @@ async fn the_offline_engine_answers_fuel_specs_fluids_and_tires_as_the_api_does(
                     assert_eq!(answer["ok"][block], served[block], "{path} {block}");
                 }
                 assert!(answer["ok"]["fluids"].is_object(), "{path}");
+            }
+        }
+    }
+}
+
+#[tokio::test]
+async fn the_offline_engine_gives_what_owners_report_as_the_api_does() {
+    // Three servers, and the files that go with each: the complaints beside
+    // the recalls, the recalls alone, and no shop file.
+    for held in ["complaints", "recalls", "nothing"] {
+        let files = match held {
+            "complaints" => Some((common::COMPLAINT_DATASETS, common::complaint_rows())),
+            "recalls" => Some((common::RECALL_DATASETS, common::recall_rows())),
+            _ => None,
+        };
+        // Its addresses are the engine's, as the overview test's are.
+        let app = match (held, &files) {
+            ("complaints", _) => common::complaints_app_at(wenmar_shopdata::answer::SITE).await,
+            (_, Some((datasets, rows))) => common::app_with_shop(datasets, rows).await,
+            (_, None) => common::app().await,
+        };
+        let fixture = common::data_file();
+        // A shop file is written either way. With none on the server it is
+        // not opened, so the engine has none either.
+        let (datasets, rows) = files
+            .clone()
+            .unwrap_or((common::RECALL_DATASETS, String::new()));
+        common::add_shop_file(
+            &fixture,
+            wenmar_shopdata::schema::SCHEMA_VERSION,
+            "2026.09",
+            datasets,
+            &rows,
+        );
+        let connection = Connection::open(fixture.path()).unwrap();
+        let shop = Connection::open(fixture.shop_path()).unwrap();
+        let mut engine = Engine::new();
+        let opened = ask(&mut engine, &connection, "open", &json!({}));
+        assert!(opened.get("ok").is_some(), "{opened}");
+        // With no shop file on the server, none is opened here either.
+        if files.is_some() {
+            let opened = ask_with_shop(&mut engine, &connection, &shop, "open_shop", &json!({}));
+            assert!(opened.get("ok").is_some(), "{opened}");
+        }
+
+        for id in [
+            "2023_hyundai_kona",
+            "2022_hyundai_kona",
+            "2019_honda_civic",
+            "2019_honda_nothing",
+        ] {
+            let (status, served) = app.json(&format!("/v1/vehicles/{id}/complaints")).await;
+            let args = json!({ "id": id });
+            let answer = if files.is_some() {
+                ask_with_shop(&mut engine, &connection, &shop, "complaints", &args)
+            } else {
+                ask(&mut engine, &connection, "complaints", &args)
+            };
+            if status == StatusCode::OK {
+                assert_eq!(held, "complaints", "{id}");
+                // Nothing is set aside: the files give every field.
+                assert_eq!(answer["ok"], served, "{id}");
+                // The overview's block is the same answer, in brief.
+                let (_, overview) = app.json(&format!("/v1/vehicles/{id}/overview")).await;
+                let asked =
+                    ask_with_shop(&mut engine, &connection, &shop, "overview_vehicle", &args);
+                assert_eq!(asked["ok"], overview, "overview {id}");
+                assert!(overview["complaints"].is_object(), "{id}");
+            } else {
+                assert_eq!(json!({ "error": answer["error"] }), served, "{id} {held}");
+                assert_eq!(status, StatusCode::NOT_FOUND, "{id} {held}");
+                if held != "complaints" {
+                    assert_eq!(answer["error"]["code"], "dataset_unavailable", "{id}");
+                }
             }
         }
     }

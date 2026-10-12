@@ -377,7 +377,7 @@ pub fn cases() -> Vec<(&'static str, &'static str, Value)> {
 
 /// The `datasets` value of the fixture shop file: the recalls of both
 /// countries.
-pub const SHOP_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":3,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."},"ratings":{"as_of":"2026-08-07","rows":3,"licence":"public-domain","attribution":""},"fuel_us":{"as_of":"2026-09-29","rows":3,"licence":"public-domain","attribution":""},"fuel_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."},"specs":{"as_of":"2026-09-29","rows":3,"licence":"public-domain","attribution":""},"oil_grade":{"as_of":"2026-09-29","rows":2,"licence":"public-domain","attribution":""},"fluids":{"as_of":"2026-10-09","rows":3,"licence":"mit","attribution":""},"tires":{"as_of":"2026-10-09","rows":1,"licence":"mit","attribution":""}}"#;
+pub const SHOP_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":3,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."},"ratings":{"as_of":"2026-08-07","rows":3,"licence":"public-domain","attribution":""},"fuel_us":{"as_of":"2026-09-29","rows":3,"licence":"public-domain","attribution":""},"fuel_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."},"specs":{"as_of":"2026-09-29","rows":3,"licence":"public-domain","attribution":""},"oil_grade":{"as_of":"2026-09-29","rows":2,"licence":"public-domain","attribution":""},"fluids":{"as_of":"2026-10-09","rows":3,"licence":"mit","attribution":""},"tires":{"as_of":"2026-10-09","rows":1,"licence":"mit","attribution":""},"complaints":{"as_of":"2026-10-11","rows":8,"licence":"public-domain","attribution":""}}"#;
 
 /// Four campaigns against the catalog above. The columns are those of
 /// `wenmar_shopdata::schema::RECALLS`, in order. The Kona of model year
@@ -434,18 +434,41 @@ INSERT INTO tire_fitment VALUES
   (1, 498, 900, 2023, '996/96R96', NULL, '[\"SE\"]', 990, 980, 144, 142, 'kpa', NULL, NULL, NULL, NULL, NULL, 'Test door placard K', '2026-10-09', 'test-reviewer');
 ";
 
+/// What owners reported about the Kona of 2023 and of 2022: made-up counts,
+/// as the complaint tables hold them. The columns are those of
+/// `wenmar_shopdata::schema::COMPLAINTS`, in order.
+const COMPLAINT_ROWS: &str = "
+INSERT INTO component VALUES
+  ('steering', 'Steering', NULL),
+  ('power-steering', 'Power steering', 'steering'),
+  ('electrical', 'Electrical system', NULL),
+  ('engine', 'Engine', NULL),
+  ('brakes', 'Brakes', NULL);
+INSERT INTO complaint_count VALUES
+  (498, 900, 2023, '', 60, 3, 1, 2, 40, 30000),
+  (498, 900, 2023, 'steering', 25, 1, 0, 1, 20, 39000),
+  (498, 900, 2023, 'power-steering', 12, 0, 0, 0, 4, 41000),
+  (498, 900, 2023, 'electrical', 25, 2, 1, 0, 12, 25500),
+  (498, 900, 2023, 'engine', 5, 0, 0, 1, 5, 61000),
+  (498, 900, 2023, 'brakes', 4, 1, 0, 0, 4, 12000),
+  (498, 900, 2022, '', 3, 0, 0, 0, 2, 8000),
+  (498, 900, 2022, 'engine', 3, 0, 0, 0, 2, 8000);
+";
+
 /// The whole shop file as SQL, matched against the data file of version
 /// `catalog_data_version`. `clients/js` loads the same text into
 /// `node:sqlite`.
 pub fn shop_fixture_sql(schema_version: &str, catalog_data_version: &str) -> String {
     format!(
-        "{}\nINSERT INTO meta VALUES\n  ('schema_version', '{schema_version}'),\n  ('data_version', '2026.10.12'),\n  ('catalog_data_version', '{catalog_data_version}'),\n  ('built_at', '2026-10-12 06:00:00'),\n  ('datasets', '{SHOP_DATASETS}');\n{}\n{}\n{}\n{}\n{}\n{SHOP_ROWS}{FACT_ROWS}",
+        "{}\nINSERT INTO meta VALUES\n  ('schema_version', '{schema_version}'),\n  ('data_version', '2026.10.12'),\n  ('catalog_data_version', '{catalog_data_version}'),\n  ('built_at', '2026-10-12 06:00:00'),\n  ('datasets', '{SHOP_DATASETS}');\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{SHOP_ROWS}{FACT_ROWS}{COMPLAINT_ROWS}",
         wenmar_shopdata::schema::META.trim(),
         wenmar_shopdata::schema::RECALLS.trim(),
         wenmar_shopdata::schema::RATINGS.trim(),
         wenmar_shopdata::schema::FUEL.trim(),
         wenmar_shopdata::schema::FLUIDS.trim(),
         wenmar_shopdata::schema::TIRES.trim(),
+        wenmar_shopdata::schema::COMPONENTS.trim(),
+        wenmar_shopdata::schema::COMPLAINTS.trim(),
     )
 }
 
@@ -746,4 +769,27 @@ pub fn facts_cases() -> Vec<(&'static str, &'static str, Value)> {
         json!({ "id": "2023_hyundai_kona", "country": "mx" }),
     ));
     cases
+}
+
+/// Questions about what owners reported, asked of the fixture with the
+/// shop file open: a model year with complaints, one with none, and an id
+/// that names no vehicle.
+pub fn complaints_cases() -> Vec<(&'static str, &'static str, Value)> {
+    vec![
+        (
+            "complaints of a model year",
+            "complaints",
+            json!({ "id": "2023_hyundai_kona" }),
+        ),
+        (
+            "complaints, none recorded",
+            "complaints",
+            json!({ "id": "2019_honda_civic" }),
+        ),
+        (
+            "complaints, unknown vehicle",
+            "complaints",
+            json!({ "id": "2019_honda_nothing" }),
+        ),
+    ]
 }
