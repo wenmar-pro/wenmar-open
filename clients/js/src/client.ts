@@ -26,6 +26,7 @@ import type {
   VehicleInvestigationsQuery,
   VehicleRecalls,
   VehicleRecallsQuery,
+  VehicleSafety,
   VinDecode,
   VinRecalls,
   VinRecallsQuery,
@@ -198,6 +199,15 @@ export class WenmarOpen {
   /** One catalog entry by its id, such as `2019_honda_civic_si`. */
   async vehicle(id: string, options: RequestOptions = {}): Promise<Entry> {
     return this.#request("GET", `/v1/vehicles/${segment("id", id)}`, undefined, options);
+  }
+
+  /**
+   * NHTSA's crash test ratings for a model year, by its id such as
+   * `2018_ford_f-150`. NHTSA rates by body style and drive, so `ratings`
+   * often has several entries: each names the vehicle it is for.
+   */
+  async safety(id: string, options: RequestOptions = {}): Promise<VehicleSafety> {
+    return this.#request("GET", `/v1/vehicles/${segment("id", id)}/safety`, undefined, options);
   }
 
   /** One make by its id, name or alias, such as `honda`, with the maker's own links. */

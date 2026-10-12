@@ -348,6 +348,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/vehicles/{id}/safety": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * NHTSA's crash test ratings for a model year.
+         * @description NHTSA rates by body style and drive, so `ratings` often has several
+         *     entries and their stars can differ: each says which vehicle it is for,
+         *     in NHTSA's words. An entry with no stars is a vehicle NHTSA lists and
+         *     has not tested. `ratings` is empty when NHTSA lists none for the model
+         *     year.
+         */
+        get: operations["vehicle_safety"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/vin/batch": {
         parameters: {
             query?: never;
@@ -1253,6 +1277,149 @@ export interface components {
             tpms?: string | null;
             traction_control?: string | null;
         };
+        /**
+         * @description The safety features NHTSA lists with a rating. A feature is `standard`,
+         *     `optional`, `both` (standard on some versions, optional on others) or
+         *     `no`. An evaluation is `meets`, `does_not_meet`, `standard_only`,
+         *     `upgrade_only` or `pending`. `null` where NHTSA's file does not say.
+         *
+         *     For the four driver-assistance features (forward collision warning,
+         *     lane departure warning, crash imminent braking, dynamic brake support)
+         *     NHTSA's file means two things by its years. Through model year 2022,
+         *     `standard`, `optional` and `both` say the feature is fitted and met
+         *     NHTSA's performance criteria, `no` says it is not fitted or did not
+         *     meet them, and there is no evaluation. From model year 2023 the value
+         *     says only whether the feature is fitted, and the evaluation says what
+         *     NHTSA's test found.
+         */
+        SafetyFeatures: {
+            backup_camera?: string | null;
+            blind_spot_detection?: string | null;
+            /** @description Automatic emergency braking: the vehicle brakes by itself. */
+            crash_imminent_braking?: string | null;
+            crash_imminent_braking_evaluation?: string | null;
+            /** @description The vehicle adds to the driver's braking. */
+            dynamic_brake_support?: string | null;
+            dynamic_brake_support_evaluation?: string | null;
+            /**
+             * @description Electronic stability control.
+             * @example standard
+             */
+            esc?: string | null;
+            forward_collision_warning?: string | null;
+            /** @example meets */
+            forward_collision_warning_evaluation?: string | null;
+            /** @description Side air bags for the head, and for the torso. */
+            head_side_airbag?: string | null;
+            lane_departure_warning?: string | null;
+            lane_departure_warning_evaluation?: string | null;
+            torso_side_airbag?: string | null;
+        };
+        /** @description One rating NHTSA gave a vehicle of a model year. */
+        SafetyRating: {
+            /** @example PU/CC */
+            body_style?: string | null;
+            /**
+             * Format: int32
+             * @description The weight of the vehicle NHTSA tested. NHTSA gives pounds; the
+             *     kilograms are worked out from them and rounded.
+             * @example 2295
+             */
+            curb_weight_kg?: number | null;
+            /**
+             * Format: int32
+             * @example 5060
+             */
+            curb_weight_lb?: number | null;
+            /**
+             * @description The vehicle NHTSA rated, in NHTSA's words, on one line.
+             * @example F-150 SUPER CREW, PU/CC, 4x4
+             */
+            description: string;
+            /** @example 4x4 */
+            drive?: string | null;
+            features: components["schemas"]["SafetyFeatures"];
+            /**
+             * @description How NHTSA's model name reached this model: `exact`, `base` (NHTSA
+             *     names a body or a version of it) or `curated`.
+             * @example base
+             */
+            match: string;
+            /**
+             * @description The model, body style, vehicle type and drive as NHTSA words them.
+             * @example F-150 SUPER CREW
+             */
+            model: string;
+            /**
+             * @description NHTSA's safety concerns and footnotes: what happened in a test, and
+             *     which vehicles the rating does not cover.
+             */
+            notes: string[];
+            /**
+             * Format: int32
+             * @description 1 for the first release of a model year; 2 or 3 for a later one
+             *     that NHTSA rated again.
+             * @example 1
+             */
+            release: number;
+            /**
+             * Format: double
+             * @description The chance of a rollover in a single-vehicle crash, in percent.
+             * @example 19.1
+             */
+            rollover_risk_percent?: number | null;
+            /** @description Whether the vehicle tipped up in NHTSA's dynamic test. */
+            rollover_tip?: boolean | null;
+            stars: components["schemas"]["SafetyStars"];
+            /** @example TRUCK */
+            vehicle_type?: string | null;
+        };
+        /**
+         * @description The stars of one rating, each from 1 to 5. `null` where NHTSA gave
+         *     none: a test it did not run, or a rating older than the overall rating,
+         *     which began with model year 2011.
+         */
+        SafetyStars: {
+            /**
+             * Format: int32
+             * @description The frontal crash test, overall.
+             */
+            frontal?: number | null;
+            /** Format: int32 */
+            frontal_driver?: number | null;
+            /** Format: int32 */
+            frontal_passenger?: number | null;
+            /**
+             * Format: int32
+             * @example 5
+             */
+            overall?: number | null;
+            /** Format: int32 */
+            rollover?: number | null;
+            /**
+             * Format: int32
+             * @description The side crash tests, overall.
+             */
+            side?: number | null;
+            /** Format: int32 */
+            side_barrier?: number | null;
+            /**
+             * Format: int32
+             * @description The side barrier test: the driver, and the rear passenger.
+             */
+            side_driver?: number | null;
+            /**
+             * Format: int32
+             * @description The front seat and the rear seat, over the barrier and pole tests.
+             */
+            side_front_seat?: number | null;
+            /** Format: int32 */
+            side_passenger?: number | null;
+            /** Format: int32 */
+            side_pole?: number | null;
+            /** Format: int32 */
+            side_rear_seat?: number | null;
+        };
         /** @description The catalog's answer for one decoded VIN. */
         Selection: {
             /** @description The engine's id form, when the decode settles on one. */
@@ -1312,6 +1479,33 @@ export interface components {
             may_apply: boolean;
             /** @description Newest first. Empty when none was found as of the dates in `as_of`. */
             recalls: components["schemas"]["Recall"][];
+            vehicle: components["schemas"]["RecallVehicle"];
+        };
+        /** @description NHTSA's crash test ratings for one model year. */
+        VehicleSafety: {
+            /**
+             * @description The day NHTSA's file was current.
+             * @example 2026-08-07
+             */
+            as_of: string;
+            /** @description The credit lines the data's licence asks for. NHTSA's asks for none. */
+            attribution: string[];
+            /**
+             * @description One entry for each vehicle of the model year NHTSA rated or lists,
+             *     by NHTSA's model name, body style and drive. Empty when it lists
+             *     none.
+             */
+            ratings: components["schemas"]["SafetyRating"][];
+            /**
+             * @description Who rates the vehicles.
+             * @example NHTSA New Car Assessment Program
+             */
+            source: string;
+            /**
+             * @description NHTSA's own pages of ratings.
+             * @example https://www.nhtsa.gov/ratings
+             */
+            source_url: string;
             vehicle: components["schemas"]["RecallVehicle"];
         };
         /** @description A decoded VIN. A field that could not be determined is left out. */
@@ -2198,6 +2392,41 @@ export interface operations {
                 };
             };
             /** @description `not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no recalls, or none for the country asked for. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    vehicle_safety: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description A vehicle id. Ratings are listed by year, make and model; a submodel or an engine in the id is set aside.
+                 * @example 2018_ford_f-150
+                 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Every rating NHTSA gave a vehicle of the model year. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleSafety"];
+                };
+            };
+            /** @description `not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no crash test ratings. */
             404: {
                 headers: {
                     [name: string]: unknown;

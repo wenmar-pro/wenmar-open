@@ -57,6 +57,11 @@ export type VehicleInvestigations = Schemas["VehicleInvestigations"];
 /** The NHTSA investigations that led to one recall campaign. */
 export type RecallInvestigations = Schemas["RecallInvestigations"];
 
+/** NHTSA's crash test ratings for one model year. */
+export type VehicleSafety = Schemas["VehicleSafety"];
+/** One rating: the vehicle NHTSA tested, its stars and its safety features. */
+export type SafetyRating = Schemas["SafetyRating"];
+
 /** The body of every error the API sends. */
 export type ErrorBody = Schemas["ErrorBody"];
 /** One answer of a batch: a decode, or the error for that VIN. */
