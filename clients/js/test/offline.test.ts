@@ -480,8 +480,11 @@ test("every recall case is answered as the libraries answer it natively, each fi
   assert.ok(shop.statements.length > 0);
   assert.ok(shop.statements.every((statement) => statement.db === "shop"));
   assert.ok(store.statements.every((statement) => statement.db === undefined));
-  // The data file's questions are answered as before with a shop store given.
-  for (const one of fixture.cases.filter((candidate) => candidate.op !== "meta")) {
+  // The data file's questions are answered as before with a shop store
+  // given. `meta` and the overview questions are set aside: they read the
+  // shop file when there is one, and so answer more than they do without.
+  const readsShop = new Set(["meta", "overview_vehicle", "overview_vin", "model_years"]);
+  for (const one of fixture.cases.filter((candidate) => !readsShop.has(candidate.op))) {
     assert.deepEqual(await outcome(ask(client, one)), one.answer, one.name);
   }
 });
@@ -586,6 +589,100 @@ test("a shop store that fails is store_error for the question that needed it, an
   assert.deepEqual({ ok: await client.decodeVin(KONA) }, caseNamed("decode").answer);
   failing = false;
   assert.equal((await client.searchRecalls({ limit: 3 })).recalls.length, 3);
+});
+
+// ----- one vehicle in one answer, with the shop file and without -----
+
+test("with no shop store an overview answers, its recalls are null, and no second database is asked for", async () => {
+  const store = new RecordedStore();
+  const client = offline(store);
+  const overview = await client.overview("2023_hyundai_kona");
+  assert.equal(overview.vehicle?.id, "2023_hyundai_kona");
+  assert.equal(overview.decode, null);
+  assert.equal(overview.recalls, null);
+  assert.equal(overview.safety, null);
+  assert.equal(overview.links.page, "https://open.wenmarpro.com/makes/hyundai/kona/2023");
+  assert.equal(overview.links.maker, null);
+  assert.deepEqual(overview.attribution, []);
+  const byVin = await client.vinOverview(KONA);
+  assert.equal(byVin.decode?.vin, KONA);
+  assert.equal(byVin.vehicle?.id, "2023_hyundai_kona");
+  assert.equal(byVin.recalls, null);
+  const years = await client.modelYears("hyundai", "kona");
+  assert.equal(years.may_apply, true);
+  assert.deepEqual(years.as_of, { us: null, ca: null });
+  assert.deepEqual(
+    years.years.map((year) => [year.id, year.recalls]),
+    [
+      ["2023_hyundai_kona", null],
+      ["2022_hyundai_kona", null],
+    ],
+  );
+  assert.ok(store.statements.every((statement) => statement.db === undefined));
+  // The recent list is recalls and nothing else: it needs the shop file.
+  const error = await failure(client.recentRecalls({ since: "2023-03-05" }));
+  assert.equal(error.code, "dataset_unavailable");
+  assert.deepEqual(error.details, { dataset: "recalls_us" });
+});
+
+test("with a shop store an overview counts the recalls that may apply, and says no more", async () => {
+  const { client, shop } = withShop();
+  const overview = await client.vinOverview(KONA);
+  assert.ok(shop.steps > 0, "the shop file was read");
+  const recalls = overview.recalls;
+  assert.ok(recalls !== null && recalls !== undefined);
+  assert.equal(recalls.may_apply, true);
+  assert.deepEqual(recalls.count, { us: 2, ca: 1 });
+  assert.equal(recalls.do_not_drive, true);
+  assert.equal(recalls.park_outside, true);
+  assert.deepEqual(
+    recalls.newest.map((recall) => recall.campaign),
+    ["24V456000", "2023101", "23V123000"],
+  );
+  assert.equal(recalls.lookup.nhtsa, "https://www.nhtsa.gov/recalls");
+  assert.match(recalls.lookup.tc, /^https:\/\/wwwapps\.tc\.gc\.ca\//);
+  // The makers' own lookup and links are the hosted API's alone.
+  assert.equal(recalls.lookup.maker, null);
+  assert.equal(overview.links.maker, null);
+  assert.equal(recalls.url, "https://open.wenmarpro.com/makes/hyundai/kona/2023/recalls");
+  // The newest are the first of the whole list.
+  assert.deepEqual(recalls.newest, (await client.recalls("2023_hyundai_kona")).recalls);
+  assert.deepEqual(overview.attribution, ["Contains information licensed under the Open Government Licence - Canada."]);
+
+  const years = await client.modelYears("hyundai", "kona");
+  assert.deepEqual(
+    years.years.map((year) => [year.id, year.recalls]),
+    [
+      ["2023_hyundai_kona", { us: 2, ca: 1 }],
+      ["2022_hyundai_kona", { us: 0, ca: 0 }],
+    ],
+  );
+  assert.equal(years.lookup.maker, null);
+
+  const recent = await client.recentRecalls({ since: "2019-01-01", make: "chevy", country: "us" });
+  assert.equal(recent.may_apply, true);
+  assert.deepEqual(
+    recent.recalls.map((entry) => [entry.recall.campaign, entry.vehicles_listed]),
+    [["19V888000", 2]],
+  );
+  assert.equal(recent.recalls[0]?.vehicles[0]?.vehicle_id, "2019_chevrolet_silverado");
+  assert.equal(recent.recalls[0]?.vehicles[1]?.vehicle_id, null);
+});
+
+test("an overview opens the shop file once, and a shop file that cannot be used fails it and never a decode", async () => {
+  const { client, shop } = withShop();
+  await client.overview("2019_honda_civic");
+  await client.modelYears("hyundai", "kona");
+  assert.equal(shop.statements.filter((statement) => statement.sql === "SELECT key, value FROM meta").length, 1);
+
+  const other = withShop();
+  other.shop.alter = (rows, statement) =>
+    statement.sql === "SELECT key, value FROM meta"
+      ? rows.map((row) => (row[0] === "catalog_data_version" ? ["catalog_data_version", "2026.08"] : row))
+      : rows;
+  const error = await failure(other.client.overview("2023_hyundai_kona"));
+  assert.equal(error.code, "data_invalid");
+  assert.deepEqual({ ok: await other.client.decodeVin(KONA) }, caseNamed("decode").answer);
 });
 
 test("close closes both stores", () => {

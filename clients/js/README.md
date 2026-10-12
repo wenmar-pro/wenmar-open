@@ -326,6 +326,31 @@ export const open = new WenmarOpenOffline({ store: data, shop });
 
 Each statement goes to the store of its file; a statement for the shop file is marked `db: "shop"`, which a store may ignore. The shop file is opened when a question first needs it, so a decode never reads it.
 
+### One vehicle in one answer, offline
+
+`overview(id)`, `vinOverview(vin)`, `modelYears(make, model)` and `recentRecalls({ since })` are those of `WenmarOpen`:
+
+```ts
+import { openOffline } from "wenmar-open/offline/node";
+
+const open = await openOffline();
+
+const overview = await open.vinOverview("KM8K2CAB4PU001140");
+console.log(overview.vehicle?.id, overview.links.page);
+if (overview.recalls) {
+  const { us, ca } = overview.recalls.count;
+  console.log(`${(us ?? 0) + (ca ?? 0)} recall campaigns may apply. Check the VIN: ${overview.recalls.lookup.nhtsa}`);
+} else {
+  console.log("No shop file: no recalls to count.");
+}
+
+const years = await open.modelYears("hyundai", "kona");
+console.log(years.years.map((year) => [year.id, year.recalls]));
+open.close();
+```
+
+`overview`, `vinOverview` and `modelYears` answer with no shop file too: `recalls` is then `null`, in the overview and in each year of `modelYears`. `recentRecalls` needs the shop file, as the other recall methods do. A block the files do not give is `null`, as it is from a server that does not hold it: see the list below.
+
 ### Switching between the API and the data file
 
 Both clients have the same methods, so the choice can be one line:
@@ -353,7 +378,9 @@ What differs offline:
 - `meta().server_version` is the version of this package.
 - `meta().datasets` lists what the shop file holds, and is `{}` when no shop file is open: the data file holds the VIN decoder and the catalog only.
 - `lookup.maker` in a recall answer is always `null`. The makers' own recall lookups are part of the hosted service and are in neither file. `lookup.nhtsa` and `lookup.tc` are always there.
-- A recall's `url` is its page on `https://open.wenmarpro.com`, whichever server you would otherwise ask.
+- `links.maker` in an overview is always `null`, for the same reason. `specs`, `fuel`, `fluids` and `safety` in an overview are `null` offline for now, whatever the shop file holds: the hosted API fills them.
+- A recall's `url` is its page on `https://open.wenmarpro.com`, whichever server you would otherwise ask. So are `links.page` and every other address in an overview or in `modelYears`.
+- `decodeVins` takes no `include`: the recall count of a batch is the hosted API's alone. Ask `vinOverview` for each VIN instead.
 - `timeoutMs` and `signal` are checked each time the client goes back to the database, not while the database is working. There is no time limit unless you set one.
 - The current year, which bounds the model years a VIN can have, comes from the device's clock. Pass `currentYear` to set it.
 

@@ -11,9 +11,13 @@ import type {
   Meta,
   Model,
   ModelsQuery,
+  ModelYears,
+  Overview,
   RecallCampaign,
   RecallList,
   RecallSearchQuery,
+  RecentRecalls,
+  RecentRecallsQuery,
   SearchQuery,
   Submodel,
   SubmodelsQuery,
@@ -69,8 +73,14 @@ type Outcome = { ok: unknown } | { error: Failure };
 const keyOf = (statement: Statement): string =>
   `${statement.db ?? ""}\u0000${statement.sql}\u0000${JSON.stringify(statement.params)}`;
 
+/**
+ * The operations that are not about recalls alone and still read the shop
+ * file when there is one. Without a shop store they answer all the same.
+ */
+const READS_SHOP = new Set(["meta", "overview_vehicle", "overview_vin", "model_years"]);
+
 /** Whether a question reads the shop file, when there is one. */
-const needsShop = (question: Question): boolean => question.op === "meta" || question.op.startsWith("recall");
+const needsShop = (question: Question): boolean => READS_SHOP.has(question.op) || question.op.startsWith("recall");
 
 function thrown(failure: Failure): WenmarOpenError {
   return new WenmarOpenError({ code: failure.code, message: failure.message, details: failure.details });
@@ -227,6 +237,44 @@ export class WenmarOpenOffline {
   /** Recall campaigns, newest first, narrowed by what is given. */
   async searchRecalls(query: RecallSearchQuery = {}, options: RequestOptions = {}): Promise<RecallList> {
     return this.#one({ op: "recalls_search", args: query }, options);
+  }
+
+  /**
+   * Everything held for a model year in one answer, by its id such as
+   * `2018_ford_f-150`. A block the files do not hold is `null`. `recalls`
+   * counts the campaigns that may apply to the year, make and model: it is
+   * not a lookup by VIN. With no shop file `recalls` is `null`, and the
+   * method still answers.
+   */
+  async overview(id: string, options: RequestOptions = {}): Promise<Overview> {
+    return this.#one({ op: "overview_vehicle", args: { id: String(id) } }, options);
+  }
+
+  /**
+   * The overview of the model year a VIN decodes to, with `decode`. The VIN
+   * only names the model year: no public data says a recall applies to one
+   * VIN.
+   */
+  async vinOverview(vin: string, options: DecodeOptions = {}): Promise<Overview> {
+    return this.#one({ op: "overview_vin", args: { vin: String(vin), year: options.year } }, options);
+  }
+
+  /**
+   * Every model year of one model, newest first, each with its vehicle id
+   * and the number of recall campaigns that may apply to it: `null` with no
+   * shop file.
+   */
+  async modelYears(make: string, model: string, options: RequestOptions = {}): Promise<ModelYears> {
+    return this.#one({ op: "model_years", args: { make: String(make), model: String(model) } }, options);
+  }
+
+  /**
+   * Recall campaigns reported on or after `since` (a day such as
+   * `2026-09-01`), newest first, each with the vehicles it may apply to.
+   * Needs a shop file: without one it fails with `dataset_unavailable`.
+   */
+  async recentRecalls(query: RecentRecallsQuery, options: RequestOptions = {}): Promise<RecentRecalls> {
+    return this.#one({ op: "recalls_recent", args: query }, options);
   }
 
   /**

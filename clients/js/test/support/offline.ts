@@ -127,6 +127,10 @@ export type Client = Pick<
   | "vinRecalls"
   | "recall"
   | "searchRecalls"
+  | "overview"
+  | "vinOverview"
+  | "modelYears"
+  | "recentRecalls"
 >;
 
 // The offline client is a `Client`: if a method's parameters or answer
@@ -163,6 +167,14 @@ export function ask(client: Client, { op, args }: Case): Promise<unknown> {
       return client.recall(String(args["source"]), String(args["campaign"]));
     case "recalls_search":
       return client.searchRecalls(query);
+    case "overview_vehicle":
+      return client.overview(String(args["id"]));
+    case "overview_vin":
+      return client.vinOverview(String(args["vin"]), args["year"] === undefined ? {} : { year: Number(args["year"]) });
+    case "model_years":
+      return client.modelYears(String(args["make"]), String(args["model"]));
+    case "recalls_recent":
+      return client.recentRecalls(query);
     default:
       throw new Error(`no method for ${op}`);
   }
