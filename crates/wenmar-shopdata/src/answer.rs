@@ -28,6 +28,7 @@ use serde_json::Value as Json;
 use wenmar_vehicles::text::{is_slug, normalize};
 use wenmar_vehicles::{Catalog, CatalogError, Scope, Source, Value, VehicleId};
 
+use crate::complaints::{ComponentComplaints, NHTSA_COMPLAINTS, NOTE};
 use crate::dataset::Dataset;
 use crate::error::ShopError;
 use crate::ratings::{RatingFeatures, RatingStars, VehicleRating};
@@ -90,6 +91,9 @@ ORDER BY year DESC";
 
 /// Campaigns in the `newest` list of an overview's recall block.
 pub const NEWEST: usize = 3;
+
+/// Components in an overview's complaint block.
+pub const TOP_COMPLAINTS: usize = 3;
 
 /// Most vehicles given with one campaign of the recent list.
 pub const MOST_VEHICLES_EACH: usize = 200;
@@ -364,6 +368,10 @@ pub struct Overview {
     pub safety: Option<VehicleSafety>,
     pub labor: Option<Json>,
     pub bulletins: Option<Json>,
+    /// What owners reported to NHTSA, in brief. `null` when the shop file
+    /// holds no complaints, and always from [`Overviews::vehicle`] and
+    /// [`Overviews::vin`]: see [`Overviews::vehicle_with_complaints`].
+    pub complaints: Option<OverviewComplaints>,
     pub links: Links,
     pub attribution: Vec<String>,
     /// The decode's warnings as they are, then `no_catalog_vehicle`.
@@ -469,6 +477,43 @@ pub struct VehicleSafety {
     pub source: String,
     pub source_url: String,
     pub attribution: Vec<String>,
+}
+
+/// What owners reported to NHTSA about one model year: the answer of
+/// `GET /v1/vehicles/{id}/complaints`. Counts only; nothing an owner wrote.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct VehicleComplaints {
+    pub vehicle: Vehicle,
+    /// The day the complaints were current.
+    pub as_of: Option<String>,
+    /// Always `false`: a complaint is an owner's report, not a finding.
+    pub verified: bool,
+    pub complaints: u32,
+    pub crashes: u32,
+    pub fires: u32,
+    pub injuries: u32,
+    pub median_km: Option<u32>,
+    pub median_miles: Option<u32>,
+    pub components: Vec<ComponentComplaints>,
+    pub note: String,
+    pub report_url: String,
+    pub attribution: Vec<String>,
+}
+
+/// The complaints of a model year, in brief, in an overview.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct OverviewComplaints {
+    /// Always `false`.
+    pub verified: bool,
+    pub complaints: u32,
+    pub crashes: u32,
+    pub fires: u32,
+    pub injuries: u32,
+    pub median_km: Option<u32>,
+    pub median_miles: Option<u32>,
+    pub top: Vec<ComponentComplaints>,
+    pub as_of: Option<String>,
+    pub url: String,
 }
 
 /// Reads `country`: `us`, `ca` (either case), or nothing for both.
@@ -1206,6 +1251,8 @@ impl<'a, S: Source, C: Source> Overviews<'a, S, C> {
             safety,
             labor: None,
             bulletins: None,
+            // Filled by `vehicle_with_complaints` and `vin_with_complaints`.
+            complaints: None,
             links: Links {
                 page: found.map(|found| self.page(found)),
                 maker: None,
@@ -1213,6 +1260,65 @@ impl<'a, S: Source, C: Source> Overviews<'a, S, C> {
             attribution,
             warnings,
         })
+    }
+
+    /// The complaints block of a model year, for a shop file that holds the
+    /// complaints. `None` when it does not.
+    fn complaints_block(
+        &self,
+        found: &ModelYear,
+    ) -> Result<Option<OverviewComplaints>, AnswerError> {
+        let counted = self
+            .shop
+            .filter(|shop| shop.require(Dataset::Complaints).is_ok());
+        let Some(shop) = counted else {
+            return Ok(None);
+        };
+        let answers = Answers {
+            shop,
+            catalog: self.catalog,
+            core: self.core,
+            base: self.base,
+        };
+        let answer = answers.complaints_of(found)?;
+        let mut top = answer.components;
+        top.truncate(TOP_COMPLAINTS);
+        Ok(Some(OverviewComplaints {
+            verified: false,
+            complaints: answer.complaints,
+            crashes: answer.crashes,
+            fires: answer.fires,
+            injuries: answer.injuries,
+            median_km: answer.median_km,
+            median_miles: answer.median_miles,
+            top,
+            as_of: answer.as_of,
+            url: format!("{}#owners-report", self.page(found)),
+        }))
+    }
+
+    /// `GET /v1/vehicles/{id}/overview`, with the complaints block filled
+    /// from the shop file: what the command-line tool answers. The offline
+    /// engine answers [`Overviews::vehicle`], whose block is `null`, so
+    /// that its build stays within the size budget.
+    pub fn vehicle_with_complaints(&self, id: &str) -> Result<Overview, AnswerError> {
+        let mut overview = self.vehicle(id)?;
+        if let Some(found) = model_year_in(self.catalog, self.core, id)? {
+            overview.complaints = self.complaints_block(&found)?;
+        }
+        Ok(overview)
+    }
+
+    /// `GET /v1/vin/{vin}/overview`, with the complaints block filled as
+    /// [`Overviews::vehicle_with_complaints`] does it.
+    pub fn vin_with_complaints(&self, decode: &Json) -> Result<Overview, AnswerError> {
+        let mut overview = self.vin(decode)?;
+        if let Some(vehicle) = overview.vehicle.as_ref() {
+            if let Some(found) = model_year_in(self.catalog, self.core, &vehicle.id)? {
+                overview.complaints = self.complaints_block(&found)?;
+            }
+        }
+        Ok(overview)
     }
 
     /// `GET /v1/vehicles/{id}/overview`.
@@ -1420,6 +1526,45 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
             return Err(AnswerError::NotFound("No vehicle has that id."));
         };
         self.safety_of(&found)
+    }
+}
+
+impl<S: Source, C: Source> Answers<'_, S, C> {
+    /// The complaints of one model year. The shop file must hold them.
+    fn complaints_of(&self, found: &ModelYear) -> Result<VehicleComplaints, AnswerError> {
+        let counts = self
+            .shop
+            .complaints_for_vehicle(found.model_id, found.vehicle.year)?;
+        let entry = self.shop.datasets().get(Dataset::Complaints);
+        Ok(VehicleComplaints {
+            vehicle: found.vehicle.clone(),
+            as_of: entry.map(|entry| entry.as_of.clone()),
+            verified: false,
+            complaints: counts.total.complaints,
+            crashes: counts.total.crashes,
+            fires: counts.total.fires,
+            injuries: counts.total.injuries,
+            median_km: counts.total.median_km,
+            median_miles: counts.total.median_miles,
+            components: counts.components,
+            note: NOTE.to_owned(),
+            report_url: NHTSA_COMPLAINTS.to_owned(),
+            attribution: entry
+                .map(|entry| entry.attribution.clone())
+                .filter(|credit| !credit.is_empty())
+                .into_iter()
+                .collect(),
+        })
+    }
+
+    /// `GET /v1/vehicles/{id}/complaints`. The complaints are looked for
+    /// before the vehicle is, as the API does it.
+    pub fn complaints(&self, id: &str) -> Result<VehicleComplaints, AnswerError> {
+        self.shop.require(Dataset::Complaints)?;
+        let Some(found) = self.model_year(id)? else {
+            return Err(AnswerError::NotFound("No vehicle has that id."));
+        };
+        self.complaints_of(&found)
     }
 }
 

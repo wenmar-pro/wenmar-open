@@ -658,7 +658,11 @@ fn overview_questions() -> Vec<(&'static str, &'static str, Value)> {
 /// are `null` whatever the shop file holds. `specs`, `fuel` and `fluids`
 /// wait for the plan that brings the fuel data to the files. `bulletins`
 /// is hosted only by design: the offline shop file does not hold them.
-const HOSTED_ONLY: [&str; 4] = ["specs", "fuel", "fluids", "bulletins"];
+/// `complaints` is left out of the offline engine until the size budget is
+/// raised (plan H8): with the complaints op the engine's WebAssembly is
+/// 602,315 bytes against a budget of 600,000, and without it 595,435
+/// (measured 2026-10-12). Its overview block is `null` in the engine.
+const HOSTED_ONLY: [&str; 5] = ["specs", "fuel", "fluids", "bulletins", "complaints"];
 
 /// An answer of the API as the files give it. What is set aside before
 /// two answers are compared, and why:

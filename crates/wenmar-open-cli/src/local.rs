@@ -284,7 +284,11 @@ impl Local {
                 // The decode comes first, as in the API: a VIN that cannot
                 // be decoded fails as a decode does.
                 let decode = self.decode(vin, *year)?;
-                json(self.overviews().vin(&decode).map_err(answer_error)?)
+                json(
+                    self.overviews()
+                        .vin_with_complaints(&decode)
+                        .map_err(answer_error)?,
+                )
             }
             Request::Vehicles { action, lookup } => self.vehicles(*action, lookup),
             Request::Recalls { action, lookup } => self.recalls(*action, lookup),
@@ -380,7 +384,7 @@ impl Local {
             Action::Safety => self.safety(&text(&lookup.id)),
             Action::Overview => json(
                 self.overviews()
-                    .vehicle(&text(&lookup.id))
+                    .vehicle_with_complaints(&text(&lookup.id))
                     .map_err(answer_error)?,
             ),
             Action::ModelYears => json(
