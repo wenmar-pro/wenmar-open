@@ -9,6 +9,7 @@ use open_data::build::{BuildInfo, build};
 use open_data::catalog::curated::Curated;
 use open_data::shop::build::{ShopBuildInfo, ShopInputs, build_shop, offline_copy, open_catalog};
 use open_data::shop::coverage;
+use open_data::shop::hand_coverage;
 use open_data::shop::nhtsa_vin_guides;
 use open_data::shop::{epa_guide, nrcan_fuel};
 use open_data::{catalog_parity, fetch, inspect, parity, sources};
@@ -168,6 +169,22 @@ enum Command {
         /// Record the measured shares as the new minimums instead of checking them.
         #[arg(long)]
         write: bool,
+    },
+    /// List the ranked makes and which of their models have hand-read
+    /// fluid or tire records, and which have none yet.
+    HandCoverage {
+        /// The core data file.
+        #[arg(long)]
+        catalog: PathBuf,
+        /// Directory holding fluids/ and tires/.
+        #[arg(long, default_value = "data")]
+        curated: PathBuf,
+        /// Count only models with a model year from this year on.
+        #[arg(long, default_value_t = 2011)]
+        from_year: u16,
+        /// How many models with no record to name for each make.
+        #[arg(long, default_value_t = 10)]
+        list: usize,
     },
 }
 
@@ -494,6 +511,16 @@ fn main() -> Result<()> {
                 }
                 println!("the catalog agrees with NHTSA at or above the baseline");
             }
+        }
+        Command::HandCoverage {
+            catalog,
+            curated,
+            from_year,
+            list,
+        } => {
+            let (catalog, _) = open_catalog(&catalog)?;
+            let report = hand_coverage::report(&catalog, &curated, from_year)?;
+            print!("{}", hand_coverage::table(&report, from_year, list));
         }
         Command::Coverage {
             shop,

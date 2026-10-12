@@ -519,3 +519,39 @@ fn the_files_in_the_repository_are_well_formed() {
         assert!(data.join(kind).join("README.md").is_file(), "{kind}");
     }
 }
+
+#[test]
+fn the_report_lists_ranked_makes_and_their_models_with_no_record() {
+    use open_data::shop::hand_coverage::{report, table};
+    let scratch = scratch("hand-coverage");
+    let connection = Connection::open(scratch.core()).unwrap();
+    // The made-up make gets a rank, a second model with no record, and a
+    // model that ended before the first year counted.
+    connection
+        .execute_batch(
+            "UPDATE catalog_make SET rank = 99 WHERE id = 7000;
+             INSERT INTO catalog_model VALUES
+               (7002, 7000, 'other', 'Other', 'other', 2001, 2003, 4, 1),
+               (7003, 7000, 'ancient', 'Ancient', 'ancient', 1990, 1999, 4, 1);",
+        )
+        .unwrap();
+    let found = report(&connection, &scratch.curated(), 2000).unwrap();
+    // In rank order: the eleven ranked makes of the fixture, then ours.
+    assert_eq!(found.first().unwrap().make, "Toyota");
+    let ours = found.last().unwrap();
+    assert_eq!((ours.make.as_str(), ours.rank), ("Testmake", 99));
+    assert_eq!((ours.models, ours.with_fluids, ours.with_tires), (2, 1, 1));
+    assert_eq!(ours.missing, ["Other"]);
+    let toyota = &found[0];
+    assert_eq!((toyota.with_fluids, toyota.with_tires), (0, 0));
+    assert_eq!(toyota.missing, ["PRIUS", "Prius V"]);
+
+    let text = table(&found, 2000, 1);
+    assert!(
+        text.starts_with("Hand-read records by make, in the order of data/catalog/makes.yaml.")
+    );
+    assert!(text.contains("  1. Toyota: 2 models, 0 with fluids, 0 with tires, 2 with neither\n     none yet: PRIUS, and 1 more\n"), "{text}");
+    assert!(text.contains(" 99. Testmake: 2 models, 1 with fluids, 1 with tires, 1 with neither\n     none yet: Other\n"), "{text}");
+    // With no names asked for, only the counts.
+    assert!(!table(&found, 2000, 0).contains("none yet"));
+}
