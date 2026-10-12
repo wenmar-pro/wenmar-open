@@ -68,6 +68,10 @@ pub const TABLES: &[CoverageTable] = &[
         dataset: Dataset::FuelCa,
         table: "(SELECT * FROM fuel_rating WHERE source = 'nrcan')",
     },
+    CoverageTable {
+        dataset: Dataset::Bulletins,
+        table: wenmar_shopdata::schema::BULLETIN_VEHICLE_YEARS,
+    },
 ];
 
 /// A name that matched no catalog model, and how many rows carry it.

@@ -9,15 +9,20 @@
 //! out again, once or twice over, and some was typed in Windows-1252:
 //! [`tidy`] puts both right.
 
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
 use anyhow::{Context, Result, bail};
+use rusqlite::{Transaction, params};
+use wenmar_shopdata::bulletins::BulletinType;
+use wenmar_shopdata::{Dataset, DatasetEntry, licence, schema};
 use wenmar_vehicles::text::squeeze;
 
-use crate::shop::matcher::NO_YEAR;
-use crate::shop::nhtsa_recalls::iso_date;
+use crate::shop::build::ShapeContext;
+use crate::shop::matcher::{Matcher, NO_YEAR};
+use crate::shop::nhtsa_recalls::{COMPONENT_SEPARATOR, iso_date};
 use crate::sources::SourceRecord;
 
 /// NHTSA's description of the fields, fetched beside the archives.
@@ -362,6 +367,262 @@ pub fn parse(
     Ok(counts)
 }
 
+/// What separates the parts of a manufacturer's own component words.
+pub const SYSTEM_SEPARATOR: &str = ": ";
+
+const INSERT_BULLETIN: &str = "
+INSERT INTO bulletin (id, type, added, date, document_id, mfr_campaign, replaces, component, mfr_system, summary)
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)";
+
+const INSERT_MODEL: &str = "
+INSERT INTO bulletin_model (id, make_text, model_text, make_id, model_id, \"match\")
+VALUES (?1, ?2, ?3, ?4, ?5, ?6)";
+
+const INSERT_VEHICLE: &str = "
+INSERT INTO bulletin_vehicle (bulletin_id, bulletin_model_id, year_from, year_to)
+VALUES (?1, ?2, ?3, ?4)";
+
+/// A communication gathered from its records.
+struct Communication {
+    /// The first record. What a communication says of itself is the same
+    /// on every one of its records.
+    first: MfrCommRow,
+    /// Every component and every manufacturer's system its records name,
+    /// each once, in file order.
+    components: Vec<String>,
+    systems: Vec<String>,
+    /// Each name and model year it lists, once. A name is an index into
+    /// [`Names::list`].
+    vehicles: BTreeSet<(u32, Option<i32>)>,
+}
+
+/// Every make and model text met so far, and what each matched.
+#[derive(Default)]
+struct Names {
+    ids: HashMap<(String, String), u32>,
+    list: Vec<(String, String)>,
+    /// `(name, model year)` to the `bulletin_model` rows it matched.
+    resolved: HashMap<(u32, Option<i32>), Vec<i64>>,
+    /// `(name, catalog model)` to its `bulletin_model` row.
+    models: HashMap<(u32, Option<i64>), i64>,
+}
+
+impl Names {
+    fn id(&mut self, make_text: &str, model_text: &str) -> u32 {
+        let key = (make_text.to_owned(), model_text.to_owned());
+        if let Some(id) = self.ids.get(&key) {
+            return *id;
+        }
+        let id = self.list.len() as u32;
+        self.list.push(key.clone());
+        self.ids.insert(key, id);
+        id
+    }
+
+    /// The `bulletin_model` rows one name matches in one model year,
+    /// stored the first time each is met.
+    fn rows(
+        &mut self,
+        transaction: &Transaction<'_>,
+        matcher: &Matcher,
+        name: u32,
+        year: Option<i32>,
+    ) -> Result<Vec<i64>> {
+        if let Some(rows) = self.resolved.get(&(name, year)) {
+            return Ok(rows.clone());
+        }
+        let (make_text, model_text) = &self.list[name as usize];
+        let resolved = matcher.resolve(year, make_text, model_text);
+        let model_ids: Vec<Option<i64>> = if resolved.model_ids.is_empty() {
+            vec![None]
+        } else {
+            resolved.model_ids.iter().copied().map(Some).collect()
+        };
+        let mut rows = Vec::with_capacity(model_ids.len());
+        for model_id in model_ids {
+            let row = match self.models.get(&(name, model_id)) {
+                Some(row) => *row,
+                None => {
+                    let row = self.models.len() as i64 + 1;
+                    transaction.prepare_cached(INSERT_MODEL)?.execute(params![
+                        row,
+                        make_text,
+                        model_text,
+                        resolved.make_id,
+                        model_id,
+                        model_id.and(resolved.match_text()),
+                    ])?;
+                    self.models.insert((name, model_id), row);
+                    row
+                }
+            };
+            rows.push(row);
+        }
+        self.resolved.insert((name, year), rows.clone());
+        Ok(rows)
+    }
+}
+
+/// The runs of consecutive years in a sorted list without repeats:
+/// `[2016, 2017, 2018, 2021]` is `[(2016, 2018), (2021, 2021)]`.
+pub fn year_runs(years: &[i32]) -> Vec<(i32, i32)> {
+    let mut runs: Vec<(i32, i32)> = Vec::new();
+    for year in years {
+        match runs.last_mut() {
+            Some((_, last)) if *last + 1 == *year => *last = *year,
+            _ => runs.push((*year, *year)),
+        }
+    }
+    runs
+}
+
+fn add_once(list: &mut Vec<String>, value: Option<String>) {
+    if let Some(value) = value
+        && !list.contains(&value)
+    {
+        list.push(value);
+    }
+}
+
+/// What `shape` has stored so far.
+#[derive(Default)]
+struct Stored {
+    bulletins: u64,
+}
+
+fn store(
+    context: &ShapeContext<'_>,
+    names: &mut Names,
+    stored: &mut Stored,
+    communication: Communication,
+) -> Result<()> {
+    let transaction = context.transaction;
+    let first = &communication.first;
+    let kind = match BulletinType::from_source(&first.kind) {
+        Some(kind) => kind,
+        None => {
+            eprintln!(
+                "warning: communication {} has the type {:?}, stored as other",
+                first.nhtsa_id, first.kind
+            );
+            BulletinType::Other
+        }
+    };
+    let component = communication.components.join(COMPONENT_SEPARATOR);
+    let system = communication.systems.join(COMPONENT_SEPARATOR);
+    transaction
+        .prepare_cached(INSERT_BULLETIN)?
+        .execute(params![
+            first.nhtsa_id,
+            kind.id(),
+            first.added,
+            first.date,
+            first.document_id,
+            first.mfr_campaign,
+            first.replaces,
+            (!component.is_empty()).then_some(component),
+            (!system.is_empty()).then_some(system),
+            first.summary,
+        ])
+        .with_context(|| format!("storing communication {}", first.nhtsa_id))?;
+    stored.bulletins += 1;
+
+    // bulletin_model row to the model years listed for it.
+    let mut years: BTreeMap<i64, BTreeSet<Option<i32>>> = BTreeMap::new();
+    for (name, year) in &communication.vehicles {
+        for row in names.rows(transaction, context.matcher, *name, *year)? {
+            years.entry(row).or_default().insert(*year);
+        }
+    }
+    let mut statement = transaction.prepare_cached(INSERT_VEHICLE)?;
+    for (row, listed) in &years {
+        if listed.contains(&None) {
+            statement.execute(params![
+                first.nhtsa_id,
+                row,
+                schema::BULLETIN_NO_YEAR,
+                schema::BULLETIN_NO_YEAR
+            ])?;
+        }
+        let known: Vec<i32> = listed.iter().flatten().copied().collect();
+        for (from, to) in year_runs(&known) {
+            statement.execute(params![first.nhtsa_id, row, from, to])?;
+        }
+    }
+    Ok(())
+}
+
+/// Builds the `bulletins` dataset from the fetched `nhtsa-mfr-comms`
+/// directory: one `bulletin` row for each communication, one
+/// `bulletin_model` row for each make and model text and catalog model it
+/// matched, and one `bulletin_vehicle` row for each run of model years.
+///
+/// The records of one communication are together in the files, so each
+/// communication is stored as soon as the next one starts.
+pub fn shape(context: &mut ShapeContext<'_>, directory: &Path) -> Result<()> {
+    let as_of = SourceRecord::read(directory)?.as_of;
+    context.transaction.execute_batch(schema::BULLETINS)?;
+    for year in schema::BULLETIN_YEARS.0..=schema::BULLETIN_YEARS.1 {
+        context
+            .transaction
+            .execute("INSERT INTO bulletin_year (year) VALUES (?1)", [year])?;
+    }
+    let mut names = Names::default();
+    let mut stored = Stored::default();
+    let mut current: Option<Communication> = None;
+    let mut done: HashSet<u32> = HashSet::new();
+    {
+        let context = &*context;
+        parse(directory, &mut |row| {
+            if current
+                .as_ref()
+                .is_some_and(|communication| communication.first.nhtsa_id != row.nhtsa_id)
+                && let Some(finished) = current.take()
+            {
+                done.insert(finished.first.nhtsa_id);
+                store(context, &mut names, &mut stored, finished)?;
+            }
+            if done.contains(&row.nhtsa_id) {
+                bail!(
+                    "the records of communication {} are not together in the files",
+                    row.nhtsa_id
+                );
+            }
+            let name = names.id(&row.make_text, &row.model_text);
+            let year = row.year;
+            let system = match (row.mfr_system.clone(), row.mfr_subsystem.clone()) {
+                (Some(system), Some(subsystem)) => {
+                    Some(format!("{system}{SYSTEM_SEPARATOR}{subsystem}"))
+                }
+                (system, subsystem) => system.or(subsystem),
+            };
+            let component = row.component.clone();
+            let communication = current.get_or_insert_with(|| Communication {
+                first: row,
+                components: Vec::new(),
+                systems: Vec::new(),
+                vehicles: BTreeSet::new(),
+            });
+            add_once(&mut communication.components, component);
+            add_once(&mut communication.systems, system);
+            communication.vehicles.insert((name, year));
+            Ok(())
+        })?;
+        if let Some(finished) = current.take() {
+            store(context, &mut names, &mut stored, finished)?;
+        }
+    }
+    context.register(
+        Dataset::Bulletins,
+        DatasetEntry {
+            as_of,
+            rows: stored.bulletins,
+            licence: licence::PUBLIC_DOMAIN.to_owned(),
+            attribution: String::new(),
+        },
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -526,6 +787,16 @@ mod tests {
         assert!(
             error.starts_with("the fields are not the ones this build reads: found 3 (NHTSA ID Number, Replacement Service Bulletin Number, Summary), expected 14 ("),
             "{error}"
+        );
+    }
+
+    #[test]
+    fn consecutive_years_are_one_run() {
+        assert_eq!(year_runs(&[]), []);
+        assert_eq!(year_runs(&[2018]), [(2018, 2018)]);
+        assert_eq!(
+            year_runs(&[2012, 2013, 2014, 2016, 2019, 2020]),
+            [(2012, 2014), (2016, 2016), (2019, 2020)]
         );
     }
 }

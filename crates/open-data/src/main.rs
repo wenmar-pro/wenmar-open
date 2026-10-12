@@ -355,6 +355,7 @@ fn main() -> Result<()> {
                 epa_guide,
                 epa_emissions,
                 nrcan_fuel,
+                nhtsa_mfr_comms: None,
             };
             let summary = build_shop(&catalog, &out, &curated, &info, &inputs)?;
             println!(

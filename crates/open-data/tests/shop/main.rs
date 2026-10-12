@@ -1,6 +1,7 @@
 //! One test binary for everything under `open_data::shop`.
 
 mod build;
+mod bulletins;
 mod common;
 mod coverage;
 mod epa_emissions;

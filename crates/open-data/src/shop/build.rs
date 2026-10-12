@@ -41,6 +41,8 @@ pub struct ShopInputs {
     pub epa_emissions: Option<PathBuf>,
     /// `data/build/sources/nrcan-fuel`.
     pub nrcan_fuel: Option<PathBuf>,
+    /// `data/build/sources/nhtsa-mfr-comms`.
+    pub nhtsa_mfr_comms: Option<PathBuf>,
 }
 
 /// What the finished file holds.
@@ -161,6 +163,7 @@ fn shape_all(context: &mut ShapeContext<'_>, inputs: &ShopInputs) -> Result<()> 
         epa_guide,
         epa_emissions,
         nrcan_fuel,
+        nhtsa_mfr_comms,
     } = inputs;
     if let Some(directory) = nhtsa_recalls {
         crate::shop::nhtsa_recalls::shape(context, directory)?;
@@ -194,6 +197,9 @@ fn shape_all(context: &mut ShapeContext<'_>, inputs: &ShopInputs) -> Result<()> 
     }
     if let Some(directory) = nrcan_fuel {
         crate::shop::fuel::shape_nrcan(context, directory)?;
+    }
+    if let Some(directory) = nhtsa_mfr_comms {
+        crate::shop::mfr_comms::shape(context, directory)?;
     }
     Ok(())
 }
@@ -294,4 +300,68 @@ fn build_into(
         catalog_data_version: catalog_data_version.to_owned(),
         datasets,
     })
+}
+
+/// Writes a copy of the shop file `full` at `output` without the datasets
+/// only the hosted service carries: their tables are dropped and their
+/// entries leave `datasets`. Everything else is the same, byte for byte in
+/// meaning: the same `data_version`, `catalog_data_version` and `built_at`.
+/// Returns the datasets the copy holds.
+pub fn offline_copy(full: &Path, output: &Path) -> Result<Datasets> {
+    if output.exists() {
+        bail!(
+            "{} already exists; remove it or choose another path",
+            output.display()
+        );
+    }
+    let result = offline_copy_into(full, output);
+    if result.is_err() {
+        let _ = std::fs::remove_file(output);
+    }
+    result
+}
+
+fn offline_copy_into(full: &Path, output: &Path) -> Result<Datasets> {
+    let source = Connection::open_with_flags(
+        full,
+        OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX,
+    )
+    .with_context(|| format!("opening {}", full.display()))?;
+    let target = output
+        .to_str()
+        .with_context(|| format!("{} is not a UTF-8 path", output.display()))?;
+    source
+        .execute("VACUUM INTO ?1", [target])
+        .with_context(|| format!("copying {} to {}", full.display(), output.display()))?;
+    drop(source);
+
+    let connection =
+        Connection::open(output).with_context(|| format!("opening {}", output.display()))?;
+    connection.execute_batch("PRAGMA journal_mode = OFF; PRAGMA synchronous = OFF;")?;
+    let json: String = connection
+        .query_row("SELECT value FROM meta WHERE key = 'datasets'", [], |row| {
+            row.get(0)
+        })
+        .with_context(|| format!("{} is not a shop file", full.display()))?;
+    let held = Datasets::parse(&json)?;
+    let mut kept = Datasets::default();
+    for (dataset, entry) in held.iter() {
+        if !dataset.hosted_only() {
+            kept.insert(dataset, entry.clone());
+        }
+    }
+    for (id, tables) in schema::HOSTED_ONLY_TABLES {
+        if Dataset::parse(id).is_none_or(|dataset| !dataset.hosted_only()) {
+            bail!("{id} is listed in HOSTED_ONLY_TABLES but is not a hosted-only dataset");
+        }
+        for table in *tables {
+            connection.execute_batch(&format!("DROP TABLE IF EXISTS \"{table}\";"))?;
+        }
+    }
+    connection.execute(
+        "UPDATE meta SET value = ?1 WHERE key = 'datasets'",
+        [kept.to_json()],
+    )?;
+    connection.execute_batch("VACUUM;")?;
+    Ok(kept)
 }
