@@ -26,3 +26,14 @@ An entry is needed only when steps 1 and 2 fail. Run `open-data coverage` to see
 The build stops if an entry names a make or a model the catalog does not have, or if two entries have the same make and model.
 
 Do not copy text from any source into this file. Names are facts; descriptions are not needed here.
+
+## Checking the match rate
+
+```bash
+bin/shop-data     # build a shop file from the newest data file
+bin/coverage      # report and check
+```
+
+`open-data coverage` prints, for each dataset with vehicle rows, how many rows matched and how (`exact`, `base`, `curated`), and the 25 commonest names that matched nothing. Only rows whose make is a light make in the catalog and whose model year is 2000 or later are measured: half of all recall rows are heavy trucks, buses and trailers, which the catalog's light scope leaves out by design.
+
+It fails when a dataset's matched share is below its minimum in `data/coverage.yaml`, when a dataset has no minimum, or when the file names a dataset the shop file lacks. After adding entries to `models.yaml`, run `open-data coverage --shop <file> --catalog <file> --write` to record the higher figures, read the diff, and commit it.

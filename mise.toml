@@ -108,6 +108,19 @@ fi
 cargo run --release -q -p open-data -- catalog-parity --data "$data"
 '''
 
+[tasks.coverage]
+description = "Check how much of the newest shop file matched the catalog"
+run = '''
+set -eu
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+shop=$(ls data/build/shop/wenmar-open-shop-*.sqlite3 2>/dev/null | sort | tail -1)
+if [ -z "$data" ] || [ -z "$shop" ]; then
+  echo "No data file or no shop file. Run: mise run data, then mise run shop-data" >&2
+  exit 1
+fi
+cargo run --release -q -p open-data -- coverage --shop "$shop" --catalog "$data"
+'''
+
 
 [tasks.serve]
 description = "Run the website and the API on http://localhost:3000 with the newest data file in data/build"

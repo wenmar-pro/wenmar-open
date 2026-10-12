@@ -7,8 +7,11 @@ use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 use open_data::build::{BuildInfo, build};
 use open_data::catalog::curated::Curated;
-use open_data::shop::build::{ShopBuildInfo, ShopInputs, build_shop};
+use open_data::shop::build::{ShopBuildInfo, ShopInputs, build_shop, open_catalog};
+use open_data::shop::coverage;
 use open_data::{catalog_parity, fetch, inspect, parity, sources};
+use wenmar_shopdata::ShopData;
+use wenmar_shopdata::sqlite::ShopSource;
 use wenmar_vehicles::sqlite::SqliteSource;
 use wenmar_vehicles::{Catalog, Scope};
 use wenmar_vin::sqlite::SqliteData;
@@ -107,6 +110,21 @@ enum Command {
         /// Write the result as the new baseline instead of checking it.
         #[arg(long)]
         update_baseline: bool,
+    },
+    /// Report how much of a shop file matched the catalog, and check the minimums.
+    Coverage {
+        /// The shop file.
+        #[arg(long)]
+        shop: PathBuf,
+        /// The core data file the shop file was built against.
+        #[arg(long)]
+        catalog: PathBuf,
+        /// The file of minimum matched shares.
+        #[arg(long, default_value = "data/coverage.yaml")]
+        thresholds: PathBuf,
+        /// Record the measured shares as the new minimums instead of checking them.
+        #[arg(long)]
+        write: bool,
     },
 }
 
@@ -357,6 +375,38 @@ fn main() -> Result<()> {
                     bail!("the catalog's agreement with NHTSA fell below the baseline");
                 }
                 println!("the catalog agrees with NHTSA at or above the baseline");
+            }
+        }
+        Command::Coverage {
+            shop,
+            catalog,
+            thresholds,
+            write,
+        } => {
+            let (catalog, core_version) = open_catalog(&catalog)?;
+            let source = ShopSource::open(&shop)
+                .map_err(|error| anyhow::anyhow!("opening {}: {error}", shop.display()))?;
+            let shop = ShopData::new(source)?;
+            shop.check_catalog(&core_version)?;
+            let report = coverage::run(&shop, &coverage::light_makes(&catalog)?, coverage::TABLES)?;
+            print!("{}", coverage::table(&report));
+            if write {
+                std::fs::write(&thresholds, coverage::yaml(&report))
+                    .with_context(|| format!("writing {}", thresholds.display()))?;
+                println!("minimums written to {}", thresholds.display());
+            } else {
+                let minimums = coverage::Thresholds::load(&thresholds)?;
+                let problems = coverage::failures(&report, &minimums);
+                if !problems.is_empty() {
+                    for problem in &problems {
+                        eprintln!("below: {problem}");
+                    }
+                    bail!(
+                        "matching fell below the minimums in {}",
+                        thresholds.display()
+                    );
+                }
+                println!("matching is at or above every minimum");
             }
         }
     }
