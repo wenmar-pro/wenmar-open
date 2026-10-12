@@ -17,6 +17,7 @@ pub mod recall_reports;
 pub mod recalls;
 pub mod schema;
 pub mod shop;
+pub mod siblings;
 pub mod vin_guides;
 
 pub use dataset::{Dataset, DatasetEntry, Datasets};

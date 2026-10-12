@@ -52,3 +52,7 @@ required-features = ["sqlite"]
 [[test]]
 name = "bulletins"
 required-features = ["sqlite"]
+
+[[test]]
+name = "siblings"
+required-features = ["sqlite"]
