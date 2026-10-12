@@ -7,7 +7,7 @@ use std::fs::File;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
 
 /// NHTSA's and Transport Canada's file servers refuse the default agent of
@@ -216,36 +216,53 @@ pub fn fetch_with(
     fetched_at: &str,
     download: &mut dyn FnMut(&str, &Path) -> Result<Downloaded>,
 ) -> Result<Vec<PathBuf>> {
-    let directory = directory(build_dir, source.id);
+    let files: Vec<(String, String)> = source
+        .files
+        .iter()
+        .map(|file| (file.url.to_owned(), file.name.to_owned()))
+        .collect();
+    fetch_files(source.id, &files, build_dir, fetched_at, download)
+}
+
+/// Fetches `files`, each an address and the name it is saved under, into
+/// the directory of the source `id`, and writes `source.json`.
+pub fn fetch_files(
+    id: &str,
+    files: &[(String, String)],
+    build_dir: &Path,
+    fetched_at: &str,
+    download: &mut dyn FnMut(&str, &Path) -> Result<Downloaded>,
+) -> Result<Vec<PathBuf>> {
+    let directory = directory(build_dir, id);
     std::fs::create_dir_all(&directory)
         .with_context(|| format!("creating {}", directory.display()))?;
-    let mut paths = Vec::with_capacity(source.files.len() + 1);
-    let mut files = Vec::with_capacity(source.files.len());
-    for file in source.files {
-        let path = directory.join(file.name);
+    let mut paths = Vec::with_capacity(files.len() + 1);
+    let mut records = Vec::with_capacity(files.len());
+    for (url, name) in files {
+        let path = directory.join(name);
         // A download that stops half way must not leave a file that looks
         // whole, so it lands under another name first.
-        let part = directory.join(format!("{}.part", file.name));
-        let downloaded = download(file.url, &part)?;
+        let part = directory.join(format!("{name}.part"));
+        let downloaded = download(url, &part)?;
         std::fs::rename(&part, &path).with_context(|| format!("writing {}", path.display()))?;
-        files.push(FileRecord {
-            name: file.name.to_owned(),
-            url: file.url.to_owned(),
+        records.push(FileRecord {
+            name: name.clone(),
+            url: url.clone(),
             last_modified: downloaded.last_modified,
             bytes: downloaded.bytes,
         });
         paths.push(path);
     }
-    let as_of = files
+    let as_of = records
         .iter()
         .filter_map(|file| file.last_modified.as_deref().and_then(http_date))
         .max()
         .unwrap_or_else(|| fetched_at.chars().take(10).collect());
     let record = SourceRecord {
-        source: source.id.to_owned(),
+        source: id.to_owned(),
         fetched_at: fetched_at.to_owned(),
         as_of,
-        files,
+        files: records,
     };
     let record_path = directory.join("source.json");
     let mut text = serde_json::to_string_pretty(&record)?;
@@ -259,6 +276,133 @@ pub fn fetch_with(
 /// Fetches every file of `source` from the network.
 pub fn fetch(source: &FetchSource, build_dir: &Path, fetched_at: &str) -> Result<Vec<PathBuf>> {
     fetch_with(source, build_dir, fetched_at, &mut download)
+}
+
+/// NHTSA's manufacturer communications: service bulletins and the like.
+/// Its archives are named for the years they hold, and the newest one's
+/// name changes each January, so the names are found by asking for them
+/// and are not in [`SOURCES`].
+pub const MFR_COMMS: &str = "nhtsa-mfr-comms";
+
+/// Where the archives and the layout file are.
+pub const MFR_COMMS_BASE: &str = "https://static.nhtsa.gov/odi/ffdd/tsbs/";
+
+/// NHTSA's description of the fields.
+pub const MFR_COMMS_LAYOUT: &str = "TSBS.txt";
+
+/// The first year of the first archive, and how many years an archive
+/// holds once it is complete.
+pub const MFR_COMMS_FIRST_YEAR: u32 = 1995;
+pub const MFR_COMMS_BLOCK: u32 = 5;
+
+/// The name of the archive that holds the years `from` to `to`.
+pub fn mfr_comms_archive(from: u32, to: u32) -> String {
+    format!("TSBS_RECEIVED_{from}-{to}.zip")
+}
+
+/// The last years to try for the archive that starts in `from`, in order,
+/// when the current year is `year`.
+///
+/// A block that ended before this year has one name: its five years. The
+/// block this year is in is named for the newest year it holds so far, so
+/// it is tried under next year's name (NHTSA may rename it early), then
+/// this year's, then last year's (NHTSA may rename it late). An older
+/// file is left on the server under its old name, so the newest is tried
+/// first.
+pub fn mfr_comms_candidates(from: u32, year: u32) -> Vec<u32> {
+    let last = from + MFR_COMMS_BLOCK - 1;
+    if last < year {
+        return vec![last];
+    }
+    [year + 1, year, year.saturating_sub(1)]
+        .into_iter()
+        .filter(|end| (from..=last).contains(end))
+        .collect()
+}
+
+/// The archives to download when the current year is `year`, oldest
+/// first. `exists` says whether an address answers.
+///
+/// Fails when a block has no archive under any name tried, naming them.
+/// The one exception is a block that starts this year: early in January
+/// NHTSA may not have published it yet, and it is left out.
+pub fn mfr_comms_archives(
+    year: u32,
+    exists: &mut dyn FnMut(&str) -> Result<bool>,
+) -> Result<Vec<String>> {
+    if year < MFR_COMMS_FIRST_YEAR {
+        bail!("the year {year} is before the first archive, {MFR_COMMS_FIRST_YEAR}");
+    }
+    let mut found = Vec::new();
+    let mut from = MFR_COMMS_FIRST_YEAR;
+    while from <= year {
+        let mut tried = Vec::new();
+        let mut name = None;
+        for to in mfr_comms_candidates(from, year) {
+            let candidate = mfr_comms_archive(from, to);
+            if exists(&format!("{MFR_COMMS_BASE}{candidate}"))? {
+                name = Some(candidate);
+                break;
+            }
+            tried.push(candidate);
+        }
+        match name {
+            Some(name) => found.push(name),
+            None if from == year => {}
+            None => bail!(
+                "no archive for the years from {from} at {MFR_COMMS_BASE}; tried {}",
+                tried.join(", ")
+            ),
+        }
+        from += MFR_COMMS_BLOCK;
+    }
+    Ok(found)
+}
+
+/// Whether `url` answers: `true` for success, `false` for 404, and an
+/// error for anything else.
+pub fn exists(url: &str) -> Result<bool> {
+    match ureq::head(url).header("User-Agent", USER_AGENT).call() {
+        Ok(_) => Ok(true),
+        Err(ureq::Error::StatusCode(404)) => Ok(false),
+        Err(error) => Err(error).with_context(|| format!("asking for {url}")),
+    }
+}
+
+/// Finds the manufacturer communication archives through `exists`, then
+/// fetches them and the layout file through `download` and writes
+/// `source.json`. Nothing is downloaded unless every archive was found.
+pub fn fetch_mfr_comms_with(
+    build_dir: &Path,
+    fetched_at: &str,
+    exists: &mut dyn FnMut(&str) -> Result<bool>,
+    download: &mut dyn FnMut(&str, &Path) -> Result<Downloaded>,
+) -> Result<Vec<PathBuf>> {
+    let year: u32 = fetched_at
+        .get(0..4)
+        .and_then(|year| year.parse().ok())
+        .with_context(|| format!("{fetched_at:?} does not start with a year"))?;
+    let mut files: Vec<(String, String)> = mfr_comms_archives(year, exists)?
+        .into_iter()
+        .map(|name| (format!("{MFR_COMMS_BASE}{name}"), name))
+        .collect();
+    files.push((
+        format!("{MFR_COMMS_BASE}{MFR_COMMS_LAYOUT}"),
+        MFR_COMMS_LAYOUT.to_owned(),
+    ));
+    fetch_files(MFR_COMMS, &files, build_dir, fetched_at, download)
+}
+
+/// Fetches the manufacturer communications from the network.
+pub fn fetch_mfr_comms(build_dir: &Path, fetched_at: &str) -> Result<Vec<PathBuf>> {
+    fetch_mfr_comms_with(build_dir, fetched_at, &mut exists, &mut download)
+}
+
+/// Every source id `open-data fetch` takes besides `vpic`.
+pub fn all_ids() -> Vec<&'static str> {
+    let mut ids = ids();
+    ids.push(MFR_COMMS);
+    ids
 }
 
 #[cfg(test)]
@@ -453,5 +597,155 @@ mod tests {
         assert!(!directory.join("source.json").exists());
         let error = SourceRecord::read(&directory).unwrap_err();
         assert!(format!("{error:#}").contains("run open-data fetch first"));
+    }
+
+    #[test]
+    fn the_archive_names_tried_follow_the_calendar() {
+        assert_eq!(mfr_comms_archive(2025, 2026), "TSBS_RECEIVED_2025-2026.zip");
+        // A block that has ended has one name.
+        assert_eq!(mfr_comms_candidates(1995, 2026), [1999]);
+        assert_eq!(mfr_comms_candidates(2020, 2026), [2024]);
+        assert_eq!(mfr_comms_candidates(2025, 2030), [2029]);
+        // The block this year is in: next year's name, this year's, last year's.
+        assert_eq!(mfr_comms_candidates(2025, 2026), [2027, 2026, 2025]);
+        assert_eq!(mfr_comms_candidates(2025, 2025), [2026, 2025]);
+        assert_eq!(mfr_comms_candidates(2025, 2029), [2029, 2028]);
+        assert_eq!(mfr_comms_candidates(2030, 2030), [2031, 2030]);
+    }
+
+    /// The names on NHTSA's server on 2026-10-12. `2025-2025` was still
+    /// there, last changed on 2025-12-31.
+    const ON_SERVER: [&str; 8] = [
+        "TSBS_RECEIVED_1995-1999.zip",
+        "TSBS_RECEIVED_2000-2004.zip",
+        "TSBS_RECEIVED_2005-2009.zip",
+        "TSBS_RECEIVED_2010-2014.zip",
+        "TSBS_RECEIVED_2015-2019.zip",
+        "TSBS_RECEIVED_2020-2024.zip",
+        "TSBS_RECEIVED_2025-2025.zip",
+        "TSBS_RECEIVED_2025-2026.zip",
+    ];
+
+    fn on_server(url: &str) -> Result<bool> {
+        Ok(ON_SERVER
+            .iter()
+            .any(|name| url == format!("{MFR_COMMS_BASE}{name}")))
+    }
+
+    #[test]
+    fn the_archives_are_found_by_asking() {
+        let mut asked = Vec::new();
+        let mut exists = |url: &str| {
+            asked.push(url.to_owned());
+            on_server(url)
+        };
+        let found = mfr_comms_archives(2026, &mut exists).unwrap();
+        assert_eq!(
+            found,
+            [
+                "TSBS_RECEIVED_1995-1999.zip",
+                "TSBS_RECEIVED_2000-2004.zip",
+                "TSBS_RECEIVED_2005-2009.zip",
+                "TSBS_RECEIVED_2010-2014.zip",
+                "TSBS_RECEIVED_2015-2019.zip",
+                "TSBS_RECEIVED_2020-2024.zip",
+                "TSBS_RECEIVED_2025-2026.zip",
+            ]
+        );
+        // Six finished blocks, one question each; then 2025-2027 and 2025-2026.
+        assert_eq!(asked.len(), 8);
+        assert!(asked[6].ends_with("TSBS_RECEIVED_2025-2027.zip"));
+
+        // In January, before NHTSA renames the newest archive.
+        let found = mfr_comms_archives(2027, &mut on_server).unwrap();
+        assert_eq!(found.last().unwrap(), "TSBS_RECEIVED_2025-2026.zip");
+        // The stale 2025-2025 is never taken while a newer name answers.
+        assert!(!found.contains(&"TSBS_RECEIVED_2025-2025.zip".to_owned()));
+
+        // A block that starts this year may not be published yet.
+        let mut early =
+            |url: &str| Ok(on_server(url)? || url.ends_with("TSBS_RECEIVED_2025-2029.zip"));
+        let found = mfr_comms_archives(2030, &mut early).unwrap();
+        assert_eq!(found.len(), 7);
+        assert_eq!(found.last().unwrap(), "TSBS_RECEIVED_2025-2029.zip");
+    }
+
+    #[test]
+    fn a_missing_archive_stops_the_fetch_before_any_download() {
+        let scratch = Scratch::new("mfr-comms-missing");
+        let mut exists = |url: &str| Ok(on_server(url)? && !url.contains("2010-2014"));
+        let downloads = std::cell::Cell::new(0);
+        let mut fake = |_: &str, path: &Path| -> Result<Downloaded> {
+            downloads.set(downloads.get() + 1);
+            std::fs::write(path, b"x")?;
+            Ok(Downloaded {
+                last_modified: None,
+                bytes: 1,
+            })
+        };
+        let error = fetch_mfr_comms_with(&scratch.0, "2026-10-12 14:03:22", &mut exists, &mut fake)
+            .unwrap_err();
+        assert_eq!(
+            format!("{error:#}"),
+            "no archive for the years from 2010 at https://static.nhtsa.gov/odi/ffdd/tsbs/; tried TSBS_RECEIVED_2010-2014.zip"
+        );
+        assert_eq!(downloads.get(), 0);
+        assert!(
+            !directory(&scratch.0, MFR_COMMS)
+                .join("source.json")
+                .exists()
+        );
+
+        // A server that answers neither yes nor no stops it too.
+        let mut broken = |_: &str| -> Result<bool> { anyhow::bail!("status 503") };
+        let error = fetch_mfr_comms_with(&scratch.0, "2026-10-12 14:03:22", &mut broken, &mut fake)
+            .unwrap_err();
+        assert!(format!("{error:#}").contains("status 503"));
+        let error = mfr_comms_archives(1990, &mut on_server).unwrap_err();
+        assert!(format!("{error:#}").contains("before the first archive"));
+    }
+
+    #[test]
+    fn a_fetch_of_the_communications_saves_the_archives_and_the_layout() {
+        let scratch = Scratch::new("mfr-comms");
+        let mut fake = |url: &str, path: &Path| -> Result<Downloaded> {
+            std::fs::write(path, url.as_bytes())?;
+            Ok(Downloaded {
+                last_modified: Some("Sun, 11 Oct 2026 10:14:59 GMT".to_owned()),
+                bytes: url.len() as u64,
+            })
+        };
+        let paths =
+            fetch_mfr_comms_with(&scratch.0, "2026-10-12 14:03:22", &mut on_server, &mut fake)
+                .unwrap();
+        let directory = directory(&scratch.0, MFR_COMMS);
+        assert_eq!(paths.len(), 9);
+        assert_eq!(paths[0], directory.join("TSBS_RECEIVED_1995-1999.zip"));
+        assert_eq!(paths[6], directory.join("TSBS_RECEIVED_2025-2026.zip"));
+        assert_eq!(paths[7], directory.join("TSBS.txt"));
+        assert_eq!(paths[8], directory.join("source.json"));
+        let record = SourceRecord::read(&directory).unwrap();
+        assert_eq!(record.source, "nhtsa-mfr-comms");
+        assert_eq!(record.as_of, "2026-10-11");
+        assert_eq!(record.files.len(), 8);
+        assert_eq!(
+            record.files[6].url,
+            "https://static.nhtsa.gov/odi/ffdd/tsbs/TSBS_RECEIVED_2025-2026.zip"
+        );
+        assert_eq!(record.files[7].name, "TSBS.txt");
+        assert_eq!(
+            all_ids(),
+            [
+                "nhtsa-recalls",
+                "tc-recalls",
+                "nhtsa-investigations",
+                "nhtsa-recall-reports",
+                "nhtsa-ratings",
+                "epa-vehicles",
+                "epa-emissions",
+                "nhtsa-mfr-comms"
+            ]
+        );
+        assert!(find(MFR_COMMS).is_none());
     }
 }

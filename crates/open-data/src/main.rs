@@ -30,7 +30,7 @@ struct Cli {
 enum Command {
     /// Download a source's files. With no source: a vPIC plain-text dump, extracted.
     Fetch {
-        /// vpic (the default), nhtsa-recalls, tc-recalls, nhtsa-investigations, nhtsa-recall-reports, nhtsa-ratings, nhtsa-vin-guides, epa-vehicles, epa-guide, epa-emissions or nrcan-fuel.
+        /// vpic (the default), nhtsa-recalls, tc-recalls, nhtsa-investigations, nhtsa-recall-reports, nhtsa-ratings, nhtsa-vin-guides, epa-vehicles, epa-guide, epa-emissions, nrcan-fuel or nhtsa-mfr-comms.
         source: Option<String>,
         /// vpic only. Release such as 2026_09. Defaults to the newest on NHTSA's page.
         #[arg(long)]
@@ -215,6 +215,23 @@ fn main() -> Result<()> {
                     println!("{}", path.display());
                 }
             }
+            sources::MFR_COMMS => {
+                if release.is_some() {
+                    bail!("--release applies to vpic only");
+                }
+                // The archives are found by asking for their names, which change
+                // each January; the layout is checked now, not at the next build.
+                let paths = sources::fetch_mfr_comms(&dir, &now())?;
+                let layout =
+                    sources::directory(&dir, sources::MFR_COMMS).join(sources::MFR_COMMS_LAYOUT);
+                let text = std::fs::read(&layout)
+                    .with_context(|| format!("reading {}", layout.display()))?;
+                open_data::shop::mfr_comms::check_layout(&String::from_utf8_lossy(&text))
+                    .with_context(|| layout.display().to_string())?;
+                for path in paths {
+                    println!("{}", path.display());
+                }
+            }
             id => {
                 if release.is_some() {
                     bail!("--release applies to vpic only");
@@ -227,7 +244,7 @@ fn main() -> Result<()> {
                         let Some(source) = sources::find(id) else {
                             bail!(
                                 "{id} is not a source; use vpic, {}, {}, {}, {}",
-                                sources::ids().join(", "),
+                                sources::all_ids().join(", "),
                                 nhtsa_vin_guides::SOURCE_ID,
                                 epa_guide::SOURCE,
                                 nrcan_fuel::SOURCE
