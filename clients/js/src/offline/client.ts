@@ -23,6 +23,7 @@ import type {
   SubmodelsQuery,
   VehicleRecalls,
   VehicleRecallsQuery,
+  VehicleSafety,
   VinDecode,
   VinRecalls,
   VinRecallsQuery,
@@ -80,7 +81,7 @@ const keyOf = (statement: Statement): string =>
 const READS_SHOP = new Set(["meta", "overview_vehicle", "overview_vin", "model_years"]);
 
 /** Whether a question reads the shop file, when there is one. */
-const needsShop = (question: Question): boolean => READS_SHOP.has(question.op) || question.op.startsWith("recall");
+const needsShop = (question: Question): boolean => READS_SHOP.has(question.op) || question.op.startsWith("recall") || question.op === "safety";
 
 function thrown(failure: Failure): WenmarOpenError {
   return new WenmarOpenError({ code: failure.code, message: failure.message, details: failure.details });
@@ -201,6 +202,17 @@ export class WenmarOpenOffline {
   /** One catalog entry by its id, such as `2019_honda_civic_si`. */
   async vehicle(id: string, options: RequestOptions = {}): Promise<Entry> {
     return this.#one({ op: "vehicle", args: { id: String(id) } }, options);
+  }
+
+  /**
+   * NHTSA's crash test ratings for a model year, by its id such as
+   * `2018_ford_f-150`. NHTSA rates by body style and drive, so `ratings`
+   * often has several entries: each names the vehicle it is for. Needs a
+   * shop file that holds the ratings: without one it fails with
+   * `dataset_unavailable`.
+   */
+  async safety(id: string, options: RequestOptions = {}): Promise<VehicleSafety> {
+    return this.#one({ op: "safety", args: { id: String(id) } }, options);
   }
 
   /**

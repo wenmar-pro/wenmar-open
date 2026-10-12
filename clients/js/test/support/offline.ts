@@ -127,6 +127,7 @@ export type Client = Pick<
   | "vinRecalls"
   | "recall"
   | "searchRecalls"
+  | "safety"
   | "overview"
   | "vinOverview"
   | "modelYears"
@@ -167,6 +168,8 @@ export function ask(client: Client, { op, args }: Case): Promise<unknown> {
       return client.recall(String(args["source"]), String(args["campaign"]));
     case "recalls_search":
       return client.searchRecalls(query);
+    case "safety":
+      return client.safety(String(args["id"]));
     case "overview_vehicle":
       return client.overview(String(args["id"]));
     case "overview_vin":

@@ -685,6 +685,50 @@ test("an overview opens the shop file once, and a shop file that cannot be used 
   assert.deepEqual({ ok: await other.client.decodeVin(KONA) }, caseNamed("decode").answer);
 });
 
+// ----- crash test ratings, from the shop file -----
+
+test("safety gives every rating NHTSA gave a model year, and none is picked", async () => {
+  const { client, store, shop } = withShop();
+  const safety = await client.safety("2023_hyundai_kona");
+  assert.equal(safety.vehicle.id, "2023_hyundai_kona");
+  assert.equal(safety.as_of, "2026-08-07");
+  assert.equal(safety.source, "NHTSA New Car Assessment Program");
+  assert.equal(safety.source_url, "https://www.nhtsa.gov/ratings");
+  assert.deepEqual(safety.attribution, []);
+  assert.deepEqual(
+    safety.ratings.map((rating) => rating.description),
+    ["KONA, SUV, AWD", "KONA, SUV, FWD", "KONA ELECTRIC, SUV, FWD"],
+  );
+  const [first, , electric] = safety.ratings;
+  assert.ok(first !== undefined && electric !== undefined);
+  assert.equal(first.match, "exact");
+  assert.equal(first.stars.overall, 5);
+  assert.equal(first.rollover_risk_percent, 14.8);
+  assert.equal(first.curb_weight_kg, 1463);
+  assert.equal(first.features.forward_collision_warning, "standard");
+  // A vehicle NHTSA lists and has not tested: every star is null.
+  assert.ok(Object.values(electric.stars).every((stars) => stars === null));
+  // The ratings were read from the shop file's store, and nothing else was.
+  assert.ok(shop.statements.some((statement) => statement.sql.includes("FROM rating_vehicle")));
+  assert.ok(store.statements.every((statement) => !statement.sql.includes("rating")));
+  // A model year NHTSA lists nothing for is an empty list, not an error.
+  assert.deepEqual((await client.safety("2019_honda_civic")).ratings, []);
+  assert.equal((await failure(client.safety("2019_honda_nothing"))).code, "not_found");
+});
+
+test("with no shop store safety is dataset_unavailable, and nothing is read for it", async () => {
+  const store = new RecordedStore();
+  const client = offline(store);
+  const error = await failure(client.safety("2023_hyundai_kona"));
+  assert.equal(error.code, "dataset_unavailable");
+  assert.equal(error.message, "The ratings dataset is not available.");
+  assert.deepEqual(error.details, { dataset: "ratings" });
+  assert.equal(error.status, undefined);
+  // Only the data file was opened.
+  assert.equal(store.steps, 2);
+  assert.deepEqual({ ok: await client.decodeVin(KONA) }, caseNamed("decode").answer);
+});
+
 test("close closes both stores", () => {
   const closed: string[] = [];
   const client = new WenmarOpenOffline({

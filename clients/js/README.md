@@ -351,6 +351,24 @@ open.close();
 
 `overview`, `vinOverview` and `modelYears` answer with no shop file too: `recalls` is then `null`, in the overview and in each year of `modelYears`. `recentRecalls` needs the shop file, as the other recall methods do. A block the files do not give is `null`, as it is from a server that does not hold it: see the list below.
 
+### Crash test ratings offline
+
+`safety(id)` is that of `WenmarOpen`: NHTSA's crash test ratings for a model year, read from the shop file.
+
+```ts
+import { openOffline } from "wenmar-open/offline/node";
+
+const open = await openOffline();
+const safety = await open.safety("2023_hyundai_kona");
+for (const rating of safety.ratings) {
+  console.log(rating.description, rating.stars.overall ?? "no overall rating");
+}
+console.log(`NHTSA's file of ${safety.as_of}: ${safety.source_url}`);
+open.close();
+```
+
+NHTSA rates a vehicle by body style and drive, so `ratings` often has several entries and their stars can differ: `description` says which vehicle each is for, in NHTSA's words. Show them all, or the one whose body style and drive you know. A rating with every star `null` is a vehicle NHTSA lists and has not tested, and `ratings` is empty when NHTSA lists none. Without a shop file, or with one that holds no ratings, `safety` fails with `dataset_unavailable` and `details.dataset` is `ratings`. The answer is the hosted API's, field for field.
+
 ### Switching between the API and the data file
 
 Both clients have the same methods, so the choice can be one line:
