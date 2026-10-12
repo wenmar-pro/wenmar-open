@@ -14,6 +14,7 @@ pub mod epa_guide;
 pub mod epa_match;
 pub mod epa_vehicles;
 pub mod fuel;
+pub mod hand;
 pub mod matcher;
 pub mod mfr_comms;
 pub mod nhtsa_investigations;

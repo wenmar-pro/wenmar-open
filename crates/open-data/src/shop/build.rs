@@ -207,6 +207,8 @@ fn shape_all(context: &mut ShapeContext<'_>, inputs: &ShopInputs) -> Result<()> 
     if let Some(directory) = nhtsa_complaints {
         crate::shop::complaints::shape(context, directory)?;
     }
+    // The hand-kept records are in the curated directory, not fetched.
+    crate::shop::hand::shape(context)?;
     after_sources(context)
 }
 

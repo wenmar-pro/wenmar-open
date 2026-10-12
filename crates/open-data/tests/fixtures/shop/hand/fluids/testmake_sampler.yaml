@@ -1,0 +1,57 @@
+# A vehicle that does not exist, for the tests of open-data. Every figure
+# here is impossible on purpose. Never copy a real figure into a fixture.
+make: testmake
+model: sampler
+fluids:
+  - year_from: 2001
+    year_to: 2002
+    kind: engine_oil
+    engine: 9-9l-test
+    grade: "0W-99"
+    specification: "TEST-SPEC-1"
+    capacity: "99.9"
+    capacity_unit: l
+    with_filter: true
+    source: "Test manual, page 1"
+    checked: 2026-10-12
+    reviewer: test-reviewer
+  - year_from: 2001
+    kind: engine_oil
+    engine: 8-8l-test-diesel
+    specification: "TEST-SPEC-2"
+    capacity: "88"
+    capacity_unit: qt
+    with_filter: false
+    market: ca
+    source: "Test manual, page 2"
+    checked: 2026-10-11
+    reviewer: test-reviewer
+  - year_from: 2001
+    year_to: 2003
+    kind: transmission
+    applies_to: "Test automatic"
+    specification: "TEST ATF 9"
+    source: "Test manual, page 3"
+    checked: 2026-10-10
+    reviewer: test-reviewer
+  - year_from: 2002
+    kind: coolant
+    specification: "TEST COOLANT 9"
+    source: "Test manual, page 4"
+    checked: 2026-10-10
+    reviewer: test-reviewer
+  - year_from: 2001
+    kind: refrigerant
+    specification: "R-TEST"
+    charge: "9.99"
+    charge_unit: kg
+    source: "Test under-hood label"
+    checked: 2026-10-10
+    reviewer: test-reviewer
+  - year_from: 2001
+    year_to: 2003
+    kind: brake
+    specification: "TEST BRAKE 9"
+    source: "Test manual, page 5"
+    checked: 2026-10-10
+    reviewer: test-reviewer
