@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Check a vehicle for recalls</h1>
+<p>{{ may_apply }}</p>
+{% include "vin_form.html" %}
+<p class="note">Decoding a VIN names its year, make and model. The recalls listed with it are those of that model year.</p>
+<h2 id="pick-heading">No VIN? Pick the vehicle</h2>
+{% include "pick_form.html" %}
+<p class="note">Pick the year and the make, choose the model, then follow "Recalls" on its page.</p>
+<h2>Check one vehicle officially</h2>
+<ul class="plain links">
+<li><a href="{{ lookup.nhtsa }}">NHTSA recall lookup by VIN (United States)</a></li>
+<li><a href="{{ lookup.tc }}">Transport Canada recall search (Canada)</a></li>
+</ul>
+<table class="prose">
+<caption>Newest recall campaigns</caption>
+<tbody>
+{% for line in newest -%}
+<tr><th scope="row"><a class="mono" href="{{ line.href }}">{{ line.campaign }}</a></th><td>{{ line.date }}{% if !line.component.is_empty() %}. {{ line.component }}{% endif %}{% if !line.advisory.is_empty() %} <strong>{{ line.advisory }}</strong>{% endif %}</td></tr>
+{% else -%}
+<tr><td>None on file.</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">United States recalls are from NHTSA, {{ us }}. Canadian recalls are from Transport Canada, {{ ca }}.</p>
+{% for credit in attribution -%}
+<p class="note">{{ credit }}</p>
+{% endfor -%}
+{% endblock %}

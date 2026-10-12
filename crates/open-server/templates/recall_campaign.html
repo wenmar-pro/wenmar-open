@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ heading }}</h1>
+{% if !advisory.is_empty() -%}
+<p class="warning">{{ advisory }}</p>
+{% endif -%}
+<p>{{ may_apply }}</p>
+<table>
+<caption>Campaign</caption>
+<tbody>
+{% for fact in facts -%}
+<tr><th scope="row">{{ fact.0 }}</th><td>{{ fact.1 }}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+{% for section in sections -%}
+<h2>{{ section.0 }}</h2>
+{% for paragraph in section.1 -%}
+<p>{{ paragraph }}</p>
+{% endfor -%}
+{% endfor -%}
+<table>
+<caption>Vehicles this campaign lists</caption>
+<tbody>
+{% for vehicle in vehicles -%}
+<tr><th scope="row">{% if let Some(href) = vehicle.href %}<a href="{{ href }}">{{ vehicle.name }}</a>{% else %}{{ vehicle.name }}{% endif %}</th><td>{{ vehicle.details }}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+{% if vehicles_total > vehicles.len() -%}
+<p class="note">The first {{ vehicles.len() }} of {{ vehicles_total }} vehicles are shown. <a href="{{ json_path }}">The JSON</a> has them all.</p>
+{% endif -%}
+<p class="note">A vehicle with no link is not in this site's catalog, which covers cars, multipurpose vehicles and trucks by model year. The campaign is from data {{ dated }}.</p>
+<h2>Check one vehicle officially</h2>
+<ul class="plain links">
+<li><a href="{{ lookup.nhtsa }}">NHTSA recall lookup by VIN (United States)</a></li>
+<li><a href="{{ lookup.tc }}">Transport Canada recall search (Canada)</a></li>
+{% if let Some(maker) = lookup.maker -%}
+<li><a href="{{ maker }}">The maker's own recall lookup by VIN</a></li>
+{% endif -%}
+</ul>
+{% for credit in attribution -%}
+<p class="note">{{ credit }}</p>
+{% endfor -%}
+<ul class="plain links">
+<li><a href="/recalls">Check another vehicle for recalls</a></li>
+<li><a href="{% if let Some(form) = report.form %}{{ form }}{% else %}{{ report.issue }}{% endif %}">Report an error on this page</a></li>
+{% if let Some(mail) = report.mail -%}
+<li><a href="{{ mail }}">Report an error by email</a></li>
+{% endif -%}
+</ul>
+{% endblock %}

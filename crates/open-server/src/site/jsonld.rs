@@ -144,6 +144,30 @@ pub fn article(base: &str, path: &str, headline: &str, description: &str) -> Val
     })
 }
 
+/// A recall campaign: an article whose subject is the vehicles the
+/// campaign lists, with the day it was reported when that is known.
+pub fn recall(
+    base: &str,
+    path: &str,
+    headline: &str,
+    description: &str,
+    date: Option<&str>,
+    vehicles: &[String],
+) -> Value {
+    let mut recall = article(base, path, headline, description);
+    if let Some(date) = date {
+        recall["datePublished"] = json!(date);
+    }
+    if !vehicles.is_empty() {
+        let about: Vec<Value> = vehicles
+            .iter()
+            .map(|name| json!({ "@type": "Car", "name": name }))
+            .collect();
+        recall["about"] = Value::Array(about);
+    }
+    recall
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

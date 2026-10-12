@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Recalls that may apply to the {{ name }}</h1>
+<p>{{ may_apply }}</p>
+{% for line in advisories -%}
+<p class="warning">Campaign <a href="{{ line.href }}">{{ line.campaign }}</a> may apply to this vehicle. {{ line.advisory }}</p>
+{% endfor -%}
+{% if filters.len() > 2 -%}
+<h2 id="components">By component</h2>
+<nav aria-labelledby="components">
+<ul class="plain links">
+{% for filter in filters -%}
+<li><a href="{{ filter.href }}"{% if filter.current %} aria-current="page"{% endif %}>{{ filter.name }}</a></li>
+{% endfor -%}
+</ul>
+</nav>
+{% endif -%}
+{% if let Some(component) = chosen -%}
+<p class="note">Only campaigns about {{ component }} are shown.</p>
+{% endif -%}
+<table class="prose">
+<caption>United States: NHTSA, {{ us_dated }}</caption>
+<tbody>
+{% for line in us -%}
+<tr><th scope="row"><a class="mono" href="{{ line.href }}">{{ line.campaign }}</a></th><td>{{ line.date }}{% if !line.component.is_empty() %}. {{ line.component }}{% endif %}{% if !line.summary.is_empty() %}. {{ line.summary }}{% endif %}{% if !line.built.is_empty() %} {{ line.built }}{% endif %}{% if !line.advisory.is_empty() %} <strong>{{ line.advisory }}</strong>{% endif %}</td></tr>
+{% else -%}
+<tr><td>None found.</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<table class="prose">
+<caption>Canada: Transport Canada, {{ ca_dated }}</caption>
+<tbody>
+{% for line in ca -%}
+<tr><th scope="row"><a class="mono" href="{{ line.href }}">{{ line.campaign }}</a></th><td>{{ line.date }}{% if !line.component.is_empty() %}. {{ line.component }}{% endif %}{% if !line.summary.is_empty() %}. {{ line.summary }}{% endif %}{% if !line.built.is_empty() %} {{ line.built }}{% endif %}{% if !line.advisory.is_empty() %} <strong>{{ line.advisory }}</strong>{% endif %}</td></tr>
+{% else -%}
+<tr><td>None found.</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">A campaign lists a year, a make and a model, and often only some of the vehicles built. A list with nothing on it is not a clearance either. The lookups below check one VIN.</p>
+<h2>Check one vehicle officially</h2>
+<ul class="plain links">
+<li><a href="{{ lookup.nhtsa }}">NHTSA recall lookup by VIN (United States)</a></li>
+<li><a href="{{ lookup.tc }}">Transport Canada recall search (Canada)</a></li>
+{% if let Some(maker) = lookup.maker -%}
+<li><a href="{{ maker }}">The maker's own recall lookup by VIN</a></li>
+{% endif -%}
+</ul>
+{% for credit in attribution -%}
+<p class="note">{{ credit }}</p>
+{% endfor -%}
+<ul class="plain links">
+<li><a href="{{ model_year_path }}">Trims and engines for the {{ name }}</a></li>
+<li><a href="/recalls">Check another vehicle for recalls</a></li>
+<li><a href="{% if let Some(form) = report.form %}{{ form }}{% else %}{{ report.issue }}{% endif %}">Report an error on this page</a></li>
+{% if let Some(mail) = report.mail -%}
+<li><a href="{{ mail }}">Report an error by email</a></li>
+{% endif -%}
+</ul>
+{% endblock %}

@@ -14,6 +14,7 @@ pub mod licences;
 pub mod links;
 pub mod markdown;
 pub mod pages;
+pub mod recalls;
 pub mod report;
 pub mod seo;
 pub mod tokens;
@@ -449,6 +450,12 @@ pub fn router() -> Router<AppState> {
         .route("/makes.md", get(catalog::makes_md))
         .route("/makes/{make}", get(catalog::make))
         .route("/makes/{make}/{model}/{year}", get(catalog::model_year))
+        .route(
+            "/makes/{make}/{model}/{year}/{section}",
+            get(recalls::model_year_section),
+        )
+        .route("/recalls", get(recalls::index))
+        .route("/recalls/{source}/{campaign}", get(recalls::campaign))
         .route("/wmi/{code}", get(wmi::wmi))
         .route("/guides", get(guides::index_html))
         .route("/guides.md", get(guides::index_md))
