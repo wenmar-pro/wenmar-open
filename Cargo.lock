@@ -1381,6 +1381,7 @@ dependencies = [
  "ureq",
  "utoipa",
  "utoipa-axum",
+ "wenmar-open-cli",
  "wenmar-open-db",
  "wenmar-open-wasm",
  "wenmar-shopdata",

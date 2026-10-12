@@ -10,4 +10,5 @@ mod process;
 mod remote;
 mod server;
 mod setup;
+mod shop;
 mod tui;

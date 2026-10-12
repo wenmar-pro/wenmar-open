@@ -11,7 +11,7 @@ use std::path::{Path, PathBuf};
 use rusqlite::Connection;
 use serde_json::Value;
 use tempfile::TempDir;
-use wenmar_open_cli::env::{DATA_FILE, Env};
+use wenmar_open_cli::env::{DATA_FILE, Env, SHOP_FILE};
 
 /// A Hyundai Kona, model year 2023. Its check digit is right.
 pub const KONA: &str = "KM8K2CAB4PU001140";
@@ -127,6 +127,11 @@ impl Fixture {
         self.directory.path().join(DATA_FILE)
     }
 
+    /// The shop file inside it.
+    pub fn shop_file(&self) -> PathBuf {
+        self.directory.path().join(SHOP_FILE)
+    }
+
     /// The names of the files in the data directory.
     pub fn files(&self) -> Vec<String> {
         let mut names: Vec<String> = std::fs::read_dir(self.directory())
@@ -240,4 +245,65 @@ pub fn run_with_input(env: &Env, args: &[&str], input: &[u8]) -> Run {
 /// Runs the tool in this process.
 pub fn run(env: &Env, args: &[&str]) -> Run {
     run_with_input(env, args, b"")
+}
+
+// ----- the shop file -----
+
+/// The `datasets` value of the fixture shop file: the recalls of both
+/// countries.
+pub const SHOP_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":3,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":1,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence - Canada."}}"#;
+
+/// Four campaigns against the catalog above. The columns are those of
+/// `wenmar_shopdata::schema::RECALLS`, in order. The Kona of model year
+/// 2023, which [`KONA`] decodes to, has three: one with the "do not drive"
+/// advisory, one with "park outside" and one Canadian.
+pub const SHOP_ROWS: &str = "
+INSERT INTO recall VALUES
+  (1, 'nhtsa', '19V888000', 'General Motors LLC', '2019-12-12', '2020-03-09', 'ELECTRICAL SYSTEM:12V/24V/48V BATTERY:CABLES', NULL, NULL, NULL, 'The battery cable nut may be loose.', 'A fire may start.', 'Dealers will tighten the nut.', NULL, NULL, 'N192273510', NULL, 350371, 0, 0),
+  (2, 'nhtsa', '23V123000', 'Hyundai Motor America', '2023-03-02', '2023-04-20', 'ELECTRICAL SYSTEM:WIRING', NULL, NULL, NULL, 'A wiring harness may overheat.', 'A fire may start while the vehicle is parked.', 'Dealers will replace the harness.', NULL, NULL, '240', '91850-J9000', 5000, 0, 1),
+  (3, 'nhtsa', '24V456000', 'Hyundai Motor America', '2024-05-10', NULL, 'SERVICE BRAKES, HYDRAULIC', NULL, NULL, NULL, 'The brake control unit may fail.', 'Braking distance may increase.', 'Dealers will replace the unit.', NULL, NULL, '257', NULL, 800, 1, 0),
+  (4, 'tc', '2023101', NULL, '2023-03-10', NULL, 'Electrical', 'Circuit electrique', 'Safety Mfr', 'Securite - fabricant', 'Issue:' || char(10) || 'A wiring harness may overheat.', NULL, NULL, NULL, 'Un faisceau peut surchauffer.', '240', NULL, 410, NULL, NULL);
+INSERT INTO recall_vehicle VALUES
+  (1, 2019, 467, 1850, 'CHEVROLET', 'SILVERADO 1500', 'base', '2018-07-11', '2019-11-22'),
+  (1, 2019, NULL, NULL, 'GMC', 'SIERRA 1500', NULL, NULL, NULL),
+  (2, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact', '2022-09-01', '2023-01-31'),
+  (3, 2023, 498, 900, 'HYUNDAI', 'KONA ELECTRIC', 'base', NULL, NULL),
+  (4, 2023, 498, 900, 'HYUNDAI', 'KONA', 'exact', NULL, NULL);
+";
+
+/// Writes a shop file at `path`: version `data_version`, matched against
+/// the data file of version `catalog_data_version`, holding the recalls
+/// above.
+pub fn write_shop_file(path: &Path, data_version: &str, catalog_data_version: &str) {
+    let connection = Connection::open(path).unwrap();
+    connection
+        .execute_batch(wenmar_shopdata::schema::META)
+        .unwrap();
+    for (key, value) in [
+        ("schema_version", wenmar_shopdata::schema::SCHEMA_VERSION),
+        ("data_version", data_version),
+        ("catalog_data_version", catalog_data_version),
+        ("built_at", "2026-10-12 06:00:00"),
+        ("datasets", SHOP_DATASETS),
+    ] {
+        connection
+            .execute(
+                "INSERT INTO meta (key, value) VALUES (?1, ?2)",
+                [key, value],
+            )
+            .unwrap();
+    }
+    connection
+        .execute_batch(wenmar_shopdata::schema::RECALLS)
+        .unwrap();
+    connection.execute_batch(SHOP_ROWS).unwrap();
+    connection.close().unwrap();
+}
+
+/// A data directory holding a data file and the shop file that goes with
+/// it.
+pub fn shop_dir() -> Fixture {
+    let fixture = data_dir();
+    write_shop_file(&fixture.shop_file(), "2026.10.12", "2026.09");
+    fixture
 }

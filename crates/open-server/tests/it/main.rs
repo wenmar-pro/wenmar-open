@@ -5,6 +5,7 @@ mod api_recalls;
 mod api_vehicles;
 mod api_vin;
 mod capture;
+mod cli_recalls;
 mod common;
 mod db;
 mod discovery;

@@ -45,6 +45,7 @@ http-body-util = "0.1.5"
 rusqlite = { version = "0.40.2", features = ["bundled"] }
 tempfile = "3.27.0"
 tokio = { version = "1", features = ["test-util"] }
+wenmar-open-cli = { path = "../wenmar-open-cli" }
 wenmar-open-wasm = { path = "../wenmar-open-wasm" }
 wenmar-vehicles = { workspace = true, features = ["sqlite"] }
 wenmar-vin = { workspace = true, features = ["sqlite"] }
