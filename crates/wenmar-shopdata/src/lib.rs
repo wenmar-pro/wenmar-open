@@ -1,0 +1,14 @@
+//! A Wenmar Open shop file: the datasets beside the vehicle catalog, such
+//! as recalls, each matched to catalog ids.
+//!
+//! [`ShopData`] reads through [`wenmar_vehicles::Source`], so it does not
+//! care which SQLite engine holds the file. [`sqlite::ShopSource`] is the
+//! `rusqlite` one, behind the `sqlite` feature.
+
+pub mod dataset;
+pub mod error;
+pub mod licence;
+pub mod schema;
+
+pub use dataset::{Dataset, DatasetEntry, Datasets};
+pub use error::ShopError;
