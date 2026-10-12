@@ -150,7 +150,9 @@ node -e '
 ' server.json "$new"
 changed+=(server.json)
 
-# config/deploy.yml: the one DATA_VERSION line under builder.args.
+# config/deploy.yml: the one DATA_VERSION line under builder.args. The
+# SHOP_VERSION line beside it is not a release's to write: see
+# scripts/shop-pull.mjs.
 [ "$(grep -c '^ *DATA_VERSION: ' config/deploy.yml)" = 1 ] ||
   fail "config/deploy.yml has $(grep -c '^ *DATA_VERSION: ' config/deploy.yml) DATA_VERSION lines, not 1."
 sed -i.bak -E "s/^( *DATA_VERSION: ).*\$/\1\"$DATA_VERSION\"/" config/deploy.yml && rm config/deploy.yml.bak

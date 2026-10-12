@@ -30,6 +30,9 @@ env:
   clear:
     PORT: "3000"
     OPEN_DATA: /app/data/wenmar-open.sqlite3
+    # Recalls and the other datasets beside the catalog. See "A new shop file"
+    # in docs/deploy.md.
+    OPEN_SHOP_DATA: /app/data/wenmar-open-shop.sqlite3
     OPEN_BASE_URL: https://open.wenmarpro.com
     # One proxy, the Kamal proxy, is in front. Its X-Forwarded-For entry is
     # the client's address.
@@ -49,3 +52,8 @@ builder:
     # The data release baked into the image. data/build must hold
     # wenmar-open-<DATA_VERSION>.sqlite3.
     DATA_VERSION: "2026.09"
+    # The shop data release baked into the image. data/build/shop must hold
+    # wenmar-open-shop-<SHOP_VERSION>.sqlite3, built against the data file
+    # above. bin/shop-pull fetches the newest release that is, and writes
+    # this line.
+    SHOP_VERSION: "2026.10.12"

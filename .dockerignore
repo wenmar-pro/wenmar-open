@@ -7,3 +7,4 @@
 !data/catalog/
 !data/rules/
 !data/build/wenmar-open-*.sqlite3
+!data/build/shop/wenmar-open-shop-*.sqlite3

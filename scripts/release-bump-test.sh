@@ -240,6 +240,23 @@ data_version_is_only_that_line() {
   pass "${FUNCNAME[0]}"
 }
 
+# SHOP_VERSION names the shop file the image is built around. It is written by
+# scripts/shop-pull.mjs when a shop file is fetched for a deploy, never by a
+# code release: the two are on different clocks.
+shop_version_is_left_alone() {
+  printf '### Fixed\n\n- a thing\n' | unreleased
+  [ "$(grep -c '^ *SHOP_VERSION: ' "$clone/config/deploy.yml")" = 1 ] ||
+    { miss "${FUNCNAME[0]}" "config/deploy.yml does not have exactly one SHOP_VERSION line"; return; }
+  local before
+  before=$(grep '^ *SHOP_VERSION: ' "$clone/config/deploy.yml")
+  bump DATA_VERSION=2026.10 --patch || { miss "${FUNCNAME[0]}" "the script failed"; return; }
+  [ "$(grep '^ *SHOP_VERSION: ' "$clone/config/deploy.yml")" = "$before" ] ||
+    { miss "${FUNCNAME[0]}" "the SHOP_VERSION line moved"; return; }
+  [ "$(sed -n 's/^ *DATA_VERSION: "\(.*\)"$/\1/p' "$clone/config/deploy.yml")" = "2026.10" ] ||
+    { miss "${FUNCNAME[0]}" "DATA_VERSION is not 2026.10"; return; }
+  pass "${FUNCNAME[0]}"
+}
+
 lock_is_consistent() {
   printf '### Fixed\n\n- a thing\n' | unreleased
   bump DATA_VERSION=2026.10 --patch || { miss "${FUNCNAME[0]}" "the script failed"; return; }
@@ -324,7 +341,7 @@ for case in patch_bump_writes_every_file minor_bump_writes_every_file \
   patch_from_removed_only changelog_moves_under_the_version \
   an_existing_section_is_left_alone headings_only_unreleased_is_nothing_to_release \
   no_unreleased_heading_is_refused missing_file_changes_nothing both_flags_are_refused \
-  data_version_must_be_set data_version_is_only_that_line lock_is_consistent \
+  data_version_must_be_set data_version_is_only_that_line shop_version_is_left_alone lock_is_consistent \
   release_check_accepts_the_result tag_exists_finds_a_tag \
   tag_exists_says_no_for_a_new_tag tag_exists_refuses_two_arguments \
   tag_exists_cannot_answer_is_not_no_such_tag; do

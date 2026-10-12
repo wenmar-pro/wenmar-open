@@ -138,13 +138,20 @@ cargo run --release -q -p open-data -- coverage --shop "$shop" --catalog "$data"
 
 
 [tasks.serve]
-description = "Run the website and the API on http://localhost:3000 with the newest data file in data/build"
+description = "Run the website and the API on http://localhost:3000 with the newest data file in data/build, and the newest shop file in data/build/shop if there is one"
 run = '''
 set -eu
 data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
 if [ -z "$data" ]; then
   echo "No data file in data/build. Run: mise run data" >&2
   exit 1
+fi
+# The newest shop file, when there is one, so the recall pages can be looked
+# at. It must have been built against the data file above, or the server says
+# so and stops: build one with `mise run shop-data`.
+shop=$(ls data/build/shop/wenmar-open-shop-*.sqlite3 2>/dev/null | sort -V | tail -1)
+if [ -n "$shop" ]; then
+  export OPEN_SHOP_DATA="$shop"
 fi
 OPEN_DATA="$data" OPEN_BASE_URL="http://localhost:${PORT:-3000}" cargo run -q -p open-server
 '''
