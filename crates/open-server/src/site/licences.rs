@@ -105,6 +105,13 @@ pub const LICENCES: &[Licence] = &[
         attribution: "None required. This site credits NHTSA.",
     },
     Licence {
+        dataset: "Trouble code descriptions, generic OBD-II codes only",
+        source: "Written by hand for this project, in its own words: data/codes/. A code number is a fact; no text is taken from SAE J2012 or any other list",
+        licence: "MIT",
+        licence_id: "mit",
+        attribution: "Keep the copyright notice in LICENSE.",
+    },
+    Licence {
         dataset: "Index of the VIN guides manufacturers file under 49 CFR Part 565",
         source: "NHTSA vPIC, the GetParts list of manufacturer filings, https://vpic.nhtsa.dot.gov/api/",
         licence: "Public domain (United States government work) for the index. The letters it links to belong to the manufacturers and are not copied.",
