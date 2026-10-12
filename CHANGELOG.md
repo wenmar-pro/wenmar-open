@@ -63,6 +63,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - `wenmar-shopdata` reads the crash test ratings of a model year from a shop file: `ShopData::ratings_for_vehicle`, each rating with NHTSA's description of the vehicle it is for.
 - `open-data fetch epa-vehicles` downloads EPA's fuel economy file, and `shop::epa_vehicles::parse` reads it: the 84-column header is pinned, and each row comes out typed with its engine, transmission, drive, fuel grade, ratings and volumes. Nothing uses it yet.
 - `open-data` can match a fuel-economy row to the catalog: `shop::epa_match` takes body and drive off EPA's model names, finds the model, settles one catalog engine by displacement, cylinders, diesel, turbocharger and electrification, and records how far it got as `model`, `engine` or `submodel`. On EPA's file 96.3% of rows from model year 2010 on match a model and 94.3% one engine. Nothing uses it yet.
+- `open-data fetch epa-guide` downloads EPA's Fuel Economy Guide file of every model year from 2011 on, and `shop::epa_guide::parse` reads the spreadsheet in each with a small reader of its own (no new dependency): the engine oil viscosity the maker certified with, gears, cylinder deactivation, valves, volumes and the hybrid battery, each column found by its header. `shop::oil_grade` reads the 251 spellings of the oil grade into standard grades, with `data/shop/oil-grades.yaml` for the six the pattern cannot read. Nothing uses it yet.
 
 ## [0.2.0] - 2026-10-10
 
