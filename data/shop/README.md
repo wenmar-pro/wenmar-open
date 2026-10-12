@@ -90,3 +90,7 @@ Bulletins add 144 MB, so only the hosted service carries them. `bin/shop-data` w
 ## Components, codes and topics
 
 After the sources are stored the build reads `data/components.yaml` (see `data/components.md`) and records which components each recall and each bulletin is about, in `recall_component` and `bulletin_component`: a text such as `SERVICE BRAKES, HYDRAULIC:FOUNDATION COMPONENTS:DISC:PADS` is about `brake-pad` and about `brakes`. It also reads each bulletin's summary for trouble codes (`bulletin_code`: `P0420`, five characters) and for the phrases that mark a maintenance bulletin (`bulletin_topic`). The rules that keep a model name such as `C1500` or a campaign number from being taken for a code are in `crates/open-data/src/shop/bulletin_text.rs`.
+
+## Siblings
+
+After the sources are stored the build fills `vehicle_sibling`: for a model year, the other models that share recall campaigns and bulletins with it. Only documents that list two to four catalog models are counted; a pair is kept from five shared documents up, when they are at least a fifth of the model year's own. It says two models have documents in common. It is not fitment and is never shown as such.
