@@ -49,3 +49,16 @@ bin/shop-data
 ```
 
 A campaign is one row of `recall`; each year, make and model it lists is a row of `recall_vehicle`, with the catalog ids it matched and how. A vehicle that matched nothing is kept with the source's own words, so it can still be found from its campaign. Transport Canada's rows for tires, child seats, equipment, snowmobiles and off-road vehicles are left out; the list is `CATEGORIES` in `crates/open-data/src/shop/tc_recalls.rs`, and a category that is not in it stops the build until someone decides.
+
+## Crash test ratings
+
+`bin/shop-data` adds the `ratings` dataset when its source has been fetched:
+
+```bash
+cargo run --release -p open-data -- fetch nhtsa-ratings   # 10 MB
+bin/shop-data
+```
+
+NHTSA rates a vehicle by body style and drive, so one model year often has several ratings. Each row of NHTSA's file is one row of `rating`, with the model, body style and drive in NHTSA's words, and `rating_vehicle` ties it to the catalog models its name matched. Every rating is kept, a vehicle NHTSA lists and has not tested among them; none is picked. A feature NHTSA's file writes in words the build does not read is stored as NULL, never guessed: the words it reads are in `fitted` and `evaluation` in `crates/open-data/src/shop/nhtsa_ratings.rs`.
+
+`data/coverage.yaml` has a minimum for `ratings`, so `open-data coverage` fails on a shop file built without them.

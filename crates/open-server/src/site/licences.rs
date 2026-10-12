@@ -82,6 +82,13 @@ pub const LICENCES: &[Licence] = &[
         licence_id: "public-domain",
         attribution: "None required. This site credits NHTSA.",
     },
+    Licence {
+        dataset: "Crash test ratings, United States",
+        source: "NHTSA New Car Assessment Program, Safercar data file, https://static.nhtsa.gov/nhtsa/downloads/Safercar/Safercar_data.csv",
+        licence: "Public domain (United States government work)",
+        licence_id: "public-domain",
+        attribution: "None required. This site credits NHTSA.",
+    },
 ];
 
 /// The row as `NOTICE.md` and the Markdown page write it.
