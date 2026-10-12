@@ -32,6 +32,7 @@ mod site_head;
 mod site_home;
 mod site_labor_rate;
 mod site_pages;
+mod site_recall_lines;
 mod site_recalls;
 mod site_refrigerant_pt;
 mod site_seo;
