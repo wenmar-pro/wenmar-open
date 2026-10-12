@@ -8,6 +8,8 @@ mod build_id;
 mod links_build;
 #[path = "rates_build.rs"]
 mod rates_build;
+#[path = "refrigerant_build.rs"]
+mod refrigerant_build;
 
 use std::fs;
 use std::io;
@@ -36,6 +38,14 @@ fn main() -> io::Result<()> {
         .map(PathBuf::from)
         .ok_or_else(|| io::Error::other("OUT_DIR is not set"))?;
     fs::write(out.join(rates_build::OUT), code)?;
+
+    // The refrigerant chart, read and checked the same way.
+    let chart = root.join(refrigerant_build::PATH);
+    let toml = fs::read_to_string(&chart)
+        .map_err(|error| io::Error::other(format!("{}: {error}", chart.display())))?;
+    let code = refrigerant_build::generate(&toml)
+        .map_err(|why| io::Error::other(format!("{}: {why}", chart.display())))?;
+    fs::write(out.join(refrigerant_build::OUT), code)?;
 
     // The makers' own links: one that is not as makes.yaml says stops the build.
     let makes = root.join(links_build::PATH);

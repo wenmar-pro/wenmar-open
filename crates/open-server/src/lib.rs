@@ -26,6 +26,9 @@ mod links_build;
 #[cfg(test)]
 #[path = "../rates_build.rs"]
 mod rates_build;
+#[cfg(test)]
+#[path = "../refrigerant_build.rs"]
+mod refrigerant_build;
 
 use std::sync::Arc;
 use std::time::Duration;

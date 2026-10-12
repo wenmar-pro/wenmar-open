@@ -1,0 +1,43 @@
+# Made up for the tests of refrigerant_build.rs. No figure here is a real pressure.
+schema = 1
+
+[source.fake]
+title = "A made-up page: \"quoted\""
+url = "https://example.org/pt"
+archived = "2025-08"
+
+[[refrigerant]]
+key = "x000"
+name = "X-000 (made up)"
+as_of = "2026-01-31"
+confirmed = true
+missing = []
+notes = ["A note the page shows."]
+to_check = ["A weak point."]
+temperature_unit = "C"
+pressure_unit = "kPa"
+pressure_is = "gauge"
+sources = ["fake"]
+
+[[refrigerant.row]]
+temperature = "-10"
+pressure = "0"
+
+[[refrigerant.row]]
+temperature = "0"
+pressure = "100"
+
+[[refrigerant.row]]
+temperature = "10"
+pressure = "200"
+
+[[refrigerant]]
+key = "x001"
+name = "X-001 (made up)"
+as_of = "2026-01-31"
+confirmed = false
+missing = ["No table has been read."]
+temperature_unit = "F"
+pressure_unit = "psi"
+pressure_is = "absolute"
+sources = []
