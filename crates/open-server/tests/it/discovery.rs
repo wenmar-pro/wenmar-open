@@ -681,3 +681,59 @@ async fn a_server_with_the_crash_test_ratings_says_so_where_a_model_looks() {
         assert!(!full.contains("### Crash test ratings"));
     }
 }
+
+#[tokio::test]
+async fn a_server_with_fuel_specs_fluids_and_tires_says_so_where_a_model_looks() {
+    let app = common::hand_app().await;
+    let text = body_text(app.get("/llms.txt").await).await;
+    for topic in ["fuel", "specs", "fluids", "tires"] {
+        let address = format!("/v1/vehicles/2019_honda_civic/{topic}");
+        assert!(
+            text.contains(&format!(
+                "](https://open.example{address}): `GET /v1/vehicles/{{id}}/{topic}` and `GET /v1/vin/{{vin}}/{topic}`"
+            )),
+            "{topic}: {text}"
+        );
+        // The address listed answers, on this very server.
+        assert_eq!(app.get(&address).await.status(), StatusCode::OK, "{topic}");
+    }
+    assert!(text.contains("also have the actions `fuel`, `specs`, `fluids` and `tires`"));
+    // The four add lines, not a heading.
+    let sections = text.lines().filter(|line| line.starts_with("## ")).count();
+    assert_eq!(sections, 6);
+
+    let (_, docs) = page(&app, "/docs").await;
+    let heading = r#"<h2 id="fuel-specifications-fluids-and-tires">Fuel, specifications, fluids and tires</h2>"#;
+    assert!(docs.contains(heading), "{docs}");
+    assert!(docs.contains("curl https://open.example/v1/vehicles/2019_honda_civic/fuel"));
+    assert!(docs.contains("This server holds: /v1/vehicles/{id}/fuel, /v1/vehicles/{id}/specs, /v1/vehicles/{id}/fluids, /v1/vehicles/{id}/tires."));
+    assert!(docs.find(heading).unwrap() < docs.find(r#"<h2 id="errors">"#).unwrap());
+    let full = body_text(app.get("/llms-full.txt").await).await;
+    assert!(
+        full.contains("### Fuel, specifications, fluids and tires"),
+        "{full}"
+    );
+
+    // A server with fuel data and no hand-read records names what it has.
+    let app = common::fuel_app().await;
+    let text = body_text(app.get("/llms.txt").await).await;
+    assert!(text.contains("/v1/vehicles/2019_honda_civic/fluids"));
+    assert!(
+        !text.contains("/v1/vehicles/2019_honda_civic/tires"),
+        "{text}"
+    );
+    let (_, docs) = page(&app, "/docs").await;
+    assert!(docs.contains("This server holds: /v1/vehicles/{id}/fuel, /v1/vehicles/{id}/specs, /v1/vehicles/{id}/fluids."));
+
+    // A server without any of them names the actions, which answer with an
+    // error a model can read, and gives no address.
+    for app in [common::app().await, common::recalls_app().await] {
+        let text = body_text(app.get("/llms.txt").await).await;
+        for topic in ["fuel", "specs", "fluids", "tires"] {
+            assert!(!text.contains(&format!("/{topic})")), "{topic}: {text}");
+        }
+        assert!(text.contains("also have the actions `fuel`, `specs`, `fluids` and `tires`"));
+        let (_, docs) = page(&app, "/docs").await;
+        assert!(!docs.contains(heading));
+    }
+}

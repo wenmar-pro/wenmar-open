@@ -206,6 +206,35 @@ pub fn docs(state: &AppState) -> Doc {
             .unwrap_or(doc.sections.len());
         doc.sections.insert(before_errors, ratings);
     }
+    // The same for fuel, specifications, fluids and tire fitments: said
+    // only of the ones this server holds.
+    let held = crate::llms::held_facts(state);
+    if let Some(first) = held.first() {
+        let listed: Vec<String> = held
+            .iter()
+            .map(|topic| format!("/v1/vehicles/{{id}}/{topic}"))
+            .collect();
+        let facts = with_code(
+            section(
+                "Fuel, specifications, fluids and tires",
+                &[
+                    "What is held about a model year beside its recalls: fuel consumption ratings from EPA and Natural Resources Canada, specifications from EPA's files, the engine oil grade EPA records with the fluids a person read from the maker's own documents, and the original-equipment tire fitments. Each has an address for a vehicle id and one for a VIN, such as /v1/vin/{vin}/fuel.",
+                    "A figure is never given more exactly than it was matched: confidence says model, engine or submodel, and an engine is named only where the match settled one. By VIN, fuel, specs and fluids hold only what is for the decoded engine when the decode settles it, and engine_settled says so. Tire fitments are never narrowed. A record read by hand carries its source and the day it was checked, and an empty list means nobody has recorded it: nothing is estimated.",
+                    &format!(
+                        "This server holds: {}. An address it does not hold answers 404 with the code dataset_unavailable.",
+                        listed.join(", ")
+                    ),
+                ],
+            ),
+            format!("curl {base}/v1/vehicles/2019_honda_civic/{first}"),
+        );
+        let before_errors = doc
+            .sections
+            .iter()
+            .position(|section| section.heading == "Errors")
+            .unwrap_or(doc.sections.len());
+        doc.sections.insert(before_errors, facts);
+    }
     doc
 }
 

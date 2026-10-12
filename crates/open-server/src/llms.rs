@@ -80,7 +80,8 @@ fn bulletin_text(base: &str) -> (String, String, String) {
 /// out of a server that would answer every recall route with 404.
 /// `ratings` says whether it holds NHTSA's crash test ratings, and the
 /// address of those is left out in the same way. `bulletins` says the same
-/// of the manufacturer's bulletins.
+/// of the manufacturer's bulletins. `facts` names which of [`FACTS`] the
+/// server holds, and only their addresses are given.
 pub fn text(
     base: &str,
     data_version: &str,
@@ -88,7 +89,17 @@ pub fn text(
     recalls: bool,
     ratings: bool,
     bulletins: bool,
+    facts: &[&str],
 ) -> String {
+    let facts_api: String = FACTS
+        .iter()
+        .filter(|(topic, _)| facts.contains(topic))
+        .map(|(topic, words)| {
+            format!(
+                "- [{words}]({base}/v1/vehicles/2019_honda_civic/{topic}): `GET /v1/vehicles/{{id}}/{topic}` and `GET /v1/vin/{{vin}}/{topic}`\n"
+            )
+        })
+        .collect();
     let rating_api = if ratings {
         format!(
             "- [NHTSA's crash test ratings for a model year]({base}/v1/vehicles/2019_honda_civic/safety): `GET /v1/vehicles/{{id}}/safety`\n"
@@ -137,7 +148,7 @@ To decode a VIN, fetch `{base}/v1/vin/` followed by the VIN, and read the JSON. 
 
 Responses are plain JSON with no wrapper. Errors are `{{ \"error\": {{ \"code\", \"message\", \"details\" }} }}`. One address may make {limit} requests a minute; over that the answer is 429 with `Retry-After`. Fields and endpoints are only ever added.
 
-An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenmar_vin` (actions `decode`, `batch`, `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`, `safety`) and `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`, `recent`) and `wenmar_bulletins` (actions `vehicle`, `vin`, `get`, `search`). `wenmar_recalls` lists recalls by year, make and model and never looks a VIN up: confirm by VIN with the manufacturer. `wenmar_bulletins` lists the manufacturer's bulletins by model year, and a bulletin is not a recall.
+An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenmar_vin` (actions `decode`, `batch`, `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`, `safety`) and `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`, `recent`) and `wenmar_bulletins` (actions `vehicle`, `vin`, `get`, `search`). `wenmar_recalls` lists recalls by year, make and model and never looks a VIN up: confirm by VIN with the manufacturer. `wenmar_bulletins` lists the manufacturer's bulletins by model year, and a bulletin is not a recall. `wenmar_vin` and `wenmar_vehicles` also have the actions `fuel`, `specs`, `fluids` and `tires`: fuel consumption ratings, specifications, the engine oil grade with the fluids a person read from the maker's documents, and original-equipment tire fitments, for a VIN or a vehicle id.
 
 The calculators under `{base}/tools` are web pages with forms, for people. An agent does the arithmetic itself: the Markdown version of each calculator states its formula and one worked example.
 
@@ -158,7 +169,7 @@ The calculators under `{base}/tools` are web pages with forms, for people. An ag
 - [Everything held for one model year]({base}/v1/vehicles/2019_honda_civic/overview): `GET /v1/vehicles/{{id}}/overview`
 - [Everything held for the vehicle a VIN decodes to]({base}/v1/vin/KM8K2CAB4PU001140/overview): `GET /v1/vin/{{vin}}/overview`
 - [Every model year of one model]({base}/v1/models/honda/civic): `GET /v1/models/{{make}}/{{model}}`
-{rating_api}{recall_api}{bulletin_api}- [Data version]({base}/v1/meta): `GET /v1/meta`
+{rating_api}{facts_api}{recall_api}{bulletin_api}- [Data version]({base}/v1/meta): `GET /v1/meta`
 
 ## Docs
 
@@ -246,6 +257,41 @@ pub fn holds_bulletins(state: &AppState) -> bool {
     state.dataset(wenmar_shopdata::Dataset::Bulletins).is_ok()
 }
 
+/// The four answers about a model year beside recalls and ratings, each
+/// with what `/llms.txt` calls it.
+pub const FACTS: [(&str, &str); 4] = [
+    (
+        "fuel",
+        "Fuel consumption ratings of a model year, from EPA and Natural Resources Canada",
+    ),
+    ("specs", "Specifications of a model year from EPA's files"),
+    (
+        "fluids",
+        "Fluids of a model year: the engine oil grade EPA records, and records read from the maker's documents",
+    ),
+    ("tires", "Original-equipment tire fitments of a model year"),
+];
+
+/// Which of [`FACTS`] this server holds: the ones whose address answers.
+pub fn held_facts(state: &AppState) -> Vec<&'static str> {
+    use wenmar_shopdata::Dataset;
+    let holds = |dataset| state.dataset(dataset).is_ok();
+    let mut held = Vec::new();
+    if holds(Dataset::FuelUs) || holds(Dataset::FuelCa) {
+        held.push("fuel");
+    }
+    if holds(Dataset::Specs) {
+        held.push("specs");
+    }
+    if holds(Dataset::OilGrade) || holds(Dataset::Fluids) {
+        held.push("fluids");
+    }
+    if holds(Dataset::Tires) {
+        held.push("tires");
+    }
+    held
+}
+
 /// Whether this server holds NHTSA's crash test ratings.
 pub fn holds_ratings(state: &AppState) -> bool {
     state.dataset(wenmar_shopdata::Dataset::Ratings).is_ok()
@@ -259,6 +305,7 @@ pub async fn llms_txt(State(state): State<AppState>) -> Response {
         holds_recalls(&state),
         holds_ratings(&state),
         holds_bulletins(&state),
+        &held_facts(&state),
     ))
 }
 
