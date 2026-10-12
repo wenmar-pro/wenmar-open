@@ -6,6 +6,7 @@
 
 pub mod assets;
 pub mod catalog;
+pub mod feedback;
 pub mod guides;
 pub mod home;
 pub mod jsonld;

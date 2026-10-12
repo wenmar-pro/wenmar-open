@@ -35,6 +35,10 @@ struct Inner {
     shop: Option<ShopDb>,
     config: Config,
     limiter: Limiter,
+    /// Reports from one address in a minute.
+    feedback_each: Limiter,
+    /// Reports from everyone in a minute.
+    feedback_all: Limiter,
     /// One place for every request being answered.
     places: Semaphore,
     etag_text: String,
@@ -113,6 +117,8 @@ impl AppState {
         Ok(AppState {
             inner: Arc::new(Inner {
                 limiter: Limiter::new(config.requests_per_minute),
+                feedback_each: Limiter::new(crate::site::feedback::PER_ADDRESS),
+                feedback_all: Limiter::new(crate::site::feedback::IN_ALL),
                 places: Semaphore::new(crate::MOST_IN_FLIGHT),
                 etag: header(&etag_text),
                 data_version: header(&db.meta().data_version),
@@ -167,6 +173,16 @@ impl AppState {
 
     pub fn limiter(&self) -> &Limiter {
         &self.inner.limiter
+    }
+
+    /// Reports from one address in a minute: `site::feedback::PER_ADDRESS`.
+    pub fn feedback_each(&self) -> &Limiter {
+        &self.inner.feedback_each
+    }
+
+    /// Reports from everyone in a minute: `site::feedback::IN_ALL`.
+    pub fn feedback_all(&self) -> &Limiter {
+        &self.inner.feedback_all
     }
 
     /// The places for requests being answered: [`crate::MOST_IN_FLIGHT`].
