@@ -661,3 +661,28 @@ CREATE TABLE code_component (
 ) WITHOUT ROWID;
 CREATE INDEX code_component_component ON code_component (component_id);
 ";
+
+/// The repair jobs a labour time can be about, from `data/jobs.yaml`: the
+/// `jobs` dataset. `job.id` never changes once used. `system` is the id
+/// of a system of `component`. `includes`, `excludes` and `related` are
+/// JSON lists. `position` is the order of the file. A file that holds the
+/// dataset also has the `component` table.
+pub const JOBS: &str = "
+CREATE TABLE job (
+    id       TEXT PRIMARY KEY,
+    name     TEXT NOT NULL,
+    system   TEXT NOT NULL,
+    includes TEXT NOT NULL,
+    excludes TEXT NOT NULL,
+    related  TEXT NOT NULL,
+    position INTEGER NOT NULL
+) WITHOUT ROWID;
+
+CREATE TABLE job_component (
+    job_id       TEXT NOT NULL,
+    component_id TEXT NOT NULL,
+    position     INTEGER NOT NULL,
+    PRIMARY KEY (job_id, component_id)
+) WITHOUT ROWID;
+CREATE INDEX job_component_component ON job_component (component_id);
+";
