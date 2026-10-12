@@ -229,3 +229,14 @@ pub fn nhtsa_recalls_dir(scratch: &Scratch) -> PathBuf {
     }
     directory
 }
+
+/// A fetched `tc-recalls` directory made from the fixture, under `scratch`:
+/// the CSV under the name `open-data fetch` saves, and `source.json`.
+pub fn tc_recalls_dir(scratch: &Scratch) -> PathBuf {
+    let directory = scratch.path("sources/tc-recalls");
+    std::fs::create_dir_all(&directory).unwrap();
+    for name in ["vrdb_full_monthly.csv", "source.json"] {
+        std::fs::copy(fixture("tc-recalls").join(name), directory.join(name)).unwrap();
+    }
+    directory
+}

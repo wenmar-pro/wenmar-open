@@ -5,3 +5,4 @@ mod common;
 mod coverage;
 mod matcher;
 mod nhtsa_recalls;
+mod tc_recalls;
