@@ -73,3 +73,16 @@ Engine oil spellings in EPA's Fuel Economy Guide files that `open-data` cannot r
 | `grades` | The viscosity grades it means, each written like `"5W-30"`. An empty list says the text names no grade. |
 
 The build stops when a guide file has a spelling that neither the pattern nor this file knows, and names it. A person then reads it and adds an entry. Never add a grade the text does not plainly mean: with any doubt, give it an empty list. The file refuses an entry the pattern already reads.
+
+## Bulletins
+
+`bin/shop-data` adds the `bulletins` dataset when its source has been fetched:
+
+```bash
+cargo run --release -p open-data -- fetch nhtsa-mfr-comms   # 87 MB
+bin/shop-data
+```
+
+A manufacturer communication (a service bulletin, a service campaign, a warranty extension, an over-the-air update) is one row of `bulletin`, keyed by NHTSA's id number, with NHTSA's summary. The document itself is the manufacturer's and is never stored. The vehicles are compacted, because the communications list more than four million between them: `bulletin_model` holds each make and model text once for each catalog model it matched, and `bulletin_vehicle` holds one row for each communication, name and run of consecutive model years.
+
+Bulletins add 144 MB, so only the hosted service carries them. `bin/shop-data` writes two files: `data/build/shop/wenmar-open-shop-<version>.sqlite3` with every dataset, which the server reads, and `data/build/shop/offline/wenmar-open-shop-<version>.sqlite3` without bulletins, which is what the command-line tool and the npm package download. The two differ only in the bulletin tables and in the `bulletins` key of `datasets`.

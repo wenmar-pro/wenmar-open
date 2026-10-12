@@ -81,10 +81,15 @@ version=$(date -u +%Y.%m.%d)
 mkdir -p data/build/shop
 out="data/build/shop/wenmar-open-shop-$version.sqlite3"
 rm -f "$out"
+# The copy for the command-line tool and the npm package: the same file
+# without the datasets only the hosted service carries (bulletins).
+mkdir -p data/build/shop/offline
+offline="data/build/shop/offline/wenmar-open-shop-$version.sqlite3"
+rm -f "$offline"
 # Each source that was fetched adds its dataset. One that was not is left
 # out, and this says so.
 sources=""
-for source in nhtsa-recalls tc-recalls nhtsa-investigations nhtsa-recall-reports nhtsa-ratings nhtsa-vin-guides epa-vehicles epa-guide epa-emissions nrcan-fuel; do
+for source in nhtsa-recalls tc-recalls nhtsa-investigations nhtsa-recall-reports nhtsa-ratings nhtsa-vin-guides epa-vehicles epa-guide epa-emissions nrcan-fuel nhtsa-mfr-comms; do
   if [ -f "data/build/sources/$source/source.json" ]; then
     sources="$sources --$source data/build/sources/$source"
   else
@@ -92,7 +97,7 @@ for source in nhtsa-recalls tc-recalls nhtsa-investigations nhtsa-recall-reports
   fi
 done
 # The flags are separate words, so $sources is not quoted.
-cargo run --release -q -p open-data -- build-shop --catalog "$data" --out "$out" --data-version "$version" $sources
+cargo run --release -q -p open-data -- build-shop --catalog "$data" --out "$out" --offline-out "$offline" --data-version "$version" $sources
 '''
 
 [tasks.shop-pull]

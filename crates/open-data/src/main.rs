@@ -7,7 +7,7 @@ use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 use open_data::build::{BuildInfo, build};
 use open_data::catalog::curated::Curated;
-use open_data::shop::build::{ShopBuildInfo, ShopInputs, build_shop, open_catalog};
+use open_data::shop::build::{ShopBuildInfo, ShopInputs, build_shop, offline_copy, open_catalog};
 use open_data::shop::coverage;
 use open_data::shop::nhtsa_vin_guides;
 use open_data::shop::{epa_guide, nrcan_fuel};
@@ -98,6 +98,13 @@ enum Command {
         /// The fetched nrcan-fuel directory. Adds the fuel_ca dataset.
         #[arg(long)]
         nrcan_fuel: Option<PathBuf>,
+        /// The fetched nhtsa-mfr-comms directory. Adds the bulletins dataset.
+        #[arg(long)]
+        nhtsa_mfr_comms: Option<PathBuf>,
+        /// Also write a copy for offline use at this path, without the
+        /// datasets only the hosted service carries (bulletins).
+        #[arg(long)]
+        offline_out: Option<PathBuf>,
     },
     /// Decode one VIN against a data file and print the JSON.
     Decode {
@@ -331,6 +338,8 @@ fn main() -> Result<()> {
             epa_guide,
             epa_emissions,
             nrcan_fuel,
+            nhtsa_mfr_comms,
+            offline_out,
         } => {
             let built_at = now();
             let data_version = data_version.unwrap_or_else(|| {
@@ -355,7 +364,7 @@ fn main() -> Result<()> {
                 epa_guide,
                 epa_emissions,
                 nrcan_fuel,
-                nhtsa_mfr_comms: None,
+                nhtsa_mfr_comms,
             };
             let summary = build_shop(&catalog, &out, &curated, &info, &inputs)?;
             println!(
@@ -367,6 +376,16 @@ fn main() -> Result<()> {
             );
             for (dataset, entry) in summary.datasets.iter() {
                 println!("{dataset}: {} rows, as of {}", entry.rows, entry.as_of);
+            }
+            if let Some(offline_out) = offline_out {
+                let kept = offline_copy(&out, &offline_out)?;
+                let names: Vec<&str> = kept.iter().map(|(dataset, _)| dataset.id()).collect();
+                println!(
+                    "{}: the offline copy, {} datasets: {}",
+                    offline_out.display(),
+                    kept.len(),
+                    names.join(", ")
+                );
             }
         }
         Command::Decode { data, vin } => {
