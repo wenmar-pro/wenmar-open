@@ -28,7 +28,7 @@ use serde::Deserialize;
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 
-use crate::api::{bulletins, overview, recalls, vehicles, vin};
+use crate::api::{bulletins, fuel, hand, overview, recalls, vehicles, vin};
 use crate::error::ApiError;
 use crate::state::AppState;
 
@@ -68,6 +68,8 @@ struct VinArguments {
     vins: Option<Vec<String>>,
     #[serde(default, deserialize_with = "crate::api::blank_is_none")]
     year: Option<u16>,
+    /// For action=fuel.
+    country: Option<String>,
 }
 
 async fn vin_tool(state: &AppState, action: &str, given: &Value) -> Result<Value, ApiError> {
@@ -107,8 +109,27 @@ async fn vin_tool(state: &AppState, action: &str, given: &Value) -> Result<Value
             };
             to_value(overview::vin_overview_op(state, input, given.year).await?)
         }
+        "fuel" | "specs" | "fluids" | "tires" => {
+            let Some(input) = given.vin else {
+                return Err(ApiError::validation(format!(
+                    "vin is required for action={action}"
+                )));
+            };
+            match action {
+                "fuel" => {
+                    let query = fuel::VinFuelQuery {
+                        country: given.country,
+                        year: given.year,
+                    };
+                    to_value(fuel::vin_fuel_op(state, input, query).await?)
+                }
+                "specs" => to_value(fuel::vin_specs_op(state, input, given.year).await?),
+                "fluids" => to_value(fuel::vin_fluids_op(state, input, given.year).await?),
+                _ => to_value(hand::vin_tires_op(state, input, given.year).await?),
+            }
+        }
         _ => Err(ApiError::validation(
-            "action must be decode, batch or overview",
+            "action must be decode, batch, overview, fuel, specs, fluids or tires",
         )),
     }
 }
@@ -119,6 +140,8 @@ struct Lookup {
     id: Option<String>,
     make: Option<String>,
     model: Option<String>,
+    /// For action=fuel.
+    country: Option<String>,
 }
 
 async fn vehicles_tool(state: &AppState, action: &str, given: &Value) -> Result<Value, ApiError> {
@@ -171,8 +194,27 @@ async fn vehicles_tool(state: &AppState, action: &str, given: &Value) -> Result<
             };
             to_value(overview::model_years_op(state, make, model).await?)
         }
+        "fuel" | "specs" | "fluids" | "tires" => {
+            let lookup: Lookup = arguments(given)?;
+            let Some(id) = lookup.id else {
+                return Err(ApiError::validation(format!(
+                    "id is required for action={action}"
+                )));
+            };
+            match action {
+                "fuel" => {
+                    let query = fuel::VehicleFuelQuery {
+                        country: lookup.country,
+                    };
+                    to_value(fuel::vehicle_fuel_op(state, id, query).await?)
+                }
+                "specs" => to_value(fuel::vehicle_specs_op(state, id).await?),
+                "fluids" => to_value(fuel::vehicle_fluids_op(state, id).await?),
+                _ => to_value(hand::vehicle_tires_op(state, id).await?),
+            }
+        }
         _ => Err(ApiError::validation(
-            "action must be years, makes, models, submodels, engines, search, entry, overview, model_years, safety or complaints",
+            "action must be years, makes, models, submodels, engines, search, entry, overview, model_years, safety, complaints, fuel, specs, fluids or tires",
         )),
     }
 }

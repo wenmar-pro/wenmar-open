@@ -123,14 +123,15 @@ pub fn tools() -> Value {
         {
             "name": "wenmar_vin",
             "title": "VIN decoder",
-            "description": "Decode vehicle identification numbers into year, make, model, trim, engine, drivetrain, safety equipment and the matching catalog entry. action=decode takes `vin` (and optionally `year` to override the model year). action=batch takes `vins`, at most 50, and returns one result per VIN in order. A wrong check digit is not an error: the result has valid=false and a warning. action=overview takes `vin` (and optionally `year`) and gives everything held for the model year the VIN decodes to in one answer: the decode in brief, a count of the recall campaigns that may apply to that year, make and model with the three newest, and links. A block with no data is null.",
+            "description": "Decode vehicle identification numbers into year, make, model, trim, engine, drivetrain, safety equipment and the matching catalog entry. action=decode takes `vin` (and optionally `year` to override the model year). action=batch takes `vins`, at most 50, and returns one result per VIN in order. A wrong check digit is not an error: the result has valid=false and a warning. action=overview takes `vin` (and optionally `year`) and gives everything held for the model year the VIN decodes to in one answer: the decode in brief, a count of the recall campaigns that may apply to that year, make and model with the three newest, and links. A block with no data is null. action=fuel, specs, fluids or tires takes `vin` (and optionally `year`) and gives that data for the model year the VIN decodes to: fuel consumption ratings from EPA and Natural Resources Canada (optional `country`, us or ca), specifications from EPA's files, fluids (the engine oil grade EPA records, and records a person read from the maker's own documents, each with its source and the day it was checked), or the original-equipment tire fitments. When the decode settles the engine, fuel, specs and fluids hold only what is for that engine and `engine_settled` is true; tires are never narrowed.",
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "action": { "type": "string", "enum": ["decode", "batch", "overview"] },
+                    "action": { "type": "string", "enum": ["decode", "batch", "overview", "fuel", "specs", "fluids", "tires"] },
                     "vin": { "type": "string", "description": "A 17-character VIN. Spaces and dashes are ignored." },
                     "vins": { "type": "array", "items": { "type": "string" }, "maxItems": 50 },
-                    "year": { "type": "integer", "description": "Model year to use instead of the one worked out from the VIN." }
+                    "year": { "type": "integer", "description": "Model year to use instead of the one worked out from the VIN." },
+                    "country": { "type": "string", "description": "For action=fuel: us for EPA's ratings, ca for Natural Resources Canada's. Leave out for both." }
                 },
                 "required": ["action"]
             },
@@ -139,11 +140,11 @@ pub fn tools() -> Value {
         {
             "name": "wenmar_vehicles",
             "title": "Vehicle catalog",
-            "description": "Look up vehicles by year, make, model, submodel and engine. Actions: years; makes (optional `year`); models (`make`, optional `year`); submodels (`make`, `model`, `year`); engines (`make`, `model`, `year`, optional `submodel`); search (`query`, such as \"2019 civic si\" or \"chevy 1500\"); entry (`id`, such as \"2019_honda_civic_si\"); overview (`id`: everything held for that model year in one answer, with a count of the recall campaigns that may apply and the three newest; a block with no data is null); model_years (`make`, `model`: every model year of one model, newest first, each with its vehicle id and the number of recall campaigns that may apply); safety (`id`: NHTSA's crash test ratings for that model year, one entry for each vehicle NHTSA rated, by body style and drive, each with its stars; an entry with no stars is a vehicle NHTSA lists and has not tested). `make` and `model` take a name, an alias or an id. `term` narrows a list to names starting with it. `scope` is light (cars, MPVs and trucks; the default), all, or a vPIC vehicle type id. action=complaints takes `id` and gives what owners reported to NHTSA about that model year as counts by component, with the median mileage owners gave: these are owners' reports, not verified, and a count is not a rate.",
+            "description": "Look up vehicles by year, make, model, submodel and engine. Actions: years; makes (optional `year`); models (`make`, optional `year`); submodels (`make`, `model`, `year`); engines (`make`, `model`, `year`, optional `submodel`); search (`query`, such as \"2019 civic si\" or \"chevy 1500\"); entry (`id`, such as \"2019_honda_civic_si\"); overview (`id`: everything held for that model year in one answer, with a count of the recall campaigns that may apply and the three newest; a block with no data is null); model_years (`make`, `model`: every model year of one model, newest first, each with its vehicle id and the number of recall campaigns that may apply); safety (`id`: NHTSA's crash test ratings for that model year, one entry for each vehicle NHTSA rated, by body style and drive, each with its stars; an entry with no stars is a vehicle NHTSA lists and has not tested); fuel (`id`, optional `country` us or ca: fuel consumption ratings from EPA and Natural Resources Canada, each saying in `confidence` how far it was matched: model, engine or submodel); specs (`id`: transmission, drive, recommended fuel and more from EPA's files, one entry per EPA rating); fluids (`id`: the engine oil grade EPA records for each engine, and records a person read from the maker's own documents, each with its `source` and the day it was `checked`; an empty list means nobody has recorded it); tires (`id`: every original-equipment tire size on record with the trims it covers; none is picked). `make` and `model` take a name, an alias or an id. `term` narrows a list to names starting with it. `scope` is light (cars, MPVs and trucks; the default), all, or a vPIC vehicle type id. action=complaints takes `id` and gives what owners reported to NHTSA about that model year as counts by component, with the median mileage owners gave: these are owners' reports, not verified, and a count is not a rate.",
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "action": { "type": "string", "enum": ["years", "makes", "models", "submodels", "engines", "search", "entry", "overview", "model_years", "safety", "complaints"] },
+                    "action": { "type": "string", "enum": ["years", "makes", "models", "submodels", "engines", "search", "entry", "overview", "model_years", "safety", "complaints", "fuel", "specs", "fluids", "tires"] },
                     "year": { "type": "integer" },
                     "make": { "type": "string" },
                     "model": { "type": "string" },
@@ -151,6 +152,7 @@ pub fn tools() -> Value {
                     "term": { "type": "string" },
                     "query": { "type": "string" },
                     "id": { "type": "string" },
+                    "country": { "type": "string", "description": "For action=fuel: us or ca. Leave out for both." },
                     "scope": { "type": "string" },
                     "limit": { "type": "integer" }
                 },
@@ -522,6 +524,35 @@ mod tests {
         assert!(description.contains("safety (`id`"), "{description}");
         assert!(description.contains("NHTSA"), "{description}");
         // An action of a tool that exists: no tool was added.
+        assert_eq!(TOOL_NAMES.len(), 4);
+    }
+
+    #[test]
+    fn fuel_specs_fluids_and_tires_are_actions_of_the_two_tools_that_exist() {
+        let tools = tools();
+        for name in ["wenmar_vin", "wenmar_vehicles"] {
+            let tool = tools
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|tool| tool["name"] == name)
+                .unwrap();
+            let actions = tool["inputSchema"]["properties"]["action"]["enum"]
+                .as_array()
+                .unwrap();
+            for action in ["fuel", "specs", "fluids", "tires"] {
+                assert!(actions.contains(&json!(action)), "{name}: {actions:?}");
+            }
+            assert!(
+                tool["inputSchema"]["properties"]["country"].is_object(),
+                "{name}"
+            );
+            let description = tool["description"].as_str().unwrap();
+            for said in ["EPA", "Natural Resources Canada", "the day it was"] {
+                assert!(description.contains(said), "{name}: {said}");
+            }
+        }
+        // Actions of tools that exist: no tool was added.
         assert_eq!(TOOL_NAMES.len(), 4);
     }
 

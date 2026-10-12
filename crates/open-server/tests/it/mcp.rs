@@ -1218,3 +1218,100 @@ async fn the_safety_action_gives_what_the_api_gives() {
         );
     }
 }
+
+#[tokio::test]
+async fn the_fuel_specs_fluids_and_tires_actions_give_what_the_api_gives() {
+    let app = common::hand_app().await;
+    for topic in ["fuel", "specs", "fluids", "tires"] {
+        for id in [
+            "2023_hyundai_kona",
+            "2001_testmake_sampler",
+            "2019_honda_civic",
+        ] {
+            let result = call(
+                &app,
+                "wenmar_vehicles",
+                json!({ "action": topic, "id": id }),
+            )
+            .await;
+            assert_eq!(result["isError"], false, "{topic} {id}");
+            let (status, served) = app.json(&format!("/v1/vehicles/{id}/{topic}")).await;
+            assert_eq!(status, StatusCode::OK, "{topic} {id}");
+            assert_eq!(text(&result), served, "{topic} {id}");
+            assert_eq!(result["structuredContent"], served, "{topic} {id}");
+        }
+        let result = call(
+            &app,
+            "wenmar_vin",
+            json!({ "action": topic, "vin": common::KONA }),
+        )
+        .await;
+        assert_eq!(result["isError"], false, "{topic}");
+        let (_, served) = app.json(&format!("/v1/vin/{}/{topic}", common::KONA)).await;
+        assert_eq!(result["structuredContent"], served, "{topic}");
+        // What is missing is said as the API says it.
+        for (tool, arguments, code) in [
+            (
+                "wenmar_vehicles",
+                json!({ "action": topic }),
+                "validation_failed",
+            ),
+            (
+                "wenmar_vin",
+                json!({ "action": topic }),
+                "validation_failed",
+            ),
+            (
+                "wenmar_vehicles",
+                json!({ "action": topic, "id": "2023_hyundai_nothing" }),
+                "not_found",
+            ),
+        ] {
+            let result = call(&app, tool, arguments).await;
+            assert_eq!(result["isError"], true, "{topic} {tool}");
+            assert_eq!(text(&result)["error"]["code"], code, "{topic} {tool}");
+        }
+    }
+    // The country of a fuel question.
+    let result = call(
+        &app,
+        "wenmar_vehicles",
+        json!({ "action": "fuel", "id": "2023_hyundai_kona", "country": "ca" }),
+    )
+    .await;
+    let (_, served) = app
+        .json("/v1/vehicles/2023_hyundai_kona/fuel?country=ca")
+        .await;
+    assert_eq!(result["structuredContent"], served);
+    let result = call(
+        &app,
+        "wenmar_vin",
+        json!({ "action": "fuel", "vin": common::KONA, "country": "mx" }),
+    )
+    .await;
+    assert_eq!(
+        text(&result)["error"],
+        json!({ "code": "validation_failed", "message": "country must be us or ca", "details": { "field": "country" } })
+    );
+    // A server without the data answers with the API's own error.
+    let bare = common::recalls_app().await;
+    for (topic, dataset) in [
+        ("fuel", "fuel_us"),
+        ("specs", "specs"),
+        ("fluids", "oil_grade"),
+        ("tires", "tires"),
+    ] {
+        let result = call(
+            &bare,
+            "wenmar_vehicles",
+            json!({ "action": topic, "id": "2023_hyundai_kona" }),
+        )
+        .await;
+        assert_eq!(result["isError"], true, "{topic}");
+        assert_eq!(
+            text(&result)["error"]["message"],
+            format!("The {dataset} dataset is not available."),
+            "{topic}"
+        );
+    }
+}
