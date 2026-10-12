@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ heading }}</h1>
+<p>{{ note }}</p>
+<table class="prose">
+<caption>The communication, as NHTSA indexes it ({{ dated }})</caption>
+<tbody>
+{% for (name, value) in facts -%}
+<tr><th scope="row">{{ name }}</th><td>{{ value }}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+{% if !summary.is_empty() -%}
+<h2>NHTSA's summary</h2>
+{% for paragraph in summary -%}
+<p>{{ paragraph }}</p>
+{% endfor -%}
+{% endif -%}
+<h2>The document</h2>
+{% if let Some((url, alternate)) = document -%}
+<ul class="plain links">
+<li><a href="{{ url }}">NHTSA's copy of the document (PDF)</a></li>
+<li><a href="{{ alternate }}">If that address does not open, try this one</a></li>
+</ul>
+<p class="note">The document is the manufacturer's. This site does not hold it. NHTSA files a document at one of these two addresses; we have not asked NHTSA which.</p>
+{% else -%}
+<p class="note">No address for NHTSA's copy can be built for this communication. Ask the dealer for it by the manufacturer's number.</p>
+{% endif -%}
+{% if !components.is_empty() -%}
+<h2>Components</h2>
+<p>{% for component in components %}{% if !loop.first %}, {% endif %}{{ component }}{% endfor %}</p>
+{% endif -%}
+{% if !codes.is_empty() -%}
+<h2>Trouble codes named</h2>
+<p class="mono">{% for code in codes %}{% if !loop.first %}, {% endif %}{{ code }}{% endfor %}</p>
+{% endif -%}
+<table class="prose">
+<caption>Vehicles listed</caption>
+<tbody>
+{% for vehicle in vehicles -%}
+<tr><th scope="row">{{ vehicle.name }}</th><td>{% if vehicle.links.is_empty() %}{{ vehicle.years }}{% else %}{% for (year, href) in vehicle.links %}{% if !loop.first %}, {% endif %}<a href="{{ href }}">{{ year }}</a>{% endfor %}{% endif %}{% if vehicle.matched == "base" %} (the catalog's model; the bulletin names a series or trim of it){% endif %}</td></tr>
+{% else -%}
+<tr><td>None listed.</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+{% if more_vehicles > 0 -%}
+<p class="note">And {{ more_vehicles }} more lines, in the JSON.</p>
+{% endif -%}
+<p class="note">Listing a model year does not mean every vehicle of it is concerned: the document says which.</p>
+{% if !recalls.is_empty() -%}
+<table class="prose">
+<caption>Recalls for the same vehicles and component</caption>
+<tbody>
+{% for recall in recalls -%}
+<tr><th scope="row"><a class="mono" href="{{ recall.href }}">{{ recall.campaign }}</a></th><td>{{ recall.date }}{% if !recall.component.is_empty() %}. {{ recall.component }}{% endif %}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">A recall listed here may apply to some of the same vehicles. Only the manufacturer can say whether it applies to one vehicle.</p>
+{% endif -%}
+{% if !related.is_empty() -%}
+<table class="prose">
+<caption>Other bulletins for the same vehicles and component</caption>
+<tbody>
+{% for line in related -%}
+<tr><th scope="row"><a class="mono" href="{{ line.href }}">{{ line.label }}</a></th><td>{{ line.date }}. {{ line.kind }}{% if !line.summary.is_empty() %}. {{ line.summary }}{% endif %}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+{% endif -%}
+<ul class="plain links">
+<li><a href="/bulletins">Bulletins for another vehicle</a></li>
+<li><a href="{% if let Some(form) = report.form %}{{ form }}{% else %}{{ report.issue }}{% endif %}">Report an error on this page</a></li>
+{% if let Some(mail) = report.mail -%}
+<li><a href="{{ mail }}">Report an error by email</a></li>
+{% endif -%}
+</ul>
+{% endblock %}

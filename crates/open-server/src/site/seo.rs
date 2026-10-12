@@ -10,6 +10,7 @@ use axum::extract::rejection::PathRejection;
 use axum::extract::{Path, State};
 use axum::http::{HeaderValue, header};
 use axum::response::{IntoResponse, Response};
+use wenmar_shopdata::Dataset;
 use wenmar_vehicles::text::is_slug;
 use wenmar_vehicles::{Scope, Source, SourceError, Value};
 
@@ -210,6 +211,7 @@ pub async fn index(State(state): State<AppState>) -> Response {
             .filter(|year| with_recalls.contains(year))
             .map(|year| format!("recalls-{year}")),
     );
+    names.extend(bulletin_sitemaps(&state, years).await);
     let mut xml = String::from(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n",
     );
@@ -220,6 +222,142 @@ pub async fn index(State(state): State<AppState>) -> Response {
     }
     xml.push_str("</sitemapindex>\n");
     text("application/xml; charset=utf-8", xml)
+}
+
+/// Most addresses one sitemap may hold.
+pub const MOST_ADDRESSES: usize = 50_000;
+
+/// The names of the bulletin sitemaps, parts included: for the year NHTSA
+/// published `count` bulletins in, `bulletins-2017`, and from the
+/// 50,001st on `bulletins-2017-2` and so on.
+pub fn bulletin_sitemap_names(year: u16, count: u64) -> Vec<String> {
+    let parts = (count as usize).div_ceil(MOST_ADDRESSES).max(1);
+    (1..=parts)
+        .map(|part| {
+            if part == 1 {
+                format!("bulletins-{year}")
+            } else {
+                format!("bulletins-{year}-{part}")
+            }
+        })
+        .collect()
+}
+
+/// The sitemaps of the bulletin pages: one or more for each year NHTSA
+/// published bulletins in, and `model-bulletins-<year>` for each model
+/// year with a bulletin list. None on a server with no bulletins.
+async fn bulletin_sitemaps(state: &AppState, years: &[u16]) -> Vec<String> {
+    let Ok(shop) = state.dataset(Dataset::Bulletins) else {
+        return Vec::new();
+    };
+    let found = shop
+        .run(|reader| {
+            let added = reader.bulletin_years_added()?;
+            let model_years = reader.bulletin_model_years()?;
+            Ok::<_, wenmar_shopdata::ShopError>((added, model_years))
+        })
+        .await;
+    let Ok(Ok((added, model_years))) = found else {
+        return Vec::new();
+    };
+    let mut names: Vec<String> = years
+        .iter()
+        .filter(|year| model_years.contains(year))
+        .map(|year| format!("model-bulletins-{year}"))
+        .collect();
+    for (year, count) in added {
+        names.extend(bulletin_sitemap_names(year, count));
+    }
+    names
+}
+
+/// The pages of the bulletins NHTSA published in one year: part 1 is the
+/// first 50,000 by id, part 2 the next, and so on.
+async fn bulletin_paths(
+    state: &AppState,
+    year: u16,
+    part: usize,
+) -> Result<Option<Vec<String>>, ApiError> {
+    let Ok(shop) = state.dataset(Dataset::Bulletins) else {
+        return Ok(None);
+    };
+    if part == 0 {
+        return Ok(None);
+    }
+    let ids = shop
+        .run(move |reader| {
+            reader.bulletin_ids_added_in(year, (part - 1) * MOST_ADDRESSES, MOST_ADDRESSES)
+        })
+        .await??;
+    Ok((!ids.is_empty()).then(|| ids.iter().map(|id| format!("/bulletins/{id}")).collect()))
+}
+
+/// The bulletin lists of one model year: the cars, MPVs and trucks with a
+/// bulletin that year.
+async fn model_bulletin_paths(
+    state: &AppState,
+    year: u16,
+) -> Result<Option<Vec<String>>, ApiError> {
+    let Ok(shop) = state.dataset(Dataset::Bulletins) else {
+        return Ok(None);
+    };
+    let with_bulletins: HashSet<i64> = shop
+        .run(move |reader| reader.bulletin_models(year))
+        .await??
+        .into_iter()
+        .map(|(_, model_id)| model_id)
+        .collect();
+    if with_bulletins.is_empty() {
+        return Ok(None);
+    }
+    let rows = state
+        .db()
+        .run_slow(move |worker| {
+            worker
+                .source
+                .query(MODEL_IDS_SQL, &[i64::from(year).into()])
+        })
+        .await
+        .map_err(ApiError::from)?
+        .map_err(ApiError::internal)?;
+    let mut found: Vec<(String, String)> = rows
+        .iter()
+        .filter(|row| {
+            row.get(2)
+                .and_then(Value::integer)
+                .is_some_and(|id| with_bulletins.contains(&id))
+        })
+        .filter_map(|row| {
+            let make = row.first().and_then(Value::text)?;
+            let model = row.get(1).and_then(Value::text)?;
+            (is_slug(make) && is_slug(model)).then(|| (make.to_owned(), model.to_owned()))
+        })
+        .collect();
+    found.sort();
+    found.dedup();
+    Ok((!found.is_empty()).then(|| {
+        found
+            .into_iter()
+            .map(|(make, model)| format!("/makes/{make}/{model}/{year}/bulletins"))
+            .collect()
+    }))
+}
+
+/// Reads `bulletins-2017` or `bulletins-2017-2`: the year and the part.
+fn bulletin_sitemap(name: &str) -> Option<(u16, usize)> {
+    let rest = name.strip_prefix("bulletins-")?;
+    match rest.split_once('-') {
+        None => Some((site::year_in(rest)?, 1)),
+        Some((year, text)) => {
+            let part: usize = text.parse().ok()?;
+            // Part 1 has no number in its name, and a part is written one
+            // way only.
+            if part < 2 || part.to_string() != text {
+                return None;
+            }
+            Some((site::year_in(year)?, part))
+        }
+    }
 }
 
 /// The recall pages of one model year: the cars, MPVs and trucks with a
@@ -301,6 +439,9 @@ pub async fn sitemap(
             if recall_shop(&state, None).is_ok() {
                 paths.push("/recalls".to_owned());
             }
+            if state.dataset(Dataset::Bulletins).is_ok() {
+                paths.push("/bulletins".to_owned());
+            }
             paths.push(site::rules::INDEX_PATH.to_owned());
             paths.extend(
                 site::rules::PROVINCES
@@ -345,7 +486,16 @@ pub async fn sitemap(
         other => match other.strip_prefix("models-").and_then(site::year_in) {
             None => match other.strip_prefix("recalls-").and_then(site::year_in) {
                 Some(year) => recall_paths(&state, year).await,
-                None => Ok(None),
+                None => match other
+                    .strip_prefix("model-bulletins-")
+                    .and_then(site::year_in)
+                {
+                    Some(year) => model_bulletin_paths(&state, year).await,
+                    None => match bulletin_sitemap(other) {
+                        Some((year, part)) => bulletin_paths(&state, year, part).await,
+                        None => Ok(None),
+                    },
+                },
             },
             Some(year) => state
                 .db()

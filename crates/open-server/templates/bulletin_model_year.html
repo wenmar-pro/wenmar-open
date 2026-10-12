@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Service bulletins for the {{ name }}</h1>
+<p>{{ note }}</p>
+<p>{{ total }} on file from NHTSA, {{ dated }}.</p>
+{% if !warranty.is_empty() -%}
+<table class="prose">
+<caption>Warranty extensions</caption>
+<tbody>
+{% for line in warranty -%}
+<tr><th scope="row"><a class="mono" href="{{ line.href }}">{{ line.label }}</a></th><td>{{ line.date }}{% if !line.component.is_empty() %}. {{ line.component }}{% endif %}{% if !line.summary.is_empty() %}. {{ line.summary }}{% endif %}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">A warranty extension may pay for a repair after the basic warranty has ended. Read the document for which vehicles and which repair it covers.</p>
+{% endif -%}
+{% for filter in filters -%}
+<h2 id="{{ filter.id }}">{{ filter.heading }}</h2>
+<nav aria-labelledby="{{ filter.id }}">
+<ul class="plain links">
+{% for choice in filter.choices -%}
+<li><a href="{{ choice.href }}"{% if choice.current %} aria-current="page"{% endif %}>{{ choice.name }}</a> ({{ choice.count }})</li>
+{% endfor -%}
+</ul>
+</nav>
+{% endfor -%}
+{% if !narrowed_to.is_empty() -%}
+<p class="note">Only bulletins with {% for part in narrowed_to %}{% if !loop.first %}, {% endif %}{{ part }}{% endfor %} are shown. <a href="{{ path }}">Show all</a></p>
+{% endif -%}
+<table class="prose">
+<caption>Bulletins, newest first</caption>
+<tbody>
+{% for line in lines -%}
+<tr><th scope="row"><a class="mono" href="{{ line.href }}">{{ line.label }}</a></th><td>{{ line.date }}. {{ line.kind }}{% if !line.component.is_empty() %}. {{ line.component }}{% endif %}{% if !line.summary.is_empty() %}. {{ line.summary }}{% endif %}</td></tr>
+{% else -%}
+<tr><td>None found.</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+{% if let Some(next) = next -%}
+<p><a href="{{ next }}" rel="next">Older bulletins</a></p>
+{% endif -%}
+<p class="note">The summaries are NHTSA's. Each bulletin's page links NHTSA's copy of the manufacturer's document.</p>
+<ul class="plain links">
+<li><a href="{{ model_year_path }}">Trims and engines for the {{ name }}</a></li>
+{% if let Some(recalls) = recalls_path -%}
+<li><a href="{{ recalls }}">Recalls that may apply to the {{ name }}</a></li>
+{% endif -%}
+<li><a href="/bulletins">Bulletins for another vehicle</a></li>
+<li><a href="{% if let Some(form) = report.form %}{{ form }}{% else %}{{ report.issue }}{% endif %}">Report an error on this page</a></li>
+{% if let Some(mail) = report.mail -%}
+<li><a href="{{ mail }}">Report an error by email</a></li>
+{% endif -%}
+</ul>
+{% endblock %}

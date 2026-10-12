@@ -344,7 +344,7 @@ struct ModelYearRecallsPage {
 
 #[derive(Debug, Default, Deserialize)]
 pub struct ComponentQuery {
-    component: Option<String>,
+    pub component: Option<String>,
 }
 
 /// The systems the recalls of a model year name, each once, by name.

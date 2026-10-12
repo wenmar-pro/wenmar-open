@@ -5,6 +5,7 @@
 //! `.md` added, for AI agents.
 
 pub mod assets;
+pub mod bulletins;
 pub mod catalog;
 pub mod feedback;
 pub mod fuel;
@@ -457,8 +458,10 @@ pub fn router() -> Router<AppState> {
         .route("/makes/{make}/{model}/{year}", get(catalog::model_year))
         .route(
             "/makes/{make}/{model}/{year}/{section}",
-            get(recalls::model_year_section),
+            get(bulletins::model_year_section),
         )
+        .route("/bulletins", get(bulletins::index))
+        .route("/bulletins/{nhtsa_id}", get(bulletins::bulletin))
         .route("/recalls", get(recalls::index))
         .route("/recalls/{source}/{campaign}", get(recalls::campaign))
         .route("/wmi/{code}", get(wmi::wmi))
