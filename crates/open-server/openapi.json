@@ -79,6 +79,183 @@
         }
       }
     },
+    "/v1/recalls": {
+      "get": {
+        "tags": [
+          "Recalls"
+        ],
+        "summary": "Recall campaigns, newest first: every one, or those narrowed by make,\nmodel, year, component, free text or country.",
+        "description": "Each campaign may apply to the vehicles it lists. A make or a model the\ncatalog does not have gives an empty list.",
+        "operationId": "recall_search",
+        "parameters": [
+          {
+            "name": "make",
+            "in": "query",
+            "description": "Only campaigns that list a vehicle of this make: a name, an alias\nor an id, as in `/v1/vehicles/models`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "ford"
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "description": "Only campaigns that list this model: a name or an id. Needs `make`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "f-150"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "Only campaigns that list this model year.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "example": 2018
+          },
+          {
+            "name": "component",
+            "in": "query",
+            "description": "Only campaigns whose component text contains this, in either case.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "air bags"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Only campaigns with this text in them, in either case: in the\ncampaign number, the manufacturer's campaign number, the\nmanufacturer, the component, the summary, the consequence, the\nremedy, the notes, or the make or model of a vehicle listed. At\nmost 100 characters are read.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "tailgate"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "description": "`us` or `ca`. Left out: both, where the server holds both.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "At most this many, up to 100. The default is 25.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "`next_cursor` from the page before, unchanged.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of campaigns.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecallList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: `country`, `year`, `limit` or `cursor` is wrong, or `model` was given without `make`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`dataset_unavailable`: this server holds no recalls, or none for the country asked for.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/recalls/{source}/{campaign}": {
+      "get": {
+        "tags": [
+          "Recalls"
+        ],
+        "summary": "One recall campaign with every vehicle it lists.",
+        "operationId": "recall_campaign",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "path",
+            "description": "Who published it: `nhtsa` or `tc` (Transport Canada).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "nhtsa"
+          },
+          {
+            "name": "campaign",
+            "in": "path",
+            "description": "The publisher's campaign number. Letters may be in either case.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "19V888000"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The campaign.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecallCampaign"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no campaign has that number. `dataset_unavailable`: this server holds no recalls from that publisher.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vehicles/engines": {
       "get": {
         "tags": [
@@ -644,6 +821,70 @@
         }
       }
     },
+    "/v1/vehicles/{id}/recalls": {
+      "get": {
+        "tags": [
+          "Recalls"
+        ],
+        "summary": "Recalls that may apply to a model year.",
+        "description": "The list is for the year, make and model. It is not a lookup by VIN:\n`may_apply` is always `true`, and `lookup` gives the official addresses\nwhere a VIN can be checked.",
+        "operationId": "vehicle_recalls",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A vehicle id. Recalls are listed by year, make and model; a submodel or an engine in the id is set aside.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2018_ford_f-150"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "description": "`us` or `ca`. Left out: both, where the server holds both.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "us"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recalls that may apply, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleRecalls"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: `country` is not `us` or `ca`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no recalls, or none for the country asked for.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/vin/batch": {
       "post": {
         "tags": [
@@ -774,6 +1015,82 @@
           },
           "429": {
             "description": "`rate_limited`: over 600 requests a minute. See `Retry-After`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vin/{vin}/recalls": {
+      "get": {
+        "tags": [
+          "Recalls"
+        ],
+        "summary": "Recalls that may apply to the year, make and model a VIN decodes to.",
+        "description": "This decodes the VIN and lists the recalls of its model year. It does\nnot look the VIN itself up, which no public data allows: `may_apply` is\nalways `true`. A VIN that decodes to no vehicle in the catalog gets an\nempty list and the warning `no_catalog_vehicle`, not an error.",
+        "operationId": "vin_recalls",
+        "parameters": [
+          {
+            "name": "vin",
+            "in": "path",
+            "description": "A 17-character VIN.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "KM8K2CAB4PU001140"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "description": "`us` or `ca`. Left out: both, where the server holds both.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "us"
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "Use this model year instead of working it out from the VIN.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "example": 2023
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recalls that may apply, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinRecalls"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`invalid_vin`, or `validation_failed` for `country` or `year`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no recalls, or none for the country asked for.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1334,6 +1651,533 @@
           }
         }
       },
+      "Recall": {
+        "type": "object",
+        "description": "One recall campaign in a list.",
+        "required": [
+          "source",
+          "country",
+          "campaign",
+          "models",
+          "url"
+        ],
+        "properties": {
+          "built_from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "In an answer about one model year: the first and last build date\nthe campaign gives. Compare them with the date on the door sticker."
+          },
+          "built_to": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "campaign": {
+            "type": "string",
+            "description": "The publisher's campaign number.",
+            "example": "21V983000"
+          },
+          "component": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The component, as the source words it.",
+            "example": "LATCHES/LOCKS/LINKAGES:TAILGATE:LATCH"
+          },
+          "country": {
+            "type": "string",
+            "description": "`us` or `ca`.",
+            "example": "us"
+          },
+          "date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The day the campaign was reported.",
+            "example": "2021-12-16"
+          },
+          "do_not_drive": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "NHTSA's advisory not to drive the vehicle until it is repaired.\n`null` for a Canadian campaign: Transport Canada publishes no such\nfield."
+          },
+          "manufacturer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "match": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "In an answer about one model year: how the campaign's vehicle text\nreached that model. `exact`, `base` (the campaign names a series or\ntrim of it) or `curated`. `null` in a list that is not about one\nmodel year.",
+            "example": "exact"
+          },
+          "mfr_campaign": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The manufacturer's own campaign number, which a dealer looks a\nrecall up by.",
+            "example": "21S53"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "In an answer about one model year: the model names the campaign\nlists that reached it."
+          },
+          "notification": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Transport Canada's notification type, such as `Safety Mfr`."
+          },
+          "park_outside": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "NHTSA's advisory to park outside, away from buildings."
+          },
+          "source": {
+            "type": "string",
+            "description": "Who published it: `nhtsa` or `tc` (Transport Canada).",
+            "example": "nhtsa"
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "What is wrong, in the source's words."
+          },
+          "units": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Units potentially affected.",
+            "minimum": 0
+          },
+          "url": {
+            "type": "string",
+            "description": "The campaign's page on this site.",
+            "example": "https://open.wenmarpro.com/recalls/nhtsa/21V983000"
+          }
+        }
+      },
+      "RecallAsOf": {
+        "type": "object",
+        "description": "The day each country's recall data was current. `null` for a country\nthis server holds no recalls for.",
+        "properties": {
+          "ca": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "2026-10-11"
+          },
+          "us": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "2026-10-11"
+          }
+        }
+      },
+      "RecallCampaign": {
+        "type": "object",
+        "description": "One campaign with every vehicle it lists.",
+        "required": [
+          "source",
+          "country",
+          "campaign",
+          "vehicles",
+          "may_apply",
+          "lookup",
+          "attribution",
+          "url"
+        ],
+        "properties": {
+          "as_of": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The day this publisher's data was current."
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "campaign": {
+            "type": "string",
+            "example": "19V888000"
+          },
+          "component": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "consequence": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "country": {
+            "type": "string",
+            "example": "us"
+          },
+          "date": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "do_not_drive": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "french": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecallFrench",
+                "description": "`null` for a US campaign and for a Canadian one with no French text."
+              }
+            ]
+          },
+          "lookup": {
+            "$ref": "#/components/schemas/RecallLookup"
+          },
+          "manufacturer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "may_apply": {
+            "type": "boolean",
+            "description": "Always `true`: the campaign may apply to a vehicle it lists."
+          },
+          "mfr_campaign": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notification": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "owner_notified": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The day owners were notified."
+          },
+          "park_outside": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "part_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The manufacturer's part numbers, separated by commas."
+          },
+          "remedy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "example": "nhtsa"
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "units": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "url": {
+            "type": "string",
+            "description": "The campaign's page on this site."
+          },
+          "vehicles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecallCampaignVehicle"
+            },
+            "description": "Every vehicle the campaign lists, by make, model and year."
+          }
+        }
+      },
+      "RecallCampaignVehicle": {
+        "type": "object",
+        "description": "One vehicle a campaign lists.",
+        "required": [
+          "make",
+          "model"
+        ],
+        "properties": {
+          "built_from": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "built_to": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "make": {
+            "type": "string",
+            "description": "The make and model as the source words them.",
+            "example": "CHEVROLET"
+          },
+          "match": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`exact`, `base` or `curated`; `null` when the model is not in the\ncatalog, as for most heavy trucks, buses and trailers.",
+            "example": "base"
+          },
+          "model": {
+            "type": "string",
+            "example": "SILVERADO 1500"
+          },
+          "vehicle_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The catalog's id for the model year, when the model matched.",
+            "example": "2019_chevrolet_silverado"
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          }
+        }
+      },
+      "RecallDecode": {
+        "type": "object",
+        "description": "What a VIN decoded to, as far as recalls need it.",
+        "required": [
+          "vin",
+          "valid"
+        ],
+        "properties": {
+          "make": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "trim": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "valid": {
+            "type": "boolean",
+            "description": "Whether the check digit is right."
+          },
+          "vin": {
+            "type": "string",
+            "example": "KM8K2CAB4PU001140"
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          }
+        }
+      },
+      "RecallFrench": {
+        "type": "object",
+        "description": "Transport Canada's French text for a campaign.",
+        "properties": {
+          "component": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notification": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "RecallList": {
+        "type": "object",
+        "description": "One page of campaigns, newest first.",
+        "required": [
+          "may_apply",
+          "as_of",
+          "recalls",
+          "lookup",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "$ref": "#/components/schemas/RecallAsOf"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lookup": {
+            "$ref": "#/components/schemas/RecallLookup"
+          },
+          "may_apply": {
+            "type": "boolean",
+            "description": "Always `true`: a campaign may apply to the vehicles it lists."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Hand this back as `cursor` for the next page. `null` on the last."
+          },
+          "recalls": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Recall"
+            }
+          }
+        }
+      },
+      "RecallLookup": {
+        "type": "object",
+        "description": "Where to check one vehicle for open recalls. Neither government\npublishes recalls by VIN as data, so no answer here can say a recall\napplies to a VIN: these lookups can.",
+        "required": [
+          "nhtsa",
+          "tc"
+        ],
+        "properties": {
+          "maker": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The maker's own lookup by VIN, where one is on file."
+          },
+          "nhtsa": {
+            "type": "string",
+            "description": "NHTSA's lookup by VIN, for the United States.",
+            "example": "https://www.nhtsa.gov/recalls"
+          },
+          "tc": {
+            "type": "string",
+            "description": "Transport Canada's recall search, for Canada."
+          }
+        }
+      },
+      "RecallVehicle": {
+        "type": "object",
+        "description": "The model year an answer is about.",
+        "required": [
+          "id",
+          "year",
+          "make",
+          "model"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The id of the year, make and model.",
+            "example": "2018_ford_f-150"
+          },
+          "make": {
+            "type": "string",
+            "example": "Ford"
+          },
+          "model": {
+            "type": "string",
+            "example": "F-150"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          }
+        }
+      },
       "Safety": {
         "type": "object",
         "description": "Safety equipment as the manufacturer reported it: `Standard`, `Optional`,\nor a system type such as `Direct`.",
@@ -1515,6 +2359,47 @@
           "name": {
             "type": "string",
             "example": "EX-L"
+          }
+        }
+      },
+      "VehicleRecalls": {
+        "type": "object",
+        "description": "Recalls that may apply to one model year.",
+        "required": [
+          "vehicle",
+          "may_apply",
+          "as_of",
+          "recalls",
+          "lookup",
+          "attribution"
+        ],
+        "properties": {
+          "as_of": {
+            "$ref": "#/components/schemas/RecallAsOf"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The credit lines the data's licences ask for."
+          },
+          "lookup": {
+            "$ref": "#/components/schemas/RecallLookup"
+          },
+          "may_apply": {
+            "type": "boolean",
+            "description": "Always `true`. A campaign lists a year, make and model; only the\nmanufacturer can say whether one vehicle is in it. Check the VIN at\nthe addresses in `lookup`."
+          },
+          "recalls": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Recall"
+            },
+            "description": "Newest first. Empty when none was found as of the dates in `as_of`."
+          },
+          "vehicle": {
+            "$ref": "#/components/schemas/RecallVehicle"
           }
         }
       },
@@ -1707,6 +2592,64 @@
           }
         }
       },
+      "VinRecalls": {
+        "type": "object",
+        "description": "Recalls that may apply to the year, make and model a VIN decodes to.",
+        "required": [
+          "decode",
+          "may_apply",
+          "as_of",
+          "recalls",
+          "lookup",
+          "attribution",
+          "warnings"
+        ],
+        "properties": {
+          "as_of": {
+            "$ref": "#/components/schemas/RecallAsOf"
+          },
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "decode": {
+            "$ref": "#/components/schemas/RecallDecode"
+          },
+          "lookup": {
+            "$ref": "#/components/schemas/RecallLookup"
+          },
+          "may_apply": {
+            "type": "boolean",
+            "description": "Always `true`. This is not a lookup by VIN: the list is for the\nmodel year, and the VIN only names it."
+          },
+          "recalls": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Recall"
+            }
+          },
+          "vehicle": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecallVehicle",
+                "description": "The model year the recalls are for. `null` when the VIN does not\ndecode to a vehicle in the catalog; `recalls` is then empty and a\nwarning says so."
+              }
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            },
+            "description": "The decode's warnings, and `no_catalog_vehicle` when the VIN names\nno model year to list recalls for."
+          }
+        }
+      },
       "Warning": {
         "type": "object",
         "required": [
@@ -1741,6 +2684,10 @@
     {
       "name": "Vehicles",
       "description": "Years, makes, models, submodels and engines, each step limited to what is valid for the steps before it."
+    },
+    {
+      "name": "Recalls",
+      "description": "Recall campaigns from NHTSA and Transport Canada that may apply to a model year. Never a lookup by VIN: confirm with the manufacturer."
     },
     {
       "name": "Data",
