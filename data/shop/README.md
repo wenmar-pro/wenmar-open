@@ -37,3 +37,15 @@ bin/coverage      # report and check
 `open-data coverage` prints, for each dataset with vehicle rows, how many rows matched and how (`exact`, `base`, `curated`), and the 25 commonest names that matched nothing. Only rows whose make is a light make in the catalog and whose model year is 2000 or later are measured: half of all recall rows are heavy trucks, buses and trailers, which the catalog's light scope leaves out by design.
 
 It fails when a dataset's matched share is below its minimum in `data/coverage.yaml`, when a dataset has no minimum, or when the file names a dataset the shop file lacks. After adding entries to `models.yaml`, run `open-data coverage --shop <file> --catalog <file> --write` to record the higher figures, read the diff, and commit it.
+
+## Recalls
+
+`bin/shop-data` adds the recall datasets when their sources have been fetched:
+
+```bash
+cargo run --release -p open-data -- fetch nhtsa-recalls   # 22 MB, United States
+cargo run --release -p open-data -- fetch tc-recalls      # 204 MB, Canada
+bin/shop-data
+```
+
+A campaign is one row of `recall`; each year, make and model it lists is a row of `recall_vehicle`, with the catalog ids it matched and how. A vehicle that matched nothing is kept with the source's own words, so it can still be found from its campaign. Transport Canada's rows for tires, child seats, equipment, snowmobiles and off-road vehicles are left out; the list is `CATEGORIES` in `crates/open-data/src/shop/tc_recalls.rs`, and a category that is not in it stops the build until someone decides.

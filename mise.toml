@@ -67,7 +67,7 @@ cargo run --release -q -p open-data -- build --dump "$dump" --out "$out"
 '''
 
 [tasks.shop-data]
-description = "Build the shop file from the newest data file in data/build"
+description = "Build the shop file from the newest data file and the fetched sources in data/build"
 run = '''
 set -eu
 data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
@@ -81,7 +81,18 @@ version=$(date -u +%Y.%m.%d)
 mkdir -p data/build/shop
 out="data/build/shop/wenmar-open-shop-$version.sqlite3"
 rm -f "$out"
-cargo run --release -q -p open-data -- build-shop --catalog "$data" --out "$out" --data-version "$version"
+# Each source that was fetched adds its dataset. One that was not is left
+# out, and this says so.
+sources=""
+for source in nhtsa-recalls tc-recalls; do
+  if [ -f "data/build/sources/$source/source.json" ]; then
+    sources="$sources --$source data/build/sources/$source"
+  else
+    echo "No data/build/sources/$source. To add its dataset: cargo run --release -p open-data -- fetch $source" >&2
+  fi
+done
+# The flags are separate words, so $sources is not quoted.
+cargo run --release -q -p open-data -- build-shop --catalog "$data" --out "$out" --data-version "$version" $sources
 '''
 
 [tasks.parity]

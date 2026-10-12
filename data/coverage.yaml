@@ -6,4 +6,6 @@
 # Record:  the same command with --write, after reading the report.
 # Raise a figure by hand when matching improves; never lower one to make a
 # build pass without saying why in the commit.
-datasets: {}
+datasets:
+  recalls_us: 66.2
+  recalls_ca: 69.8
