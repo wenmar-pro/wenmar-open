@@ -35,13 +35,24 @@ pub fn address(api: &str, repo: &str) -> String {
 
 /// Creates the issue and returns the address of its page.
 pub fn file(api: &str, repo: &str, token: &str, issue: &Issue) -> Result<String, FileError> {
+    file_with(api, repo, token, issue, &["data"])
+}
+
+/// [`file`], with the labels the issue is to carry.
+pub fn file_with(
+    api: &str,
+    repo: &str,
+    token: &str,
+    issue: &Issue,
+    labels: &[&str],
+) -> Result<String, FileError> {
     let agent: ureq::Agent = ureq::Agent::config_builder()
         .http_status_as_error(false)
         .timeout_global(Some(TIMEOUT))
         .user_agent(format!("wenmar-open-server/{}", env!("CARGO_PKG_VERSION")))
         .build()
         .into();
-    let body = json!({ "title": issue.title, "body": issue.body, "labels": ["data"] }).to_string();
+    let body = json!({ "title": issue.title, "body": issue.body, "labels": labels }).to_string();
     let mut response = agent
         .post(&address(api, repo))
         .header("authorization", format!("Bearer {token}"))
