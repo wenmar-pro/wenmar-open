@@ -7,6 +7,9 @@ use std::path::PathBuf;
 pub struct Config {
     /// `OPEN_DATA`: the data file to serve.
     pub data: PathBuf,
+    /// `OPEN_SHOP_DATA`: the shop file to serve beside the data file.
+    /// Unset or blank: no shop data.
+    pub shop_data: Option<PathBuf>,
     /// `PORT`: the port to listen on, on every interface. Default 3000.
     pub port: u16,
     /// `OPEN_CONNECTIONS`: connection slots; each holds two read-only
@@ -56,6 +59,9 @@ impl Config {
             .to_owned();
         Ok(Config {
             data: PathBuf::from(data),
+            shop_data: lookup("OPEN_SHOP_DATA")
+                .filter(|path| !path.trim().is_empty())
+                .map(PathBuf::from),
             port: number(&lookup, "PORT", 3000)?,
             connections: number(&lookup, "OPEN_CONNECTIONS", 4usize)?.clamp(1, 32),
             trusted_proxies: number(&lookup, "OPEN_TRUSTED_PROXIES", 0)?,
@@ -87,6 +93,20 @@ mod tests {
         assert_eq!(config.trusted_proxies, 0);
         assert_eq!(config.requests_per_minute, 600);
         assert_eq!(config.base_url, "https://open.wenmarpro.com");
+        assert_eq!(config.shop_data, None);
+    }
+
+    #[test]
+    fn the_shop_file_is_optional_and_a_blank_one_is_none() {
+        let config = Config::from_lookup(lookup(&[
+            ("OPEN_DATA", "d"),
+            ("OPEN_SHOP_DATA", "shop.sqlite3"),
+        ]))
+        .unwrap();
+        assert_eq!(config.shop_data, Some(PathBuf::from("shop.sqlite3")));
+        let blank =
+            Config::from_lookup(lookup(&[("OPEN_DATA", "d"), ("OPEN_SHOP_DATA", "  ")])).unwrap();
+        assert_eq!(blank.shop_data, None);
     }
 
     #[test]

@@ -330,6 +330,7 @@ pub struct TestApp {
 pub fn config(fixture: &Fixture) -> Config {
     Config {
         data: fixture.path(),
+        shop_data: None,
         port: 0,
         connections: 2,
         trusted_proxies: 0,

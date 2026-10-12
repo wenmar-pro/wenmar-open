@@ -27,6 +27,7 @@ tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 utoipa = { version = "5", features = ["axum_extras"] }
 utoipa-axum = "0.2"
 wenmar-open-db.workspace = true
+wenmar-shopdata = { path = "../wenmar-shopdata", features = ["sqlite"] }
 wenmar-vehicles.workspace = true
 wenmar-vin.workspace = true
 

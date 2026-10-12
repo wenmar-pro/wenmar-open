@@ -1359,6 +1359,7 @@ dependencies = [
  "utoipa-axum",
  "wenmar-open-db",
  "wenmar-open-wasm",
+ "wenmar-shopdata",
  "wenmar-vehicles",
  "wenmar-vin",
 ]
