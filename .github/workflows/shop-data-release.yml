@@ -165,7 +165,7 @@ jobs:
         if: steps.pick.outputs.exists == 'false'
         run: |
           set -euo pipefail
-          for source in nhtsa-recalls tc-recalls nhtsa-investigations nhtsa-recall-reports nhtsa-ratings; do
+          for source in nhtsa-recalls tc-recalls nhtsa-investigations nhtsa-recall-reports nhtsa-ratings nhtsa-vin-guides; do
             ./target/release/open-data fetch "$source" --dir data/build
             cat "data/build/sources/$source/source.json"
           done
@@ -187,7 +187,8 @@ jobs:
             --tc-recalls data/build/sources/tc-recalls \
             --nhtsa-investigations data/build/sources/nhtsa-investigations \
             --nhtsa-recall-reports data/build/sources/nhtsa-recall-reports \
-            --nhtsa-ratings data/build/sources/nhtsa-ratings | tee build.txt
+            --nhtsa-ratings data/build/sources/nhtsa-ratings \
+            --nhtsa-vin-guides data/build/sources/nhtsa-vin-guides | tee build.txt
 
       - name: Check how much matched the catalog
         if: steps.pick.outputs.exists == 'false'

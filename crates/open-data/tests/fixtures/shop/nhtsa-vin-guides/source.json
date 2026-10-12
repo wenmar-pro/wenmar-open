@@ -1,0 +1,31 @@
+{
+  "source": "nhtsa-vin-guides",
+  "fetched_at": "2026-10-12 14:03:22",
+  "as_of": "2026-10-12",
+  "files": [
+    {
+      "name": "565-1900-1984.json",
+      "url": "https://vpic.nhtsa.dot.gov/api/vehicles/GetParts?type=565&fromDate=1/1/1900&toDate=12/31/1984&format=json",
+      "last_modified": null,
+      "bytes": 0
+    },
+    {
+      "name": "565-2005-04.json",
+      "url": "https://vpic.nhtsa.dot.gov/api/vehicles/GetParts?type=565&fromDate=4/1/2005&toDate=4/30/2005&format=json",
+      "last_modified": null,
+      "bytes": 0
+    },
+    {
+      "name": "565-2023-04.json",
+      "url": "https://vpic.nhtsa.dot.gov/api/vehicles/GetParts?type=565&fromDate=4/1/2023&toDate=4/30/2023&format=json",
+      "last_modified": null,
+      "bytes": 0
+    },
+    {
+      "name": "565-2026.json",
+      "url": "https://vpic.nhtsa.dot.gov/api/vehicles/GetParts?type=565&fromDate=1/1/2026&toDate=12/31/2026&format=json",
+      "last_modified": null,
+      "bytes": 0
+    }
+  ]
+}

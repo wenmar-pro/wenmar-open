@@ -315,3 +315,41 @@ pub fn nhtsa_ratings_dir(scratch: &Scratch) -> PathBuf {
     }
     directory
 }
+
+/// Manufacturer codes for the fixture core file, copied from the 2026.09
+/// data file: who each belongs to and the catalog makes built under it.
+/// `JF1` is Subaru's, and vPIC also lists a Toyota under it.
+pub const WMI_ROWS: &str = "
+INSERT INTO wmi VALUES
+  ('1FM', 'FORD MOTOR COMPANY', 'Ford', 'UNITED STATES (USA)', 'Multipurpose Passenger Vehicle (MPV)', 1, 7),
+  ('4F2', 'FORD MOTOR COMPANY', 'Mazda', 'UNITED STATES (USA)', 'Multipurpose Passenger Vehicle (MPV)', 1, 7),
+  ('JHM', 'HONDA MOTOR CO., LTD.', 'Honda', 'JAPAN', 'Passenger Car', 1, 2),
+  ('19X', 'AMERICAN HONDA MOTOR CO., INC.', 'Honda', 'UNITED STATES (USA)', 'Passenger Car', 1, 2),
+  ('JF1', 'SUBARU CORPORATION', 'Subaru', 'JAPAN', 'Passenger Car', 1, 2);
+INSERT INTO wmi_make VALUES
+  ('1FM', 460), ('4F2', 473), ('JHM', 474), ('19X', 474), ('JF1', 448);
+";
+
+/// Adds [`WMI_ROWS`] to the scratch core file.
+pub fn add_wmi_rows(scratch: &Scratch) {
+    let connection = Connection::open(scratch.core()).unwrap();
+    connection.execute_batch(WMI_ROWS).unwrap();
+    connection.close().unwrap();
+}
+
+/// A fetched `nhtsa-vin-guides` directory made from the fixture, under
+/// `scratch`: the saved answers and `source.json`, which lists them.
+pub fn nhtsa_vin_guides_dir(scratch: &Scratch) -> PathBuf {
+    let directory = scratch.path("sources/nhtsa-vin-guides");
+    std::fs::create_dir_all(&directory).unwrap();
+    for name in [
+        "565-1900-1984.json",
+        "565-2005-04.json",
+        "565-2023-04.json",
+        "565-2026.json",
+        "source.json",
+    ] {
+        std::fs::copy(fixture("nhtsa-vin-guides").join(name), directory.join(name)).unwrap();
+    }
+    directory
+}

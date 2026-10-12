@@ -9,6 +9,7 @@ use open_data::build::{BuildInfo, build};
 use open_data::catalog::curated::Curated;
 use open_data::shop::build::{ShopBuildInfo, ShopInputs, build_shop, open_catalog};
 use open_data::shop::coverage;
+use open_data::shop::nhtsa_vin_guides;
 use open_data::{catalog_parity, fetch, inspect, parity, sources};
 use wenmar_shopdata::ShopData;
 use wenmar_shopdata::sqlite::ShopSource;
@@ -28,7 +29,7 @@ struct Cli {
 enum Command {
     /// Download a source's files. With no source: a vPIC plain-text dump, extracted.
     Fetch {
-        /// vpic (the default), nhtsa-recalls, tc-recalls, nhtsa-investigations, nhtsa-recall-reports or nhtsa-ratings.
+        /// vpic (the default), nhtsa-recalls, tc-recalls, nhtsa-investigations, nhtsa-recall-reports, nhtsa-ratings or nhtsa-vin-guides.
         source: Option<String>,
         /// vpic only. Release such as 2026_09. Defaults to the newest on NHTSA's page.
         #[arg(long)]
@@ -81,6 +82,9 @@ enum Command {
         /// The fetched nhtsa-ratings directory. Adds the ratings dataset.
         #[arg(long)]
         nhtsa_ratings: Option<PathBuf>,
+        /// The fetched nhtsa-vin-guides directory. Adds the vin_guides dataset.
+        #[arg(long)]
+        nhtsa_vin_guides: Option<PathBuf>,
     },
     /// Decode one VIN against a data file and print the JSON.
     Decode {
@@ -188,14 +192,25 @@ fn main() -> Result<()> {
                 let path = fetch::download(&release, &dir)?;
                 println!("{}", path.display());
             }
+            nhtsa_vin_guides::SOURCE_ID => {
+                if release.is_some() {
+                    bail!("--release applies to vpic only");
+                }
+                // Not a fixed list of files: the index is asked for one
+                // range of dates at a time.
+                for path in nhtsa_vin_guides::fetch(&dir, &now())? {
+                    println!("{}", path.display());
+                }
+            }
             id => {
                 if release.is_some() {
                     bail!("--release applies to vpic only");
                 }
                 let Some(source) = sources::find(id) else {
                     bail!(
-                        "{id} is not a source; use vpic, {}",
-                        sources::ids().join(", ")
+                        "{id} is not a source; use vpic, {}, {}",
+                        sources::ids().join(", "),
+                        nhtsa_vin_guides::SOURCE_ID
                     );
                 };
                 for path in sources::fetch(source, &dir, &now())? {
@@ -271,6 +286,7 @@ fn main() -> Result<()> {
             nhtsa_investigations,
             nhtsa_recall_reports,
             nhtsa_ratings,
+            nhtsa_vin_guides,
         } => {
             let built_at = now();
             let data_version = data_version.unwrap_or_else(|| {
@@ -290,6 +306,7 @@ fn main() -> Result<()> {
                 nhtsa_investigations,
                 nhtsa_recall_reports,
                 nhtsa_ratings,
+                nhtsa_vin_guides,
             };
             let summary = build_shop(&catalog, &out, &curated, &info, &inputs)?;
             println!(
