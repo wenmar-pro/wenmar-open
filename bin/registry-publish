@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Publishes server.json to the MCP Registry, with the domain's key read
+# from Bitwarden. `--check` validates and publishes nothing.
+# Thin wrapper over `mise run registry-publish`.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec mise run registry-publish "$@"

@@ -79,7 +79,14 @@ The official registry is at <https://registry.modelcontextprotocol.io>. It is in
    curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=wenmar-open"
    ```
 
-5. `version` in `server.json` is the server's version, and a test keeps the two equal. Publish again when it changes.
+5. `version` in `server.json` is the server's version, and a test keeps the two equal. Publish again when it changes, once that version is deployed:
+
+   ```bash
+   bin/registry-publish --check   # fetch the key and validate; publish nothing
+   bin/registry-publish           # validate, sign in and publish
+   ```
+
+   It does step 4 with the key read from Bitwarden Secrets Manager, where the contents of `key.pem` are kept under the name `key.pem` (set `MCP_REGISTRY_KEY` for another name). It needs `bws` with `BWS_ACCESS_TOKEN` set, `jq`, `openssl` and `mcp-publisher`. The registry takes a version once.
 
 Not done, and why: nothing else. A "server card" is now served at `/mcp/server-card`, `/.well-known/mcp/server-card.json` and `/.well-known/mcp`, and `/.well-known/ai-catalog.json` points at it. The next section says how.
 
