@@ -496,3 +496,69 @@ async fn a_description_stops_at_the_end_of_a_sentence() {
         );
     }
 }
+
+#[tokio::test]
+async fn a_server_with_shop_data_says_so_in_its_titles_and_links_its_lists() {
+    let app = common::codes_app().await;
+    let (_, html) = page(&app, "/").await;
+    assert_eq!(
+        title(&html),
+        "Free VIN decoder, recalls and repair shop data - Wenmar Open"
+    );
+    assert_eq!(
+        description(&html),
+        "Decode a VIN to its year, make, model, trim and engine, then look up recalls, service bulletins and trouble codes for that vehicle. Free shop calculators too. No account and no key."
+    );
+    // The lists are a link away from the page a crawler starts at.
+    for link in [
+        r#"<li><a href="/recalls">Check a vehicle for recalls</a></li>"#,
+        r#"<li><a href="/bulletins">Service bulletins by vehicle</a></li>"#,
+        r#"<li><a href="/codes">OBD-II trouble codes</a></li>"#,
+    ] {
+        assert!(html.contains(link), "{link}");
+    }
+    assert!(!html.contains(r#"href="/jobs""#), "no job list is held");
+    let (_, html) = page(&app, "/makes/hyundai/kona/2023").await;
+    assert_eq!(
+        title(&html),
+        "2023 Hyundai Kona specs, recalls and bulletins - Wenmar Open"
+    );
+    let described = description(&html);
+    assert!(
+        described.contains(" Also: recalls and service bulletins."),
+        "{described}"
+    );
+    assert!(described.chars().count() <= 160, "{described}");
+    let (_, about) = page(&app, "/about").await;
+    assert!(
+        about.contains(
+            "It also lists recalls, manufacturer service bulletins and trouble codes by vehicle."
+        ),
+        "{about}"
+    );
+
+    // A server with the decoder and the catalog alone names neither.
+    let app = common::app().await;
+    let (_, html) = page(&app, "/").await;
+    assert!(!html.contains("Recalls, bulletins and repair data"));
+    for path in ["/recalls", "/bulletins", "/codes", "/jobs"] {
+        assert!(!html.contains(&format!(r#"href="{path}""#)), "{path}");
+    }
+    let (_, about) = page(&app, "/about").await;
+    assert!(!about.contains("It also lists"));
+}
+
+#[tokio::test]
+async fn the_docs_page_names_what_the_api_of_this_server_answers() {
+    let (_, html) = page(&common::codes_app().await, "/docs").await;
+    assert_eq!(
+        title(&html),
+        "Free VIN decoder and recalls API, no key - Wenmar Open"
+    );
+    assert_eq!(
+        description(&html),
+        "A free JSON API for VIN decoding, a vehicle catalog, recalls, service bulletins and trouble codes. No key, no account, open to any website. Examples to copy."
+    );
+    let (_, html) = page(&common::app().await, "/docs").await;
+    assert_eq!(title(&html), "Free VIN decoder API, no key - Wenmar Open");
+}

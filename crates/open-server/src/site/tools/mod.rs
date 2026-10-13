@@ -87,7 +87,7 @@ pub static TOOLS: [&Tool; 8] = [
 const CACHE_RESULT: &str = "private, max-age=3600";
 
 const INDEX_TITLE: &str = "Free calculators for auto repair shops";
-const INDEX_DESCRIPTION: &str = "Free calculators for the owner of an auto repair shop: a parts markup matrix, a labor rate, gross profit, and Canadian invoice tax and tire fees. No account, no email, and nothing typed is stored.";
+const INDEX_DESCRIPTION: &str = "Free calculators for an auto repair shop: parts markup, labor rate, gross profit, Canadian invoice tax, tire size, refrigerant, battery and wire gauge.";
 
 /// The list of the calculators.
 pub fn index(base: &str) -> Doc {

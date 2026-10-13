@@ -322,17 +322,43 @@ pub fn data(state: &AppState) -> Doc {
 }
 
 /// What this is and who runs it.
-pub fn about(_state: &AppState) -> Doc {
+pub fn about(state: &AppState) -> Doc {
+    // What this server lists by vehicle, beside the catalog.
+    let held = crate::llms::Held::of(state);
+    let mut lists = Vec::new();
+    if held.recalls {
+        lists.push("recalls");
+    }
+    if held.bulletins {
+        lists.push("manufacturer service bulletins");
+    }
+    if held.codes {
+        lists.push("trouble codes");
+    }
+    if held.labor {
+        lists.push("labour times");
+    }
+    let lists = match lists.split_last() {
+        None => String::new(),
+        Some((one, [])) => format!(" It also lists {one} by vehicle."),
+        Some((last, first)) => {
+            format!(" It also lists {} and {last} by vehicle.", first.join(", "))
+        }
+    };
     Doc {
         title: "About".to_owned(),
-        intro: "Wenmar Open is a free VIN decoder and vehicle catalog for auto repair shops, with free shop calculators. There is no account, no key and nothing to install.".to_owned(),
+        intro: format!(
+            "Wenmar Open is a free VIN decoder and vehicle catalog for auto repair shops, with free shop calculators.{lists} There is no account, no key and nothing to install."
+        ),
         sections: vec![
             with_links(
                 section(
                     "Who runs it",
                     // Say that Wenmar Pro decodes VINs through this service
                     // only once it does.
-                    &["Wenmar Open is built and hosted by Wenmar Pro, shop management software for independent auto repair shops."],
+                    &[
+                        "Wenmar Open is built and hosted by Wenmar Pro, shop management software for independent auto repair shops.",
+                    ],
                 ),
                 &[("Wenmar Pro", site::pro_link("about"))],
             ),
@@ -342,12 +368,16 @@ pub fn about(_state: &AppState) -> Doc {
                 // second sentence about logs is to be reworded only after
                 // the proxy's log has been looked at: docs/deploy.md,
                 // "Check it".
-                &["There are no cookies, no accounts and no analytics scripts. The service's own log records the first 11 characters of a decoded VIN, which name the maker, model and plant, and not the serial number. The hosting proxy in front of the service keeps a request log of its own, with the address of each request and where it came from. The address of a decode, as a page or through the API, holds the whole VIN. A report sent through the form at /feedback is posted as a public issue on GitHub, with the text typed and nothing else: not the sender's address."],
+                &[
+                    "There are no cookies, no accounts and no analytics scripts. The service's own log records the first 11 characters of a decoded VIN, which name the maker, model and plant, and not the serial number. The hosting proxy in front of the service keeps a request log of its own, with the address of each request and where it came from. The address of a decode, as a page or through the API, holds the whole VIN. A report sent through the form at /feedback is posted as a public issue on GitHub, with the text typed and nothing else: not the sender's address.",
+                ],
             ),
             with_links(
                 section(
                     "Open source",
-                    &["The code is MIT licensed and the data is public domain. Corrections are welcome."],
+                    &[
+                        "The code is MIT licensed and the data is public domain. Corrections are welcome.",
+                    ],
                 ),
                 &[(
                     "Source code",
@@ -384,28 +414,69 @@ fn show(
 
 const DOCS_TITLE: &str = "Free VIN decoder API, no key - Wenmar Open";
 const DOCS: &str = "A free JSON API for VIN decoding and a year, make, model, trim and engine catalog. No key, no account, open to any website. Examples to copy.";
+
+/// The title and description of `/docs`. They name what this server's API
+/// answers: a server with the decoder and the catalog alone says so.
+fn docs_head(state: &AppState) -> (&'static str, String) {
+    let held = crate::llms::Held::of(state);
+    let mut named = Vec::new();
+    if held.recalls {
+        named.push("recalls");
+    }
+    if held.bulletins {
+        named.push("service bulletins");
+    }
+    if held.codes {
+        named.push("trouble codes");
+    }
+    if held.labor {
+        named.push("labour times");
+    }
+    let Some((last, first)) = named.split_last() else {
+        return (DOCS_TITLE, DOCS.to_owned());
+    };
+    let named = if first.is_empty() {
+        (*last).to_owned()
+    } else {
+        format!("{} and {last}", first.join(", "))
+    };
+    let title = if held.recalls {
+        "Free VIN decoder and recalls API, no key - Wenmar Open"
+    } else {
+        DOCS_TITLE
+    };
+    (
+        title,
+        format!(
+            "A free JSON API for VIN decoding, a vehicle catalog, {named}. No key, no account, open to any website. Examples to copy."
+        ),
+    )
+}
+
 const DATA_TITLE: &str = "Vehicle data download: NHTSA vPIC as SQLite - Wenmar Open";
 const DATA: &str = "Vehicle data built each month from NHTSA's vPIC: the version this site serves, where it comes from, and how to download it as one SQLite file.";
 const ABOUT_TITLE: &str = "About Wenmar Open";
 const ABOUT: &str = "What Wenmar Open is, who runs it, and what it keeps.";
 
 pub async fn docs_html(State(state): State<AppState>) -> Response {
+    let (title, description) = docs_head(&state);
     show(
         &state,
         "/docs",
-        DOCS_TITLE,
-        DOCS,
+        title,
+        &description,
         docs(&state),
         Format::Html,
     )
 }
 
 pub async fn docs_md(State(state): State<AppState>) -> Response {
+    let (title, description) = docs_head(&state);
     show(
         &state,
         "/docs",
-        DOCS_TITLE,
-        DOCS,
+        title,
+        &description,
         docs(&state),
         Format::Markdown,
     )

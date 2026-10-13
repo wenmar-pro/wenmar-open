@@ -223,7 +223,7 @@ Tests check what the pages contain. Only looking checks how they look. Before th
     "SELECT slug, length(name) FROM catalog_make WHERE light = 1 ORDER BY length(name) DESC LIMIT 3"
   ```
 
-- **A shared link.** `/assets/og.png` is the wordmark on off-white with one line under it.
+- **A shared link.** `/assets/og.png` is the Wenmar mark and the wordmark on off-white, with one line under them, a row naming what the site holds, and its address.
 - **A screen reader,** if one is at hand: the page title is read first, the wordmark is read as "Wenmar Open, home", tables are announced with their captions, the VIN field is announced as "VIN", and "Copied" is spoken after Copy is pressed.
 
 ## A new shop file

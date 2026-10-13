@@ -910,7 +910,37 @@ fn model_year_markdown(view: &ModelYearView, report: &report::ReportLinks) -> St
 }
 
 /// What a search result says of a model year: what is on file, counted.
-fn describe_model_year(view: &ModelYearView, name: &str) -> String {
+/// A model year's title. On a server that holds recalls or bulletins it
+/// names them, since the page shows them; the words are short enough that
+/// most names keep the site's name after them.
+fn title_model_year(name: &str, recalls: bool, bulletins: bool) -> String {
+    seo::title(&match (recalls, bulletins) {
+        (true, true) => format!("{name} specs, recalls and bulletins"),
+        (true, false) => format!("{name} trims, engines and recalls"),
+        (false, true) => format!("{name} trims, engines and bulletins"),
+        (false, false) => format!("{name} trims and engines"),
+    })
+}
+
+/// What a model year's page shows besides its trims and engines, as a
+/// sentence from its fullest wording to its shortest: `Also: recalls,
+/// service bulletins and fuel economy.` No wording when it shows nothing
+/// more.
+fn also_shown(shown: &[&str]) -> Vec<String> {
+    (1..=shown.len())
+        .rev()
+        .map(|kept| match &shown[..kept] {
+            [one] => format!("Also: {one}."),
+            [first @ .., last] => format!("Also: {} and {last}.", first.join(", ")),
+            [] => String::new(),
+        })
+        .collect()
+}
+
+/// `shown` names what the page shows besides trims and engines, the most
+/// searched first. When there is any, the sentence about the eighth VIN
+/// character gives up its room to them.
+fn describe_model_year(view: &ModelYearView, name: &str, shown: &[&str]) -> String {
     let trims: Vec<&str> = view.trims.iter().map(|trim| trim.name.as_str()).collect();
     let engines: Vec<&str> = view
         .engines
@@ -960,7 +990,14 @@ fn describe_model_year(view: &ModelYearView, name: &str) -> String {
         ),
     };
     let missing: Vec<String> = missing.iter().map(|text| (*text).to_owned()).collect();
-    seo::description(&[&what, &missing], 160)
+    if shown.is_empty() {
+        return seo::description(&[&what, &missing], 160);
+    }
+    let what: Vec<String> = what
+        .into_iter()
+        .filter(|wording| !wording.contains("VIN character"))
+        .collect();
+    seo::description(&[&what, &also_shown(shown), &missing], 160)
 }
 
 pub async fn model_year(
@@ -1115,10 +1152,32 @@ pub async fn model_year(
         }
         return markdown::response(text, &canonical);
     }
+    // What the page shows besides trims and engines, for its description.
+    let mut shown = Vec::new();
+    if recalls.is_some() {
+        shown.push("recalls");
+    }
+    if bulletins.is_some() {
+        shown.push("service bulletins");
+    }
+    if fuel.as_ref().is_some_and(|brief| !brief.fuel.is_empty()) {
+        shown.push("fuel economy");
+    }
+    if fuel.as_ref().is_some_and(|brief| !brief.oil.is_empty())
+        || hand.as_ref().is_some_and(|section| !section.oil.is_empty())
+    {
+        shown.push("engine oil");
+    }
+    if safety.is_some() {
+        shown.push("crash test ratings");
+    }
+    if owners.is_some() {
+        shown.push("owner complaints");
+    }
     let page = Page::new(
         &state,
-        seo::title(&format!("{name} trims and engines")),
-        describe_model_year(&view, &name),
+        title_model_year(&name, recalls.is_some(), bulletins.is_some()),
+        describe_model_year(&view, &name, &shown),
     )
     .with_markdown(&format!("{path}.md"))
     .with_json(&format!("/v1/vehicles/{}", view.entry.id))

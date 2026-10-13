@@ -182,6 +182,6 @@ Two ways, from least work to most.
 Plain, as on the site.
 
 - **Name:** Wenmar Open
-- **One line:** Free VIN decoder and vehicle catalog from NHTSA data. No key, no account.
+- **One line:** Free VIN decoder, recalls, service bulletins, trouble codes and labour times. No key.
 - **Description:** Wenmar Open decodes a 17-character VIN into year, make, model, trim, engine, drivetrain and the safety equipment the manufacturer reported, and looks up vehicles by year, make, model, submodel and engine. The data is NHTSA's vPIC, rebuilt each month. It is read-only, needs no key and no account, and is run by Wenmar Pro, shop management software for independent auto repair shops. A wrong check digit is reported as a warning, not an error, because many genuine VINs from outside North America fail the check.
 - **Categories:** automotive, reference data, developer tools.

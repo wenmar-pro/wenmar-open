@@ -16,15 +16,95 @@ use crate::site::tools::TOOLS;
 use crate::site::{markdown, pages};
 use crate::state::AppState;
 
+/// What a server holds beyond the VIN decoder and the catalog. Nothing is
+/// said of what is not held: its addresses would answer 404.
+#[derive(Debug, Clone, Default)]
+pub struct Held {
+    /// Recall campaigns of either country.
+    pub recalls: bool,
+    /// NHTSA's crash test ratings.
+    pub ratings: bool,
+    /// The manufacturers' bulletins.
+    pub bulletins: bool,
+    /// Which of [`FACTS`] are held.
+    pub facts: Vec<&'static str>,
+    /// What owners reported to NHTSA.
+    pub complaints: bool,
+    /// The descriptions of generic trouble codes.
+    pub codes: bool,
+    /// The list of repair jobs.
+    pub jobs: bool,
+    /// Labour estimates for those jobs.
+    pub labor: bool,
+}
+
+impl Held {
+    pub fn of(state: &AppState) -> Held {
+        use wenmar_shopdata::Dataset;
+        Held {
+            recalls: holds_recalls(state),
+            ratings: holds_ratings(state),
+            bulletins: holds_bulletins(state),
+            facts: held_facts(state),
+            complaints: holds_complaints(state),
+            codes: state.dataset(Dataset::Codes).is_ok(),
+            jobs: state.dataset(Dataset::Jobs).is_ok(),
+            labor: state.dataset(Dataset::Labor).is_ok(),
+        }
+    }
+
+    /// What is held about a model year besides recalls and bulletins, in
+    /// the words a list of them uses.
+    fn by_model_year(&self) -> Vec<&'static str> {
+        let mut named = Vec::new();
+        if self.ratings {
+            named.push("NHTSA crash test ratings");
+        }
+        if self.facts.contains(&"fuel") {
+            named.push("fuel consumption ratings");
+        }
+        if self.facts.contains(&"fluids") {
+            named.push("engine oil grades");
+        }
+        if self.complaints {
+            named.push("what owners reported to NHTSA");
+        }
+        named
+    }
+}
+
+/// `a`, `a and b`, `a, b and c`.
+fn listed(names: &[&str]) -> String {
+    match names {
+        [] => String::new(),
+        [one] => (*one).to_owned(),
+        [first @ .., last] => format!("{} and {last}", first.join(", ")),
+    }
+}
+
 /// What the service is, in one paragraph. Both files open with it.
-fn summary(data_version: &str, recalls: bool) -> String {
-    let recalls = if recalls {
-        " Recall campaigns from NHTSA and Transport Canada, listed by model year."
-    } else {
-        ""
-    };
+fn summary(data_version: &str, held: &Held) -> String {
+    let mut more = String::new();
+    if held.recalls {
+        more.push_str(" Recall campaigns from NHTSA and Transport Canada, listed by model year.");
+    }
+    if held.bulletins {
+        more.push_str(
+            " Manufacturer service bulletins (TSBs), warranty extensions and software updates that NHTSA publishes, listed by model year.",
+        );
+    }
+    if held.codes {
+        more.push_str(" Generic OBD-II trouble codes, each described in plain words.");
+    }
+    if held.labor {
+        more.push_str(" Wenmar's own estimates of the hours a repair job takes on a vehicle.");
+    }
+    let by_model_year = held.by_model_year();
+    if !by_model_year.is_empty() {
+        more.push_str(&format!(" Also by model year: {}.", listed(&by_model_year)));
+    }
     format!(
-        "Free vehicle data and shop calculators for auto repair shops: VIN decoding, a year, make, model, submodel and engine catalog built from NHTSA's vPIC, and calculators for a shop's prices, margins and Canadian invoice taxes.{recalls} No API key and no account. Read-only. Data version {data_version}."
+        "Free vehicle data and shop calculators for auto repair shops: VIN decoding, a year, make, model, submodel and engine catalog built from NHTSA's vPIC, and calculators for a shop's prices, margins and Canadian invoice taxes.{more} No API key and no account. Read-only. Data version {data_version}."
     )
 }
 
@@ -74,26 +154,86 @@ fn bulletin_text(base: &str) -> (String, String, String) {
     (prose, api, pages)
 }
 
+/// What `/llms.txt` says about trouble codes, on a server that holds
+/// their descriptions: a paragraph of prose, the lines of `## API` and the
+/// lines of `## Reference pages`. A description is general, not a diagnosis.
+fn code_text(base: &str) -> (String, String, String) {
+    let prose = format!(
+        "Generic OBD-II trouble codes are described at `{base}/v1/codes/` followed by the code: a title, what the code means, common causes and first checks. Only codes every maker uses the same way are described; a manufacturer-specific code has no description. `{base}/v1/vehicles/` followed by a vehicle id, `/codes/` and a code adds the bulletins and recalls of that model year about the same components. A description is general and is not a diagnosis.\n\n"
+    );
+    let api = format!(
+        "- [One trouble code]({base}/v1/codes/P0420): `GET /v1/codes/{{code}}`
+- [Trouble codes, listed and searched]({base}/v1/codes?q=P04): `GET /v1/codes?q=&system=&limit=&cursor=`
+- [A trouble code on one model year, with its bulletins and recalls]({base}/v1/vehicles/2019_honda_civic/codes/P0420): `GET /v1/vehicles/{{id}}/codes/{{code}}`
+"
+    );
+    let pages = format!(
+        "- [OBD-II trouble codes]({base}/codes.md): the list of described codes
+- [One trouble code, such as P0420]({base}/codes/P0420.md): `/codes/{{code}}.md`
+"
+    );
+    (prose, api, pages)
+}
+
+/// What `/llms.txt` says about repair jobs and labour times: a paragraph
+/// of prose, the lines of `## API` and the lines of `## Reference pages`.
+/// `labor` says whether the server holds estimates as well as the job
+/// list: without them only the jobs are named. An estimate is not a quote.
+fn labor_text(base: &str, labor: bool) -> (String, String, String) {
+    let estimates = if labor {
+        format!(
+            " Wenmar's estimate of the hours a job takes on a vehicle is at `{base}/v1/vehicles/` followed by a vehicle id and `/labor`, or `{base}/v1/vin/` followed by a VIN and `/labor`: `hours` (low, typical, high), and `scope`, which says whether the figure is for that engine, generation or model, or is typical of its class of vehicle. It is an estimate, not a quote, and holds no price. Credit it as `attribution` says."
+        )
+    } else {
+        String::new()
+    };
+    let prose = format!(
+        "Common repair jobs are listed at `{base}/v1/jobs`, each with what it includes and excludes.{estimates}\n\n"
+    );
+    let mut api = format!(
+        "- [Repair jobs]({base}/v1/jobs): `GET /v1/jobs`
+- [One repair job]({base}/v1/jobs/brake-pads-front): `GET /v1/jobs/{{job}}`
+"
+    );
+    if labor {
+        api.push_str(&format!(
+            "- [Labour estimates for a model year]({base}/v1/vehicles/2019_honda_civic/labor): `GET /v1/vehicles/{{id}}/labor` and `GET /v1/vehicles/{{id}}/labor/{{job}}`
+- [Labour estimates for the vehicle a VIN decodes to]({base}/v1/vin/KM8K2CAB4PU001140/labor): `GET /v1/vin/{{vin}}/labor` and `GET /v1/vin/{{vin}}/labor/{{job}}`
+"
+        ));
+    }
+    let pages = format!(
+        "- [Repair jobs and labour times]({base}/jobs.md): the list of jobs
+- [One repair job, such as front brake pads]({base}/jobs/brake-pads-front.md): `/jobs/{{job}}.md`
+"
+    );
+    (prose, api, pages)
+}
+
 /// The text of `/llms.txt` for a server at `base` serving `data_version`,
-/// where one address may make `limit` requests a minute. `recalls` says
-/// whether the server holds recall campaigns: what is said of them is left
-/// out of a server that would answer every recall route with 404.
-/// `ratings` says whether it holds NHTSA's crash test ratings, and the
-/// address of those is left out in the same way. `bulletins` says the same
-/// of the manufacturer's bulletins. `facts` names which of [`FACTS`] the
-/// server holds, and only their addresses are given. `complaints` says the
-/// same of what owners reported.
-#[allow(clippy::too_many_arguments)]
-pub fn text(
-    base: &str,
-    data_version: &str,
-    limit: u32,
-    recalls: bool,
-    ratings: bool,
-    bulletins: bool,
-    facts: &[&str],
-    complaints: bool,
-) -> String {
+/// where one address may make `limit` requests a minute. `held` says what
+/// the server holds beyond the decoder and the catalog: what is said of
+/// recalls, bulletins, ratings, codes, jobs and the rest is left out of a
+/// server that would answer their routes with 404.
+pub fn text(base: &str, data_version: &str, limit: u32, held: &Held) -> String {
+    let Held {
+        recalls,
+        ratings,
+        bulletins,
+        complaints,
+        ..
+    } = *held;
+    let facts = &held.facts;
+    let (code_prose, code_api, code_pages) = if held.codes {
+        code_text(base)
+    } else {
+        Default::default()
+    };
+    let (labor_prose, labor_api, labor_pages) = if held.jobs {
+        labor_text(base, held.labor)
+    } else {
+        Default::default()
+    };
     let (complaint_prose, complaint_api) = if complaints {
         (
             format!(
@@ -163,11 +303,11 @@ To decode a VIN, fetch `{base}/v1/vin/` followed by the VIN, and read the JSON. 
 
 Responses are plain JSON with no wrapper. Errors are `{{ \"error\": {{ \"code\", \"message\", \"details\" }} }}`. One address may make {limit} requests a minute; over that the answer is 429 with `Retry-After`. Fields and endpoints are only ever added.
 
-An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenmar_vin` (actions `decode`, `batch`, `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`, `safety`) and `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`, `recent`) and `wenmar_bulletins` (actions `vehicle`, `vin`, `get`, `search`). `wenmar_recalls` lists recalls by year, make and model and never looks a VIN up: confirm by VIN with the manufacturer. `wenmar_bulletins` lists the manufacturer's bulletins by model year, and a bulletin is not a recall. `wenmar_vin` and `wenmar_vehicles` also have the actions `fuel`, `specs`, `fluids` and `tires`: fuel consumption ratings, specifications, the engine oil grade with the fluids a person read from the maker's documents, and original-equipment tire fitments, for a VIN or a vehicle id.
+An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenmar_vin` (actions `decode`, `batch`, `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`, `safety`), `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`, `recent`), `wenmar_bulletins` (actions `vehicle`, `vin`, `get`, `search`), `wenmar_codes` (actions `get`, `search`, `vehicle`) and `wenmar_labor` (actions `jobs`, `vehicle`, `vin`). `wenmar_recalls` lists recalls by year, make and model and never looks a VIN up: confirm by VIN with the manufacturer. `wenmar_bulletins` lists the manufacturer's bulletins by model year, and a bulletin is not a recall. `wenmar_codes` describes generic OBD-II trouble codes: a description is general and is not a diagnosis. `wenmar_labor` gives Wenmar's estimate of the hours a repair job takes: an estimate, not a quote. `wenmar_vin` and `wenmar_vehicles` also have the actions `fuel`, `specs`, `fluids` and `tires`: fuel consumption ratings, specifications, the engine oil grade with the fluids a person read from the maker's documents, and original-equipment tire fitments, for a VIN or a vehicle id.
 
 The calculators under `{base}/tools` are web pages with forms, for people. An agent does the arithmetic itself: the Markdown version of each calculator states its formula and one worked example.
 
-{recall_prose}{bulletin_prose}{complaint_prose}Vehicle ids such as `2019_honda_civic_si` are built from the year and the names, and stay the same between data releases for as long as the names do. Every reference page has a Markdown version at the same address with `.md` added. The data is what manufacturers reported to NHTSA. It can be incomplete, especially for vehicles never sold in the United States.
+{recall_prose}{bulletin_prose}{code_prose}{labor_prose}{complaint_prose}Vehicle ids such as `2019_honda_civic_si` are built from the year and the names, and stay the same between data releases for as long as the names do. Every reference page has a Markdown version at the same address with `.md` added. The data is what manufacturers reported to NHTSA. It can be incomplete, especially for vehicles never sold in the United States.
 
 ## API
 
@@ -184,7 +324,7 @@ The calculators under `{base}/tools` are web pages with forms, for people. An ag
 - [Everything held for one model year]({base}/v1/vehicles/2019_honda_civic/overview): `GET /v1/vehicles/{{id}}/overview`
 - [Everything held for the vehicle a VIN decodes to]({base}/v1/vin/KM8K2CAB4PU001140/overview): `GET /v1/vin/{{vin}}/overview`
 - [Every model year of one model]({base}/v1/models/honda/civic): `GET /v1/models/{{make}}/{{model}}`
-{rating_api}{facts_api}{complaint_api}{recall_api}{bulletin_api}- [Data version]({base}/v1/meta): `GET /v1/meta`
+{rating_api}{facts_api}{complaint_api}{recall_api}{bulletin_api}{code_api}{labor_api}- [Data version]({base}/v1/meta): `GET /v1/meta`
 
 ## Docs
 
@@ -206,13 +346,13 @@ The calculators under `{base}/tools` are web pages with forms, for people. An ag
 - [One make, such as Honda]({base}/makes/honda.md): `/makes/{{make}}.md`
 - [One model year, such as the 2019 Honda Civic]({base}/makes/honda/civic/2019.md): `/makes/{{make}}/{{model}}/{{year}}.md`
 - [One manufacturer code, such as KM8]({base}/wmi/KM8.md): `/wmi/{{code}}.md`
-{recall_pages}{bulletin_pages}
+{recall_pages}{bulletin_pages}{code_pages}{labor_pages}
 ## Optional
 
 - [About the data]({base}/data.md): the data version, its source and how to download it
 - [About]({base}/about.md): who runs the service and what it keeps
 ",
-        summary = summary(data_version, recalls)
+        summary = summary(data_version, held)
     )
 }
 
@@ -224,7 +364,7 @@ pub fn full(state: &AppState) -> String {
     let base = &state.config().base_url;
     let mut text = format!(
         "# Wenmar Open\n\n> {}\n\nThis is the documentation of {base} as one file. The same text is on the pages {base}/docs, {base}/guides, {base}/tools, {base}/data and {base}/about.\n",
-        summary(&state.db().meta().data_version, holds_recalls(state))
+        summary(&state.db().meta().data_version, &Held::of(state))
     );
     let mut docs = vec![pages::docs(state)];
     docs.extend(GUIDES.iter().map(|guide| guide.doc(base)));
@@ -322,11 +462,7 @@ pub async fn llms_txt(State(state): State<AppState>) -> Response {
         &state.config().base_url,
         &state.db().meta().data_version,
         state.config().requests_per_minute,
-        holds_recalls(&state),
-        holds_ratings(&state),
-        holds_bulletins(&state),
-        &held_facts(&state),
-        holds_complaints(&state),
+        &Held::of(&state),
     ))
 }
 

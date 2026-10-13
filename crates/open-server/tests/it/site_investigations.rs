@@ -55,7 +55,9 @@ async fn the_model_year_page_says_which_open_investigations_list_it() {
     let trims = html.find("<caption>Trims</caption>").unwrap();
     assert!(vehicle < section && section < trims);
     // The page is still the page it was.
-    assert!(html.contains("<title>2023 Hyundai Kona trims and engines - Wenmar Open</title>"));
+    assert!(
+        html.contains("<title>2023 Hyundai Kona trims, engines and recalls - Wenmar Open</title>")
+    );
     assert!(!html.contains(r#"name="robots""#));
     // Nothing says the vehicle has a defect.
     let lower = html.to_lowercase();

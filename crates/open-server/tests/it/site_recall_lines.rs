@@ -46,7 +46,9 @@ async fn the_model_year_page_says_how_many_recalls_may_apply_and_links_them() {
         StatusCode::OK
     );
     // The page is still the page it was: indexed, with its own title.
-    assert!(html.contains("<title>2023 Hyundai Kona trims and engines - Wenmar Open</title>"));
+    assert!(
+        html.contains("<title>2023 Hyundai Kona trims, engines and recalls - Wenmar Open</title>")
+    );
     assert!(!html.contains(r#"name="robots""#));
 
     // One campaign is one campaign, and none is said as none.

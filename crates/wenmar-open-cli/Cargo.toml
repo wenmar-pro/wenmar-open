@@ -1,7 +1,7 @@
 [package]
 name = "wenmar-open-cli"
 version.workspace = true
-description = "The wenmar-open command-line tool: VIN decoding and the vehicle catalog, online or offline."
+description = "The wenmar-open command-line tool: VIN decoding, the vehicle catalog, recalls, bulletins, trouble codes and labour estimates, online or offline."
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

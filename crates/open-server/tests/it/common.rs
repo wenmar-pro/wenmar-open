@@ -1141,7 +1141,7 @@ pub fn assert_head(html: &str, path: &str) {
         r#"<meta property="og:image" content="https://open.example/assets/og.png">"#,
         r#"<meta property="og:image:width" content="1200">"#,
         r#"<meta property="og:image:height" content="630">"#,
-        r#"<meta property="og:image:alt" content="Wenmar Open: free VIN decoder and vehicle data">"#,
+        r#"<meta property="og:image:alt" content="Wenmar Open: free vehicle data for auto repair shops">"#,
         r#"<meta name="twitter:card" content="summary_large_image">"#,
         r#"<link rel="preload" href="/assets/fonts/dm-sans-latin-wght.woff2" as="font" type="font/woff2" crossorigin>"#,
     ] {

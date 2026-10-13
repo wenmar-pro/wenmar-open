@@ -650,7 +650,7 @@ async fn a_server_with_the_crash_test_ratings_says_so_where_a_model_looks() {
     );
     // The address listed answers, on this very server.
     assert_eq!(app.get(address).await.status(), StatusCode::OK);
-    assert!(text.contains("`safety`) and `wenmar_recalls`"), "{text}");
+    assert!(text.contains("`safety`), `wenmar_recalls`"), "{text}");
     // The ratings add a line, not a heading.
     let sections = text.lines().filter(|line| line.starts_with("## ")).count();
     assert_eq!(sections, 6);
@@ -674,7 +674,7 @@ async fn a_server_with_the_crash_test_ratings_says_so_where_a_model_looks() {
     for app in [common::app().await, common::recalls_app().await] {
         let text = body_text(app.get("/llms.txt").await).await;
         assert!(!text.contains("/safety"), "{text}");
-        assert!(text.contains("`safety`) and `wenmar_recalls`"), "{text}");
+        assert!(text.contains("`safety`), `wenmar_recalls`"), "{text}");
         let (_, docs) = page(&app, "/docs").await;
         assert!(!docs.contains(r#"<h2 id="crash-test-ratings">"#));
         let full = body_text(app.get("/llms-full.txt").await).await;
@@ -778,4 +778,60 @@ async fn a_server_with_complaints_says_so_where_a_model_looks() {
         let full = body_text(app.get("/llms-full.txt").await).await;
         assert!(!full.contains("### What owners report"));
     }
+}
+
+#[tokio::test]
+async fn a_server_with_codes_or_labour_says_so_where_a_model_looks() {
+    let app = common::codes_app().await;
+    let text = body_text(app.get("/llms.txt").await).await;
+    assert!(
+        text.contains("Generic OBD-II trouble codes, each described in plain words."),
+        "{text}"
+    );
+    for (address, route) in [
+        ("/v1/codes/P0420", "`GET /v1/codes/{code}`"),
+        (
+            "/v1/codes?q=P04",
+            "`GET /v1/codes?q=&system=&limit=&cursor=`",
+        ),
+        (
+            "/v1/vehicles/2019_honda_civic/codes/P0420",
+            "`GET /v1/vehicles/{id}/codes/{code}`",
+        ),
+        ("/codes.md", "the list of described codes"),
+        ("/codes/P0420.md", "`/codes/{code}.md`"),
+    ] {
+        assert!(
+            text.contains(&format!("](https://open.example{address}): {route}")),
+            "{address}: {text}"
+        );
+        // The address listed answers, on this very server.
+        assert_eq!(app.get(address).await.status(), StatusCode::OK, "{address}");
+    }
+    assert!(!text.contains("/v1/jobs"), "{text}");
+
+    let app = common::labor_app().await;
+    let text = body_text(app.get("/llms.txt").await).await;
+    assert!(text.contains("It is an estimate, not a quote"), "{text}");
+    for address in [
+        "/v1/jobs",
+        "/v1/vehicles/2019_honda_civic/labor",
+        "/v1/vin/KM8K2CAB4PU001140/labor",
+        "/jobs.md",
+    ] {
+        assert!(
+            text.contains(&format!("](https://open.example{address}): ")),
+            "{address}: {text}"
+        );
+        assert_eq!(app.get(address).await.status(), StatusCode::OK, "{address}");
+    }
+    assert!(!text.contains("/v1/codes"), "{text}");
+
+    // Every tool is named whatever is held, and nothing else is said of
+    // codes or jobs on a server without them.
+    let text = body_text(common::app().await.get("/llms.txt").await).await;
+    assert!(text.contains("`wenmar_codes` (actions `get`, `search`, `vehicle`)"));
+    assert!(text.contains("`wenmar_labor` (actions `jobs`, `vehicle`, `vin`)"));
+    assert!(!text.contains("/v1/codes") && !text.contains("/v1/jobs"));
+    assert!(!text.contains("/codes.md") && !text.contains("/jobs.md"));
 }

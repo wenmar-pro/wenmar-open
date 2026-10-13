@@ -1,6 +1,6 @@
 # Wenmar Open
 
-Free vehicle data and shop calculators for auto repair shops, starting with VIN decoding. No API key, no signup.
+Free vehicle data and shop calculators for auto repair shops: VIN decoding, a vehicle catalog, recalls, manufacturer service bulletins, OBD-II trouble codes and labour estimates. No API key, no signup.
 
 Wenmar Open is built and hosted by [Wenmar Pro](https://wenmarpro.com), shop management software for independent auto repair shops.
 

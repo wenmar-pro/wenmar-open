@@ -5,6 +5,14 @@
 <h2 id="pick-heading">No VIN? Pick the vehicle</h2>
 {% include "pick_form.html" %}
 <p class="note">Free, with no account and no key. The data is what manufacturers reported to NHTSA.</p>
+{% if !lookups.is_empty() -%}
+<h2>Recalls, bulletins and repair data</h2>
+<ul class="plain links">
+{% for lookup in lookups -%}
+<li><a href="{{ lookup.1 }}">{{ lookup.0 }}</a></li>
+{% endfor -%}
+</ul>
+{% endif -%}
 <h2>Shop calculators</h2>
 <ul class="plain links">
 {% for tool in tools -%}
