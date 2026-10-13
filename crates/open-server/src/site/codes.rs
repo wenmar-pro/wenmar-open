@@ -245,6 +245,7 @@ pub async fn code(
     );
     let page = Page::new(&state, seo::title(&heading), description)
         .with_markdown(&format!("{path}.md"))
+        .with_json(&format!("/v1{path}"))
         .with_mono()
         .as_article()
         .under(vec![("Trouble codes".to_owned(), "/codes".to_owned())]);
@@ -453,6 +454,10 @@ pub async fn model_year_code(
     );
     let page = Page::new(&state, seo::title(&heading), description)
         .with_markdown(&format!("{path}.md"))
+        .with_json(&format!(
+            "/v1/vehicles/{}/codes/{}",
+            answer.vehicle.id, answer.code
+        ))
         .with_mono()
         .in_section("makes")
         .under(vec![

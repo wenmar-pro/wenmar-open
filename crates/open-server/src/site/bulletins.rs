@@ -476,6 +476,7 @@ pub async fn model_year_section(
         description,
     )
     .with_markdown(&format!("{path}.md"))
+    .with_json(&format!("/v1/vehicles/{}/bulletins", answer.vehicle.id))
     .in_section("makes")
     .under(vec![
         ("Makes".to_owned(), "/makes".to_owned()),
@@ -812,6 +813,7 @@ pub async fn bulletin(
     );
     let page = Page::new(&state, seo::title(&heading), description.clone())
         .with_markdown(&format!("{path}.md"))
+        .with_json(&format!("/v1{path}"))
         .with_mono()
         .as_article()
         .under(vec![("Bulletins".to_owned(), "/bulletins".to_owned())]);

@@ -499,6 +499,7 @@ pub async fn model_year_section(
     };
     let page = Page::new(&state, seo::title(&format!("{name} recalls")), description)
         .with_markdown(&format!("{path}.md"))
+        .with_json(&format!("/v1/vehicles/{}/recalls", answer.vehicle.id))
         .in_section("makes")
         .under(vec![
             ("Makes".to_owned(), "/makes".to_owned()),
@@ -924,6 +925,7 @@ pub async fn campaign(
     );
     let page = Page::new(&state, seo::title(&heading), description.clone())
         .with_markdown(&format!("{path}.md"))
+        .with_json(&format!("/v1{path}"))
         .with_mono()
         .as_article()
         .under(vec![("Recalls".to_owned(), "/recalls".to_owned())]);

@@ -1094,7 +1094,24 @@ pub async fn markdown(app: &TestApp, path: &str) -> String {
         )),
         "{html_path}"
     );
+    // Where the page names its data as JSON, that address answers.
+    if let Some(json_path) = json_alternate(&html) {
+        assert!(json_path.starts_with("/v1/"), "{html_path}: {json_path}");
+        let response = app.get(&json_path).await;
+        assert_eq!(response.status(), StatusCode::OK, "{json_path}");
+        assert_eq!(
+            header(&response, "content-type"),
+            "application/json",
+            "{json_path}"
+        );
+    }
     text
+}
+
+/// The address a page's head gives for its data as JSON, when it gives one.
+pub fn json_alternate(html: &str) -> Option<String> {
+    let (_, rest) = html.split_once(r#"<link rel="alternate" type="application/json" href=""#)?;
+    Some(rest.split_once('"')?.0.to_owned())
 }
 
 /// What the head of every page has for someone who shares the page, and

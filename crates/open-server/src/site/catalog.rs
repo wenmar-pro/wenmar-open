@@ -425,7 +425,9 @@ pub async fn make(
     // A filtered page keeps no Markdown link: its Markdown version is the
     // page without the year.
     let page = match filter {
-        None => page.with_markdown(&format!("{path}.md")),
+        None => page
+            .with_markdown(&format!("{path}.md"))
+            .with_json(&format!("/v1{path}")),
         Some(_) => page,
     };
     // The page without a query string is the one to index, and only for a
@@ -1119,6 +1121,7 @@ pub async fn model_year(
         describe_model_year(&view, &name),
     )
     .with_markdown(&format!("{path}.md"))
+    .with_json(&format!("/v1/vehicles/{}", view.entry.id))
     .in_section("makes")
     .under(vec![
         ("Makes".to_owned(), "/makes".to_owned()),

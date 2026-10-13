@@ -82,6 +82,9 @@ pub struct Page {
     pub canonical: Option<String>,
     /// The address of the Markdown version, when there is one.
     pub markdown: Option<String>,
+    /// The address under `/v1` that answers with the page's data as JSON,
+    /// when one does.
+    pub json: Option<String>,
     /// Whether search engines may index the page.
     pub index: bool,
     pub data_version: String,
@@ -122,6 +125,7 @@ impl Page {
             description: description.into(),
             canonical: None,
             markdown: None,
+            json: None,
             index: false,
             data_version: state.db().meta().data_version.clone(),
             asset_version: crate::BUILD_ID,
@@ -168,6 +172,12 @@ impl Page {
     /// Says the page has a Markdown version at `path`.
     pub fn with_markdown(mut self, path: &str) -> Page {
         self.markdown = Some(path.to_owned());
+        self
+    }
+
+    /// Says the page's data is answered as JSON at `path`, under `/v1`.
+    pub fn with_json(mut self, path: &str) -> Page {
+        self.json = Some(path.to_owned());
         self
     }
 

@@ -74,6 +74,7 @@ pub async fn index(State(state): State<AppState>) -> Response {
         "How long common repair jobs take, estimated by Wenmar: what each job includes, and its typical hours by class of vehicle.",
     )
     .with_markdown("/jobs.md")
+    .with_json("/v1/jobs")
     .indexed(&state, "/jobs");
     site::html(
         StatusCode::OK,
@@ -249,6 +250,7 @@ pub async fn job(
     );
     let page = Page::new(&state, seo::title(&found.name), description)
         .with_markdown(&format!("{path}.md"))
+        .with_json(&format!("/v1{path}"))
         .under(vec![("Jobs".to_owned(), "/jobs".to_owned())]);
     let trail = page.trail(&found.name);
     let page = page.describing(vec![trail]).indexed(&state, &path);
@@ -594,6 +596,10 @@ pub async fn model_year_labor(
     );
     let page = Page::new(&state, seo::title(&heading), description)
         .with_markdown(&format!("{path}.md"))
+        .with_json(&format!(
+            "/v1/vehicles/{}/labor/{}",
+            answer.vehicle.id, job.id
+        ))
         .in_section("makes")
         .under(vec![
             ("Makes".to_owned(), "/makes".to_owned()),

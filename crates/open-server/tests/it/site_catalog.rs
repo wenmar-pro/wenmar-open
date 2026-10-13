@@ -117,6 +117,14 @@ async fn a_model_year_page_lists_trims_and_engines() {
             r#"<link rel="canonical" href="https://open.example/makes/honda/civic/2019">"#
         )
     );
+    // The head names the page's data as JSON, and that address answers.
+    let json_path = common::json_alternate(&html).expect("a JSON address");
+    assert_eq!(json_path, "/v1/vehicles/2019_honda_civic");
+    let (status, _) = app.json(&json_path).await;
+    assert_eq!(status, StatusCode::OK);
+    // A page of prose has no data to name.
+    let (_, about) = page(&app, "/about").await;
+    assert_eq!(common::json_alternate(&about), None);
     assert!(html.contains(r#"<tr><th scope="row">Drive</th><td>FWD</td></tr>"#));
     assert!(
         html.contains(r#"<tr><th scope="row">Si</th><td>Manual, FWD, Sedan</td></tr>"#),

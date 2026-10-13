@@ -11,6 +11,9 @@
 {% if let Some(markdown) = page.markdown -%}
 <link rel="alternate" type="text/markdown" href="{{ markdown }}">
 {% endif -%}
+{% if let Some(json) = page.json -%}
+<link rel="alternate" type="application/json" href="{{ json }}">
+{% endif -%}
 {% if !page.index -%}
 <meta name="robots" content="noindex">
 {% endif -%}
