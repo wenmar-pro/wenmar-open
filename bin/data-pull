@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Fetch the data release the server image will be built around: the one
+# DATA_VERSION in config/deploy.yml names.
+# Thin wrapper over `mise run data-pull`.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec mise run data-pull "$@"

@@ -114,6 +114,14 @@ fi
 echo "Next: bin/coverage, then commit config/deploy.yml and run kamal deploy."
 '''
 
+[tasks.deploy-check]
+description = "Check that the data file and the shop file config/deploy.yml names are in data/build, and the tree is clean (Kamal's pre-build hook)"
+run = "scripts/deploy-check.sh"
+
+[tasks.data-pull]
+description = "Fetch the data release DATA_VERSION in config/deploy.yml names into data/build, checked against its checksum"
+run = "scripts/data-pull.sh"
+
 [tasks.shop-pull]
 description = "Fetch the full file of the newest shop data release that pairs with DATA_VERSION in config/deploy.yml, and name it there"
 run = "node scripts/shop-pull.mjs"

@@ -18,6 +18,11 @@ jobs:
           # shallow too, and git refuses such a push with "shallow update not
           # allowed". Ask for the whole history, as release.yml does.
           fetch-depth: 0
+      # The data files are never committed. A tracked path there (such as the
+      # symlink a dangle worktree makes) replaces the real directory on the
+      # next checkout, and git deletes the ignored data files to do it.
+      - name: Nothing is tracked under data/build
+        run: test -z "$(git ls-files data/build)" || { git ls-files data/build; exit 1; }
       - name: Install pinned toolchain
         run: rustup toolchain install
       - run: cargo fmt --all --check

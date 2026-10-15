@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Kamal runs this before it builds the image. See scripts/deploy-check.sh.
+exec "$(dirname "$0")/../../scripts/deploy-check.sh"

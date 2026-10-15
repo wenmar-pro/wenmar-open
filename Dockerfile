@@ -6,7 +6,7 @@
 #
 # Build: docker build --build-arg DATA_VERSION=2026.09 --build-arg SHOP_VERSION=2026.10.12 -t wenmar-open .
 # The data file must be at data/build/wenmar-open-<DATA_VERSION>.sqlite3
-# (mise run data) and the shop file at
+# (bin/data-pull, or mise run data) and the shop file at
 # data/build/shop/wenmar-open-shop-<SHOP_VERSION>.sqlite3 (bin/shop-pull). It
 # is the full shop file, with bulletins: never the copy for offline use that
 # `mise run shop-data` writes to data/build/shop/offline/.

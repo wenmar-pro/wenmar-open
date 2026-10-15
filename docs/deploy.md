@@ -38,7 +38,11 @@ Do these once.
    mise run catalog-parity
    ```
 
-   Or download the file from the newest `data-YYYY.MM` release into `data/build/`.
+   Or download the file of the `data-YYYY.MM` release that `DATA_VERSION` in `config/deploy.yml` names, checked against its checksum:
+
+   ```bash
+   bin/data-pull
+   ```
 
 4. **The data version.** Set `builder.args.DATA_VERSION` in `config/deploy.yml` to that version and commit the change.
 
@@ -83,6 +87,10 @@ Deploy from a clean checkout of `main`. Kamal builds from the working directory,
 git status --short        # must print nothing
 kamal deploy
 ```
+
+Before it builds anything, Kamal runs `.kamal/hooks/pre-build`, which is `scripts/deploy-check.sh` (also `mise run deploy-check`). It stops the deploy, saying how to fix each, if the working tree is not clean, if git tracks anything under `data/build`, if `data/build` is a symlink (Docker cannot read through one), or if the data file or the shop file `config/deploy.yml` names is missing. `bin/data-pull` fetches the data file and `bin/shop-pull` the shop file.
+
+`data/build` is never committed, and must stay a real directory. If a commit ever tracks a path in it, the next checkout replaces the directory and git deletes the data files in it, because they are ignored. CI fails on such a commit.
 
 The image is built for `amd64`. On an Apple Silicon machine the first build takes a long time.
 
