@@ -21,6 +21,7 @@ pub mod parts_matrix;
 mod percent;
 mod quantity;
 pub mod targets;
+pub mod technician_pay;
 pub mod tire_size;
 pub mod voltage_drop;
 

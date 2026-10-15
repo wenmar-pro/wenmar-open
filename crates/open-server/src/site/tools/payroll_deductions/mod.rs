@@ -7,6 +7,7 @@
 
 pub mod doc;
 pub mod form;
+pub mod frequency;
 pub mod result;
 
 use askama::Template;
@@ -18,6 +19,7 @@ use crate::site::markdown::Table;
 use crate::site::tools::Tool;
 use crate::site::tools::field::Sent;
 use crate::site::{self, Page};
+use crate::state::AppState;
 
 /// The page's address, its heading and its one sentence.
 pub const PATH: &str = "/tools/payroll-deductions";
@@ -40,6 +42,14 @@ pub static TOOL: Tool = Tool {
 struct View {
     page: Page,
     tool: &'static Tool,
+    /// The heading and the intro, from the page's landing: the calculator's
+    /// own on the main page, its frequency's on a frequency page.
+    heading: String,
+    intro: String,
+    /// Where the form posts: the page's own address.
+    form_action: String,
+    /// The links to the other frequency pages, beside the form.
+    freq_links: Vec<(String, String)>,
     /// Whether the form is filled with the page's own example.
     example: bool,
     form: form::Form,
@@ -72,11 +82,19 @@ struct View {
 /// The page: the example when the form was not sent, and otherwise what
 /// was sent, with its result or the messages. It is `200` either way: a
 /// form being filled in is not a failure. `today` is the day the default
-/// pay date is, so a test can name it.
-pub fn show(page: Page, tool: &'static Tool, sent: &Sent, today: NaiveDate) -> Response {
+/// pay date is, so a test can name it. `landing` says what the page shows
+/// in place of the calculator's own: its heading, intro, form address, the
+/// links to the other frequency pages, and the example's pay.
+pub fn show(
+    page: Page,
+    tool: &'static Tool,
+    landing: &frequency::Landing,
+    sent: &Sent,
+    today: NaiveDate,
+) -> Response {
     let example = !form::Form::was_sent(sent);
     let (form, worked) = if example {
-        form::Form::read(&form::example(), today)
+        form::Form::read(&landing.example, today)
     } else {
         form::Form::read(sent, today)
     };
@@ -111,6 +129,10 @@ pub fn show(page: Page, tool: &'static Tool, sent: &Sent, today: NaiveDate) -> R
         &View {
             page,
             tool,
+            heading: landing.heading.clone(),
+            intro: landing.intro.clone(),
+            form_action: landing.form_action.clone(),
+            freq_links: landing.freq_links.clone(),
             example,
             choices: form.choices(),
             troubles: form.troubles(),
@@ -137,7 +159,41 @@ pub fn show(page: Page, tool: &'static Tool, sent: &Sent, today: NaiveDate) -> R
 }
 
 fn page(page: Page, tool: &'static Tool, sent: &Sent) -> Response {
-    show(page, tool, sent, payroll_calc::today())
+    show(
+        page,
+        tool,
+        &frequency::Landing::main(),
+        sent,
+        payroll_calc::today(),
+    )
+}
+
+/// A frequency page: the calculator with a landing of its own, at
+/// `/tools/payroll-deductions/ontario/<slug>`. `None` when the slug is not
+/// one of the four frequencies.
+pub fn frequency_page(state: &AppState, slug: &str, sent: &Sent) -> Option<Response> {
+    let page = frequency::FrequencyPage::find(slug)?;
+    // The page's frequency is the default: when the form was sent without
+    // one, the page's own is used. When nothing was sent, the example is
+    // shown, which carries its own frequency.
+    let sent = if form::Form::was_sent(sent) {
+        sent.with_default("frequency", page.frequency.slug())
+    } else {
+        sent.clone()
+    };
+    Some(show(
+        page.page(state),
+        &TOOL,
+        &page.landing(),
+        &sent,
+        payroll_calc::today(),
+    ))
+}
+
+/// The Markdown version of a frequency page, on the public address `base`.
+pub fn frequency_doc(state: &AppState, slug: &str) -> Option<crate::site::markdown::Doc> {
+    let page = frequency::FrequencyPage::find(slug)?;
+    Some(page.doc(&state.config().base_url))
 }
 
 #[cfg(test)]

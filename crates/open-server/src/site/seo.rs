@@ -442,6 +442,12 @@ pub async fn sitemap(
             paths.extend(site::guides::GUIDES.iter().map(|guide| guide.path()));
             paths.push("/tools".to_owned());
             paths.extend(site::tools::TOOLS.iter().map(|tool| tool.path()));
+            // The one page per pay frequency of the payroll calculator.
+            paths.extend(
+                site::tools::payroll_deductions::frequency::PAGES
+                    .iter()
+                    .map(|page| page.path()),
+            );
             if recall_shop(&state, None).is_ok() {
                 paths.push("/recalls".to_owned());
             }

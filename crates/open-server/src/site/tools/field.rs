@@ -48,6 +48,17 @@ impl Sent {
             .collect::<Vec<_>>()
             .join("&")
     }
+
+    /// The fields, with `name` set to `text` added at the front when it was
+    /// not sent. A page that presets a field uses this.
+    pub fn with_default(&self, name: &str, text: &str) -> Sent {
+        if self.has(name) {
+            return self.clone();
+        }
+        let mut pairs = vec![(name.to_owned(), text.to_owned())];
+        pairs.extend(self.0.iter().cloned());
+        Sent(pairs)
+    }
 }
 
 /// One field of a form as the page shows it: what was typed, and the

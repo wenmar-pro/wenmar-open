@@ -283,7 +283,7 @@ pub fn text(base: &str, data_version: &str, limit: u32, held: &Held) -> String {
             )
         })
         .collect();
-    let tools: String = TOOLS
+    let mut tools: String = TOOLS
         .iter()
         .map(|tool| {
             format!(
@@ -294,6 +294,20 @@ pub fn text(base: &str, data_version: &str, limit: u32, held: &Held) -> String {
             )
         })
         .collect();
+    // The one page per pay frequency of the payroll calculator.
+    tools.push_str(
+        &crate::site::tools::payroll_deductions::frequency::PAGES
+            .iter()
+            .map(|page| {
+                format!(
+                    "- [{}]({base}{}.md): {}\n",
+                    page.heading,
+                    page.path(),
+                    page.description
+                )
+            })
+            .collect::<String>(),
+    );
     format!(
         "# Wenmar Open
 

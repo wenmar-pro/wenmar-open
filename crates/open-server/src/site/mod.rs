@@ -455,6 +455,54 @@ pub async fn page_refusals(
     refusal
 }
 
+/// A frequency page of the payroll calculator: the calculator with a
+/// landing of its own, at `/tools/payroll-deductions/ontario/<frequency>`,
+/// and its Markdown version at the same address with `.md` added. A query
+/// string is not indexed and is not kept in a shared cache.
+async fn payroll_frequency(
+    State(state): State<AppState>,
+    axum::extract::Path(segment): axum::extract::Path<String>,
+    query: Result<
+        axum::extract::Query<Vec<(String, String)>>,
+        axum::extract::rejection::QueryRejection,
+    >,
+    uri: Uri,
+) -> Response {
+    let (slug, format) = markdown::split(&segment);
+    if format == markdown::Format::Markdown {
+        return match tools::payroll_deductions::frequency_doc(&state, slug) {
+            Some(doc) => {
+                let base = state.config().base_url.clone();
+                let canonical = format!(
+                    "{}{}",
+                    base,
+                    tools::payroll_deductions::frequency::FrequencyPage::find(slug)
+                        .expect("frequency_doc found it")
+                        .path()
+                );
+                markdown::response(markdown::doc(&doc), &canonical)
+            }
+            None => not_found(&state),
+        };
+    }
+    let sent = query
+        .map(|axum::extract::Query(pairs)| tools::field::Sent::new(pairs))
+        .unwrap_or_default();
+    let asked = uri.query().is_some();
+    let Some(mut response) = tools::payroll_deductions::frequency_page(&state, slug, &sent) else {
+        return not_found(&state);
+    };
+    if asked {
+        let headers = response.headers_mut();
+        headers.insert(
+            header::CACHE_CONTROL,
+            HeaderValue::from_static("private, max-age=3600"),
+        );
+        headers.insert("x-robots-tag", HeaderValue::from_static("noindex"));
+    }
+    response
+}
+
 /// The pages.
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -502,6 +550,10 @@ pub fn router() -> Router<AppState> {
         .route("/guides/{page}", get(guides::guide))
         .route("/tools", get(tools::index_html))
         .route("/tools.md", get(tools::index_md))
+        .route(
+            "/tools/payroll-deductions/ontario/{frequency}",
+            get(payroll_frequency),
+        )
         .route("/tools/{page}", get(tools::tool))
         .route("/rules/canada", get(rules::index_html))
         .route("/rules/canada.md", get(rules::index_md))

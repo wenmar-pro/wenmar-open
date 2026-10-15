@@ -1,9 +1,17 @@
 {% extends "base.html" %}
 {% import "tool.html" as piece %}
 {% block content %}
-{% call piece::opening(tool) %}
+<h1>{{ heading }}</h1>
+<p>{{ intro }}</p>
+{% if freq_links.len() > 0 %}
+<ul class="plain links">
+{% for (label, path) in freq_links -%}
+<li><a href="{{ path }}">{{ label }}</a></li>
+{% endfor -%}
+</ul>
+{% endif %}
 <p class="note">{{ note.0 }}<a href="{{ pdoc }}">{{ note.1 }}</a>{{ note.2 }}</p>
-<form class="calc" id="calc" action="{{ tool.path() }}#result" method="get">
+<form class="calc" id="calc" action="{{ form_action }}#result" method="get">
 {% if example -%}
 <p class="note">The form is filled in with an example. Change the figures and press the button.</p>
 {% endif -%}

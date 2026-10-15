@@ -29,10 +29,10 @@ fn example_date() -> chrono::NaiveDate {
 }
 
 /// The worked example, worked out on [`example_date`].
-fn example() -> payroll_calc::Worked {
+fn example(frequency: &str) -> payroll_calc::Worked {
     payroll_calc::deductions(
         &payroll_calc::Query {
-            frequency: Some("biweekly".to_owned()),
+            frequency: Some(frequency.to_owned()),
             gross: Some("2400.00".to_owned()),
             pay_date: Some(example_date().to_string()),
             ..payroll_calc::Query::default()
@@ -43,7 +43,14 @@ fn example() -> payroll_calc::Worked {
 }
 
 pub fn doc(base: &str) -> Doc {
-    let address = format!("{base}{PATH}");
+    doc_for(base, TITLE, SUMMARY, PATH, "biweekly")
+}
+
+/// The Markdown version of one page of the calculator: the same sections,
+/// with the page's own title, one sentence, address and the worked example
+/// of its pay frequency. The main page is `biweekly`.
+pub fn doc_for(base: &str, title: &str, summary: &str, path: &str, frequency: &str) -> Doc {
+    let address = format!("{base}{path}");
     let enter = vec![
         "A pay frequency (weekly, biweekly, semi-monthly or monthly), the gross pay for one pay period, the federal and Ontario claim amounts, the pay date and, optionally, what was deducted and earned on earlier pays this calendar year.".to_owned(),
         result::CLAIMS_HELP.to_owned(),
@@ -64,10 +71,11 @@ pub fn doc(base: &str) -> Doc {
         .enumerate()
         .map(|(number, line)| format!("{}. {line}", number + 1))
         .collect();
-    let worked = example();
+    let worked = example(frequency);
     let example_lines = vec![
         format!(
-            "The page opens with this example: a biweekly pay of $2,400.00, with the claims left to the basic amounts and the pay date {}.",
+            "The page opens with this example: a {} pay of $2,400.00, with the claims left to the basic amounts and the pay date {}.",
+            frequency,
             example_date()
         ),
         claims(&worked).join(" "),
@@ -108,13 +116,13 @@ pub fn doc(base: &str) -> Doc {
         ),
         with_links(
             section("Use it", &["The calculator as a web page:"]),
-            &[(TITLE, address)],
+            &[(title, address)],
         ),
     ];
     Doc {
-        title: TITLE.to_owned(),
+        title: title.to_owned(),
         intro: format!(
-            "{SUMMARY} This page describes the calculator and does not compute. The calculator is a web page with a form."
+            "{summary} This page describes the calculator and does not compute. The calculator is a web page with a form."
         ),
         sections,
     }

@@ -16,6 +16,7 @@ pub mod payroll_deductions;
 pub mod pieces;
 pub mod refrigerant_pt;
 pub mod target;
+pub mod technician_pay;
 pub mod tire_size;
 pub mod wire_gauge;
 
@@ -72,7 +73,7 @@ impl Tool {
 
 /// Every calculator that exists, in the order they are listed. A new one
 /// is added here and nowhere else.
-pub static TOOLS: [&Tool; 9] = [
+pub static TOOLS: [&Tool; 10] = [
     &parts_matrix::TOOL,
     &labor_rate::TOOL,
     &gross_profit::TOOL,
@@ -82,6 +83,7 @@ pub static TOOLS: [&Tool; 9] = [
     &battery_soc::TOOL,
     &wire_gauge::TOOL,
     &payroll_deductions::TOOL,
+    &technician_pay::TOOL,
 ];
 
 /// How long a browser may keep a page worked out from a query string. It
@@ -89,7 +91,7 @@ pub static TOOLS: [&Tool; 9] = [
 const CACHE_RESULT: &str = "private, max-age=3600";
 
 const INDEX_TITLE: &str = "Free calculators for auto repair shops";
-const INDEX_DESCRIPTION: &str = "Free calculators for an auto repair shop: parts markup, labor rate, gross profit, Canadian invoice tax, tire size, refrigerant, battery, wire gauge and payroll.";
+const INDEX_DESCRIPTION: &str = "Free calculators for an auto repair shop: parts markup, labor rate, gross profit, Canadian invoice tax, tire size, refrigerant, battery, wire gauge, payroll and technician pay.";
 
 /// The list of the calculators.
 pub fn index(base: &str) -> Doc {

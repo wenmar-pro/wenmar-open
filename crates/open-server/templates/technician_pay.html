@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% import "tool.html" as piece %}
+{% block content %}
+{% call piece::opening(tool) %}
+<p class="note">The gross pay is worked out in whole cents from the hours and rates. The Ontario deductions are the payroll calculator's, by CRA's T4127 formulas. Leave the pay frequency empty for the gross only.</p>
+<form class="calc" id="calc" action="{{ tool.path() }}#result" method="get">
+{% if example -%}
+<p class="note">The form is filled in with an example. Change the figures and press the button.</p>
+{% endif -%}
+<h2 id="gross">The gross pay</h2>
+<p class="help">A flagged hour is one the shop bills as a flat rate, not by the clock. An empty field is zero.</p>
+{% call piece::field(form.flagged_hours) %}
+{% call piece::field(form.flat_rate) %}
+{% call piece::field(form.hourly_hours) %}
+{% call piece::field(form.hourly_rate) %}
+{% call piece::field(form.overtime_hours) %}
+{% call piece::field(form.overtime_rate) %}
+<h2 id="deductions">The Ontario deductions</h2>
+<p class="help">On the gross pay, by the payroll calculator's tables. Leave the pay frequency empty for the gross only.</p>
+<div class="field">
+<label for="frequency">Pay frequency</label>
+<select id="frequency" name="frequency">
+{% for choice in form.choices() -%}
+<option value="{{ choice.slug }}"{% if choice.selected %} selected{% endif %}>{{ choice.name }}</option>
+{% endfor -%}
+</select>
+{% if let Some(error) = form.frequency.error -%}
+<p class="warning" id="{{ form.frequency.error_id() }}">{{ error }}</p>
+{% endif -%}
+</div>
+{% call piece::field(form.pay_date) %}
+{% call piece::field(form.federal_claim) %}
+{% call piece::field(form.provincial_claim) %}
+<div class="screen"><button class="primary" type="submit">Work it out</button></div>
+</form>
+<h2 id="result">Result</h2>
+{% if example -%}
+<p class="note">This is the result of the example in the form.</p>
+{% endif -%}
+{% call piece::actions() %}
+{% if let Some(table) = gross -%}
+{% call piece::table(table) %}
+{% if let Some(table) = deductions -%}
+{% call piece::table(table) %}
+{% else -%}
+<p class="note">The pay frequency was left empty, so the Ontario deductions are not worked out.</p>
+{% endif -%}
+{% else -%}
+<p><strong>The gross pay.</strong></p>
+{% call piece::no_result(troubles) %}
+{% endif -%}
+{% call piece::how(how) %}
+{% call piece::closing(tool) %}
+{% endblock %}

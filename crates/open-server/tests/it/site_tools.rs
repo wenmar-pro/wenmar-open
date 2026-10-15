@@ -30,7 +30,7 @@ async fn the_tools_index_lists_each_calculator_and_has_a_markdown_version() {
     assert!(html.contains("<h1>Shop calculators</h1>"));
     assert!(html.contains("<title>Free calculators for auto repair shops - Wenmar Open</title>"));
     // The description names every calculator and no "starting with".
-    assert!(html.contains(r#"<meta name="description" content="Free calculators for an auto repair shop: parts markup, labor rate, gross profit, Canadian invoice tax, tire size, refrigerant, battery, wire gauge and payroll.">"#));
+    assert!(html.contains(r#"<meta name="description" content="Free calculators for an auto repair shop: parts markup, labor rate, gross profit, Canadian invoice tax, tire size, refrigerant, battery, wire gauge, payroll and technician pay.">"#));
     assert!(!html.contains("starting with"));
     assert!(html.contains(r#"<link rel="canonical" href="https://open.example/tools">"#));
     assert!(!html.contains(r#"name="robots""#), "the index is indexed");
