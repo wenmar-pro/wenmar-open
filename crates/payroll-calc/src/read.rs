@@ -8,6 +8,7 @@
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use rust_decimal::prelude::ToPrimitive;
+use serde::Deserialize;
 use shop_math::Money;
 
 /// The names of the fields, in the order of the form.
@@ -26,18 +27,79 @@ pub const FIELDS: [&str; 10] = [
 
 /// A pay as text, as a form, a query string, a tool call or a command line
 /// gives it. `None` and empty text both mean "not given".
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Deserialize)]
+#[cfg_attr(
+    feature = "openapi",
+    derive(utoipa::IntoParams),
+    into_params(parameter_in = Query)
+)]
+#[serde(default)]
 pub struct Query {
+    /// Only `ON`, Ontario, for now. Left out, Ontario.
+    #[serde(deserialize_with = "text_or_number")]
+    #[cfg_attr(feature = "openapi", param(value_type = Option<String>, example = "ON"))]
     pub province: Option<String>,
+    /// `weekly`, `biweekly`, `semi-monthly` or `monthly`. Required.
+    #[serde(deserialize_with = "text_or_number")]
+    #[cfg_attr(feature = "openapi", param(value_type = Option<String>, example = "biweekly"))]
     pub frequency: Option<String>,
+    /// The gross pay for one pay period, in dollars. Required.
+    #[serde(deserialize_with = "text_or_number")]
+    #[cfg_attr(feature = "openapi", param(value_type = Option<String>, example = "2400.00"))]
     pub gross: Option<String>,
+    /// The federal claim amount from Form TD1. Left out, the basic personal amount (claim code 1); 0 is claim code 0.
+    #[serde(deserialize_with = "text_or_number")]
+    #[cfg_attr(feature = "openapi", param(value_type = Option<String>, example = "0"))]
     pub federal_claim: Option<String>,
+    /// The Ontario claim amount from Form TD1ON. Left out, the basic personal amount (claim code 1); 0 is claim code 0.
+    #[serde(deserialize_with = "text_or_number")]
+    #[cfg_attr(feature = "openapi", param(value_type = Option<String>, example = "0"))]
     pub provincial_claim: Option<String>,
+    /// The pay date, `YYYY-MM-DD`; it chooses the tables. Left out, today. Send it for an answer that does not depend on the day.
+    #[serde(deserialize_with = "text_or_number")]
+    #[cfg_attr(feature = "openapi", param(value_type = Option<String>, example = "2026-07-15"))]
     pub pay_date: Option<String>,
+    /// CPP (base and first additional) deducted earlier this calendar year. Left out, nothing.
+    #[serde(deserialize_with = "text_or_number")]
+    #[cfg_attr(feature = "openapi", param(value_type = Option<String>, example = "0.00"))]
     pub ytd_cpp: Option<String>,
+    /// CPP2 deducted earlier this calendar year. Left out, nothing.
+    #[serde(deserialize_with = "text_or_number")]
+    #[cfg_attr(feature = "openapi", param(value_type = Option<String>, example = "0.00"))]
     pub ytd_cpp2: Option<String>,
+    /// EI deducted earlier this calendar year. Left out, nothing.
+    #[serde(deserialize_with = "text_or_number")]
+    #[cfg_attr(feature = "openapi", param(value_type = Option<String>, example = "0.00"))]
     pub ytd_ei: Option<String>,
+    /// Pensionable earnings earlier this calendar year. Left out, nothing.
+    #[serde(deserialize_with = "text_or_number")]
+    #[cfg_attr(feature = "openapi", param(value_type = Option<String>, example = "0.00"))]
     pub ytd_pensionable: Option<String>,
+}
+
+/// A field as text or a number: `null` and absent are `None`, a string is
+/// itself, a JSON number is its text (an integer as itself, a float through
+/// `f64`'s `Display`), anything else is an error. Query strings give text.
+fn text_or_number<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    #[derive(serde::Deserialize)]
+    #[serde(untagged)]
+    enum Given {
+        Integer(i64),
+        Float(f64),
+        Text(String),
+    }
+    let given = match Option::<Given>::deserialize(deserializer) {
+        Ok(given) => given,
+        Err(_) => return Err(serde::de::Error::custom("must be text or a number")),
+    };
+    Ok(given.map(|given| match given {
+        Given::Integer(number) => number.to_string(),
+        Given::Float(number) => number.to_string(),
+        Given::Text(text) => text,
+    }))
 }
 
 impl Query {

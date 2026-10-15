@@ -81,11 +81,28 @@ fn a_client_can_initialize_and_list_the_tools() {
             "wenmar_recalls",
             "wenmar_bulletins",
             "wenmar_codes",
-            "wenmar_labor"
+            "wenmar_labor",
+            "wenmar_payroll_deductions"
         ]
     );
     assert_eq!(answers[1]["result"]["tools"], open_mcp::tools());
     assert_eq!(answers[2]["result"], json!({}));
+}
+
+#[test]
+fn the_payroll_tool_works_out_the_pay_on_the_computer() {
+    let fixture = common::data_dir();
+    let answers = session(
+        &common::env(&fixture),
+        &["mcp"],
+        &[call(
+            1,
+            "wenmar_payroll_deductions",
+            json!({ "frequency": "biweekly", "gross": 2400, "pay_date": "2026-07-15" }),
+        )],
+    );
+    assert_eq!(answers[0]["result"]["isError"], false);
+    assert_eq!(text(&answers[0])["net_pay"], 1880.15);
 }
 
 #[test]

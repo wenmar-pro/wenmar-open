@@ -68,6 +68,10 @@ fn api(request: &Seen) -> Reply {
             429,
             &json!({ "error": { "code": "rate_limited", "message": "Too many requests from this address. The limit is per minute.", "details": { "retry_after": 17 } } }),
         ),
+        ("GET", "/v1/payroll/deductions") => Reply::json(
+            200,
+            &json!({ "employee": { "federal_tax": 1.0 }, "net_pay": 2.0 }),
+        ),
         _ => Reply::json(
             404,
             &json!({ "error": { "code": "not_found", "message": "There is nothing at this address.", "details": {} } }),
@@ -439,4 +443,32 @@ fn bulletins_are_never_answered_from_the_data_file() {
     let run = common::run(&env, &["bulletins", "get", "10152456"]);
     assert_eq!(run.code, 0, "{}", run.stderr);
     assert_eq!(server.targets(), ["/v1/bulletins/10152456"]);
+}
+
+#[test]
+fn payroll_deductions_online_asks_the_api_and_prints_its_answer() {
+    let server = server::serve(api);
+    let fixture = common::empty_dir();
+    let env = online(&fixture, server.url());
+    let run = common::run(
+        &env,
+        &[
+            "payroll",
+            "deductions",
+            "--frequency",
+            "weekly",
+            "--gross",
+            "800",
+            "--online",
+        ],
+    );
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(
+        run.json(),
+        json!({ "employee": { "federal_tax": 1.0 }, "net_pay": 2.0 })
+    );
+    assert_eq!(
+        server.targets(),
+        ["/v1/payroll/deductions?frequency=weekly&gross=800"]
+    );
 }

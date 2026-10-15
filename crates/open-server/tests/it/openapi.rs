@@ -44,6 +44,7 @@ fn the_description_lists_every_route_and_no_others() {
             "/v1/makes/{make}",
             "/v1/meta",
             "/v1/models/{make}/{model}",
+            "/v1/payroll/deductions",
             "/v1/recalls",
             "/v1/recalls/recent",
             "/v1/recalls/{source}/{campaign}",

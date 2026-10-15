@@ -103,6 +103,16 @@ pub enum Command {
         #[command(subcommand)]
         command: LaborCommand,
     },
+    /// Ontario payroll deductions for one pay, by CRA's T4127 formulas.
+    ///
+    /// Worked out on this computer by the payroll-ca engine, with no data
+    /// file and no network, unless --online is given. An estimate: the
+    /// employer remains liable to CRA for what it deducts and remits.
+    /// Check with CRA's Payroll Deductions Online Calculator (PDOC).
+    Payroll {
+        #[command(subcommand)]
+        command: PayrollCommand,
+    },
     /// The local data file, for answers without a connection.
     Data {
         #[command(subcommand)]
@@ -110,8 +120,8 @@ pub enum Command {
     },
     /// Run an MCP server on standard input and output, for AI agents.
     ///
-    /// It offers four tools, wenmar_vin, wenmar_vehicles, wenmar_recalls and
-    /// wenmar_bulletins, the same as the hosted server at /mcp.
+    /// It offers the same tools as the hosted server at /mcp, from the
+    /// same definition.
     Mcp,
     /// Set up a coding agent to use this tool.
     ///
@@ -466,6 +476,72 @@ pub enum LaborCommand {
         #[arg(long)]
         job: Option<String>,
     },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum PayrollCommand {
+    /// Income tax, CPP, CPP2 and EI on one pay, the net pay, the
+    /// employer's share and every T4127 factor used.
+    Deductions {
+        /// weekly, biweekly, semi-monthly or monthly.
+        #[arg(long)]
+        frequency: String,
+        /// The gross pay for one pay period, such as 2400.00.
+        #[arg(long)]
+        gross: String,
+        /// The federal TD1 claim amount. Left out: the basic personal amount (claim code 1). 0 is claim code 0.
+        #[arg(long)]
+        federal_claim: Option<String>,
+        /// The Ontario TD1ON claim amount. Left out: the basic personal amount (claim code 1). 0 is claim code 0.
+        #[arg(long)]
+        provincial_claim: Option<String>,
+        /// The pay date, YYYY-MM-DD. Left out: today.
+        #[arg(long)]
+        pay_date: Option<String>,
+        /// CPP (base and first additional) deducted earlier this year.
+        #[arg(long)]
+        ytd_cpp: Option<String>,
+        /// CPP2 deducted earlier this year.
+        #[arg(long)]
+        ytd_cpp2: Option<String>,
+        /// EI deducted earlier this year.
+        #[arg(long)]
+        ytd_ei: Option<String>,
+        /// Pensionable earnings earlier this year.
+        #[arg(long)]
+        ytd_pensionable: Option<String>,
+    },
+}
+
+impl PayrollCommand {
+    pub fn request(self) -> Request {
+        match self {
+            PayrollCommand::Deductions {
+                frequency,
+                gross,
+                federal_claim,
+                provincial_claim,
+                pay_date,
+                ytd_cpp,
+                ytd_cpp2,
+                ytd_ei,
+                ytd_pensionable,
+            } => Request::Payroll {
+                query: payroll_calc::Query {
+                    province: None,
+                    frequency: Some(frequency),
+                    gross: Some(gross),
+                    federal_claim,
+                    provincial_claim,
+                    pay_date,
+                    ytd_cpp,
+                    ytd_cpp2,
+                    ytd_ei,
+                    ytd_pensionable,
+                },
+            },
+        }
+    }
 }
 
 impl LaborCommand {

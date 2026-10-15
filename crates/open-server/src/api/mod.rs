@@ -10,6 +10,7 @@ pub mod labor;
 pub mod meta;
 pub mod overview;
 pub mod parts_card;
+pub mod payroll;
 pub mod recalls;
 pub mod safety;
 pub mod types;
@@ -46,6 +47,7 @@ use crate::state::AppState;
         (name = "Complaints", description = "What owners reported to NHTSA about a model year, as counts by component. Reports, not verified defects; counts, not rates."),
         (name = "Codes", description = "Generic OBD-II trouble codes, described in this project's own words, and what is held about a code for one model year. Manufacturer-specific codes are not described."),
         (name = "Labour", description = "Wenmar's own estimates of the hours a repair job takes, by job and vehicle, under CC BY 4.0. An estimate, not a quote, and never taken from a labour guide. Each figure says what it is for: an engine, a run of model years, a model, or a class of vehicle."),
+        (name = "Payroll", description = "Ontario payroll deductions for one pay by CRA's T4127 formulas (Option 1): income tax, CPP, CPP2 and EI, the net pay and the employer's share, with every factor used. An estimate: the employer remains liable to CRA for what it deducts and remits; check with CRA's Payroll Deductions Online Calculator (PDOC)."),
         (name = "Data", description = "About the data being served.")
     )
 )]
@@ -100,6 +102,7 @@ pub fn router() -> (axum::Router<AppState>, utoipa::openapi::OpenApi) {
         .routes(routes!(hand::vin_tires))
         .routes(routes!(parts_card::parts_card))
         .routes(routes!(vehicles::make))
+        .routes(routes!(payroll::payroll_deductions))
         .routes(routes!(meta::meta));
     OpenApiRouter::with_openapi(ApiDoc::openapi())
         .nest("/v1", v1)

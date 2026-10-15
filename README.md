@@ -66,7 +66,7 @@ Fields and endpoints are only ever added.
 ### For AI agents
 
 - `GET /v1/vin/{vin}` needs no key and no header: an assistant that can fetch an address can decode a VIN.
-- `/mcp` is a Model Context Protocol endpoint (Streamable HTTP, no key) with four tools, `wenmar_vin`, `wenmar_vehicles`, `wenmar_recalls` (recalls that may apply to a model year; confirm by VIN with the manufacturer) and `wenmar_bulletins` (manufacturer bulletins that list a model year; a bulletin is not a recall). It answers protocol revision 2026-07-28 and the revisions that open with `initialize`. The site's own address, `https://open.wenmarpro.com`, answers MCP messages too, so a connector given the bare domain works.
+- `/mcp` is a Model Context Protocol endpoint (Streamable HTTP, no key) with four tools, `wenmar_vin`, `wenmar_vehicles`, `wenmar_recalls` (recalls that may apply to a model year; confirm by VIN with the manufacturer), `wenmar_bulletins` (manufacturer bulletins that list a model year; a bulletin is not a recall) and `wenmar_payroll_deductions` (the Ontario deductions a pay owes). It answers protocol revision 2026-07-28 and the revisions that open with `initialize`. The site's own address, `https://open.wenmarpro.com`, answers MCP messages too, so a connector given the bare domain works.
 - `/llms.txt` describes the service for language models, and `/llms-full.txt` is the documentation as one Markdown file.
 - `/.well-known/api-catalog` points to the OpenAPI description (RFC 9727).
 - `robots.txt` welcomes AI crawlers on everything except single VINs.
@@ -195,7 +195,7 @@ Free-text search finds more online than offline. The data file reads the text as
 
 Piped, the output is JSON; at a terminal it is text. `--json` prints JSON at a terminal too, and `--jq EXPR` filters it with a jq expression. An error is JSON on standard error, in the API's shape, with a non-zero exit code.
 
-For AI agents: `wenmar-open mcp` is an MCP server on standard input and output with four tools, `wenmar_vin`, `wenmar_vehicles`, `wenmar_recalls` and `wenmar_bulletins`. `wenmar-open setup claude` or `wenmar-open setup codex` writes a skill file that describes the commands and prints the command that registers the MCP server. `wenmar-open doctor` says whether the data file and the API can answer.
+For AI agents: `wenmar-open mcp` is an MCP server on standard input and output with four tools, `wenmar_vin`, `wenmar_vehicles`, `wenmar_recalls`, `wenmar_bulletins` and `wenmar_payroll_deductions`. `wenmar-open setup claude` or `wenmar-open setup codex` writes a skill file that describes the commands and prints the command that registers the MCP server. `wenmar-open doctor` says whether the data file and the API can answer.
 
 Run with no command at a terminal, `wenmar-open` opens a one-screen interface: type a VIN or a vehicle such as `2019 civic si`, press Enter, and read the answer. Esc clears the line, and Esc again leaves.
 

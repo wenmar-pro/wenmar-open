@@ -255,6 +255,11 @@ const calls: Record<string, { call: () => Promise<unknown>; method: string; url:
     method: "GET",
     url: "/v1/recalls/recent?since=2026-09-01&country=ca&make=ford",
   },
+  payroll_deductions: {
+    call: () => client.payrollDeductions({ frequency: "biweekly", gross: "2400.00", pay_date: "2026-07-15" }),
+    method: "GET",
+    url: "/v1/payroll/deductions?frequency=biweekly&gross=2400.00&pay_date=2026-07-15",
+  },
 };
 
 test("there is a method for every operation of the description, and no other", () => {

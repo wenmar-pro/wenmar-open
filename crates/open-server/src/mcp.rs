@@ -11,8 +11,9 @@
 //! as 2026-07-28 does, is answered without one, and must say the same in
 //! its headers.
 //!
-//! Three tools, one per noun, each taking an `action`. They call the same
-//! functions as the `/v1` routes and return the same JSON.
+//! Gateway tools, one per noun, each taking an `action`, and one
+//! calculation, `wenmar_payroll_deductions`, which takes its fields. They
+//! call the same functions as the `/v1` routes and return the same JSON.
 
 use axum::Json;
 use axum::extract::State;
@@ -28,7 +29,7 @@ use serde::Deserialize;
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 
-use crate::api::{bulletins, codes, fuel, hand, labor, overview, recalls, vehicles, vin};
+use crate::api::{bulletins, codes, fuel, hand, labor, overview, payroll, recalls, vehicles, vin};
 use crate::error::ApiError;
 use crate::state::AppState;
 
@@ -374,6 +375,12 @@ async fn codes_tool(state: &AppState, action: &str, given: &Value) -> Result<Val
     }
 }
 
+/// Ontario payroll deductions: the function behind `/v1/payroll/deductions`.
+fn payroll_tool(given: &Value) -> Result<Value, ApiError> {
+    let query: payroll_calc::Query = arguments(given)?;
+    to_value(payroll::deductions_op(&query)?)
+}
+
 /// What a `wenmar_labor` call may carry.
 #[derive(Debug, Default, Deserialize)]
 struct LaborArguments {
@@ -431,6 +438,7 @@ async fn call(state: &AppState, params: &Value) -> Result<Value, (i64, String)> 
         "wenmar_bulletins" => bulletins_tool(state, action, given).await,
         "wenmar_codes" => codes_tool(state, action, given).await,
         "wenmar_labor" => labor_tool(state, action, given).await,
+        "wenmar_payroll_deductions" => payroll_tool(given),
         _ => return Err((INVALID_PARAMS, format!("Unknown tool: {name:.60}"))),
     };
     Ok(match outcome {

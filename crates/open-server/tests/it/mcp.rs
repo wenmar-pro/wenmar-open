@@ -88,12 +88,15 @@ async fn a_client_can_initialize_and_list_the_tools() {
             "wenmar_recalls",
             "wenmar_bulletins",
             "wenmar_codes",
-            "wenmar_labor"
+            "wenmar_labor",
+            "wenmar_payroll_deductions"
         ]
     );
     for tool in tools {
         assert_eq!(tool["inputSchema"]["type"], "object");
-        assert_eq!(tool["inputSchema"]["required"], json!(["action"]));
+        if tool["name"] != "wenmar_payroll_deductions" {
+            assert_eq!(tool["inputSchema"]["required"], json!(["action"]));
+        }
         assert_eq!(tool["annotations"]["readOnlyHint"], true);
     }
 }
@@ -452,7 +455,8 @@ async fn a_client_with_no_handshake_discovers_lists_and_calls() {
             "wenmar_recalls",
             "wenmar_bulletins",
             "wenmar_codes",
-            "wenmar_labor"
+            "wenmar_labor",
+            "wenmar_payroll_deductions"
         ]
     );
     assert_eq!(answer["result"]["resultType"], "complete");
@@ -636,7 +640,7 @@ async fn a_client_that_shakes_hands_is_answered_as_before() {
     for headers in [&[][..], &[("mcp-protocol-version", "2025-06-18")][..]] {
         let (status, answer) = raw(&app, headers, &list).await;
         assert_eq!(status, StatusCode::OK, "{headers:?}");
-        assert_eq!(answer["result"]["tools"].as_array().unwrap().len(), 6);
+        assert_eq!(answer["result"]["tools"].as_array().unwrap().len(), 7);
         assert!(answer["result"].get("resultType").is_none(), "{answer}");
         assert!(answer["result"].get("_meta").is_none());
     }
@@ -1398,6 +1402,37 @@ async fn the_codes_tool_fails_as_a_tool_error_the_model_can_read() {
         assert_eq!(result["isError"], true, "{arguments}");
         assert!(result.to_string().contains(words), "{arguments}: {result}");
     }
+}
+
+#[tokio::test]
+async fn the_payroll_tool_gives_what_the_route_gives_and_fails_as_a_tool_error() {
+    let app = common::app().await;
+    for (arguments, path) in [
+        (
+            json!({ "frequency": "biweekly", "gross": 2400, "pay_date": "2026-07-15" }),
+            "/v1/payroll/deductions?frequency=biweekly&gross=2400&pay_date=2026-07-15",
+        ),
+        (
+            json!({ "frequency": "weekly", "gross": "800.00", "federal_claim": 0, "provincial_claim": "0", "pay_date": "2026-07-15" }),
+            "/v1/payroll/deductions?frequency=weekly&gross=800.00&federal_claim=0&provincial_claim=0&pay_date=2026-07-15",
+        ),
+    ] {
+        let result = call(&app, "wenmar_payroll_deductions", arguments.clone()).await;
+        assert_eq!(result["isError"], false, "{arguments}");
+        let (status, served) = app.json(path).await;
+        assert_eq!(status, StatusCode::OK, "{path}");
+        assert_eq!(text(&result), served, "{arguments}");
+        assert_eq!(result["structuredContent"], served, "{arguments}");
+    }
+    let result = call(
+        &app,
+        "wenmar_payroll_deductions",
+        json!({ "frequency": "weekly", "gross": 800, "pay_date": "2027-01-15" }),
+    )
+    .await;
+    assert_eq!(result["isError"], true);
+    assert_eq!(text(&result)["error"]["code"], "validation_failed");
+    assert_eq!(text(&result)["error"]["details"]["field"], "pay_date");
 }
 
 #[tokio::test]

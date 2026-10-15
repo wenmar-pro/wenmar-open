@@ -427,6 +427,8 @@ impl Local {
             Request::Labor { action, lookup } => self.labor(*action, lookup),
             // The files do not hold bulletins: the hosted API answers them.
             Request::Bulletins { .. } => Err(dataset_unavailable(Dataset::Bulletins)),
+            // Worked out here by `payroll_calc`, the same code the API uses.
+            Request::Payroll { query } => crate::payroll::local(query),
         }
     }
 

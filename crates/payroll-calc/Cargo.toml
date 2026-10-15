@@ -13,4 +13,12 @@ chrono = { version = "0.4", default-features = false, features = ["std", "now"] 
 chrono-tz = "0.10"
 payroll-ca = { git = "https://github.com/wenmar-pro/payroll-ca", rev = "f08bbb90a7487ccd41a369a304deb921874255dd" }
 rust_decimal = { version = "1", features = ["macros"] }
+serde.workspace = true
 shop-math = { path = "../shop-math" }
+utoipa = { version = "5", optional = true }
+
+[features]
+openapi = ["dep:utoipa"]
+
+[dev-dependencies]
+serde_json.workspace = true

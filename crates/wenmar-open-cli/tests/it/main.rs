@@ -6,6 +6,7 @@ mod common;
 mod data;
 mod mcp;
 mod output;
+mod payroll;
 mod process;
 mod remote;
 mod server;

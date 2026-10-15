@@ -519,6 +519,138 @@
         }
       }
     },
+    "/v1/payroll/deductions": {
+      "get": {
+        "tags": [
+          "Payroll"
+        ],
+        "operationId": "payroll_deductions",
+        "parameters": [
+          {
+            "name": "province",
+            "in": "query",
+            "description": "Only `ON`, Ontario, for now. Left out, Ontario.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "ON"
+          },
+          {
+            "name": "frequency",
+            "in": "query",
+            "description": "`weekly`, `biweekly`, `semi-monthly` or `monthly`. Required.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "biweekly"
+          },
+          {
+            "name": "gross",
+            "in": "query",
+            "description": "The gross pay for one pay period, in dollars. Required.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2400.00"
+          },
+          {
+            "name": "federal_claim",
+            "in": "query",
+            "description": "The federal claim amount from Form TD1. Left out, the basic personal amount (claim code 1); 0 is claim code 0.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "0"
+          },
+          {
+            "name": "provincial_claim",
+            "in": "query",
+            "description": "The Ontario claim amount from Form TD1ON. Left out, the basic personal amount (claim code 1); 0 is claim code 0.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "0"
+          },
+          {
+            "name": "pay_date",
+            "in": "query",
+            "description": "The pay date, `YYYY-MM-DD`; it chooses the tables. Left out, today. Send it for an answer that does not depend on the day.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2026-07-15"
+          },
+          {
+            "name": "ytd_cpp",
+            "in": "query",
+            "description": "CPP (base and first additional) deducted earlier this calendar year. Left out, nothing.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "0.00"
+          },
+          {
+            "name": "ytd_cpp2",
+            "in": "query",
+            "description": "CPP2 deducted earlier this calendar year. Left out, nothing.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "0.00"
+          },
+          {
+            "name": "ytd_ei",
+            "in": "query",
+            "description": "EI deducted earlier this calendar year. Left out, nothing.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "0.00"
+          },
+          {
+            "name": "ytd_pensionable",
+            "in": "query",
+            "description": "Pensionable earnings earlier this calendar year. Left out, nothing.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "0.00"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The deductions from the pay, the net pay, the employer's share and every T4127 factor used. An estimate.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollDeductions"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: a field cannot be read, the pay date is outside the tables held, or the province is not Ontario; `details.field` names the field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/recalls": {
       "get": {
         "tags": [
@@ -5827,6 +5959,311 @@
           }
         }
       },
+      "PayrollClaim": {
+        "type": "object",
+        "description": "A claim amount used, in dollars, and whether it is the tables' basic amount.",
+        "required": [
+          "amount",
+          "basic"
+        ],
+        "properties": {
+          "amount": {
+            "type": "number",
+            "format": "double",
+            "description": "The claim amount, in dollars."
+          },
+          "basic": {
+            "type": "boolean",
+            "description": "`true` when the amount is the tables' basic amount (claim code 1)."
+          }
+        }
+      },
+      "PayrollDeductions": {
+        "type": "object",
+        "description": "The deductions from one regular pay in Ontario, by CRA's T4127 formulas.",
+        "required": [
+          "province",
+          "frequency",
+          "periods_per_year",
+          "pay_date",
+          "gross",
+          "federal_claim",
+          "provincial_claim",
+          "year_to_date",
+          "employee",
+          "net_pay",
+          "employer",
+          "factors",
+          "edition",
+          "note",
+          "pdoc_url",
+          "attribution"
+        ],
+        "properties": {
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The data this answer came from; none, the engine's tables are the data."
+          },
+          "edition": {
+            "$ref": "#/components/schemas/PayrollEdition",
+            "description": "The edition of T4127 used, and its dates."
+          },
+          "employee": {
+            "$ref": "#/components/schemas/PayrollEmployee",
+            "description": "The employee's deductions on this pay, in dollars."
+          },
+          "employer": {
+            "$ref": "#/components/schemas/PayrollEmployer",
+            "description": "The employer's share on this pay, in dollars."
+          },
+          "factors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayrollFactor"
+            },
+            "description": "Every T4127 factor used, with the value used and what it means."
+          },
+          "federal_claim": {
+            "$ref": "#/components/schemas/PayrollClaim",
+            "description": "The federal claim amount used, and whether it is the basic amount (claim code 1)."
+          },
+          "frequency": {
+            "type": "string",
+            "description": "The frequency slug: `weekly`, `biweekly`, `semi-monthly` or `monthly`.",
+            "example": "biweekly"
+          },
+          "gross": {
+            "type": "number",
+            "format": "double",
+            "description": "The gross pay for the period, in dollars.",
+            "example": 2400.0
+          },
+          "net_pay": {
+            "type": "number",
+            "format": "double",
+            "description": "Gross pay less the employee's deductions, in dollars.",
+            "example": 1880.15
+          },
+          "note": {
+            "type": "string",
+            "description": "The note that the answer is an estimate."
+          },
+          "pay_date": {
+            "type": "string",
+            "description": "The pay date, `YYYY-MM-DD`.",
+            "example": "2026-07-15"
+          },
+          "pay_date_note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Said when the pay date was moved into the tables held."
+          },
+          "pdoc_url": {
+            "type": "string",
+            "description": "CRA's Payroll Deductions Online Calculator."
+          },
+          "periods_per_year": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Pay periods in the year.",
+            "example": 26,
+            "minimum": 0
+          },
+          "province": {
+            "type": "string",
+            "description": "\"ON\".",
+            "example": "ON"
+          },
+          "provincial_claim": {
+            "$ref": "#/components/schemas/PayrollClaim",
+            "description": "The Ontario claim amount used, and whether it is the basic amount (claim code 1)."
+          },
+          "year_to_date": {
+            "$ref": "#/components/schemas/PayrollYearToDate",
+            "description": "What was deducted and earned on earlier pays this calendar year."
+          }
+        }
+      },
+      "PayrollEdition": {
+        "type": "object",
+        "description": "The edition of T4127 the answer was worked out with.",
+        "required": [
+          "number",
+          "title",
+          "effective",
+          "valid_until"
+        ],
+        "properties": {
+          "effective": {
+            "type": "string",
+            "description": "The first pay date the tables cover, `YYYY-MM-DD`."
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The edition number.",
+            "minimum": 0
+          },
+          "title": {
+            "type": "string",
+            "description": "\"T4127 Payroll Deductions Formulas, 123rd edition\"."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Where CRA publishes the edition."
+          },
+          "valid_until": {
+            "type": "string",
+            "description": "The last pay date the tables cover, `YYYY-MM-DD`."
+          }
+        }
+      },
+      "PayrollEmployee": {
+        "type": "object",
+        "description": "The employee's deductions on one pay, in dollars.",
+        "required": [
+          "federal_tax",
+          "provincial_tax",
+          "total_tax",
+          "cpp",
+          "cpp2",
+          "ei",
+          "total"
+        ],
+        "properties": {
+          "cpp": {
+            "type": "number",
+            "format": "double",
+            "description": "CPP (base and first additional)."
+          },
+          "cpp2": {
+            "type": "number",
+            "format": "double",
+            "description": "CPP2."
+          },
+          "ei": {
+            "type": "number",
+            "format": "double",
+            "description": "EI."
+          },
+          "federal_tax": {
+            "type": "number",
+            "format": "double",
+            "description": "Federal income tax."
+          },
+          "provincial_tax": {
+            "type": "number",
+            "format": "double",
+            "description": "Ontario income tax."
+          },
+          "total": {
+            "type": "number",
+            "format": "double",
+            "description": "Income tax, CPP, CPP2 and EI."
+          },
+          "total_tax": {
+            "type": "number",
+            "format": "double",
+            "description": "Federal and Ontario income tax."
+          }
+        }
+      },
+      "PayrollEmployer": {
+        "type": "object",
+        "description": "The employer's share on one pay, in dollars.",
+        "required": [
+          "cpp",
+          "cpp2",
+          "ei",
+          "total"
+        ],
+        "properties": {
+          "cpp": {
+            "type": "number",
+            "format": "double",
+            "description": "CPP (base and first additional)."
+          },
+          "cpp2": {
+            "type": "number",
+            "format": "double",
+            "description": "CPP2."
+          },
+          "ei": {
+            "type": "number",
+            "format": "double",
+            "description": "EI."
+          },
+          "total": {
+            "type": "number",
+            "format": "double",
+            "description": "CPP, CPP2 and EI."
+          }
+        }
+      },
+      "PayrollFactor": {
+        "type": "object",
+        "description": "One T4127 factor used, with the value used and what it means.",
+        "required": [
+          "name",
+          "value",
+          "meaning"
+        ],
+        "properties": {
+          "meaning": {
+            "type": "string",
+            "description": "What the factor means."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name the engine gives the factor."
+          },
+          "value": {
+            "type": "number",
+            "format": "double",
+            "description": "The value used, after rounding."
+          }
+        }
+      },
+      "PayrollYearToDate": {
+        "type": "object",
+        "description": "What was deducted and earned on earlier pays this calendar year, in dollars.",
+        "required": [
+          "cpp",
+          "cpp2",
+          "ei",
+          "pensionable"
+        ],
+        "properties": {
+          "cpp": {
+            "type": "number",
+            "format": "double",
+            "description": "CPP (base and first additional) deducted earlier this year."
+          },
+          "cpp2": {
+            "type": "number",
+            "format": "double",
+            "description": "CPP2 deducted earlier this year."
+          },
+          "ei": {
+            "type": "number",
+            "format": "double",
+            "description": "EI deducted earlier this year."
+          },
+          "pensionable": {
+            "type": "number",
+            "format": "double",
+            "description": "Pensionable earnings earlier this year."
+          }
+        }
+      },
       "Plant": {
         "type": "object",
         "description": "Where the vehicle was built. `code` is position 11 of the VIN.",
@@ -8813,6 +9250,10 @@
     {
       "name": "Labour",
       "description": "Wenmar's own estimates of the hours a repair job takes, by job and vehicle, under CC BY 4.0. An estimate, not a quote, and never taken from a labour guide. Each figure says what it is for: an engine, a run of model years, a model, or a class of vehicle."
+    },
+    {
+      "name": "Payroll",
+      "description": "Ontario payroll deductions for one pay by CRA's T4127 formulas (Option 1): income tax, CPP, CPP2 and EI, the net pay and the employer's share, with every factor used. An estimate: the employer remains liable to CRA for what it deducts and remits; check with CRA's Payroll Deductions Online Calculator (PDOC)."
     },
     {
       "name": "Data",

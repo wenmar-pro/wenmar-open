@@ -20,6 +20,8 @@ import type {
   ModelYears,
   ModelsQuery,
   Overview,
+  PayrollDeductions,
+  PayrollDeductionsQuery,
   PartsCard,
   RecallCampaign,
   RecallInvestigations,
@@ -301,6 +303,17 @@ export class WenmarOpen {
     const narrowed = job === undefined ? "" : `/${segment("job", job)}`;
     const path = `/v1/vin/${segment("vin", vin)}/labor${narrowed}${queryString({ year: options.year })}`;
     return this.#request("GET", path, undefined, options);
+  }
+
+  /**
+   * The income tax, CPP, CPP2 and EI on one regular pay in Ontario, by
+   * CRA's T4127 formulas, with the net pay, the employer's share and every
+   * factor used. Claims left out are the basic personal amounts (claim
+   * code 1). An estimate: the employer remains liable to CRA; check with
+   * CRA's PDOC at `pdoc_url`. Not available offline.
+   */
+  async payrollDeductions(query: PayrollDeductionsQuery, options: RequestOptions = {}): Promise<PayrollDeductions> {
+    return this.#request("GET", `/v1/payroll/deductions${queryString(query)}`, undefined, options);
   }
 
   /** One make by its id, name or alias, such as `honda`, with the maker's own links. */

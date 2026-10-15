@@ -14,7 +14,7 @@ axum = { version = "0.8", default-features = false, features = ["form", "http1",
 hyper = { version = "1", features = ["http1", "server"] }
 hyper-util = { version = "0.1", features = ["tokio"] }
 open-mcp = { path = "../open-mcp" }
-payroll-calc = { path = "../payroll-calc" }
+payroll-calc = { path = "../payroll-calc", features = ["openapi"] }
 chrono = { version = "0.4", default-features = false, features = ["std"] }
 rusqlite = { version = "0.40.2", features = ["bundled"] }
 serde.workspace = true

@@ -210,6 +210,7 @@ impl Remote {
             Request::Codes { action, lookup } => self.codes(*action, lookup),
             Request::Labor { action, lookup } => self.labor(*action, lookup),
             Request::Bulletins { action, lookup } => self.bulletins(*action, lookup),
+            Request::Payroll { query } => self.payroll(query),
         }
     }
 
@@ -428,6 +429,22 @@ impl Remote {
         // Every bulletin answer carries the note that says what a bulletin
         // is.
         if answer.get("note").is_some_and(Value::is_string) {
+            Ok(answer)
+        } else {
+            Err(self.not_the_api(200))
+        }
+    }
+
+    /// `/v1/payroll/deductions`. Every answer has `employee`: one without
+    /// it did not come from the API.
+    fn payroll(&self, query: &payroll_calc::Query) -> Result<Value, CliError> {
+        let pairs: Vec<(&str, String)> = payroll_calc::FIELDS
+            .iter()
+            .filter(|name| !query.text(name).trim().is_empty())
+            .map(|name| (*name, query.text(name).trim().to_owned()))
+            .collect();
+        let answer = self.get("/v1/payroll/deductions", &pairs)?;
+        if answer.get("employee").is_some_and(Value::is_object) {
             Ok(answer)
         } else {
             Err(self.not_the_api(200))

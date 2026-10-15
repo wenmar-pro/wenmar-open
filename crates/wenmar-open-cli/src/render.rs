@@ -1448,6 +1448,7 @@ pub fn text(request: &Request, value: &Value) -> String {
             return labor(*action, lookup.job.is_some(), value);
         }
         Request::Bulletins { action, .. } => return bulletins(*action, value),
+        Request::Payroll { .. } => return payroll(value),
         Request::Vehicles { action, .. } => *action,
     };
     match action {
@@ -1499,6 +1500,59 @@ pub fn text(request: &Request, value: &Value) -> String {
         Action::Overview => overview(value),
         Action::ModelYears => model_years(value),
     }
+}
+
+/// Ontario payroll deductions for one pay: each deduction, the net pay,
+/// the employer's share, and the note that says what the answer is.
+fn payroll(value: &Value) -> String {
+    let money = |object: &Value, key: &str| {
+        object
+            .get(key)
+            .and_then(Value::as_f64)
+            .map(|number| format!("{number:.2}"))
+            .unwrap_or_default()
+    };
+    let word = |key: &str| {
+        value
+            .get(key)
+            .and_then(Value::as_str)
+            .map(clean)
+            .unwrap_or_default()
+    };
+    let employee = &value["employee"];
+    let employer = &value["employer"];
+    let mut text = format!(
+        "Ontario, {} pay of {} on {}\n",
+        word("frequency"),
+        money(value, "gross"),
+        word("pay_date")
+    );
+    text.push_str(&table(&[
+        vec![
+            "Federal income tax".to_owned(),
+            money(employee, "federal_tax"),
+        ],
+        vec![
+            "Ontario income tax".to_owned(),
+            money(employee, "provincial_tax"),
+        ],
+        vec!["CPP".to_owned(), money(employee, "cpp")],
+        vec!["CPP2".to_owned(), money(employee, "cpp2")],
+        vec!["EI".to_owned(), money(employee, "ei")],
+        vec!["Total deductions".to_owned(), money(employee, "total")],
+        vec!["Net pay".to_owned(), money(value, "net_pay")],
+    ]));
+    text.push('\n');
+    text.push_str(&format!(
+        "Employer: CPP {}, CPP2 {}, EI {}\n",
+        money(employer, "cpp"),
+        money(employer, "cpp2"),
+        money(employer, "ei")
+    ));
+    text.push('\n');
+    text.push_str(&format!("{}\n", word("note")));
+    text.push_str(&format!("PDOC: {}\n", word("pdoc_url")));
+    text
 }
 
 #[cfg(test)]
@@ -1866,6 +1920,35 @@ To add the MCP server as well, run:
         assert!(text.contains("  Steering: 445, median 62764 km (39000 miles)\n"));
         assert!(text.contains("  Brakes: 96\n"));
         assert!(text.contains("not verified"));
+    }
+
+    #[test]
+    fn the_payroll_answer_reads_the_deductions_the_net_and_the_employer() {
+        let value = json!({
+            "province": "ON", "frequency": "biweekly", "pay_date": "2026-07-15",
+            "gross": 2400.0,
+            "employee": { "federal_tax": 223.2, "provincial_tax": 122.74, "total_tax": 345.94, "cpp": 134.79, "cpp2": 0.0, "ei": 39.12, "total": 519.85 },
+            "net_pay": 1880.15,
+            "employer": { "cpp": 134.79, "cpp2": 0.0, "ei": 54.77, "total": 189.56 },
+            "note": "An estimate.", "pdoc_url": "https://pdoc.example"
+        });
+        let text = text(
+            &Request::Payroll {
+                query: payroll_calc::Query::default(),
+            },
+            &value,
+        );
+        assert!(
+            text.starts_with("Ontario, biweekly pay of 2400.00 on 2026-07-15\n"),
+            "{text}"
+        );
+        assert!(text.contains("Net pay"), "{text}");
+        assert!(text.contains("1880.15"), "{text}");
+        assert!(
+            text.contains("Employer: CPP 134.79, CPP2 0.00, EI 54.77"),
+            "{text}"
+        );
+        assert!(text.contains("PDOC: https://pdoc.example"), "{text}");
     }
 
     #[test]

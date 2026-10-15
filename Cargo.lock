@@ -1512,7 +1512,10 @@ dependencies = [
  "chrono-tz",
  "payroll-ca",
  "rust_decimal",
+ "serde",
+ "serde_json",
  "shop-math",
+ "utoipa",
 ]
 
 [[package]]
@@ -2666,6 +2669,7 @@ dependencies = [
  "jaq-json",
  "jaq-std",
  "open-mcp",
+ "payroll-calc",
  "ratatui",
  "rusqlite",
  "rustix 1.1.5",

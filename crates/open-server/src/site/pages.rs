@@ -102,6 +102,13 @@ pub fn docs(state: &AppState) -> Doc {
                     "curl {base}/v1/vehicles/2019_honda_civic/overview\ncurl {base}/v1/vin/KM8K2CAB4PU001140/overview\ncurl {base}/v1/models/honda/civic"
                 ),
             ),
+            with_code(
+                section(
+                    "Payroll deductions, Ontario",
+                    &["The income tax, CPP, CPP2 and EI on one regular pay in Ontario, by CRA's T4127 formulas, with the net pay, the employer's share and every factor used. Claims left out are the basic personal amounts (claim code 1). Send pay_date for an answer that does not depend on the day. An estimate: the employer remains liable to CRA; check with CRA's Payroll Deductions Online Calculator."],
+                ),
+                format!("curl '{base}/v1/payroll/deductions?frequency=biweekly&gross=2400.00&pay_date=2026-07-15'"),
+            ),
             section(
                 "Errors",
                 &[
@@ -137,7 +144,7 @@ pub fn docs(state: &AppState) -> Doc {
                 with_code(
                     section(
                         "MCP server",
-                        &["The same lookups are tools on a Model Context Protocol server: wenmar_vin, wenmar_vehicles, wenmar_recalls and wenmar_bulletins. A recall that wenmar_recalls lists may apply to a vehicle of that year, make and model; only the manufacturer can confirm it for one VIN. A bulletin that wenmar_bulletins lists is for a model year and is not a recall. The server speaks Streamable HTTP and needs no key. Add this address as a remote server or a custom connector:"],
+                        &["The same lookups are tools on a Model Context Protocol server: wenmar_vin, wenmar_vehicles, wenmar_recalls, wenmar_bulletins, wenmar_codes, wenmar_labor and wenmar_payroll_deductions. A recall that wenmar_recalls lists may apply to a vehicle of that year, make and model; only the manufacturer can confirm it for one VIN. A bulletin that wenmar_bulletins lists is for a model year and is not a recall. The server speaks Streamable HTTP and needs no key. Add this address as a remote server or a custom connector:"],
                     ),
                     format!("{base}/mcp"),
                 ),

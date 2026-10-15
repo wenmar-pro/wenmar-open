@@ -1,6 +1,6 @@
 ---
 name: wenmar-open
-description: Decode VINs, look up vehicles by year, make, model, submodel and engine, and list the recall campaigns that may apply to a vehicle, with the wenmar-open command-line tool. Use when a task involves a VIN, identifying a vehicle, listing makes, models, trims or engines, or safety recalls. Free, no key, no account.
+description: Decode VINs, look up vehicles by year, make, model, submodel and engine, list the recall campaigns that may apply to a vehicle, and work out the Ontario payroll deductions a pay owes, with the wenmar-open command-line tool. Use when a task involves a VIN, identifying a vehicle, listing makes, models, trims or engines, safety recalls, or payroll deductions. Free, no key, no account.
 ---
 
 # wenmar-open
@@ -203,6 +203,24 @@ wenmar-open recalls recent --since 2026-09-01 --make ford --country ca
 - `recalls recent` lists the campaigns reported on or after `--since`, a day written like `2026-09-01`, newest first, each with `vehicles`, the vehicles it lists (at most 200; `vehicles_listed` is how many there are in all). Compare `vehicles[].vehicle_id` with your own list. `--make`, `--country`, `--limit` and `--cursor` are as in `recalls search`. Offline it needs the shop data file.
 - In these answers every field is always there, as in a recall answer. `links.maker` and `lookup.maker` are filled only by the hosted API; offline they are `null`.
 
+## Payroll deductions
+
+Ontario employee and employer deductions for one pay, worked out on this computer by the same code as the hosted API. No data file and no connection are needed.
+
+```bash
+wenmar-open payroll deductions --frequency biweekly --gross 2400 --pay-date 2026-07-15
+wenmar-open payroll deductions --frequency weekly --gross 800 --pay-date 2026-07-15 --federal-claim 1000 --provincial-claim 1000
+wenmar-open payroll deductions --frequency biweekly --gross 2400 --ytd-cpp 1347.90 --ytd-ei 391.20
+```
+
+- The answer is `employee` (`federal_tax`, `provincial_tax`, `total_tax`, `cpp`, `cpp2`, `ei`, `total`), `net_pay`, `employer` (`cpp`, `cpp2`, `ei`, `total`), `note` and `pdoc_url`. It is an estimate, not a pay stub: say so.
+- `--frequency` is `weekly` or `biweekly`. `--gross` is the gross pay in dollars and is the only required field.
+- `--pay-date` is a day written like `2026-07-15`. Left out, it is today; a year with no held tables is `validation_failed`.
+- `--federal-claim` and `--provincial-claim` are annual claim amounts. Left out, the basic claim is used.
+- `--ytd-cpp`, `--ytd-cpp2` and `--ytd-ei` are year-to-date deduction amounts, for a pay that is not the first of the year. `--ytd-pensionable` is year-to-date pensionable earnings.
+- `--online` asks the hosted API for the same answer instead of working it out here.
+- The tool is also `wenmar_payroll_deductions`, with the same fields and no `action`.
+
 ## Online and offline
 
 ```bash
@@ -230,6 +248,6 @@ Online, one address may make 600 requests a minute. Over that the error is `rate
 wenmar-open mcp
 ```
 
-This runs an MCP server on standard input and output with four tools: `wenmar_vin` (actions `decode`, `batch`, `overview`, `fuel`, `specs`, `fluids` and `tires`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`, `safety`, `fuel`, `specs`, `fluids` and `tires`), `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search` and `recent`) and `wenmar_bulletins` (actions `vehicle`, `vin`, `get` and `search`). The results are the same JSON as the commands above. `wenmar-open setup claude` and `wenmar-open setup codex` print the command that registers it.
+This runs an MCP server on standard input and output with seven tools: `wenmar_vin` (actions `decode`, `batch`, `overview`, `fuel`, `specs`, `fluids` and `tires`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`, `safety`, `fuel`, `specs`, `fluids` and `tires`), `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search` and `recent`), `wenmar_bulletins` (actions `vehicle`, `vin`, `get` and `search`), `wenmar_labor` and `wenmar_payroll_deductions`. The first six take an `action`; `wenmar_payroll_deductions` takes its fields, as in `payroll deductions`. The results are the same JSON as the commands above. `wenmar-open setup claude` and `wenmar-open setup codex` print the command that registers it.
 
 <!-- wenmar-open-skill: managed. Written by `wenmar-open setup`; the next setup replaces it. -->

@@ -25,6 +25,7 @@ jaq-core = "3.1.1"
 jaq-json = "2.0.3"
 jaq-std = "3.0.3"
 open-mcp = { path = "../open-mcp" }
+payroll-calc = { path = "../payroll-calc" }
 ratatui = "0.29"
 rusqlite = { version = "0.40.2", features = ["bundled"] }
 serde.workspace = true

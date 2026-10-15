@@ -491,6 +491,11 @@ pub enum Request {
         action: BulletinAction,
         lookup: BulletinLookup,
     },
+    /// Ontario payroll deductions for one pay. Worked out by
+    /// `payroll_calc`, here or by the API.
+    Payroll {
+        query: payroll_calc::Query,
+    },
 }
 
 /// The calendar year, worked out the way `wenmar-vin` does. It is only an
@@ -799,6 +804,8 @@ impl Request {
                 action,
                 lookup: checked_bulletins(action, lookup, current_year)?,
             }),
+            // `payroll_calc` checks the query when it works the pay out.
+            Request::Payroll { query } => Ok(Request::Payroll { query }),
             Request::Vehicles { action, lookup } => {
                 let term = present(lookup.term.as_ref());
                 let lists = |limit: Option<usize>| Some(limit.unwrap_or(MOST).clamp(1, MOST));
@@ -929,6 +936,11 @@ impl Request {
                     "action must be decode, batch, overview, fuel, specs, fluids or tires",
                 )),
             };
+        }
+        if tool == "wenmar_payroll_deductions" {
+            let query: payroll_calc::Query = serde_json::from_value(arguments.clone())
+                .map_err(|error| CliError::validation("arguments", error.to_string()))?;
+            return Ok(Request::Payroll { query });
         }
         if tool == "wenmar_labor" {
             let Some(action) = LaborAction::parse(action) else {

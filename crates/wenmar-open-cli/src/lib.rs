@@ -14,6 +14,7 @@ pub mod jq;
 pub mod local;
 pub mod mcp;
 pub mod output;
+pub mod payroll;
 pub mod pull;
 pub mod remote;
 pub mod render;
@@ -32,6 +33,7 @@ use crate::cli::{Cli, Command, DataCommand};
 use crate::env::Env;
 use crate::error::{CliError, USAGE};
 use crate::output::Mode;
+use crate::request::Request;
 
 /// Runs one invocation and returns the process exit code.
 pub fn run(
@@ -149,6 +151,16 @@ fn execute(
         Some(Command::Codes { command }) => command.request(),
         Some(Command::Labor { command }) => command.request(),
         Some(Command::Bulletins { command }) => command.request(),
+        // Worked out here, with no data file, unless the API is asked for.
+        Some(Command::Payroll { command }) if !cli.global.online => {
+            let request = command.request();
+            let Request::Payroll { query } = &request else {
+                unreachable!()
+            };
+            let value = payroll::local(query)?;
+            return output::answer(stdout, mode, &value, |value| render::text(&request, value));
+        }
+        Some(Command::Payroll { command }) => command.request(),
         Some(Command::Data { command }) => {
             let directory = env.data_directory(cli.global.data_dir.as_deref())?;
             return match command {

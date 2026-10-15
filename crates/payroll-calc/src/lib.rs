@@ -2,8 +2,13 @@
 //! reads a pay from text and fills the documented defaults. It writes no
 //! rate and no amount: every figure is the engine's. Ontario only.
 
+mod answer;
 pub mod factors;
 mod read;
+pub use answer::{
+    PayrollClaim, PayrollDeductions, PayrollEdition, PayrollEmployee, PayrollEmployer,
+    PayrollFactor, PayrollYearToDate, answer,
+};
 pub use read::{Claim, FIELDS, Input, Query, Refusal, Worked, deductions, money, read, work};
 
 use chrono::NaiveDate;

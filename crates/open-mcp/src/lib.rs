@@ -50,16 +50,17 @@ pub enum Era {
 pub const SERVER_NAME: &str = "wenmar-open";
 
 /// What a model is told about the server as a whole.
-pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. The overview action of either gives everything held for one vehicle in one answer. Use wenmar_recalls to list the recall campaigns from NHTSA and Transport Canada that may apply to a model year. A recall listed may apply: only the manufacturer can confirm it for one VIN. Use wenmar_bulletins to list the manufacturer service bulletins, warranty extensions and software updates that NHTSA publishes for a model year, or to search them by trouble code or by text. Use wenmar_codes to read what a generic OBD-II trouble code means and what bulletins and recalls a model year has for it. Use wenmar_labor for Wenmar's estimate of the hours a repair job takes on a vehicle: an estimate, not a quote. Every call is read-only and needs no key.";
+pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. The overview action of either gives everything held for one vehicle in one answer. Use wenmar_recalls to list the recall campaigns from NHTSA and Transport Canada that may apply to a model year. A recall listed may apply: only the manufacturer can confirm it for one VIN. Use wenmar_bulletins to list the manufacturer service bulletins, warranty extensions and software updates that NHTSA publishes for a model year, or to search them by trouble code or by text. Use wenmar_codes to read what a generic OBD-II trouble code means and what bulletins and recalls a model year has for it. Use wenmar_labor for Wenmar's estimate of the hours a repair job takes on a vehicle: an estimate, not a quote. Use wenmar_payroll_deductions to work out the income tax, CPP, CPP2 and EI on one pay in Ontario by CRA's T4127 formulas: an estimate, and the employer remains liable. Every call is read-only and needs no key.";
 
 /// The names of the tools, in the order `tools/list` gives them.
-pub const TOOL_NAMES: [&str; 6] = [
+pub const TOOL_NAMES: [&str; 7] = [
     "wenmar_vin",
     "wenmar_vehicles",
     "wenmar_recalls",
     "wenmar_bulletins",
     "wenmar_codes",
     "wenmar_labor",
+    "wenmar_payroll_deductions",
 ];
 
 /// The Server Card schema a card must conform to. The schema's own pattern
@@ -75,7 +76,7 @@ pub const CATALOG_TYPE: &str = "application/ai-catalog+json";
 /// One line, at most a hundred characters, on what this server is for. The
 /// schema sets that limit, and `registry server.json` holds the same words.
 pub const CARD_DESCRIPTION: &str =
-    "Free VIN decoder, recalls, service bulletins, trouble codes and labour times. No key.";
+    "Free VIN decoder, recalls, bulletins, trouble codes, labour times and payroll. No key.";
 
 /// The Server Card (SEP-2127): what this server is and where to reach it,
 /// for a client that has a domain and no connection yet.
@@ -248,6 +249,28 @@ pub fn tools() -> Value {
                     "year": { "type": "integer", "description": "For vin: the model year to use." }
                 },
                 "required": ["action"]
+            },
+            "annotations": { "readOnlyHint": true, "openWorldHint": false }
+        },
+        {
+            "name": "wenmar_payroll_deductions",
+            "title": "Ontario payroll deductions",
+            "description": "Works out the deductions from one regular pay in Ontario by CRA's T4127 formulas (Option 1): federal and Ontario income tax, CPP, CPP2 and EI, the net pay, the employer's CPP, CPP2 and EI, and every T4127 factor used with what it means. Takes `frequency` (weekly, biweekly, semi-monthly or monthly) and `gross`, the gross pay for the period. `federal_claim` and `provincial_claim` are the TD1 claim amounts: left out, each is the basic personal amount (claim code 1), and 0 is claim code 0. `pay_date` (YYYY-MM-DD) chooses the tables; left out, it is today, and a day outside the tables held is an error that names their dates. `ytd_cpp`, `ytd_cpp2`, `ytd_ei` and `ytd_pensionable` are what was deducted and earned on earlier pays this calendar year. Money is a number or text such as \"2400.00\". Ontario only; not for a bonus, commission or retroactive pay. The answer is an estimate and the employer remains liable to CRA for what it deducts and remits: say so, and point to CRA's Payroll Deductions Online Calculator at `pdoc_url`.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "frequency": { "type": "string", "enum": ["weekly", "biweekly", "semi-monthly", "monthly"] },
+                    "gross": { "type": ["number", "string"], "description": "Gross pay for one pay period, in dollars." },
+                    "federal_claim": { "type": ["number", "string"], "description": "Federal TD1 claim amount. Left out: claim code 1." },
+                    "provincial_claim": { "type": ["number", "string"], "description": "Ontario TD1ON claim amount. Left out: claim code 1." },
+                    "pay_date": { "type": "string", "description": "YYYY-MM-DD. Left out: today." },
+                    "ytd_cpp": { "type": ["number", "string"], "description": "CPP (base and first additional) deducted earlier this year." },
+                    "ytd_cpp2": { "type": ["number", "string"], "description": "CPP2 deducted earlier this year." },
+                    "ytd_ei": { "type": ["number", "string"], "description": "EI deducted earlier this year." },
+                    "ytd_pensionable": { "type": ["number", "string"], "description": "Pensionable earnings earlier this year." },
+                    "province": { "type": "string", "enum": ["ON"], "description": "Ontario only for now. Left out: ON." }
+                },
+                "required": ["frequency", "gross"]
             },
             "annotations": { "readOnlyHint": true, "openWorldHint": false }
         }
@@ -485,7 +508,42 @@ mod tests {
     }
 
     #[test]
-    fn there_are_six_gateway_tools_and_each_needs_an_action() {
+    fn the_payroll_tool_says_estimate_and_liable_and_needs_no_action() {
+        let tools = tools();
+        let tool = tools
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|tool| tool["name"] == "wenmar_payroll_deductions")
+            .unwrap();
+        let description = tool["description"].as_str().unwrap();
+        for words in [
+            "estimate",
+            "the employer remains liable",
+            "pdoc_url",
+            "claim code 1",
+            "Ontario only",
+        ] {
+            assert!(description.contains(words), "{words}: {description}");
+        }
+        assert_eq!(
+            tool["inputSchema"]["required"],
+            json!(["frequency", "gross"])
+        );
+        assert_eq!(
+            tool["inputSchema"]["properties"]["frequency"]["enum"],
+            json!(["weekly", "biweekly", "semi-monthly", "monthly"])
+        );
+        assert!(tool["inputSchema"]["properties"].get("action").is_none());
+        assert_eq!(
+            tool["annotations"],
+            json!({ "readOnlyHint": true, "openWorldHint": false })
+        );
+        assert!(INSTRUCTIONS.contains("wenmar_payroll_deductions"));
+    }
+
+    #[test]
+    fn there_are_seven_tools_and_each_gateway_tool_needs_an_action() {
         let tools = tools();
         let tools = tools.as_array().unwrap();
         let names: Vec<&str> = tools
@@ -495,7 +553,9 @@ mod tests {
         assert_eq!(names, TOOL_NAMES);
         for tool in tools {
             assert_eq!(tool["inputSchema"]["type"], "object");
-            assert_eq!(tool["inputSchema"]["required"], json!(["action"]));
+            if tool["name"] != "wenmar_payroll_deductions" {
+                assert_eq!(tool["inputSchema"]["required"], json!(["action"]));
+            }
             assert_eq!(tool["annotations"]["readOnlyHint"], true);
         }
     }
@@ -570,7 +630,7 @@ mod tests {
                 .unwrap()
                 .clone()
         };
-        assert_eq!(TOOL_NAMES.len(), 6);
+        assert_eq!(TOOL_NAMES.len(), 7);
         assert!(actions("wenmar_vin").contains(&json!("overview")));
         for action in ["entry", "overview", "model_years"] {
             assert!(
@@ -612,7 +672,7 @@ mod tests {
         assert!(description.contains("safety (`id`"), "{description}");
         assert!(description.contains("NHTSA"), "{description}");
         // An action of a tool that exists: no tool was added.
-        assert_eq!(TOOL_NAMES.len(), 6);
+        assert_eq!(TOOL_NAMES.len(), 7);
     }
 
     #[test]
@@ -641,7 +701,7 @@ mod tests {
             }
         }
         // Actions of tools that exist: no tool was added.
-        assert_eq!(TOOL_NAMES.len(), 6);
+        assert_eq!(TOOL_NAMES.len(), 7);
     }
 
     #[test]

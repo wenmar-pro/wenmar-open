@@ -131,6 +131,11 @@ export type VehicleLabor = Schemas["VehicleLabor"];
 /** Labour estimates for the vehicle a VIN decodes to. */
 export type VinLabor = Schemas["VinLabor"];
 
+/** The deductions from one regular pay in Ontario by CRA's T4127 formulas. An estimate: the employer remains liable. */
+export type PayrollDeductions = Schemas["PayrollDeductions"];
+/** One T4127 factor used, with its value and meaning. */
+export type PayrollFactor = Schemas["PayrollFactor"];
+
 /** The body of every error the API sends. */
 export type ErrorBody = Schemas["ErrorBody"];
 /** One answer of a batch: a decode, or the error for that VIN. */
@@ -154,5 +159,6 @@ export type BulletinFilterQuery = Query<"vehicle_bulletins">;
 export type VinBulletinsQuery = Query<"vin_bulletins">;
 export type BulletinSearchQuery = Query<"bulletin_search">;
 export type CodeSearchQuery = Query<"code_search">;
+export type PayrollDeductionsQuery = Query<"payroll_deductions">;
 export type VehicleInvestigationsQuery = Query<"vehicle_investigations">;
 export type RecentRecallsQuery = Query<"recent_recalls">;

@@ -833,6 +833,7 @@ async fn a_server_with_codes_or_labour_says_so_where_a_model_looks() {
     let text = body_text(common::app().await.get("/llms.txt").await).await;
     assert!(text.contains("`wenmar_codes` (actions `get`, `search`, `vehicle`)"));
     assert!(text.contains("`wenmar_labor` (actions `jobs`, `vehicle`, `vin`)"));
+    assert!(text.contains("`wenmar_payroll_deductions` (no action"));
     assert!(!text.contains("/v1/codes") && !text.contains("/v1/jobs"));
     assert!(!text.contains("/codes.md") && !text.contains("/jobs.md"));
 }
