@@ -121,6 +121,14 @@ fn apart(program: &Path, expression: &str, value: &Value) -> Option<Result<Strin
     Some(Err(reported.unwrap_or_else(stopped)))
 }
 
+/// An expression that uses up the stack ends this process, as the module
+/// comment says. That is an answer the first process reports, not a crash,
+/// so it should leave no core dump behind.
+fn leave_no_core() {
+    #[cfg(target_os = "linux")]
+    let _ = rustix::process::set_dumpable_behavior(rustix::process::DumpableBehavior::NotDumpable);
+}
+
 /// The hidden `jq` command: filters the JSON on standard input with
 /// `expression`, in this process.
 pub fn command(
@@ -136,6 +144,7 @@ pub fn command(
             ),
         );
     }
+    leave_no_core();
     let mut text = String::new();
     stdin
         .read_to_string(&mut text)
