@@ -272,6 +272,10 @@ async fn titles_and_descriptions_are_for_what_people_search_and_are_unique() {
             "R-134a and R-1234yf pressure-temperature chart - Wenmar Open",
         ),
         (
+            "/tools/payroll-deductions",
+            "Ontario payroll deductions calculator - Wenmar Open",
+        ),
+        (
             "/makes",
             "Car and truck makes, with models by year - Wenmar Open",
         ),

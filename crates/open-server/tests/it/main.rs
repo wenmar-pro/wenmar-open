@@ -58,6 +58,7 @@ mod site_labor_rate;
 mod site_maintenance;
 mod site_manuals;
 mod site_pages;
+mod site_payroll_deductions;
 mod site_recall_lines;
 mod site_recalls;
 mod site_refrigerant_pt;

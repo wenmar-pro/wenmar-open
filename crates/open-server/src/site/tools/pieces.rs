@@ -230,6 +230,26 @@ mod tests {
                 include_str!("canada_invoice_tax/rates.rs"),
             ),
             (
+                "payroll_deductions.html",
+                include_str!("../../../templates/payroll_deductions.html"),
+            ),
+            (
+                "payroll_deductions/mod.rs",
+                include_str!("payroll_deductions/mod.rs"),
+            ),
+            (
+                "payroll_deductions/form.rs",
+                include_str!("payroll_deductions/form.rs"),
+            ),
+            (
+                "payroll_deductions/result.rs",
+                include_str!("payroll_deductions/result.rs"),
+            ),
+            (
+                "payroll_deductions/doc.rs",
+                include_str!("payroll_deductions/doc.rs"),
+            ),
+            (
                 "gross_profit.html",
                 include_str!("../../../templates/gross_profit.html"),
             ),

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% import "tool.html" as piece %}
+{% block content %}
+{% call piece::opening(tool) %}
+<p class="note">{{ note.0 }}<a href="{{ pdoc }}">{{ note.1 }}</a>{{ note.2 }}</p>
+<form class="calc" id="calc" action="{{ tool.path() }}#result" method="get">
+{% if example -%}
+<p class="note">The form is filled in with an example. Change the figures and press the button.</p>
+{% endif -%}
+{% if let Some(error) = form.error -%}
+<p class="warning" id="calc-error">{{ error }}</p>
+{% endif -%}
+<div class="field">
+<label for="frequency">{{ form.frequency.label }}</label>
+<select id="frequency" name="frequency"{% if form.frequency.error.is_some() %} aria-invalid="true" aria-describedby="{{ form.frequency.error_id() }}"{% endif %}>
+{% for choice in choices -%}
+<option value="{{ choice.slug }}"{% if choice.selected %} selected{% endif %}>{{ choice.name }}</option>
+{% endfor -%}
+</select>
+{% if let Some(error) = form.frequency.error -%}
+<p class="warning" id="{{ form.frequency.error_id() }}">{{ error }}</p>
+{% endif -%}
+</div>
+{% call piece::field(form.gross) %}
+<p class="help">{{ claims_help }}</p>
+{% call piece::field(form.federal_claim) %}
+{% call piece::field(form.provincial_claim) %}
+<div class="field">
+<label for="pay_date">{{ form.pay_date.label }}</label>
+<input id="pay_date" name="pay_date" type="date" min="{{ first_day }}" max="{{ last_day }}" autocomplete="off" value="{{ form.pay_date.value }}"{% if form.pay_date.error.is_some() %} aria-invalid="true" aria-describedby="{{ form.pay_date.error_id() }}"{% endif %}>
+{% if let Some(error) = form.pay_date.error -%}
+<p class="warning" id="{{ form.pay_date.error_id() }}">{{ error }}</p>
+{% endif -%}
+{% if let Some(moved) = form.note -%}
+<p class="note">{{ moved }}</p>
+{% endif -%}
+</div>
+<h2 id="year-to-date">Earlier this year (optional)</h2>
+<p class="help">{{ year_to_date_help }}</p>
+{% call piece::field(form.ytd_cpp) %}
+{% call piece::field(form.ytd_cpp2) %}
+{% call piece::field(form.ytd_ei) %}
+{% call piece::field(form.ytd_pensionable) %}
+<div class="screen"><button class="primary" type="submit">Work it out</button></div>
+</form>
+<h2 id="result">Result</h2>
+{% if let Some(table) = table -%}
+{% if example -%}
+<p class="note">This is the result of the example in the form.</p>
+{% endif -%}
+{% call piece::actions() %}
+{% call piece::table(table) %}
+{% for line in claims -%}
+<p>{{ line }}</p>
+{% endfor -%}
+{% if let Some(employer) = employer -%}
+{% call piece::table(employer) %}
+{% endif -%}
+{% else -%}
+{% call piece::no_result(troubles) %}
+{% endif -%}
+{% if let Some(factors) = factors -%}
+<h2 id="factors">The T4127 factors used</h2>
+<p>Each factor is named as T4127 names it, with the value the formulas used.</p>
+{% call piece::table(factors) %}
+{% endif -%}
+<h2 id="sources">Tables and sources</h2>
+<p>{{ edition_line }}</p>
+<ul class="plain links">
+{% for source in sources -%}
+<li><a href="{{ source.1 }}">{{ source.0 }}</a></li>
+{% endfor -%}
+</ul>
+<h2 id="check">Check it yourself</h2>
+<ol>
+{% for line in check -%}
+<li>{{ line }}</li>
+{% endfor -%}
+</ol>
+<ul class="plain links">
+<li><a href="{{ pdoc_url }}">CRA's Payroll Deductions Online Calculator (PDOC)</a></li>
+<li><a href="{{ check_url }}">The pays compared with PDOC, and how (payroll-ca)</a></li>
+</ul>
+{% call piece::how(how) %}
+<h2 id="covers">What this covers</h2>
+{% for line in scope -%}
+<p>{{ line }}</p>
+{% endfor -%}
+{% call piece::closing(tool) %}
+{% endblock %}

@@ -8,7 +8,7 @@ Wenmar Open is built and hosted by [Wenmar Pro](https://wenmarpro.com), shop man
 
 ## What it will be
 
-- **A website** at `open.wenmarpro.com` where a service advisor or tech can paste a VIN and get the vehicle back, and where a shop owner can use free calculators: a parts markup matrix, a labor rate, gross profit, a tire size comparison, a refrigerant pressure-temperature chart, a battery state of charge reader, a wire gauge calculator, and Canadian invoice tax and tire fees. It also has a page for each Canadian province and territory on what the law asks of a repair shop, each rule with its source; a province that has not been checked shows no rule.
+- **A website** at `open.wenmarpro.com` where a service advisor or tech can paste a VIN and get the vehicle back, and where a shop owner can use free calculators: a parts markup matrix, a labor rate, gross profit, a tire size comparison, a refrigerant pressure-temperature chart, a battery state of charge reader, a wire gauge calculator, an Ontario payroll deductions calculator, and Canadian invoice tax and tire fees. It also has a page for each Canadian province and territory on what the law asks of a repair shop, each rule with its source; a province that has not been checked shows no rule.
 - **A JSON API** at `open.wenmarpro.com/v1`, open to any origin, with no key and no account.
 - **Recalls** from NHTSA (United States) and Transport Canada, listed by model year on the website, in the API, over MCP, in the command-line tool and in the npm package. A campaign lists a year, a make and a model, so a recall listed here *may apply* to a vehicle; only the manufacturer can say whether it applies to one vehicle, and every answer links the official lookups by VIN.
 - **A Rust crate**, `wenmar-vin`, for decoding VINs in-process and offline.
@@ -117,7 +117,7 @@ Each is a thin wrapper over the matching `mise run` task, and `mise run` remains
 
 ## Repository layout
 
-`crates/wenmar-vin`, `crates/wenmar-vehicles`, `crates/wenmar-open-db`, `crates/open-data`, `crates/wenmar-open-cli`, `crates/open-mcp`, `crates/open-server`, `crates/wenmar-open-wasm`, `crates/shop-math`, `crates/wenmar-shopdata`, `clients/js`, `clients/data` and `clients/data-shop` exist so far. The rest is planned.
+`crates/wenmar-vin`, `crates/wenmar-vehicles`, `crates/wenmar-open-db`, `crates/open-data`, `crates/wenmar-open-cli`, `crates/open-mcp`, `crates/open-server`, `crates/wenmar-open-wasm`, `crates/shop-math`, `crates/wenmar-shopdata`, `crates/payroll-calc`, `clients/js`, `clients/data` and `clients/data-shop` exist so far. The rest is planned.
 
 | Path | What it is |
 |---|---|
@@ -131,6 +131,7 @@ Each is a thin wrapper over the matching `mise run` task, and `mise run` remains
 | `crates/wenmar-open-wasm` | The decoder and the catalog behind one JSON call, built as WebAssembly for the npm package's offline mode. Not published as a crate |
 | `crates/shop-math` | The arithmetic of the shop calculators: money, percentages, gross profit targets, the parts matrix, the labor rate, tire sizes, unit conversion for reference tables, the temperature correction of a battery reading, voltage drop along a wire, the gross profit check and the taxes and tire fees on a Canadian invoice. Not published as a crate |
 | `crates/wenmar-shopdata` | Reads a shop file: recall campaigns matched to the catalog, and the datasets that follow. Not published as a crate |
+| `crates/payroll-calc` | The one adapter between the payroll calculator and the payroll-ca engine (CRA T4127): reads a pay, fills its defaults and explains the answer. Ontario only. Not published as a crate |
 | `clients/js` | The `wenmar-open` npm package: a typed client for the hosted API, and `wenmar-open/offline` |
 | `clients/data` | The `wenmar-open-data` npm package: the data file, and a script that writes it as SQL for Cloudflare D1 |
 | `clients/data-shop` | The `wenmar-open-data-shop` npm package: the shop file |

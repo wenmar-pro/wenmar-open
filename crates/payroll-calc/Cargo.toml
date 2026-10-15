@@ -1,0 +1,16 @@
+[package]
+name = "payroll-calc"
+version.workspace = true
+description = "The one adapter between Wenmar Open and the payroll-ca engine: reads a pay from text, fills the documented defaults, and explains the answer. Ontario only. Not published as a crate."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["std", "now"] }
+chrono-tz = "0.10"
+payroll-ca = { git = "https://github.com/wenmar-pro/payroll-ca", rev = "f08bbb90a7487ccd41a369a304deb921874255dd" }
+rust_decimal = { version = "1", features = ["macros"] }
+shop-math = { path = "../shop-math" }

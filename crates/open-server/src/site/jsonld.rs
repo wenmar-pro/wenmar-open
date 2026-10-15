@@ -260,6 +260,7 @@ mod tests {
             include_str!("../../templates/tool.html"),
             include_str!("../../templates/parts_matrix.html"),
             include_str!("../../templates/canada_invoice_tax.html"),
+            include_str!("../../templates/payroll_deductions.html"),
             include_str!("../../templates/gross_profit.html"),
             include_str!("../../templates/labor_rate.html"),
             include_str!("../../templates/tire_size.html"),

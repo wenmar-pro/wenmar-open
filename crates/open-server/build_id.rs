@@ -17,12 +17,12 @@ use std::path::Path;
 
 /// What the id is made from, as paths from this crate's directory: the
 /// pages, the stylesheet and the script, the server's code, the two
-/// libraries it answers with, the rates of the Canadian invoice page with
+/// libraries it answers with, the payroll adapter, the rates of the Canadian invoice page with
 /// the code that reads them, the refrigerant chart's and the battery table's
 /// reference tables with the code that reads them, the makers' links in makes.yaml with the code
 /// that reads them, the rules for repair shops with the code that reads them, and the versions
 /// of everything else.
-pub const PARTS: [&str; 18] = [
+pub const PARTS: [&str; 19] = [
     "Cargo.toml",
     "assets",
     "links_build.rs",
@@ -36,6 +36,7 @@ pub const PARTS: [&str; 18] = [
     "templates",
     "../wenmar-vehicles/src",
     "../wenmar-vin/src",
+    "../payroll-calc/src",
     "../../Cargo.lock",
     "../../data/catalog/makes.yaml",
     "../../data/rates",

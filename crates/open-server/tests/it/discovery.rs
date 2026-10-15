@@ -116,6 +116,7 @@ async fn llms_full_txt_is_the_pages_themselves() {
         "/tools/refrigerant-pt.md",
         "/tools/battery-state-of-charge.md",
         "/tools/wire-gauge.md",
+        "/tools/payroll-deductions.md",
         "/rules/canada.md",
         "/data.md",
         "/about.md",

@@ -41,6 +41,10 @@ Every dataset Wenmar Open serves, where it comes from, and what its licence asks
 | Links to owner manuals and maintenance schedules on the makers sites | Found and opened by a person, each with the day it was checked, collected in data/fluids/ and data/catalog/makes.yaml | MIT for the collection. An address is a fact. The documents belong to the makers and are not copied. | Keep the copyright notice in LICENSE. |
 <!-- Shop-data plans add one row per dataset above this line, and the same row in crates/open-server/src/site/licences.rs. -->
 
+## payroll-ca
+
+The payroll deductions calculator works its figures out with payroll-ca (https://github.com/wenmar-pro/payroll-ca), by Wenmar Pro, licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0). It is a dependency of `crates/payroll-calc`, which the website and the command-line tool use; it is not part of any crate this repository publishes. Its formulas and tables are those of the Canada Revenue Agency's T4127, Payroll Deductions Formulas. Results are estimates: the employer remains liable to CRA for the amounts it deducts and remits.
+
 ## Fonts
 
 The website serves two typefaces from its own address. Both are licensed under the SIL Open Font License, Version 1.1. The full licence text of each is in `crates/open-server/assets/fonts/` and is served beside the font.

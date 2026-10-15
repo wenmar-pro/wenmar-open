@@ -27,7 +27,9 @@ COPY data/reference ./data/reference
 COPY data/catalog ./data/catalog
 # The rules for repair shops, which the server's build reads.
 COPY data/rules ./data/rules
+# The git checkout of payroll-ca is cached as the registry is.
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/app/target \
     cargo build --release --locked -p open-server \
     && cp target/release/open-server /usr/local/bin/open-server
