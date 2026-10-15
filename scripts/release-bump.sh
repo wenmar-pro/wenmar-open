@@ -50,8 +50,11 @@ unreleased_body() {
 # keep `### Added` from matching `### Added, later`.
 wants_minor() {
   local body; body=$(unreleased_body)
-  echo "$body" | grep -Eq '^### (Added|Changed)$' && return 0
-  echo "$body" | grep -Eqi 'schema version|new field|new endpoint|/v2' && return 0
+  # A here-string, not echo into a pipe: grep -q exits on its first match,
+  # echo then fails writing to the closed pipe, and pipefail turns that into a
+  # miss, so a minor release would be cut as a patch.
+  grep -Eq '^### (Added|Changed)$' <<< "$body" && return 0
+  grep -Eqi 'schema version|new field|new endpoint|/v2' <<< "$body" && return 0
   return 1
 }
 
@@ -107,6 +110,12 @@ for f in "${required_files[@]}"; do
   [ -f "$f" ] || fail "$f is not here. Nothing was changed."
 done
 
+# cargo update --offline below cannot check out a git dependency (payroll-ca)
+# that is not in cargo's cache yet, as on a fresh runner, so every locked
+# dependency is fetched now, while the lock still matches Cargo.toml and
+# before anything is written.
+cargo fetch --quiet --locked
+
 changed=()
 
 # Cargo.toml: the four lines carrying the version in quotes.
@@ -119,7 +128,7 @@ changed+=(Cargo.toml)
 (cd clients/js && npm version --no-git-tag-version "$new")
 changed+=(clients/js/package.json clients/js/package-lock.json)
 
-# Cargo.lock: rewrites all nine workspace crates' versions.
+# Cargo.lock: rewrites all the workspace crates' versions.
 cargo update --quiet --offline --workspace
 changed+=(Cargo.lock)
 
