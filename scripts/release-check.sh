@@ -112,17 +112,19 @@ if (!prepare.includes("manifest.version = version;")) {
 console.log("clients/data-shop/scripts/prepare.mjs gives the package.json it publishes its version.");
 EOF
 
-step "The release workflow's actions"
-# Every workflow a release runs through: release.yml publishes, and
-# monthly-release.yml pushes the tag that starts it. The jobs that publish may
-# ask crates.io and npm for a publishing token. A tag such as v4 can be moved
-# to other code by whoever controls the action; a commit cannot. A checkout
-# that keeps its credentials leaves the job's GitHub token in .git/config for
-# every later step to read. monthly-release.yml holds a write token of its own,
-# so it must keep no credentials either.
-for workflow in .github/workflows/release.yml .github/workflows/monthly-release.yml; do
-  [ -f "$workflow" ] || continue
-  node - "$workflow" <<'EOF' || fail "a release workflow's actions are not as a release needs them"
+step "Every workflow's actions"
+# Every workflow in this repository, not only the ones that existed when this
+# check was written. release.yml publishes, data-release.yml and
+# shop-data-release.yml create a release and publish, monthly-release.yml
+# pushes the tag that starts release.yml, and CI runs the build a tag names. A
+# tag such as v4 can be moved to other code by whoever controls the action; a
+# commit cannot. A checkout that keeps its credentials leaves the job's GitHub
+# token in .git/config for every later step to read, and four of these
+# workflows hold a write token or ask a registry for a publishing one.
+workflows=(.github/workflows/*.yml)
+[ -f "${workflows[0]}" ] || fail "no workflow found under .github/workflows"
+for workflow in "${workflows[@]}"; do
+  node - "$workflow" <<'EOF' || fail "a workflow's actions are not pinned to commits and credential-free"
 const fs = require("node:fs");
 const file = process.argv[2];
 const lines = fs.readFileSync(file, "utf8").split("\n");

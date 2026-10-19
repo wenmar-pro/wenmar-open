@@ -12,6 +12,8 @@
 #   version_change_not_committed  docs/releasing.md runs the check before the
 #                                 commit: steps 1 and 2 done, nothing committed
 #   action_at_a_moving_tag        an action in release.yml named by a tag
+#   action_at_a_moving_tag_in_another_workflow
+#                                 an action in data-release.yml named by a tag
 #   checkout_keeps_credentials    a checkout without persist-credentials: false
 #   server_json_version_disagrees  server.json still at the previous version
 #   fixture_version_disagrees      the npm fixtures still at the previous version
@@ -168,6 +170,21 @@ action_at_a_moving_tag() {
   refused "${FUNCNAME[0]}" "rust-lang/crates-io-auth-action@v1 is not pinned to a commit"
 }
 
+# release.yml is not the only workflow that runs an action. The data release
+# and the shop data release publish to npm, and CI runs the build a release
+# tag names: a tag that can be moved under any of them is as unsafe as in
+# release.yml. The check reads every workflow, not the two that existed when
+# it was written.
+action_at_a_moving_tag_in_another_workflow() {
+  restore
+  local file=.github/workflows/data-release.yml
+  sed -i.bak -E 's|(uses: actions/checkout)@[0-9a-f]{40}( # v[0-9.]+)?|\1@v7|' "$clone/$file"
+  rm "$clone/$file.bak"
+  grep -Fq "uses: actions/checkout@v7" "$clone/$file" ||
+    { miss "${FUNCNAME[0]}" "the case did not change $file"; return; }
+  refused "${FUNCNAME[0]}" "actions/checkout@v7 is not pinned to a commit"
+}
+
 checkout_keeps_credentials() {
   restore
   # Drops the line from the last checkout only: every checkout is checked,
@@ -229,6 +246,7 @@ shop_package_ships_no_file() {
 }
 
 action_at_a_moving_tag
+action_at_a_moving_tag_in_another_workflow
 checkout_keeps_credentials
 server_json_version_disagrees
 fixture_version_disagrees
@@ -237,4 +255,4 @@ published_names_the_deleted_crate
 version_change_not_committed
 
 [ "$failed" = 0 ] || { echo "release-check-test: failed"; exit 1; }
-echo "release-check-test: 7 passed. Nothing was published, tagged or pushed."
+echo "release-check-test: 8 passed. Nothing was published, tagged or pushed."
