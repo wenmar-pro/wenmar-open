@@ -66,4 +66,4 @@ builder:
     # above. bin/shop-pull fetches the newest release that is, and writes
     # this line. It takes the release's full file, the one that also holds
     # bulletins, and stores it under this name.
-    SHOP_VERSION: "2026.10.12"
+    SHOP_VERSION: "2026.10.19"
