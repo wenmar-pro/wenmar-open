@@ -96,6 +96,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - The MCP Server Card and `server.json` describe the server as "Free VIN decoder, recalls, bulletins, trouble codes, labour times and payroll. No key."
 - `GET /v1/vehicles/{id}/fuel` and `GET /v1/vin/{vin}/fuel` refuse a `country` that is neither `us` nor `ca` in the words of the recall routes: the message is `country must be us or ca` and `details.field` is `country`. The WebAssembly of `wenmar-open/offline` is 713 kB (it was 592 kB); its size budget is now 800,000 bytes.
 
+### Fixed
+
+- `/sitemap.xml` answers in time on a server that holds the production bulletin file. The query behind the bulletin model-year sitemaps scanned the 1.4 million `bulletin_vehicle` rows once per model year and took 28 seconds, past the server's 10 second request timeout, so the sitemap index answered every crawler `503`. It is now a join and runs in well under a second; a test holds the years it lists unchanged.
+
 ### Internal
 
 - `bin/shop-data` writes the version it built to the `SHOP_VERSION` line of `config/deploy.yml`, as `bin/shop-pull` does, and says what to run next. The deploy takes the feedback form's GitHub token from Bitwarden Secrets Manager through `.kamal/secrets`.

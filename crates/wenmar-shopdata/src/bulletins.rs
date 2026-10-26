@@ -819,15 +819,21 @@ impl<S: Source> ShopData<S> {
             .collect())
     }
 
-    /// The model years with a bulletin matched to a catalog model, newest
-    /// first.
+    /// The model years that have a bulletin for a model the catalog holds,
+    /// newest first.
     pub fn bulletin_model_years(&self) -> Result<Vec<u16>, ShopError> {
         self.require(Dataset::Bulletins)?;
         Ok(self
             .query(
-                "SELECT y.year FROM bulletin_year y
-                 WHERE EXISTS (SELECT 1 FROM bulletin_vehicle v JOIN bulletin_model m ON m.id = v.bulletin_model_id
-                               WHERE m.model_id IS NOT NULL AND v.year_from <= y.year AND v.year_to >= y.year)
+                // A join, not a correlated EXISTS over `bulletin_vehicle`:
+                // on the production files the correlated form scanned the
+                // 1.4 million vehicle rows once per model year (28 seconds,
+                // past the server's 10 second request timeout), while this
+                // runs in well under a second.
+                "SELECT DISTINCT y.year FROM bulletin_year y
+                 JOIN bulletin_vehicle v ON v.year_from <= y.year AND v.year_to >= y.year
+                 JOIN bulletin_model m ON m.id = v.bulletin_model_id
+                 WHERE m.model_id IS NOT NULL
                  ORDER BY y.year DESC",
                 &[],
             )?

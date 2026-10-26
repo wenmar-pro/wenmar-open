@@ -11,10 +11,10 @@ VIN decoding for auto repair shops. The decoder behind [Wenmar Open](https://ope
 
 ```toml
 [dependencies]
-wenmar-vin = "0.1"
+wenmar-vin = "0.2"
 ```
 
-The pure parts (validation, check digit, model year, typo suggestions) need no data, and the crate then has two dependencies, `serde` and `thiserror`. Decoding a whole vehicle needs a [Wenmar Open data file](https://github.com/wenmar-pro/wenmar-open/releases): the `sqlite` feature reads one with `rusqlite`, and the `wenmar-open-turso` crate reads one with `turso`.
+The pure parts (validation, check digit, model year, typo suggestions) need no data, and the crate then has two dependencies, `serde` and `thiserror`. Decoding a whole vehicle needs a [Wenmar Open data file](https://github.com/wenmar-pro/wenmar-open/releases): the `sqlite` feature reads one with `rusqlite`. The [`wenmar-open-db`](https://crates.io/crates/wenmar-open-db) crate holds one open for async programs.
 
 ## Example
 
