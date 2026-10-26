@@ -46,6 +46,7 @@ pub mod pattern;
 pub mod result;
 pub mod suggest;
 pub mod vin;
+pub mod vpic;
 
 pub use check_digit::CheckDigit;
 pub use data::{DataError, Element, EngineRow, Manufacturer, Pattern, SchemaRef, SpecRow, VinData};
