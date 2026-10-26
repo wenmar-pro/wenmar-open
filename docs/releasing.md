@@ -211,6 +211,23 @@ A crate must exist before it can be given a trusted publisher, so the first vers
 5. On the same page of each crate, turn on the setting that requires trusted publishing for new versions. A leaked token can then publish nothing.
 6. **Account Settings, API Tokens:** revoke `first publish`.
 
+### A crate added later
+
+The setup above names the three crates of the first release. A crate added to the workspace after that needs the same crates.io setup of its own, because crates.io has nothing to attach a trusted publisher to until the crate exists:
+
+1. Publish its first version by hand, as steps 1 to 3 above, with `-p <crate>` in place of the three.
+2. Add its GitHub trusted publisher and require trusted publishing, as steps 4 and 5 above.
+3. Revoke the `first publish` token.
+
+Skipping step 2 stays invisible until that crate's first automated release. The `crates` job asks for one token for the whole set, and crates.io scopes that token per crate: the crates with a trusted publisher publish, and the new one fails with
+
+```
+Caused by:
+  the remote server responded with an error (status 403 Forbidden): The provided access token is not valid for crate `<crate>`
+```
+
+Nothing published before it is wrong. Add the trusted publisher, then use "Re-run failed jobs"; each step skips what is already published.
+
 ### npm
 
 The package `wenmar-open` already exists: version `0.1.0` is published, and it holds the hosted client only. So no publish by hand is needed.
@@ -379,6 +396,7 @@ If a `binaries` job fails, the version is already published and the release exis
 
 - **`verify` failed.** Nothing was published. Fix the cause on `dev`, merge, delete the tag (`git push origin :refs/tags/v0.2.0`, then `git tag -d v0.2.0`) and tag the new commit. Deleting a tag is safe only while nothing has been published for it.
 - **A later job failed.** Something may be published. Do not delete the tag. Fix what is outside the repository (a registry setting, an outage) and use "Re-run failed jobs". Each step skips what is already published.
+- **The `crates` job failed with `403 Forbidden: The provided access token is not valid for crate ...`.** That crate has no trusted publisher, or its repository, workflow or environment does not match. Fix it at `https://crates.io/crates/<name>/settings`; see "A crate added later".
 - **The data release's `npm` job failed.** The GitHub release exists and is fine. Fix the cause and use "Re-run failed jobs", or run the workflow again from `main`: the `release` job finds the release and does nothing, and the `npm` job publishes the released file. A data package that is wrong cannot be replaced: publish a rebuild (`data_version` `2026.09.1` in "Run workflow", which becomes `3.202609.1`) and `npm deprecate wenmar-open-data@3.202609.0 "use 3.202609.1"`.
 - **The shop data release failed.** See "The shop data release": nothing is published by a failed `release` job, and a failed `npm` job is run again. A shop data package that is wrong cannot be replaced: publish a rebuild (`data_version` `2026.10.12.1` in "Run workflow", which becomes `1.20261012.1`) and `npm deprecate wenmar-open-data-shop@1.20261012.0 "use 1.20261012.1"`.
 - **A published version is wrong.** A version on crates.io or npm cannot be replaced. Release a new patch version, then mark the bad one: `cargo yank --version 0.2.0 wenmar-vin` (and the other two crates), and `npm deprecate wenmar-open@0.2.0 "use 0.2.1"`. Both need you to be signed in.
