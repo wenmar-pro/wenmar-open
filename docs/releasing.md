@@ -76,9 +76,11 @@ It is steps 1, 2 and 5 of "Making a release", in one command and with nothing to
 **A CI run that is still going is waited for, not refused.** CI here builds the workspace, runs the npm
 packages and makes two throwaway clones, so it runs for tens of minutes; it used to read CI once and
 give up, which meant every release had to be started twice. It now polls every 30 seconds for up to 30
-minutes and prints the run's URL while it waits. Set `GH_TOKEN` to raise GitHub's rate limit, or
-`RELEASE_CI_POLL_SECONDS` and `RELEASE_CI_TIMEOUT_SECONDS` to change the waiting. A run that goes red,
-or one still going after 30 minutes, refuses exactly as before.
+minutes and prints the run's URL while it waits. A push and this script can race — GitHub creates the
+run a moment after the push — so a run that has not appeared yet is waited for too, for the same time.
+Set `GH_TOKEN` to raise GitHub's rate limit, or `RELEASE_CI_POLL_SECONDS` and
+`RELEASE_CI_TIMEOUT_SECONDS` to change the waiting. A run that goes red, or one still going after 30
+minutes, refuses exactly as before.
 
 It then leaves one commit and one tag in your checkout and prints the two pushes to run. **Nothing is pushed for you.** Read the diff, then:
 

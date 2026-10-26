@@ -17,7 +17,7 @@
 # In order, refusing rather than half-doing anything:
 #   1. on main, working tree clean, main matching origin/main
 #   2. CI finished successfully for this commit on main, waiting out a run
-#      that is still going
+#      that is still going or one GitHub has not created yet
 #   3. a data version, from the newest plain data-YYYY.MM release, or
 #      --data-version
 #   4. scripts/release-bump.sh, which decides the version from the changelog
@@ -102,7 +102,11 @@ sha=$(git rev-parse HEAD)
 # wait out a real one.
 poll="${RELEASE_CI_POLL_SECONDS:-30}"
 waited="${RELEASE_CI_TIMEOUT_SECONDS:-1800}"
-deadline=$(( $(date +%s) + waited ))
+# The deadline for a run that exists starts when it first appears, so a run
+# GitHub took a while to create still gets the whole timeout to finish.
+appear_deadline=$(( $(date +%s) + waited ))
+deadline=""
+said_missing=0
 said_waiting=0
 
 while :; do
@@ -113,8 +117,21 @@ while :; do
     jq -r --arg sha "$sha" \
       '[.workflow_runs[] | select(.name == "CI" and .head_branch == "main" and .head_sha == $sha)] |
        sort_by(.created_at) | last | .id // empty')
-  [ -n "$ci_id" ] ||
-    fail "no CI run for $(git rev-parse --short "$sha") on main. Push, wait for it, then run this again."
+  if [ -z "$ci_id" ]; then
+    # A push and this script can race: GitHub creates the run a moment after
+    # the push, and a query in that gap used to refuse a release that was
+    # fine. Wait for the run to appear, up to the same timeout.
+    if [ "$(date +%s)" -ge "$appear_deadline" ]; then
+      fail "no CI run for $(git rev-parse --short "$sha") on main after ${waited}s. Push, wait for it, then run this again."
+    fi
+    if [ "$said_missing" -eq 0 ]; then
+      echo "No CI run for $(git rev-parse --short "$sha") on main yet. Waiting for GitHub to create it, up to ${waited}s."
+      said_missing=1
+    fi
+    sleep "$poll"
+    continue
+  fi
+  [ -n "$deadline" ] || deadline=$(( $(date +%s) + waited ))
   # One read of the run: the status says whether to keep waiting, and only a
   # finished run has a conclusion worth judging.
   ci_run=$(printf '%s' "$runs" | jq -c --argjson id "$ci_id" '

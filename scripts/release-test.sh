@@ -94,6 +94,12 @@ ci_runs() {
 EOF
 }
 
+# GitHub has not created the run for this commit yet: the API answers with an
+# empty list, as it does for the moment between a push and the run appearing.
+no_ci_runs() {
+  echo '{"workflow_runs": []}' > "$api/actions/runs"
+}
+
 # data_releases <tag>... The REST API spells it tag_name, which is not the
 # camelCase gh prints for --json tagName.
 data_releases() {
@@ -287,6 +293,30 @@ refuses_when_ci_is_missing() {
   refused "${FUNCNAME[0]}" "no CI run"
 }
 
+# The push and the release can race: GitHub creates the run a moment after the
+# push. The release must wait for it to appear instead of refusing.
+waits_for_ci_to_appear() {
+  ci_status=in_progress
+  ci_conclusion=null
+  ci_poll=1
+  ci_timeout=60
+  prepare
+  no_ci_runs
+  ( sleep 2; ci_runs "$(git -C "$clone" rev-parse HEAD)" '"success"' completed ) &
+  local flipper=$!
+  attempt
+  wait "$flipper" 2>/dev/null || true
+  if [ "$last_status" -ne 0 ]; then
+    miss "${FUNCNAME[0]}" "it failed instead of waiting for the run to appear: $(grep -F 'release: ' "$scratch/output" | tail -n 1)"
+    return
+  fi
+  if grep -Fq "No CI run" "$scratch/output" && grep -Fq "CI run 1 passed" "$scratch/output"; then
+    pass "${FUNCNAME[0]}"
+  else
+    miss "${FUNCNAME[0]}" "it did not wait for the run to appear: $(tail -n 3 "$scratch/output" | tr '\n' ' ')"
+  fi
+}
+
 # Another commit's green run says nothing about this one.
 refuses_when_ci_is_for_another_commit() {
   prepare
@@ -379,7 +409,7 @@ makes_the_commit_and_the_tag() {
 
 for case in refuses_off_main refuses_a_dirty_tree refuses_when_main_is_unpushed \
   refuses_when_ci_is_red refuses_when_ci_has_not_finished waits_for_ci_to_finish \
-  refuses_when_ci_is_missing \
+  refuses_when_ci_is_missing waits_for_ci_to_appear \
   refuses_when_ci_is_for_another_commit refuses_when_no_data_release \
   refuses_a_bad_data_version refuses_a_malformed_data_version \
   refuses_an_already_published_tag picks_the_newest_plain_data_release \
