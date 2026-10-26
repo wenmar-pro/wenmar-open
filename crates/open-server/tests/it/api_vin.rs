@@ -206,6 +206,28 @@ async fn a_batch_answers_in_order_with_decodes_and_errors() {
 }
 
 #[tokio::test]
+async fn a_batch_split_over_connections_keeps_the_order_asked() {
+    let app = common::app_over(common::data_file(), |config| config.connections = 6).await;
+    // Every fifth is an error, so a piece put back out of order would show.
+    let vins: Vec<&str> = (0..45)
+        .map(|index| if index % 5 == 0 { "nope" } else { common::KONA })
+        .collect();
+    let body = serde_json::to_string(&json!({ "vins": vins })).unwrap();
+    let response = app.post_json("/v1/vin/batch", &body).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let body = body_json(response).await;
+    let items = body.as_array().unwrap();
+    assert_eq!(items.len(), 45);
+    for (index, item) in items.iter().enumerate() {
+        if index % 5 == 0 {
+            assert_eq!(item["error"]["code"], "invalid_vin", "{index}");
+        } else {
+            assert_eq!(item["model"], "Kona", "{index}");
+        }
+    }
+}
+
+#[tokio::test]
 async fn a_batch_of_fifty_is_accepted_and_fifty_one_is_not() {
     let app = common::app().await;
     let vins = |count: usize| {

@@ -36,6 +36,10 @@ pub struct Config {
     /// `OPEN_CONNECTIONS`: connection slots; each holds two read-only
     /// connections to the data file. Default 4.
     pub connections: usize,
+    /// `OPEN_VIN_CACHE_ROWS`: how many pattern rows of the data file are
+    /// kept between VIN decodes, shared by every connection. About 190
+    /// bytes each. Default 200,000; 0 turns the cache off.
+    pub vin_cache_rows: usize,
     /// `OPEN_TRUSTED_PROXIES`: how many reverse proxies in front of the
     /// server add to `X-Forwarded-For`. Default 0: the header is ignored.
     pub trusted_proxies: usize,
@@ -162,6 +166,11 @@ impl Config {
                 .map(PathBuf::from),
             port: number(&lookup, "PORT", 3000)?,
             connections: number(&lookup, "OPEN_CONNECTIONS", 4usize)?.clamp(1, 32),
+            vin_cache_rows: number(
+                &lookup,
+                "OPEN_VIN_CACHE_ROWS",
+                wenmar_open_db::DEFAULT_VIN_CACHE_ROWS,
+            )?,
             trusted_proxies: number(&lookup, "OPEN_TRUSTED_PROXIES", 0)?,
             requests_per_minute: number(&lookup, "OPEN_RATE_LIMIT", 600u32)?.max(1),
             base_url,
@@ -192,6 +201,7 @@ mod tests {
         assert_eq!(config.data, PathBuf::from("data.sqlite3"));
         assert_eq!(config.port, 3000);
         assert_eq!(config.connections, 4);
+        assert_eq!(config.vin_cache_rows, 200_000);
         assert_eq!(config.trusted_proxies, 0);
         assert_eq!(config.requests_per_minute, 600);
         assert_eq!(config.base_url, "https://open.wenmarpro.com");

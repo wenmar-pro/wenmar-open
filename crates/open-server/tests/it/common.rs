@@ -372,6 +372,7 @@ pub fn config(fixture: &Fixture) -> Config {
         shop_data: None,
         port: 0,
         connections: 2,
+        vin_cache_rows: 200_000,
         trusted_proxies: 0,
         requests_per_minute: 600,
         base_url: "https://open.example".to_owned(),

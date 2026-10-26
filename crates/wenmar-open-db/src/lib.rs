@@ -46,3 +46,7 @@ pub mod vin_rows;
 
 pub use db::{Db, DbError, Meta, SqliteSource, Worker};
 pub use decode::{Decode, DecodeFailure, LONGEST_INPUT, current_year};
+pub use wenmar_vehicles::CacheStats;
+
+/// How many pattern rows [`Db::open`] keeps between decodes: about 40 MB.
+pub const DEFAULT_VIN_CACHE_ROWS: usize = wenmar_vehicles::vin_cache::DEFAULT_PATTERN_ROWS;

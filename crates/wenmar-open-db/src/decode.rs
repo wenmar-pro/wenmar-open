@@ -7,7 +7,7 @@ use wenmar_vehicles::{Catalog, CatalogError, Selection, SourceError};
 use wenmar_vin::{DecodeError, DecodeOptions, Decoded, Decoder, Vin};
 
 use crate::db::{Db, DbError, SqliteSource, Worker};
-use crate::vin_rows::{self, VinRows};
+use crate::vin_rows::VinRows;
 
 /// Longest text read as a VIN, in bytes. A VIN has 17 characters; spaces and
 /// dashes are allowed, so there is some room. Anything longer is refused
@@ -78,13 +78,16 @@ impl Worker {
             current_year: Some(current_year),
         };
         let rows = match Vin::parse(input) {
-            Ok(vin) => vin_rows::fetch(&self.source, &vin, options.model_year, current_year)
+            Ok(vin) => self
+                .caches
+                .vin
+                .fetch(&self.source, &vin, options.model_year, current_year)
                 .map_err(DecodeFailure::Read)?,
             // The decoder says what is wrong with it and suggests corrections.
             Err(_) => VinRows::default(),
         };
         let decoded = Decoder::new(&rows).decode(input, options)?;
-        let catalog = self.catalog.selection(&decoded)?;
+        let catalog = self.caches.selections.selection(&self.catalog, &decoded)?;
         Ok(Decode { decoded, catalog })
     }
 }

@@ -138,6 +138,18 @@ fi
 cargo run --release -q -p open-data -- parity --data "$data"
 '''
 
+[tasks.bench]
+description = "Time VIN decoding: one at a time with and without the cache, and in batches"
+run = '''
+set -eu
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+if [ -z "$data" ]; then
+  echo "No data file in data/build. Run: mise run data" >&2
+  exit 1
+fi
+cargo run --release -q -p wenmar-open-db --example bench -- "$data"
+'''
+
 [tasks.catalog-parity]
 description = "Compare the catalog's models with NHTSA's recorded answers"
 run = '''

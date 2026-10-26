@@ -1,8 +1,11 @@
 //! From a decoded VIN to the catalog entry the cascade would have reached.
 
+use std::sync::{Mutex, PoisonError};
+
 use serde::Serialize;
 use wenmar_vin::Decoded;
 
+use crate::bounded::Bounded;
 use crate::catalog::{Catalog, CatalogError, EngineRow, Entry, Known, SubmodelRow};
 use crate::id::VehicleId;
 use crate::index::Scope;
@@ -62,6 +65,83 @@ fn without_layout(label: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join(" ")
+}
+
+/// Everything of a decode that [`Catalog::selection`] reads. Two decodes
+/// with the same key reach the same entry. A field the selection starts to
+/// read must be added here.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct SelectionKey {
+    year: Option<u16>,
+    make: Option<String>,
+    model: Option<String>,
+    trim: Option<String>,
+    series: Option<String>,
+    engine_label: Option<String>,
+    eighth: Option<char>,
+    transmission: Option<String>,
+    body: Option<String>,
+    drivetrain: Option<String>,
+}
+
+impl SelectionKey {
+    fn of(decoded: &Decoded) -> SelectionKey {
+        SelectionKey {
+            year: decoded.year,
+            make: decoded.make.clone(),
+            model: decoded.model.clone(),
+            trim: decoded.trim.clone(),
+            series: decoded.series.clone(),
+            engine_label: decoded
+                .engine
+                .as_ref()
+                .and_then(|engine| engine.label.clone()),
+            eighth: decoded.vin.chars().nth(7),
+            transmission: decoded.transmission.clone(),
+            body: decoded.body.clone(),
+            drivetrain: decoded.drivetrain.clone(),
+        }
+    }
+}
+
+/// Catalog entries already worked out, by what of the decode they were
+/// worked out from. VINs of one model and trim reach one entry, so a fleet's
+/// VINs mostly ask once. Shared by any number of threads; bounded.
+pub struct SelectionCache {
+    held: Mutex<Bounded<SelectionKey, Option<Selection>>>,
+}
+
+impl std::fmt::Debug for SelectionCache {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("SelectionCache")
+            .finish_non_exhaustive()
+    }
+}
+
+impl SelectionCache {
+    /// A cache of at most `entries` answers. Zero holds nothing.
+    pub fn new(entries: usize) -> Self {
+        Self {
+            held: Mutex::new(Bounded::new(entries)),
+        }
+    }
+
+    /// [`Catalog::selection`], answered from what is held where it can be.
+    pub fn selection<S: Source>(
+        &self,
+        catalog: &Catalog<S>,
+        decoded: &Decoded,
+    ) -> Result<Option<Selection>, CatalogError> {
+        let key = SelectionKey::of(decoded);
+        let lock = || self.held.lock().unwrap_or_else(PoisonError::into_inner);
+        if let Some(held) = lock().get(&key) {
+            return Ok(held);
+        }
+        let found = catalog.selection(decoded)?;
+        lock().insert(key, found.clone(), 1);
+        Ok(found)
+    }
 }
 
 impl<S: Source> Catalog<S> {

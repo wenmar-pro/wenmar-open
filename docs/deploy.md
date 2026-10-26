@@ -277,6 +277,7 @@ The same holds for a deploy that changes the server and not the data. The `ETag`
 | `OPEN_TRUSTED_PROXIES` | `0` | Reverse proxies in front that add to `X-Forwarded-For`. `1` in production. |
 | `OPEN_RATE_LIMIT` | `600` | Requests one address may make in a minute. |
 | `OPEN_CONNECTIONS` | `4` | Connection slots. Each holds two read-only connections to the data file, so `4` is eight. |
+| `OPEN_VIN_CACHE_ROWS` | `200000` | Pattern rows of the data file kept between VIN decodes, shared by every slot. A VIN whose rows are kept decodes with no query. A row takes about 190 bytes, so the default is about 40 MB. `0` turns the cache off. Lower it before lowering `OPEN_CONNECTIONS` if the container is short of memory. |
 | `OPEN_FEEDBACK_EMAIL` | none | Where "Report an error by email" sends mail. Unset: no email link is shown. |
 | `OPEN_GITHUB_REPO` | `wenmar-pro/wenmar-open` | The repository "Report an error on this page" opens an issue in, as `owner/name`. |
 | `OPEN_GITHUB_TOKEN` | none | A fine-grained GitHub token with only "Issues: read and write" on `OPEN_GITHUB_REPO`. Set: `/feedback` files issues. Unset: it shows links. A secret: never write it in `config/deploy.yml`. |

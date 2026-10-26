@@ -21,7 +21,7 @@ use std::sync::{Arc, Mutex, PoisonError};
 use rusqlite::{Connection, OpenFlags};
 use serde::Serialize;
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
-use wenmar_vehicles::{Catalog, Source, SourceError, Value};
+use wenmar_vehicles::{Catalog, SelectionCache, Source, SourceError, Value, VinCache};
 
 /// The catalog's `Source`, re-exported so the type of [`Worker::source`]
 /// and `Catalog<SqliteSource>` can be named from this crate.
@@ -67,6 +67,32 @@ pub struct Worker {
     /// For queries the catalog library does not make, such as a VIN's rows.
     pub source: SqliteSource,
     pub catalog: Catalog<SqliteSource>,
+    /// What decodes share, held for every worker of the pool.
+    pub(crate) caches: Caches,
+}
+
+/// The caches every worker of one pool shares.
+#[derive(Clone)]
+pub(crate) struct Caches {
+    pub(crate) vin: Arc<VinCache>,
+    pub(crate) selections: Arc<SelectionCache>,
+}
+
+/// Catalog entries a pool holds: each is a few hundred bytes.
+const SELECTIONS_HELD: usize = 50_000;
+
+impl Caches {
+    fn new(pattern_rows: usize) -> Caches {
+        let selections = if pattern_rows == 0 {
+            0
+        } else {
+            SELECTIONS_HELD
+        };
+        Caches {
+            vin: Arc::new(VinCache::new(pattern_rows)),
+            selections: Arc::new(SelectionCache::new(selections)),
+        }
+    }
 }
 
 impl Worker {
@@ -76,13 +102,20 @@ impl Worker {
     /// A worker is two read-only connections: the catalog holds one of its
     /// own. `rusqlite::Connection` may not be shared between threads, so
     /// there is no way to hand the same one to both.
-    fn new(path: &Path) -> Result<Worker, DbError> {
+    fn new(path: &Path, caches: &Caches) -> Result<Worker, DbError> {
         let source = open_source(path)?;
         let catalog =
             Catalog::new(open_source(path)?).map_err(|error| DbError::Read(error.into()))?;
-        Ok(Worker { source, catalog })
+        Ok(Worker {
+            source,
+            catalog,
+            caches: caches.clone(),
+        })
     }
 }
+
+/// Prepared statements kept by each connection.
+const STATEMENTS_KEPT: usize = 128;
 
 /// Opens one read-only connection to the data file and asks SQLite to map
 /// it. Blocking.
@@ -99,6 +132,9 @@ fn open_source(path: &Path) -> Result<SqliteSource, DbError> {
     connection
         .pragma_update(None, "mmap_size", i64::try_from(length).unwrap_or(i64::MAX))
         .map_err(|error| DbError::Read(error.into()))?;
+    // A VIN's statements differ by how many ids they list, and the catalog
+    // has its own: more than the 16 rusqlite keeps by default.
+    connection.set_prepared_statement_cache_capacity(STATEMENTS_KEPT);
     SqliteSource::from_connection(connection).map_err(DbError::Read)
 }
 
@@ -115,6 +151,7 @@ pub struct Db {
     slow: Arc<Semaphore>,
     slow_size: usize,
     meta: Meta,
+    caches: Caches,
 }
 
 /// How many of `size` connections slow work may use at once: half, so the
@@ -184,6 +221,17 @@ impl Db {
     /// Refuses a file that is missing, has no `meta` table, or was built for
     /// another schema version.
     pub async fn open(path: &Path, connections: usize) -> Result<Db, DbError> {
+        Db::open_with_cache(path, connections, crate::DEFAULT_VIN_CACHE_ROWS).await
+    }
+
+    /// The same as [`Db::open`], with a VIN cache that holds at most
+    /// `pattern_rows` pattern rows (see [`VinCache`]). Zero turns caching
+    /// off: every decode reads the data file.
+    pub async fn open_with_cache(
+        path: &Path,
+        connections: usize,
+        pattern_rows: usize,
+    ) -> Result<Db, DbError> {
         // rusqlite would create an empty database for a path that does not
         // exist; a missing data file must stop the server instead.
         if !path.is_file() {
@@ -191,12 +239,14 @@ impl Db {
         }
         let path = path.to_path_buf();
         let size = connections.max(1);
+        let caches = Caches::new(pattern_rows);
         let (meta, workers) = {
             let path = path.clone();
+            let caches = caches.clone();
             tokio::task::spawn_blocking(move || {
                 let meta = read_meta(&path)?;
                 let workers = (0..size)
-                    .map(|_| Worker::new(&path))
+                    .map(|_| Worker::new(&path, &caches))
                     .collect::<Result<Vec<Worker>, DbError>>()?;
                 Ok::<_, DbError>((meta, workers))
             })
@@ -211,11 +261,22 @@ impl Db {
             slow: Arc::new(Semaphore::new(slow_share(size))),
             slow_size: slow_share(size),
             meta,
+            caches,
         })
     }
 
     pub fn meta(&self) -> &Meta {
         &self.meta
+    }
+
+    /// What the VIN cache holds now.
+    pub fn vin_cache_stats(&self) -> wenmar_vehicles::CacheStats {
+        self.caches.vin.stats()
+    }
+
+    /// How many connections there are.
+    pub fn connections(&self) -> usize {
+        self.size
     }
 
     /// How many connections slow work may use at once.
@@ -266,6 +327,7 @@ impl Db {
         let idle = Arc::clone(&self.idle);
         let path = self.path.clone();
         let size = self.size;
+        let caches = self.caches.clone();
         tokio::task::spawn_blocking(move || {
             let _permit = permit;
             let _place = place;
@@ -273,7 +335,7 @@ impl Db {
             // A worker is missing only if an earlier task panicked.
             let worker = match taken {
                 Some(worker) => worker,
-                None => Worker::new(&path)?,
+                None => Worker::new(&path, &caches)?,
             };
             let output = work(&worker);
             let mut idle = idle.lock().unwrap_or_else(PoisonError::into_inner);

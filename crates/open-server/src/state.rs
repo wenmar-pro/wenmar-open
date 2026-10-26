@@ -84,7 +84,8 @@ async fn search_index(db: &Db) -> Option<SearchIndex> {
 impl AppState {
     /// Opens the data file named by `config`, the shop file if it names one, and builds the search index.
     pub async fn open(config: Config) -> Result<AppState, StartError> {
-        let db = Db::open(&config.data, config.connections).await?;
+        let db =
+            Db::open_with_cache(&config.data, config.connections, config.vin_cache_rows).await?;
         let shop = match &config.shop_data {
             Some(path) => {
                 Some(ShopDb::open(path, config.connections, &db.meta().data_version).await?)

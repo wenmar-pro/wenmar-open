@@ -19,16 +19,16 @@ const MODEL_ELEMENT_ID: i64 = 28;
 /// Most ids put in one `IN (...)` list. Cloudflare D1 binds at most 100
 /// parameters to a statement, and the pattern statement binds one more
 /// than the list.
-const CHUNK: usize = 90;
+pub(crate) const CHUNK: usize = 90;
 
-const MANUFACTURERS_SQL: &str = "
+pub(crate) const MANUFACTURERS_SQL: &str = "
 SELECT code, manufacturer, make, country, vehicle_type, light_vehicle, vehicle_type_id
 FROM wmi WHERE code IN (?1, ?2)";
 
-const SCHEMAS_SQL: &str = "
+pub(crate) const SCHEMAS_SQL: &str = "
 SELECT schema_id, year_from, year_to FROM wmi_schema WHERE wmi = ?1";
 
-const MAKES_SQL: &str = "SELECT make_id FROM wmi_make WHERE wmi = ?1";
+pub(crate) const MAKES_SQL: &str = "SELECT make_id FROM wmi_make WHERE wmi = ?1";
 
 /// The specification schemas that list a model (`?1`), with the make and
 /// vehicle type each is for.
@@ -39,14 +39,14 @@ JOIN spec_schema s ON s.id = m.schema_id
 WHERE m.model_id = ?1";
 
 #[derive(Debug, Clone)]
-struct SchemaRange {
-    id: i64,
-    year_from: u16,
-    year_to: Option<u16>,
+pub(crate) struct SchemaRange {
+    pub(crate) id: i64,
+    pub(crate) year_from: u16,
+    pub(crate) year_to: Option<u16>,
 }
 
 impl SchemaRange {
-    fn covers(&self, year: u16) -> bool {
+    pub(crate) fn covers(&self, year: u16) -> bool {
         self.year_from <= year && self.year_to.is_none_or(|to| to >= year)
     }
 }
@@ -97,6 +97,218 @@ fn placeholders(count: usize) -> String {
     vec!["?"; count].join(", ")
 }
 
+/// One row of the `wmi` table: the manufacturer and its vehicle type id.
+pub(crate) type ManufacturerRow = (Manufacturer, Option<i64>);
+
+/// A pattern row with the make its model carries, for a Model row.
+pub(crate) type PatternRow = (Pattern, Option<String>);
+
+/// Where [`fetch_with`] reads each kind of row: straight from the data
+/// file, or through a [`VinCache`](crate::vin_cache::VinCache).
+pub(crate) trait Lookup<S: Source> {
+    /// The manufacturers registered for `first` and `plain`.
+    fn manufacturers(
+        &self,
+        source: &S,
+        first: &str,
+        plain: &str,
+    ) -> Result<Vec<ManufacturerRow>, SourceError>;
+
+    /// Every schema of a manufacturer code, whatever its years.
+    fn schemas(&self, source: &S, wmi: &str) -> Result<Vec<SchemaRange>, SourceError>;
+
+    /// The pattern rows of the schemas, ordered by schema and then id, that
+    /// can match the key. Every row that matches must be there.
+    fn patterns(
+        &self,
+        source: &S,
+        schema_ids: &[i64],
+        key: &str,
+    ) -> Result<Vec<PatternRow>, SourceError>;
+
+    /// The rows of each engine model, by its name trimmed and in lowercase,
+    /// each list ordered by id.
+    fn engines(
+        &self,
+        source: &S,
+        names: &[String],
+    ) -> Result<Vec<(String, Vec<EngineRow>)>, SourceError>;
+
+    /// The make ids of a manufacturer code.
+    fn makes(&self, source: &S, wmi: &str) -> Result<BTreeSet<i64>, SourceError>;
+
+    /// The specification rows of one model in each of `years`.
+    fn specs(
+        &self,
+        source: &S,
+        wmi: &str,
+        model_id: i64,
+        years: &BTreeSet<u16>,
+        make_ids: &BTreeSet<i64>,
+        type_id: Option<i64>,
+    ) -> Result<HashMap<(i64, u16), Vec<SpecRow>>, SourceError>;
+}
+
+/// Reads every row from the data file, asking for each VIN afresh.
+pub(crate) struct Direct;
+
+impl<S: Source> Lookup<S> for Direct {
+    fn manufacturers(
+        &self,
+        source: &S,
+        first: &str,
+        plain: &str,
+    ) -> Result<Vec<ManufacturerRow>, SourceError> {
+        source
+            .query(MANUFACTURERS_SQL, &[first.into(), plain.into()])?
+            .iter()
+            .map(|row| manufacturer_row(row))
+            .collect()
+    }
+
+    fn schemas(&self, source: &S, wmi: &str) -> Result<Vec<SchemaRange>, SourceError> {
+        source
+            .query(SCHEMAS_SQL, &[wmi.into()])?
+            .iter()
+            .map(|row| schema_row(row))
+            .collect()
+    }
+
+    fn patterns(
+        &self,
+        source: &S,
+        schema_ids: &[i64],
+        key: &str,
+    ) -> Result<Vec<PatternRow>, SourceError> {
+        let mut found = Vec::new();
+        for chunk in schema_ids.chunks(CHUNK) {
+            // GLOB uses `?` for one character and understands `[...]` sets, so
+            // it narrows the rows to those that can match. The decoder checks
+            // again.
+            let sql = format!(
+                "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute
+                 FROM pattern
+                 WHERE schema_id IN ({})
+                   AND ?{} GLOB (REPLACE(keys, '*', '?') || '*')",
+                placeholders(chunk.len()),
+                chunk.len() + 1
+            );
+            let mut params: Vec<Value> = chunk.iter().map(|id| Value::Integer(*id)).collect();
+            params.push(key.into());
+            for row in source.query(&sql, &params)? {
+                found.push(pattern_row(&row)?);
+            }
+        }
+        Ok(found)
+    }
+
+    fn engines(
+        &self,
+        source: &S,
+        names: &[String],
+    ) -> Result<Vec<(String, Vec<EngineRow>)>, SourceError> {
+        let mut found: Vec<(String, Vec<EngineRow>)> = Vec::new();
+        for chunk in names.chunks(CHUNK) {
+            let params: Vec<Value> = chunk.iter().map(|name| name.as_str().into()).collect();
+            for row in source.query(&engines_sql(chunk.len()), &params)? {
+                let (name, engine) = engine_row(&row)?;
+                match found.iter_mut().find(|(known, _)| *known == name) {
+                    Some((_, list)) => list.push(engine),
+                    None => found.push((name, vec![engine])),
+                }
+            }
+        }
+        Ok(found)
+    }
+
+    fn makes(&self, source: &S, wmi: &str) -> Result<BTreeSet<i64>, SourceError> {
+        source
+            .query(MAKES_SQL, &[wmi.into()])?
+            .iter()
+            .map(|row| integer(row, 0, "wmi_make"))
+            .collect()
+    }
+
+    fn specs(
+        &self,
+        source: &S,
+        _wmi: &str,
+        model_id: i64,
+        years: &BTreeSet<u16>,
+        make_ids: &BTreeSet<i64>,
+        type_id: Option<i64>,
+    ) -> Result<HashMap<(i64, u16), Vec<SpecRow>>, SourceError> {
+        specs(source, model_id, years, make_ids, type_id)
+    }
+}
+
+pub(crate) fn manufacturer_row(row: &[Value]) -> Result<ManufacturerRow, SourceError> {
+    Ok((
+        Manufacturer {
+            wmi: text(row, 0, "wmi")?,
+            name: text(row, 1, "wmi")?,
+            make: optional_text(row, 2),
+            country: optional_text(row, 3),
+            vehicle_type: optional_text(row, 4),
+            light_vehicle: integer(row, 5, "wmi")? != 0,
+        },
+        row.get(6).and_then(Value::integer),
+    ))
+}
+
+pub(crate) fn schema_row(row: &[Value]) -> Result<SchemaRange, SourceError> {
+    Ok(SchemaRange {
+        id: integer(row, 0, "wmi_schema")?,
+        year_from: year(row, 1, "wmi_schema")?,
+        year_to: match row.get(2) {
+            Some(Value::Null) | None => None,
+            Some(_) => Some(year(row, 2, "wmi_schema")?),
+        },
+    })
+}
+
+/// A row of `SELECT id, schema_id, keys, element_id, value, changed_on,
+/// make, attribute FROM pattern`.
+pub(crate) fn pattern_row(row: &[Value]) -> Result<PatternRow, SourceError> {
+    let element_id = integer(row, 3, "pattern")?;
+    let pattern = Pattern {
+        id: integer(row, 0, "pattern")?,
+        schema_id: integer(row, 1, "pattern")?,
+        keys: text(row, 2, "pattern")?,
+        element: element(element_id),
+        attribute: text(row, 7, "pattern")?,
+        value: text(row, 4, "pattern")?,
+        changed_on: text(row, 5, "pattern")?,
+    };
+    let make = if element_id == MODEL_ELEMENT_ID {
+        optional_text(row, 6)
+    } else {
+        None
+    };
+    Ok((pattern, make))
+}
+
+pub(crate) fn engines_sql(count: usize) -> String {
+    format!(
+        "SELECT engine_model, id, element_id, attribute, value, changed_on
+         FROM engine_model_row WHERE engine_model IN ({}) ORDER BY id",
+        placeholders(count)
+    )
+}
+
+pub(crate) fn engine_row(row: &[Value]) -> Result<(String, EngineRow), SourceError> {
+    Ok((
+        text(row, 0, "engine_model_row")?,
+        EngineRow {
+            id: integer(row, 1, "engine_model_row")?,
+            element: element(integer(row, 2, "engine_model_row")?),
+            attribute: text(row, 3, "engine_model_row")?,
+            value: text(row, 4, "engine_model_row")?,
+            changed_on: text(row, 5, "engine_model_row")?,
+        },
+    ))
+}
+
 /// Reads what the decoder needs for `vin`.
 ///
 /// `model_year` is the caller's override, if any. `current_year` must be the
@@ -107,25 +319,25 @@ pub fn fetch<S: Source>(
     model_year: Option<u16>,
     current_year: u16,
 ) -> Result<VinRows, SourceError> {
+    fetch_with(source, &Direct, vin, model_year, current_year)
+}
+
+pub(crate) fn fetch_with<S: Source, L: Lookup<S>>(
+    source: &S,
+    lookup: &L,
+    vin: &Vin,
+    model_year: Option<u16>,
+    current_year: u16,
+) -> Result<VinRows, SourceError> {
     let mut rows = VinRows::default();
     let mut type_ids: HashMap<String, Option<i64>> = HashMap::new();
 
     let plain = vin.wmi().to_owned();
     let extended = vin.extended_wmi();
     let first = extended.clone().unwrap_or_else(|| plain.clone());
-    for row in source.query(
-        MANUFACTURERS_SQL,
-        &[first.as_str().into(), plain.as_str().into()],
-    )? {
-        type_ids.insert(text(&row, 0, "wmi")?, row.get(6).and_then(Value::integer));
-        rows.manufacturers.push(Manufacturer {
-            wmi: text(&row, 0, "wmi")?,
-            name: text(&row, 1, "wmi")?,
-            make: optional_text(&row, 2),
-            country: optional_text(&row, 3),
-            vehicle_type: optional_text(&row, 4),
-            light_vehicle: integer(&row, 5, "wmi")? != 0,
-        });
+    for (manufacturer, type_id) in lookup.manufacturers(source, &first, &plain)? {
+        type_ids.insert(manufacturer.wmi.clone(), type_id);
+        rows.manufacturers.push(manufacturer);
     }
     // The decoder prefers the six-character code when it is registered.
     let find = |code: &str| rows.manufacturers.iter().find(|found| found.wmi == code);
@@ -135,16 +347,7 @@ pub fn fetch<S: Source>(
     let wmi = manufacturer.wmi.clone();
     let light = manufacturer.light_vehicle;
 
-    for row in source.query(SCHEMAS_SQL, &[wmi.as_str().into()])? {
-        rows.schemas.push(SchemaRange {
-            id: integer(&row, 0, "wmi_schema")?,
-            year_from: year(&row, 1, "wmi_schema")?,
-            year_to: match row.get(2) {
-                Some(Value::Null) | None => None,
-                Some(_) => Some(year(&row, 2, "wmi_schema")?),
-            },
-        });
-    }
+    rows.schemas = lookup.schemas(source, &wmi)?;
 
     let years = match model_year {
         Some(year) => vec![year],
@@ -161,74 +364,31 @@ pub fn fetch<S: Source>(
 
     let mut engine_models: BTreeSet<String> = BTreeSet::new();
     let mut models: BTreeSet<(i64, i64)> = BTreeSet::new();
-    for chunk in schema_ids.chunks(CHUNK) {
-        // GLOB uses `?` for one character and understands `[...]` sets, so it
-        // narrows the rows to those that can match. The decoder checks again.
-        let sql = format!(
-            "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute
-             FROM pattern
-             WHERE schema_id IN ({})
-               AND ?{} GLOB (REPLACE(keys, '*', '?') || '*')",
-            placeholders(chunk.len()),
-            chunk.len() + 1
-        );
-        let mut params: Vec<Value> = chunk.iter().map(|id| Value::Integer(*id)).collect();
-        params.push(key.as_str().into());
-        for row in source.query(&sql, &params)? {
-            let element_id = integer(&row, 3, "pattern")?;
-            let found = Pattern {
-                id: integer(&row, 0, "pattern")?,
-                schema_id: integer(&row, 1, "pattern")?,
-                keys: text(&row, 2, "pattern")?,
-                element: element(element_id),
-                attribute: text(&row, 7, "pattern")?,
-                value: text(&row, 4, "pattern")?,
-                changed_on: text(&row, 5, "pattern")?,
-            };
-            let matched = pattern::matches(&found.keys, &key);
-            if matched && found.element == Element::EngineModel {
-                engine_models.insert(found.value.trim().to_lowercase());
-            }
-            if matched
-                && element_id == MODEL_ELEMENT_ID
-                && let Ok(model_id) = found.attribute.trim().parse::<i64>()
-            {
-                models.insert((found.schema_id, model_id));
-            }
-            if element_id == MODEL_ELEMENT_ID
-                && let Some(make) = optional_text(&row, 6)
-            {
-                rows.patterns.push(Pattern {
-                    element: Element::Make,
-                    attribute: make.clone(),
-                    value: make,
-                    ..found.clone()
-                });
-            }
-            rows.patterns.push(found);
+    for (found, make) in lookup.patterns(source, &schema_ids, &key)? {
+        let matched = pattern::matches(&found.keys, &key);
+        if matched && found.element == Element::EngineModel {
+            engine_models.insert(found.value.trim().to_lowercase());
         }
+        if matched
+            && found.element == Element::Model
+            && let Ok(model_id) = found.attribute.trim().parse::<i64>()
+        {
+            models.insert((found.schema_id, model_id));
+        }
+        if let Some(make) = make {
+            rows.patterns.push(Pattern {
+                element: Element::Make,
+                attribute: make.clone(),
+                value: make,
+                ..found.clone()
+            });
+        }
+        rows.patterns.push(found);
     }
 
     let engine_models: Vec<String> = engine_models.into_iter().collect();
-    for chunk in engine_models.chunks(CHUNK) {
-        let sql = format!(
-            "SELECT engine_model, id, element_id, attribute, value, changed_on
-             FROM engine_model_row WHERE engine_model IN ({}) ORDER BY id",
-            placeholders(chunk.len())
-        );
-        let params: Vec<Value> = chunk.iter().map(|name| name.as_str().into()).collect();
-        for row in source.query(&sql, &params)? {
-            rows.engines
-                .entry(text(&row, 0, "engine_model_row")?)
-                .or_default()
-                .push(EngineRow {
-                    id: integer(&row, 1, "engine_model_row")?,
-                    element: element(integer(&row, 2, "engine_model_row")?),
-                    attribute: text(&row, 3, "engine_model_row")?,
-                    value: text(&row, 4, "engine_model_row")?,
-                    changed_on: text(&row, 5, "engine_model_row")?,
-                });
-        }
+    for (name, list) in lookup.engines(source, &engine_models)? {
+        rows.engines.entry(name).or_default().extend(list);
     }
 
     // A specification sheet is asked for by model and year. Only the years
@@ -249,12 +409,9 @@ pub fn fetch<S: Source>(
         return Ok(rows);
     }
     let type_id = type_ids.get(&wmi).copied().flatten();
-    let mut make_ids: BTreeSet<i64> = BTreeSet::new();
-    for row in source.query(MAKES_SQL, &[wmi.as_str().into()])? {
-        make_ids.insert(integer(&row, 0, "wmi_make")?);
-    }
+    let make_ids = lookup.makes(source, &wmi)?;
     for (model_id, model_years) in wanted {
-        let found = specs(source, model_id, &model_years, &make_ids, type_id)?;
+        let found = lookup.specs(source, &wmi, model_id, &model_years, &make_ids, type_id)?;
         rows.specs.extend(found);
     }
     Ok(rows)
@@ -265,7 +422,7 @@ pub fn fetch<S: Source>(
 /// This gives the rows `wenmar_vin::sqlite` reads with one statement. It is
 /// done in three small steps because turso plans that statement badly: 25 ms
 /// against the real data file, where these steps take under 1 ms together.
-fn specs<S: Source>(
+pub(crate) fn specs<S: Source>(
     source: &S,
     model_id: i64,
     years: &BTreeSet<u16>,

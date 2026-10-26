@@ -107,16 +107,55 @@ pub async fn decode_many(
             details: json!({ "field": "year", "min": FIRST_YEAR, "max": latest }),
         });
     }
-    Ok(state
+    // A long list is split over up to half the connections, so it finishes
+    // sooner and the other half is always there for single decodes.
+    let pieces = state
         .db()
-        .run(move |worker| {
-            inputs
-                .iter()
-                .map(|input| decode_one(worker, input, model_year, current_year))
-                .collect()
-        })
-        .await?)
+        .connections()
+        .div_ceil(2)
+        .min(inputs.len().div_ceil(VINS_PER_PIECE))
+        .max(1);
+    if pieces == 1 {
+        return Ok(state
+            .db()
+            .run(move |worker| {
+                inputs
+                    .iter()
+                    .map(|input| decode_one(worker, input, model_year, current_year))
+                    .collect()
+            })
+            .await?);
+    }
+    let size = inputs.len().div_ceil(pieces);
+    let mut tasks = tokio::task::JoinSet::new();
+    for (index, piece) in inputs.chunks(size).enumerate() {
+        let state = state.clone();
+        let piece = piece.to_vec();
+        tasks.spawn(async move {
+            let decoded = state
+                .db()
+                .run(move |worker| {
+                    piece
+                        .iter()
+                        .map(|input| decode_one(worker, input, model_year, current_year))
+                        .collect::<Vec<_>>()
+                })
+                .await;
+            (index, decoded)
+        });
+    }
+    let mut done: Vec<(usize, Vec<Result<VinDecode, ApiError>>)> = Vec::with_capacity(pieces);
+    while let Some(finished) = tasks.join_next().await {
+        let (index, decoded) = finished
+            .map_err(|_| ApiError::internal("a batch decode stopped before it finished"))?;
+        done.push((index, decoded?));
+    }
+    done.sort_by_key(|(index, _)| *index);
+    Ok(done.into_iter().flat_map(|(_, decoded)| decoded).collect())
 }
+
+/// The fewest VINs worth a connection of their own in a batch.
+const VINS_PER_PIECE: usize = 10;
 
 /// Decode one VIN.
 ///

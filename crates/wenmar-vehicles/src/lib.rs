@@ -9,6 +9,7 @@
 //!
 //! [`text`], [`id`], [`summary`], [`index`] and [`parse`] need no database.
 
+mod bounded;
 pub mod catalog;
 pub mod id;
 pub mod index;
@@ -20,13 +21,15 @@ pub mod source;
 pub mod sql;
 pub mod summary;
 pub mod text;
+pub mod vin_cache;
 pub mod vin_rows;
 
 pub use catalog::{Catalog, CatalogError, EngineOption, Entry, Make, Model, Submodel};
 pub use id::VehicleId;
 pub use index::{MakeIndex, MakeRef, Scope};
-pub use selection::Selection;
+pub use selection::{Selection, SelectionCache};
 pub use source::{Source, SourceError, Value};
+pub use vin_cache::{CacheStats, VinCache};
 
 #[cfg(feature = "sqlite")]
 pub mod sqlite;

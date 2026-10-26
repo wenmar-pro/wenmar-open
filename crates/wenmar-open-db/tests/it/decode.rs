@@ -163,3 +163,23 @@ async fn many_decodes_at_once_all_finish() {
         assert_eq!(task.await.unwrap().decoded.year, Some(2023));
     }
 }
+
+#[tokio::test]
+async fn a_decode_through_the_cache_is_the_decode_without_it() {
+    let fixture = common::data_file();
+    let cached = Db::open(&fixture.path(), 2).await.unwrap();
+    let plain = Db::open_with_cache(&fixture.path(), 2, 0).await.unwrap();
+    for vin in [common::KONA, common::KONA_BAD_CHECK] {
+        let first = cached.decode_vin(vin, OPTIONS).await.unwrap();
+        let again = cached.decode_vin(vin, OPTIONS).await.unwrap();
+        let without = plain.decode_vin(vin, OPTIONS).await.unwrap();
+        assert_eq!(first, without, "{vin}");
+        assert_eq!(again, without, "{vin}");
+    }
+    let held = cached.vin_cache_stats();
+    assert!(held.schemas > 0 && held.pattern_rows > 0, "{held:?}");
+    assert_eq!(
+        plain.vin_cache_stats(),
+        wenmar_open_db::CacheStats::default()
+    );
+}
