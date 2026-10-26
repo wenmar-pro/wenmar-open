@@ -1,6 +1,6 @@
 {
   "name": "wenmar-open",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "VIN decoding, a year, make, model, trim and engine catalog, recalls, service bulletins, trouble codes and labour estimates: a typed client for the Wenmar Open API, and an offline mode that answers from a data file with no network. No API key.",
   "keywords": [
     "vin",

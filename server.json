@@ -3,7 +3,7 @@
   "name": "com.wenmarpro/wenmar-open",
   "title": "Wenmar Open",
   "description": "Free VIN decoder, recalls, bulletins, trouble codes, labour times and payroll. No key.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "websiteUrl": "https://open.wenmarpro.com",
   "remotes": [
     {

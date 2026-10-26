@@ -1390,7 +1390,7 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
 name = "open-data"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1408,14 +1408,14 @@ dependencies = [
 
 [[package]]
 name = "open-mcp"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "serde_json",
 ]
 
 [[package]]
 name = "open-server"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "askama",
  "axum",
@@ -1496,7 +1496,7 @@ dependencies = [
 
 [[package]]
 name = "payroll-calc"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "chrono",
  "chrono-tz",
@@ -2043,7 +2043,7 @@ checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 
 [[package]]
 name = "shop-math"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "thiserror",
 ]
@@ -2650,7 +2650,7 @@ dependencies = [
 
 [[package]]
 name = "wenmar-open-cli"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "clap",
  "dirs",
@@ -2674,7 +2674,7 @@ dependencies = [
 
 [[package]]
 name = "wenmar-open-db"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "rusqlite",
  "serde",
@@ -2688,7 +2688,7 @@ dependencies = [
 
 [[package]]
 name = "wenmar-open-wasm"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "rusqlite",
  "serde",
@@ -2700,7 +2700,7 @@ dependencies = [
 
 [[package]]
 name = "wenmar-shopdata"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "rusqlite",
  "serde",
@@ -2711,7 +2711,7 @@ dependencies = [
 
 [[package]]
 name = "wenmar-vehicles"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "rusqlite",
  "serde",
@@ -2722,7 +2722,7 @@ dependencies = [
 
 [[package]]
 name = "wenmar-vin"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "rusqlite",
  "serde",

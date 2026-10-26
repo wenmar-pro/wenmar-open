@@ -4,6 +4,8 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-26
+
 ### Added
 
 - Ontario payroll deductions on every surface: `GET /v1/payroll/deductions` (`frequency`, `gross`, optional claims, `pay_date` and year-to-date figures), the MCP tool `wenmar_payroll_deductions` at `/mcp` and in `wenmar-open mcp` (read-only; it takes its fields and no `action`), `wenmar-open payroll deductions` (worked out on the computer with no data file, or by the API with `--online`) and the npm client's `payrollDeductions`. Each gives the same JSON: each deduction, the net pay, the employer's CPP and EI, every T4127 factor with its meaning, the edition and its dates, and the note that the result is an estimate, that the employer remains liable, with CRA's PDOC address. A field that cannot be read, or a pay date outside the tables, is `validation_failed` naming the field.
