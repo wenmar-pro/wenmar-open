@@ -2707,6 +2707,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "wenmar-vehicles",
+ "wenmar-vin",
 ]
 
 [[package]]

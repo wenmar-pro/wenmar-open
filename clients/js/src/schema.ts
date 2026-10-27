@@ -2112,6 +2112,7 @@ export interface components {
              *     holds bulletins.
              */
             bulletins?: number | null;
+            generation?: null | components["schemas"]["Generation"];
             /**
              * @description The vehicle id of the year, make and model.
              * @example 2018_ford_f-150

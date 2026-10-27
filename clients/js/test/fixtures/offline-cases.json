@@ -1276,6 +1276,13 @@
           "years": [
             {
               "bulletins": null,
+              "generation": {
+                "code": "OS",
+                "name": "OS",
+                "ordinal": 1,
+                "year_from": 2018,
+                "year_to": 2023
+              },
               "id": "2023_hyundai_kona",
               "recalls": null,
               "url": "https://open.wenmarpro.com/makes/hyundai/kona/2023",
@@ -1283,6 +1290,13 @@
             },
             {
               "bulletins": null,
+              "generation": {
+                "code": "OS",
+                "name": "OS",
+                "ordinal": 1,
+                "year_from": 2018,
+                "year_to": 2023
+              },
               "id": "2022_hyundai_kona",
               "recalls": null,
               "url": "https://open.wenmarpro.com/makes/hyundai/kona/2022",
@@ -8284,6 +8298,13 @@
           "years": [
             {
               "bulletins": null,
+              "generation": {
+                "code": "OS",
+                "name": "OS",
+                "ordinal": 1,
+                "year_from": 2018,
+                "year_to": 2023
+              },
               "id": "2023_hyundai_kona",
               "recalls": {
                 "ca": 1,
@@ -8294,6 +8315,13 @@
             },
             {
               "bulletins": null,
+              "generation": {
+                "code": "OS",
+                "name": "OS",
+                "ordinal": 1,
+                "year_from": 2018,
+                "year_to": 2023
+              },
               "id": "2022_hyundai_kona",
               "recalls": {
                 "ca": 0,
@@ -8340,6 +8368,12 @@
           "years": [
             {
               "bulletins": null,
+              "generation": {
+                "code": "T1XX",
+                "name": "T1XX",
+                "ordinal": 4,
+                "year_from": 2019
+              },
               "id": "2019_chevrolet_silverado",
               "recalls": {
                 "ca": 0,

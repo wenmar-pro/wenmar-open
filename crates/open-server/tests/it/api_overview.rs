@@ -253,11 +253,19 @@ async fn a_model_lists_its_years_with_the_recalls_of_each() {
             {
                 "id": "2023_hyundai_kona", "year": 2023,
                 "recalls": { "us": 3, "ca": 1 }, "bulletins": null,
+                "generation": {
+                    "name": "OS", "ordinal": 1, "code": "OS",
+                    "year_from": 2018, "year_to": 2023
+                },
                 "url": "https://open.example/makes/hyundai/kona/2023"
             },
             {
                 "id": "2022_hyundai_kona", "year": 2022,
                 "recalls": { "us": 1, "ca": 0 }, "bulletins": null,
+                "generation": {
+                    "name": "OS", "ordinal": 1, "code": "OS",
+                    "year_from": 2018, "year_to": 2023
+                },
                 "url": "https://open.example/makes/hyundai/kona/2022"
             }
         ])

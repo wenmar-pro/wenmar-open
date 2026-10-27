@@ -18,9 +18,12 @@ const OFFLINE = ["client.js", "engine.js", "index.js", "node.js", "store.js"];
  * The most the WebAssembly may weigh. It was 449,772 bytes before recalls,
  * 542,281 with them and 592,497 with the overview and the crash test
  * ratings. Fuel, specifications, fluids and tire fitments did not fit under
- * 600,000, and the budget was raised to 800,000 for them.
+ * 600,000, and the budget was raised to 800,000 for them. It was 800,190
+ * before a decode gained every attribute NHTSA records and the generation
+ * table (44 kB of text), and 905,563 with them; the budget was raised to
+ * 950,000 for them.
  */
-const WASM_BUDGET = 800_000;
+const WASM_BUDGET = 950_000;
 
 function wasmBytes(): Buffer {
   return readFileSync(new URL("dist/offline/wenmar_open.wasm", ROOT));

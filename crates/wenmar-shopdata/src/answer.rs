@@ -400,6 +400,9 @@ pub struct ModelYearSummary {
     pub recalls: Option<Count>,
     /// Always `null`: bulletins are not in the files.
     pub bulletins: Option<u32>,
+    /// From corgi-rs's table, as the hosted API gives it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub generation: Option<wenmar_vin::Generation>,
     pub url: String,
 }
 
@@ -1482,6 +1485,7 @@ impl<'a, S: Source, C: Source> Overviews<'a, S, C> {
                     year: *year,
                     recalls,
                     bulletins: None,
+                    generation: wenmar_vin::generation::find(&make.name, name, *year),
                     url: format!("{}/makes/{}/{slug}/{year}", self.base, make.slug),
                 }
             })

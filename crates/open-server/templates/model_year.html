@@ -15,6 +15,9 @@
 {% endif -%}
 <tr><th scope="row">Vehicle type</th><td>{{ view.entry.vehicle_types|join(", ") }}</td></tr>
 <tr><th scope="row">Vehicle id</th><td class="mono">{{ view.entry.id }}</td></tr>
+{% if let Some(generation) = view.generation -%}
+<tr><th scope="row">Generation</th><td>{{ generation }}</td></tr>
+{% endif -%}
 {% if let Some(brief) = recalls -%}
 <tr><th scope="row">Recalls</th><td><a href="{{ brief.href }}">{{ brief.text }}</a></td></tr>
 {% endif -%}

@@ -16,6 +16,7 @@ serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 wenmar-vehicles.workspace = true
+wenmar-vin.workspace = true
 
 [features]
 sqlite = ["dep:rusqlite"]

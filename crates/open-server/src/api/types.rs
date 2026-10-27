@@ -282,6 +282,18 @@ pub struct Generation {
     pub year_to: Option<u16>,
 }
 
+impl From<vin::Generation> for Generation {
+    fn from(generation: vin::Generation) -> Generation {
+        Generation {
+            name: generation.name,
+            ordinal: generation.ordinal,
+            code: generation.code,
+            year_from: generation.year_from,
+            year_to: generation.year_to,
+        }
+    }
+}
+
 /// Battery and charging, as the manufacturer reported them.
 #[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
 pub struct Electric {
@@ -597,13 +609,7 @@ impl VinDecode {
             year_conclusive: decoded.year_conclusive,
             drive: decoded.drive.and_then(Drive::from_vin),
             body_style: decoded.body_style.and_then(BodyStyle::from_vin),
-            generation: decoded.generation.map(|generation| Generation {
-                name: generation.name,
-                ordinal: generation.ordinal,
-                code: generation.code,
-                year_from: generation.year_from,
-                year_to: generation.year_to,
-            }),
+            generation: decoded.generation.map(Generation::from),
             series2: decoded.series2,
             trim2: decoded.trim2,
             cab_type: decoded.cab_type,
@@ -1321,6 +1327,10 @@ pub struct ModelYearSummary {
     /// How many service bulletins are on file. `null` until this server
     /// holds bulletins.
     pub bulletins: Option<u32>,
+    /// The generation of the model the year belongs to, from corgi-rs's
+    /// table. Left out for a model the table does not list.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub generation: Option<Generation>,
     /// The model year's page on this site.
     #[schema(example = "https://open.wenmarpro.com/makes/ford/f-150/2018")]
     pub url: String,

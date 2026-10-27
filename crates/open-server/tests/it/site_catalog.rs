@@ -132,6 +132,18 @@ async fn a_model_year_page_lists_trims_and_engines() {
     );
     assert!(html.contains(r#"<tr><th scope="row">1.5L Turbo</th>"#));
     assert!(html.contains(r#"<td class="mono">2019_honda_civic</td>"#));
+    // The generation, from corgi-rs's table, on the page and in its Markdown.
+    assert!(
+        html.contains(
+            r#"<tr><th scope="row">Generation</th><td>10th generation (FC/FK), 2016-2021</td></tr>"#
+        ),
+        "{html}"
+    );
+    let markdown = common::body_text(app.get("/makes/honda/civic/2019.md").await).await;
+    assert!(
+        markdown.contains(r"- Generation: 10th generation \(FC/FK\), 2016\-2021"),
+        "{markdown}"
+    );
 
     let (_, html) = page(&app, "/makes/ford/f-150/2019").await;
     assert!(html.contains(r#"Eighth VIN character <span class="mono">5</span>"#));

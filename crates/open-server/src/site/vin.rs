@@ -99,7 +99,7 @@ pub fn groups(decode: &VinDecode) -> Vec<Group> {
     push(
         &mut vehicle,
         "Generation",
-        decode.generation.as_ref().map(generation),
+        decode.generation.as_ref().map(generation_line),
     );
     push(&mut vehicle, "Body", decode.body.as_ref());
     push(&mut vehicle, "Cab", decode.cab_type.as_ref());
@@ -384,7 +384,7 @@ pub fn groups(decode: &VinDecode) -> Vec<Group> {
 }
 
 /// A generation as a line: `8th generation (CP/CS), 2008-2012`.
-fn generation(found: &crate::api::types::Generation) -> String {
+pub(crate) fn generation_line(found: &crate::api::types::Generation) -> String {
     let code = found
         .code
         .as_deref()

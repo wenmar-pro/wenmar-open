@@ -5635,6 +5635,17 @@
             "description": "How many service bulletins are on file. `null` until this server\nholds bulletins.",
             "minimum": 0
           },
+          "generation": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Generation",
+                "description": "The generation of the model the year belongs to, from corgi-rs's\ntable. Left out for a model the table does not list."
+              }
+            ]
+          },
           "id": {
             "type": "string",
             "description": "The vehicle id of the year, make and model.",

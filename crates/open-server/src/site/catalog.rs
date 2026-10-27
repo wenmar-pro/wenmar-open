@@ -506,6 +506,9 @@ pub struct ModelYearView {
     /// The model's other light-vehicle years, newest first, this one among
     /// them. Empty for a trailer, a motorcycle or a bus.
     pub years: Vec<u16>,
+    /// The generation the model year belongs to, as a line, from corgi-rs's
+    /// table.
+    pub generation: Option<String>,
 }
 
 fn load_model_year(
@@ -542,6 +545,8 @@ fn load_model_year(
             details,
         });
     }
+    let generation = wenmar_vin::generation::find(&entry.make, &entry.model, year)
+        .map(|found| crate::site::vin::generation_line(&found.into()));
     let engines = worker
         .catalog
         .engines(make, model, year, None, "")?
@@ -590,6 +595,7 @@ fn load_model_year(
         engines,
         light,
         years,
+        generation,
     }))
 }
 
@@ -824,6 +830,9 @@ fn model_year_markdown(view: &ModelYearView, report: &report::ReportLinks) -> St
         escape(&entry.model)
     );
     text.push_str(&format!("- Vehicle id: `{}`\n", entry.id));
+    if let Some(generation) = &view.generation {
+        text.push_str(&format!("- Generation: {}\n", escape(generation)));
+    }
     for (label, value) in [
         ("Body", &entry.body),
         ("Drive", &entry.drive),

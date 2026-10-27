@@ -26,7 +26,7 @@ use crate::api::recalls::{
     lookup, model_slugs, model_year, recall_shop, recalls_of,
 };
 use crate::api::types::{
-    MakeLinks, ModelYearSummary, ModelYears, NamedId, Overview, OverviewBulletins,
+    Generation, MakeLinks, ModelYearSummary, ModelYears, NamedId, Overview, OverviewBulletins,
     OverviewComplaints, OverviewDecode, OverviewLinks, OverviewRecalls, Recall, RecallAsOf,
     RecallCampaignVehicle, RecallCount, RecentRecall, RecentRecalls, VinDecode, VinRecallCount,
     Warning,
@@ -566,6 +566,12 @@ pub async fn model_years_op(
                         .find(|(counted_year, _)| counted_year == year)
                         .map_or(0, |(_, count)| *count)
                 }),
+                generation: wenmar_vin::generation::find(
+                    &found.make.name,
+                    &found.model.name,
+                    *year,
+                )
+                .map(Generation::from),
                 url: format!("{base}/makes/{}/{}/{year}", found.make.id, found.model.id),
             }
         })
