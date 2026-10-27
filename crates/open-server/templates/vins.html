@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Decode a list of VINs</h1>
+<p>Paste up to {{ most }} VINs: one a line, or a column copied from a spreadsheet or a fleet list. Anything that is not a 17-character VIN is passed over. The answer is a table in the order pasted, or a CSV file to open in a spreadsheet.</p>
+<form class="feedback" action="/vins" method="post">
+<label for="vins">VINs</label>
+<textarea id="vins" name="vins" rows="10" required autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" class="mono">{{ typed }}</textarea>
+<div class="actions">
+<button class="primary" type="submit" name="format" value="table">Decode</button>
+<button type="submit" name="format" value="csv">Download CSV</button>
+</div>
+</form>
+{% if let Some(note) = note -%}
+<p class="warning">{{ note }}</p>
+{% endif -%}
+{% if !rows.is_empty() -%}
+<div class="scroll">
+<table>
+<caption>{{ rows.len() }} VINs</caption>
+<thead>
+<tr><th scope="col">VIN</th><th scope="col">Vehicle</th><th scope="col">Engine</th><th scope="col">Drive</th><th scope="col">Body</th><th scope="col">Generation</th><th scope="col">Note</th></tr>
+</thead>
+<tbody>
+{% for row in rows -%}
+<tr><td class="mono">{% if row.link %}<a href="/vin/{{ row.vin }}">{{ row.vin }}</a>{% else %}{{ row.vin }}{% endif %}</td><td>{{ row.vehicle }}</td><td>{{ row.engine }}</td><td>{{ row.drive }}</td><td>{{ row.body }}</td><td>{{ row.generation }}</td><td>{{ row.note }}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+</div>
+{% endif -%}
+<p>The same list from a program: <code>POST /v1/vin/batch</code>, with <code>?format=csv</code> for a spreadsheet. See <a href="/docs">the API</a>.</p>
+{% endblock %}

@@ -30,6 +30,7 @@ pub mod tokens;
 pub mod tools;
 pub mod vin;
 pub mod vin_guides;
+pub mod vins;
 pub mod wmi;
 
 use askama::Template;
@@ -513,6 +514,7 @@ pub fn router() -> Router<AppState> {
         .route("/vin", get(home::vin_form))
         .route("/pick", get(home::pick))
         .route("/vin/{vin}", get(vin::result))
+        .route("/vins", get(vins::show).post(vins::decode))
         .route("/feedback", get(feedback::show).post(feedback::send))
         .route(
             "/feedback/labor",
