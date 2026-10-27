@@ -26,6 +26,8 @@ export type {
   Model,
   ModelsQuery,
   ModelYears,
+  NarrowedBatchItem,
+  NarrowedDecode,
   Overview,
   OverviewRecalls,
   Plant,
@@ -77,7 +79,7 @@ export type {
   YearsQuery,
 } from "../types.js";
 export { MAX_STEPS, WenmarOpenOffline } from "./client.js";
-export type { OfflineOptions } from "./client.js";
+export type { OfflineBatchOptions, OfflineOptions } from "./client.js";
 export type { CompiledWasm, WasmSource } from "./engine.js";
 export { d1Store, syncStore } from "./store.js";
 export type { D1Like, D1Statement, Param, Statement, Store, SyncDatabase, SyncStatement } from "./store.js";

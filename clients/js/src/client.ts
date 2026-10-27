@@ -1,4 +1,4 @@
-import { MAX_BATCH } from "./batch.js";
+import { MAX_BATCH, fieldList } from "./batch.js";
 import { WenmarOpenError, parseRetryAfter } from "./errors.js";
 import type {
   BatchItem,
@@ -18,6 +18,7 @@ import type {
   Meta,
   Model,
   ModelYears,
+  NarrowedBatchItem,
   ModelsQuery,
   Overview,
   PayrollDeductions,
@@ -120,6 +121,12 @@ export interface BatchOptions extends RequestOptions {
    * apply to the model year it reaches, as `recalls`.
    */
   include?: "recalls";
+  /**
+   * Only these fields of each decode: dotted paths such as `year`,
+   * `engine.hp` or `attributes.EngineHP.value`. `vin` is always kept, and
+   * an error item is kept whole. At most 60.
+   */
+  fields?: readonly string[];
 }
 
 type QueryValue = string | number | undefined;
@@ -177,9 +184,26 @@ export class WenmarOpen {
   /**
    * Decode up to 250 VINs. The answer has one item per VIN, in order: a
    * decode, or the error a single request for that VIN would have given.
-   * Tell them apart with `isBatchError`.
+   * Tell them apart with `isBatchError`. With `fields`, each decode holds
+   * only those fields and `vin`.
    */
-  async decodeVins(vins: readonly string[], options: BatchOptions = {}): Promise<BatchItem[]> {
+  decodeVins(vins: readonly string[], options?: BatchOptions & { fields?: undefined }): Promise<BatchItem[]>;
+  decodeVins(vins: readonly string[], options: BatchOptions): Promise<NarrowedBatchItem[]>;
+  async decodeVins(vins: readonly string[], options: BatchOptions = {}): Promise<BatchItem[] | NarrowedBatchItem[]> {
+    return this.#request("POST", this.#batchPath(vins, options), { vins }, options);
+  }
+
+  /**
+   * Decode up to 250 VINs as CSV, for a spreadsheet: a header, then one row
+   * per VIN in order, with `error` and `error_message` last. The columns are
+   * `vin` and the `fields` asked for, or a set for a fleet list. A cell a
+   * spreadsheet would read as a formula starts with `'`.
+   */
+  async decodeVinsCsv(vins: readonly string[], options: BatchOptions = {}): Promise<string> {
+    return this.#request("POST", this.#batchPath(vins, options, "csv"), { vins }, options, "csv");
+  }
+
+  #batchPath(vins: readonly string[], options: BatchOptions, format?: "csv"): string {
     if (vins.length > MAX_BATCH) {
       throw new WenmarOpenError({
         code: "validation_failed",
@@ -187,8 +211,7 @@ export class WenmarOpen {
         details: { field: "vins", max: MAX_BATCH, received: vins.length },
       });
     }
-    const path = `/v1/vin/batch${queryString({ include: options.include })}`;
-    return this.#request("POST", path, { vins }, options);
+    return `/v1/vin/batch${queryString({ include: options.include, fields: fieldList(options.fields), format })}`;
   }
 
   /** Model years, newest first. */
@@ -534,6 +557,7 @@ export class WenmarOpen {
     path: string,
     body: unknown,
     options: RequestOptions,
+    expect: "json" | "csv" = "json",
   ): Promise<T> {
     const caller = options.signal;
     if (caller?.aborted) {
@@ -552,7 +576,10 @@ export class WenmarOpen {
     const onAbort = () => controller.abort();
     caller?.addEventListener("abort", onAbort, { once: true });
 
-    const headers: Record<string, string> = { Accept: "application/json" };
+    // An error is JSON whatever was asked for.
+    const headers: Record<string, string> = {
+      Accept: expect === "csv" ? "text/csv, application/json" : "application/json",
+    };
     const init: FetchInit = { method, headers, signal: controller.signal };
     if (body !== undefined) {
       headers["Content-Type"] = "application/json";
@@ -602,6 +629,7 @@ export class WenmarOpen {
     }
 
     if (status >= 200 && status < 300) {
+      if (expect === "csv") return text as T;
       if (!isJson) {
         throw new WenmarOpenError({
           code: "bad_response",

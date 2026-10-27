@@ -105,6 +105,19 @@ items.forEach((item, index) => {
 
 A batch holds at most 250 VINs (`MAX_BATCH`). The answer has one item per VIN, in the order sent. One bad VIN does not fail the batch.
 
+`fields` keeps only some fields of each decode, as dotted paths; `vin` is always kept, and an error item is kept whole. `decodeVinsCsv` gives the batch as CSV for a spreadsheet: one row per VIN, in order, with `error` and `error_message` columns. Both work offline too.
+
+```ts
+import { WenmarOpen } from "wenmar-open";
+
+const open = new WenmarOpen();
+const vins = ["KM8K2CAB4PU001140", "1HGCM82633A004352"];
+
+const narrowed = await open.decodeVins(vins, { fields: ["year", "make", "model", "engine.hp"] });
+const csv = await open.decodeVinsCsv(vins, { fields: ["year", "make", "model", "engine.hp"] });
+console.log(narrowed, csv);
+```
+
 ## Choose a vehicle without a VIN
 
 Each step offers only what is valid for the steps before it.
@@ -234,7 +247,7 @@ console.log((await open.meta()).data_version);
 
 Answers change only when the data does, about once a month. `open.meta()` returns the `data_version`; anything you cache can be kept until it changes. In a browser the HTTP cache already does this.
 
-One address may make 600 requests a minute. A server that calls the API for many users shares one address, so cache catalog answers there. To decode a list of VINs, use `decodeVins`: a batch of 50 counts as one request.
+One address may make 600 requests a minute. A server that calls the API for many users shares one address, so cache catalog answers there. To decode a list of VINs, use `decodeVins`: a batch of 250 counts as one request.
 
 ## Offline
 
@@ -471,7 +484,7 @@ The package is an ES module. `require("wenmar-open")` works in Node 20.19 and la
 
 ## Types
 
-Every response type is exported: `VinDecode`, `Entry`, `Make`, `Model`, `Submodel`, `EngineOption`, `Meta`, `BatchItem`, `ErrorBody`, and for recalls `VehicleRecalls`, `VinRecalls`, `RecallCampaign`, `RecallList`, `Recall` and `RecallLookup`. So are the query types, such as `RecallSearchQuery`. The generated `paths`, `operations` and `components` types are exported as well.
+Every response type is exported: `VinDecode`, `Entry`, `Make`, `Model`, `Submodel`, `EngineOption`, `Meta`, `BatchItem`, `NarrowedBatchItem`, `ErrorBody`, and for recalls `VehicleRecalls`, `VinRecalls`, `RecallCampaign`, `RecallList`, `Recall` and `RecallLookup`. So are the query types, such as `RecallSearchQuery`. The generated `paths`, `operations` and `components` types are exported as well.
 
 The API only ever adds fields and endpoints. A response may carry fields this version's types do not name; they are passed through untouched.
 

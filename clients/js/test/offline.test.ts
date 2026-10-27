@@ -114,7 +114,34 @@ test("a batch answers in order, with an error in the place of a VIN that has one
   assert.equal(new Set(run).size, run.length);
 });
 
-test("a batch over 50 is refused before anything is read", async () => {
+test("a batch narrowed to fields keeps those and the VIN, and an error whole", async () => {
+  const client = offline();
+  const [whole] = await client.decodeVins([KONA]);
+  assert.ok(whole !== undefined && !isBatchError(whole));
+  const [narrowed, error] = await client.decodeVins([KONA, "KM8"], { fields: ["year", "engine.fuel"] });
+  assert.deepEqual(narrowed, { vin: KONA, year: whole.year, engine: { fuel: whole.engine?.fuel } });
+  assert.ok(error !== undefined && isBatchError(error));
+  assert.equal(error.error.code, "invalid_vin");
+});
+
+test("a batch as CSV has a row per VIN in order, an error in its own columns", async () => {
+  const csv = await offline().decodeVinsCsv([KONA, "KM8"], { fields: ["make"] });
+  const lines = csv.split("\r\n");
+  assert.equal(lines[0], "vin,make,error,error_message");
+  assert.equal(lines[1], `${KONA},Hyundai,,`);
+  assert.match(lines[2] ?? "", /^KM8,,invalid_vin,/);
+  assert.equal(lines[3], "");
+});
+
+test("fields and format are checked before any VIN is read", async () => {
+  const store = new RecordedStore();
+  const error = await failure(offline(store).decodeVins([KONA], { fields: ["engine..hp"] }));
+  assert.equal(error.code, "validation_failed");
+  assert.equal(error.details["field"], "fields");
+  assert.equal(store.steps, 2);
+});
+
+test("a batch over the limit is refused before anything is read", async () => {
   const store = new RecordedStore();
   const error = await failure(offline(store).decodeVins(Array.from({ length: MAX_BATCH + 1 }, () => KONA)));
   assert.equal(error.code, "validation_failed");

@@ -1,4 +1,4 @@
-import { MAX_BATCH } from "../batch.js";
+import { MAX_BATCH, fieldList } from "../batch.js";
 import type { DecodeOptions, RequestOptions } from "../client.js";
 import { WenmarOpenError } from "../errors.js";
 import type {
@@ -17,6 +17,7 @@ import type {
   JobDetail,
   JobList,
   ModelYears,
+  NarrowedBatchItem,
   Overview,
   RecallCampaign,
   RecallList,
@@ -60,6 +61,16 @@ import type { Statement, Store } from "./store.js";
  * at most 7 and a search at most 4. Reaching this means something is wrong.
  */
 export const MAX_STEPS = 32;
+
+/** A batch's options. There is no `include`: the recall count of a batch is the hosted API's alone. */
+export interface OfflineBatchOptions extends RequestOptions {
+  /**
+   * Only these fields of each decode: dotted paths such as `year`,
+   * `engine.hp` or `attributes.EngineHP.value`. `vin` is always kept, and
+   * an error item is kept whole. At most 60.
+   */
+  fields?: readonly string[];
+}
 
 export interface OfflineOptions {
   /** Where the data is: `syncStore(...)`, `d1Store(...)`, or your own. */
@@ -171,9 +182,29 @@ export class WenmarOpenOffline {
   /**
    * Decode up to 250 VINs. The answer has one item per VIN, in order: a
    * decode, or the error a single call for that VIN would have thrown.
-   * Tell them apart with `isBatchError`.
+   * Tell them apart with `isBatchError`. With `fields`, each decode holds
+   * only those fields and `vin`.
    */
-  async decodeVins(vins: readonly string[], options: RequestOptions = {}): Promise<BatchItem[]> {
+  decodeVins(vins: readonly string[], options?: OfflineBatchOptions & { fields?: undefined }): Promise<BatchItem[]>;
+  decodeVins(vins: readonly string[], options: OfflineBatchOptions): Promise<NarrowedBatchItem[]>;
+  async decodeVins(
+    vins: readonly string[],
+    options: OfflineBatchOptions = {},
+  ): Promise<BatchItem[] | NarrowedBatchItem[]> {
+    return this.#batch(vins, options, undefined);
+  }
+
+  /**
+   * Decode up to 250 VINs as CSV, for a spreadsheet: a header, then one row
+   * per VIN in order, with `error` and `error_message` last. The columns are
+   * `vin` and the `fields` asked for, or a set for a fleet list. A cell a
+   * spreadsheet would read as a formula starts with `'`.
+   */
+  async decodeVinsCsv(vins: readonly string[], options: OfflineBatchOptions = {}): Promise<string> {
+    return this.#batch(vins, options, "csv");
+  }
+
+  async #batch<T>(vins: readonly string[], options: OfflineBatchOptions, format: "csv" | undefined): Promise<T> {
     if (vins.length > MAX_BATCH) {
       throw new WenmarOpenError({
         code: "validation_failed",
@@ -181,9 +212,15 @@ export class WenmarOpenOffline {
         details: { field: "vins", max: MAX_BATCH, received: vins.length },
       });
     }
+    const fields = fieldList(options.fields);
+    // `fields` and `format` are checked before any VIN is read, as the API does.
+    await this.#one({ op: "batch_out", args: { items: [], inputs: [], fields, format } }, options);
     const questions = vins.map((vin) => ({ op: "decode", args: { vin: String(vin) } }));
     const outcomes = await this.#ask(questions, options);
-    return outcomes.map((outcome) => ("ok" in outcome ? outcome.ok : { error: outcome.error }) as BatchItem);
+    const items = outcomes.map((outcome) => ("ok" in outcome ? outcome.ok : { error: outcome.error }));
+    if (fields === undefined && format === undefined) return items as T;
+    const inputs = vins.map((vin) => String(vin));
+    return this.#one({ op: "batch_out", args: { items, inputs, fields, format } }, options);
   }
 
   /** Model years, newest first. */

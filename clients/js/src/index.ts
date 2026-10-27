@@ -48,6 +48,8 @@ export type {
   Model,
   ModelYears,
   ModelsQuery,
+  NarrowedBatchItem,
+  NarrowedDecode,
   Overview,
   OverviewBulletins,
   OverviewRecalls,

@@ -312,6 +312,28 @@ test("a batch asks for the recall count only when told to", async () => {
   assert.deepEqual(JSON.parse(api.last.body), { vins: [KONA] });
 });
 
+test("a batch narrowed to fields names them in the query", async () => {
+  api.next({ body: [{ vin: KONA, year: 2023, engine: { hp: 147 } }] });
+  const [item] = await client.decodeVins([KONA], { fields: ["year", "engine.hp"] });
+  assert.equal(api.last.url, "/v1/vin/batch?fields=year%2Cengine.hp");
+  assert.ok(item !== undefined && !isBatchError(item));
+  assert.deepEqual(item, { vin: KONA, year: 2023, engine: { hp: 147 } });
+});
+
+test("a batch as CSV is the text of the answer", async () => {
+  const csv = `vin,year,error,error_message\r\n${KONA},2023,,\r\n`;
+  api.next({ body: csv });
+  assert.equal(await client.decodeVinsCsv([KONA], { fields: ["year"] }), csv);
+  assert.equal(api.last.url, "/v1/vin/batch?fields=year&format=csv");
+  assert.equal(api.last.headers.accept, "text/csv, application/json");
+  api.next({ status: 400, body: errorBody("validation_failed", "fields names at most 60 fields", { field: "fields" }) });
+  await assert.rejects(client.decodeVinsCsv([KONA]), (error: unknown) => {
+    assert.ok(error instanceof WenmarOpenError);
+    assert.equal(error.code, "validation_failed");
+    return true;
+  });
+});
+
 test("a batch over the limit is refused without a request", async () => {
   const before = api.received.length;
   const vins = Array.from({ length: MAX_BATCH + 1 }, () => KONA);

@@ -205,6 +205,8 @@ impl Engine {
                     "shop_schema_version": SHOP_SCHEMA_VERSION,
                 }));
             }
+            // Works on decodes already made: no data is read.
+            "batch_out" => return ops::batch_out(args),
             "open" => return self.open(),
             "open_shop" => return self.open_shop(),
             _ => {}

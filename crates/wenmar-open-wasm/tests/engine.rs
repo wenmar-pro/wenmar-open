@@ -114,7 +114,7 @@ fn a_database_with_no_schema_version_is_not_a_data_file() {
 }
 
 #[test]
-fn nothing_but_version_is_answered_before_the_data_is_opened() {
+fn nothing_that_reads_the_data_is_answered_before_it_is_opened() {
     let mut engine = Engine::new();
     assert_eq!(
         call(&mut engine, json!({ "op": "version" })),
@@ -134,6 +134,56 @@ fn nothing_but_version_is_answered_before_the_data_is_opened() {
         let answer = call(&mut engine, json!({ "op": op, "current_year": YEAR }));
         assert_eq!(answer["error"]["code"], "internal_error", "{op}: {answer}");
     }
+}
+
+#[test]
+fn a_batch_is_narrowed_to_its_fields_or_written_as_csv_as_the_api_does_it() {
+    // It reads no data, so it answers before the data is opened.
+    let mut engine = Engine::new();
+    let items = json!([
+        { "vin": KONA, "year": 2023, "make": "Hyundai", "engine": { "hp": 147, "fuel": "Gasoline" } },
+        { "error": { "code": "invalid_vin", "message": "a VIN has 17 characters, this has 3", "details": {} } },
+    ]);
+    let narrowed = call(
+        &mut engine,
+        json!({ "op": "batch_out", "args": { "items": items, "fields": "year,engine.hp" } }),
+    );
+    assert_eq!(
+        narrowed["ok"],
+        json!([
+            { "vin": KONA, "year": 2023, "engine": { "hp": 147 } },
+            items[1],
+        ])
+    );
+    let whole = call(
+        &mut engine,
+        json!({ "op": "batch_out", "args": { "items": items } }),
+    );
+    assert_eq!(whole["ok"], items);
+    let csv = call(
+        &mut engine,
+        json!({ "op": "batch_out", "args": {
+            "items": items, "inputs": [KONA, "ABC"], "fields": "make,engine.hp", "format": "csv",
+        } }),
+    );
+    assert_eq!(
+        csv["ok"],
+        format!(
+            "vin,make,engine.hp,error,error_message\r\n{KONA},Hyundai,147,,\r\nABC,,,invalid_vin,\"a VIN has 17 characters, this has 3\"\r\n"
+        )
+    );
+    let wrong = call(
+        &mut engine,
+        json!({ "op": "batch_out", "args": { "items": [], "format": "xml" } }),
+    );
+    assert_eq!(wrong["error"]["code"], "validation_failed");
+    assert_eq!(wrong["error"]["details"]["field"], "format");
+    let wrong = call(
+        &mut engine,
+        json!({ "op": "batch_out", "args": { "items": [], "fields": "engine..hp" } }),
+    );
+    assert_eq!(wrong["error"]["code"], "validation_failed");
+    assert_eq!(wrong["error"]["details"]["field"], "fields");
 }
 
 // ----- answers -----

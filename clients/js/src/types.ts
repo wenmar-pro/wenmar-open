@@ -140,6 +140,13 @@ export type PayrollFactor = Schemas["PayrollFactor"];
 export type ErrorBody = Schemas["ErrorBody"];
 /** One answer of a batch: a decode, or the error for that VIN. */
 export type BatchItem = Schemas["BatchItem"];
+/**
+ * A decode narrowed to the `fields` asked for, in the same nesting. `vin` is
+ * always kept.
+ */
+export type NarrowedDecode = { vin: string } & Record<string, unknown>;
+/** One answer of a batch asked with `fields`: a narrowed decode, or the error for that VIN, whole. */
+export type NarrowedBatchItem = NarrowedDecode | ErrorBody;
 
 type Query<Name extends keyof operations> = NonNullable<operations[Name]["parameters"]["query"]>;
 

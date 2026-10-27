@@ -4,12 +4,13 @@
 use serde::Serialize;
 use serde_json::{Value, json};
 use wenmar_shopdata::answer::{self, AnswerError, Answers, CodeSearch, Overviews, Recent, Search};
+use wenmar_shopdata::batch;
 use wenmar_shopdata::recalls::RecallSource;
 use wenmar_shopdata::{Dataset, ShopError};
 use wenmar_vehicles::{Catalog, Scope, vin_rows};
 use wenmar_vin::{DecodeOptions, Decoder, Vin};
 
-use crate::error::{DATA_INVALID, INVALID_VIN, OpError};
+use crate::error::{DATA_INVALID, INVALID_VIN, OpError, VALIDATION_FAILED};
 use crate::replay::Replay;
 
 /// Longest text read as a VIN, in bytes. Anything longer is refused unread.
@@ -111,7 +112,7 @@ pub fn decode(
         && !(FIRST_YEAR..=latest).contains(&year)
     {
         return Err(OpError::new(
-            crate::error::VALIDATION_FAILED,
+            VALIDATION_FAILED,
             format!("year must be between {FIRST_YEAR} and {latest}"),
         )
         .with_details(json!({ "field": "year", "min": FIRST_YEAR, "max": latest })));
@@ -333,6 +334,63 @@ pub fn model_years(overviews: &OverviewAnswers, args: &Value) -> Result<Value, O
     let make = text(args, "make")?.unwrap_or_default();
     let model = text(args, "model")?.unwrap_or_default();
     json(overviews.model_years(&make, &model)?)
+}
+
+// ----- a batch narrowed or as CSV -----
+
+/// `{ "items", "inputs", "fields", "format" }`: a batch of decodes as the
+/// API's `POST /v1/vin/batch` gives it with `fields=` and `format=`. Each
+/// item narrowed to the fields named, or the CSV text. It reads no data.
+pub fn batch_out(args: &Value) -> Result<Value, OpError> {
+    let fields = batch::parse_fields(text(args, "fields")?.as_deref()).map_err(|error| {
+        OpError::new(VALIDATION_FAILED, error.message).with_details(error.details)
+    })?;
+    let as_csv = match text(args, "format")?.as_deref().map(str::trim) {
+        None | Some("") | Some("json") => false,
+        Some("csv") => true,
+        Some(other) => {
+            return Err(OpError::new(
+                VALIDATION_FAILED,
+                format!("format must be json or csv, not {other:?}"),
+            )
+            .with_details(json!({ "field": "format", "allowed": ["json", "csv"] })));
+        }
+    };
+    let items = match args.get("items") {
+        Some(Value::Array(items)) => items.clone(),
+        _ => {
+            return Err(OpError::internal(
+                "the request is not one this build reads: items",
+            ));
+        }
+    };
+    if as_csv {
+        let inputs: Vec<String> = match args.get("inputs") {
+            Some(Value::Array(inputs)) => inputs
+                .iter()
+                .map(|input| input.as_str().unwrap_or_default().to_owned())
+                .collect(),
+            _ => {
+                return Err(OpError::internal(
+                    "the request is not one this build reads: inputs",
+                ));
+            }
+        };
+        return Ok(Value::String(batch::csv(
+            &items,
+            &inputs,
+            fields.as_deref(),
+        )));
+    }
+    let Some(fields) = fields else {
+        return Ok(Value::Array(items));
+    };
+    Ok(Value::Array(
+        items
+            .into_iter()
+            .map(|item| batch::project(item, &fields))
+            .collect(),
+    ))
 }
 
 // ----- crash test ratings -----
