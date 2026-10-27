@@ -85,8 +85,70 @@ fn decodes_a_vin_into_the_documented_json() {
                 "vehicle_type": "Multipurpose Passenger Vehicle (MPV)"
             },
             "plant": { "code": "U", "city": "Ulsan", "country": "South Korea" },
-            "warnings": []
+            "warnings": [],
+            "year_conclusive": true,
+            "drive": "FWD",
+            "generation": {
+                "name": "OS",
+                "ordinal": 1,
+                "code": "OS",
+                "year_from": 2018,
+                "year_to": 2023
+            },
+            "attributes": {
+                "DisplacementL": { "name": "Displacement (L)", "value": "2.0", "source": "vin_pattern" },
+                "Doors": { "name": "Doors", "value": "4", "source": "vin_pattern" },
+                "DriveType": { "name": "Drive Type", "value": "FWD/Front-Wheel Drive", "source": "vin_pattern" },
+                "EngineCylinders": { "name": "Engine Number of Cylinders", "value": "4", "source": "vin_pattern" },
+                "FuelTypePrimary": { "name": "Fuel Type - Primary", "value": "Gasoline", "source": "vin_pattern" },
+                "Make": { "name": "Make", "value": "Hyundai", "source": "vin_pattern" },
+                "Model": { "name": "Model", "value": "Kona", "source": "vin_pattern" },
+                "PlantCity": { "name": "Plant City", "value": "Ulsan", "source": "vin_pattern" },
+                "PlantCountry": { "name": "Plant Country", "value": "South Korea", "source": "vin_pattern" },
+                "TPMS": { "name": "Tire Pressure Monitoring System (TPMS) Type", "value": "Direct", "source": "vin_pattern" },
+                "Trim": { "name": "Trim", "value": "SE", "source": "vin_pattern" }
+            }
         })
+    );
+}
+
+#[test]
+fn elements_the_crate_does_not_interpret_are_still_shown() {
+    let data = data()
+        .with_pattern(1, "K2***", Element::Other(71), "147")
+        .with_pattern(1, "K2***", Element::Other(62), "Dual Overhead Cam (DOHC)")
+        .with_pattern(1, "K2***", Element::Other(42), "Hydraulic")
+        .with_pattern(1, "K2***", Element::Other(59), "64.8")
+        .with_pattern(1, "K2***", Element::Other(129), "Gasoline Direct Injection")
+        .with_pattern(1, "****B", Element::Other(129), "Variable valve timing")
+        .with_pattern(
+            2,
+            "*****|*U",
+            Element::Other(129),
+            "Gasoline Direct Injection",
+        );
+    let decoded = Decoder::new(data).decode(KONA, options()).unwrap();
+    let engine = decoded.engine.as_ref().unwrap();
+    assert_eq!(engine.hp, Some(147.0));
+    assert_eq!(
+        engine.valve_train.as_deref(),
+        Some("Dual Overhead Cam (DOHC)")
+    );
+    assert_eq!(decoded.brake_system.as_deref(), Some("Hydraulic"));
+    assert_eq!(decoded.electric.as_ref().unwrap().battery_kwh, Some(64.8));
+    // Every note once, though two schemas filed the same one.
+    assert_eq!(
+        decoded.notes,
+        vec!["Gasoline Direct Injection", "Variable valve timing"]
+    );
+    let note = &decoded.attributes["OtherEngineInfo"];
+    assert_eq!(
+        note.value,
+        "Gasoline Direct Injection; Variable valve timing"
+    );
+    assert_eq!(
+        decoded.attributes["EngineHP"].name,
+        "Engine Brake (hp) From"
     );
 }
 

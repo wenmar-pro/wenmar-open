@@ -40,6 +40,7 @@ pub mod data;
 pub mod decode;
 pub mod engine;
 pub mod error;
+pub mod generation;
 pub mod memory;
 pub mod model_year;
 pub mod pattern;
@@ -53,8 +54,12 @@ pub use data::{DataError, Element, EngineRow, Manufacturer, Pattern, SchemaRef, 
 pub use decode::{DecodeError, DecodeOptions, Decoder};
 pub use engine::Engine;
 pub use error::{InvalidChar, VinError};
+pub use generation::Generation;
 pub use memory::MemoryData;
-pub use result::{Decoded, ManufacturerInfo, Plant, Safety, Warning, WarningCode};
+pub use result::{
+    Attribute, AttributeSource, BodyStyle, Decoded, Drive, Electric, ManufacturerInfo, Plant,
+    Safety, Warning, WarningCode,
+};
 pub use vin::Vin;
 
 #[cfg(feature = "sqlite")]

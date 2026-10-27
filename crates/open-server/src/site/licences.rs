@@ -49,6 +49,13 @@ pub const LICENCES: &[Licence] = &[
         licence_id: "mit",
         attribution: "Keep the copyright notice in LICENSE.",
     },
+    Licence {
+        dataset: "Vehicle generations: which redesign of a model a model year belongs to",
+        source: "corgi-rs, tools/generations.tsv, https://github.com/wonderooo/corgi-rs, kept as published in crates/wenmar-vin/generations.tsv",
+        licence: "MIT",
+        licence_id: "mit",
+        attribution: "Keep the corgi-rs copyright notice, given in NOTICE.md.",
+    },
     // ---- Shop-data plans add one row per dataset below this line. ----
     // In the order of the roadmap's dataset ids: recalls_us, recalls_ca,
     // investigations, recall_reports, ratings, bulletins, complaints, codes,

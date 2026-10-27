@@ -5,6 +5,8 @@
 //! generated from these definitions, and the two libraries must not depend
 //! on an OpenAPI crate. A test compares the JSON of both for every field.
 
+use std::collections::BTreeMap;
+
 use serde::Serialize;
 use utoipa::ToSchema;
 use wenmar_vehicles as vehicles;
@@ -68,6 +70,81 @@ pub struct VinDecode {
     pub plant: Plant,
     /// Things to know about a decode that still succeeded.
     pub warnings: Vec<Warning>,
+    /// Whether the model year is settled. Position 10 repeats every 30
+    /// years. For cars, multipurpose vehicles and light trucks position 7
+    /// settles which cycle; for other vehicles the year is the one the data
+    /// explains better, and it is not settled when both years have data.
+    /// Check the year on the vehicle's label when this is `false`.
+    pub year_conclusive: bool,
+    /// The drive in one of five words. Left out when NHTSA's value fits
+    /// none of them, such as `6x4`; `drivetrain` still has it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drive: Option<Drive>,
+    /// The body in one word. `body` has NHTSA's words.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub body_style: Option<BodyStyle>,
+    /// The generation of the model this model year belongs to, from
+    /// corgi-rs's table. Left out for a model the table does not list.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub generation: Option<Generation>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub series2: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub trim2: Option<String>,
+    /// Cab type of a truck, as NHTSA words it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(example = "Crew/Super Crew/Crew Max")]
+    pub cab_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bed_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bed_length_in: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub curb_weight_lb: Option<f64>,
+    /// Upper end of the gross vehicle weight rating class, when NHTSA gives
+    /// a range.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gvwr_to: Option<String>,
+    /// Wheelbase in inches, or the shorter end of a range.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wheelbase_in: Option<f64>,
+    /// The longer end of the wheelbase range, in inches.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wheelbase_to_in: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub track_width_in: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wheels: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub axles: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub axle_configuration: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(example = "Left-Hand Drive (LHD)")]
+    pub steering: Option<String>,
+    /// Service brakes, such as `Hydraulic` or `Air`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(example = "Hydraulic")]
+    pub brake_system: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub brake_system_description: Option<String>,
+    /// The market the vehicle was built for, when NHTSA records one.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub destination_market: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub top_speed_mph: Option<f64>,
+    /// Battery and charging, for an electric or hybrid vehicle.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub electric: Option<Electric>,
+    /// Free-text notes the manufacturer filed, such as other engine or
+    /// restraint information, each once.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub notes: Vec<String>,
+    /// Every attribute the decode resolved, by NHTSA's element code as
+    /// NHTSA's own API names it, with where it came from. The fields above
+    /// are taken from these; this also holds the ones they leave out.
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub attributes: BTreeMap<String, Attribute>,
     /// The catalog entry this VIN reaches, for prefilling a vehicle form.
     /// Left out when the catalog cannot place the vehicle.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -112,6 +189,150 @@ pub struct Engine {
     pub turbo: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub electrification: Option<String>,
+    /// Brake horsepower, or the lower end of a range.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(example = 147.0)]
+    pub hp: Option<f64>,
+    /// The upper end of the horsepower range.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hp_to: Option<f64>,
+    /// Power in kilowatts, as the manufacturer reported it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub kw: Option<f64>,
+    /// Who made the engine.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub manufacturer: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(example = "Dual Overhead Cam (DOHC)")]
+    pub valve_train: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(example = "Stoichiometric Gasoline Direct Injection (SGDI)")]
+    pub fuel_injection: Option<String>,
+    /// Such as `Water` or `Air`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cooling: Option<String>,
+    /// The second fuel of a flexible-fuel or bi-fuel engine.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fuel_secondary: Option<String>,
+    /// Two- or four-stroke.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stroke_cycles: Option<u8>,
+}
+
+/// The drive, in the words shops use.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, ToSchema)]
+pub enum Drive {
+    #[serde(rename = "FWD")]
+    Fwd,
+    #[serde(rename = "RWD")]
+    Rwd,
+    #[serde(rename = "AWD")]
+    Awd,
+    #[serde(rename = "4WD")]
+    FourWd,
+    #[serde(rename = "2WD")]
+    TwoWd,
+}
+
+/// The body, in one word. `suv` takes crossovers; `pickup` takes sport
+/// utility trucks; `van` takes cargo, passenger and step vans; `incomplete`
+/// is a chassis another company finishes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, ToSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum BodyStyle {
+    Sedan,
+    Coupe,
+    Convertible,
+    Hatchback,
+    Wagon,
+    Suv,
+    Minivan,
+    Van,
+    Pickup,
+    Truck,
+    Bus,
+    Motorhome,
+    Incomplete,
+    Motorcycle,
+    OffRoad,
+    LowSpeed,
+    Trailer,
+    Other,
+}
+
+/// One generation of a model: a run of model years between redesigns.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct Generation {
+    /// How the generation is known.
+    #[schema(example = "8th generation")]
+    pub name: String,
+    /// Its number, when it has one that is commonly used.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(example = 8)]
+    pub ordinal: Option<u8>,
+    /// The maker's platform or chassis code, when there is one.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(example = "CP/CS")]
+    pub code: Option<String>,
+    #[schema(example = 2008)]
+    pub year_from: u16,
+    /// Left out while the generation is still made.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(example = 2012)]
+    pub year_to: Option<u16>,
+}
+
+/// Battery and charging, as the manufacturer reported them.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct Electric {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(example = "Lithium-Ion/Li-Ion")]
+    pub battery_type: Option<String>,
+    /// Energy in kWh, or the lower end of a range.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub battery_kwh: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub battery_kwh_to: Option<f64>,
+    /// Voltage, or the lower end of a range.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub battery_volts: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub battery_volts_to: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub battery_info: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drive_unit: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(example = "Level 2")]
+    pub charger_level: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub charger_power_kw: Option<f64>,
+}
+
+/// Where an attribute's value came from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, ToSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum AttributeSource {
+    /// A pattern of the VIN's own characters.
+    VinPattern,
+    /// What NHTSA records for the engine model a pattern named.
+    EngineModel,
+    /// A specification sheet the manufacturer filed for the make, model and
+    /// year, whose conditions the decode met.
+    SpecificationSheet,
+}
+
+/// One attribute of a decode.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+pub struct Attribute {
+    /// NHTSA's name for it.
+    #[schema(example = "Engine Brake (hp) From")]
+    pub name: String,
+    /// Its value as NHTSA words it. Notes that came more than once are
+    /// joined with `; `.
+    #[schema(example = "147")]
+    pub value: String,
+    pub source: AttributeSource,
 }
 
 /// Safety equipment as the manufacturer reported it: `Standard`, `Optional`,
@@ -159,6 +380,39 @@ pub struct Safety {
     pub pedestrian_braking: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub lane_centering: Option<String>,
+    /// A key that must be programmed to the vehicle.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub keyless_ignition: Option<String>,
+    /// Such as `LED` or `Halogen`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub headlamp_light_source: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub adaptive_driving_beam: Option<String>,
+    /// Headlamps that turn with the steering.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub adaptive_headlights: Option<String>,
+    /// Semiautomatic headlamp beam switching.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub automatic_high_beams: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub daytime_running_lights: Option<String>,
+    /// Auto-reverse for power windows and sunroofs.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub auto_reverse_windows: Option<String>,
+    /// Automatic or advanced automatic crash notification.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub crash_notification: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub event_data_recorder: Option<String>,
+    /// The sound a hybrid or electric vehicle makes for pedestrians.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pedestrian_alert_sound: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub seat_belts: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pretensioner: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub airbags_seat_cushion: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
@@ -340,6 +594,65 @@ impl VinDecode {
                 company: decoded.plant.company,
             },
             warnings: decoded.warnings.into_iter().map(Warning::from).collect(),
+            year_conclusive: decoded.year_conclusive,
+            drive: decoded.drive.and_then(Drive::from_vin),
+            body_style: decoded.body_style.and_then(BodyStyle::from_vin),
+            generation: decoded.generation.map(|generation| Generation {
+                name: generation.name,
+                ordinal: generation.ordinal,
+                code: generation.code,
+                year_from: generation.year_from,
+                year_to: generation.year_to,
+            }),
+            series2: decoded.series2,
+            trim2: decoded.trim2,
+            cab_type: decoded.cab_type,
+            bed_type: decoded.bed_type,
+            bed_length_in: decoded.bed_length_in,
+            curb_weight_lb: decoded.curb_weight_lb,
+            gvwr_to: decoded.gvwr_to,
+            wheelbase_in: decoded.wheelbase_in,
+            wheelbase_to_in: decoded.wheelbase_to_in,
+            track_width_in: decoded.track_width_in,
+            wheels: decoded.wheels,
+            axles: decoded.axles,
+            axle_configuration: decoded.axle_configuration,
+            steering: decoded.steering,
+            brake_system: decoded.brake_system,
+            brake_system_description: decoded.brake_system_description,
+            destination_market: decoded.destination_market,
+            top_speed_mph: decoded.top_speed_mph,
+            electric: decoded.electric.map(|electric| Electric {
+                battery_type: electric.battery_type,
+                battery_kwh: electric.battery_kwh,
+                battery_kwh_to: electric.battery_kwh_to,
+                battery_volts: electric.battery_volts,
+                battery_volts_to: electric.battery_volts_to,
+                battery_info: electric.battery_info,
+                drive_unit: electric.drive_unit,
+                charger_level: electric.charger_level,
+                charger_power_kw: electric.charger_power_kw,
+            }),
+            notes: decoded.notes,
+            attributes: decoded
+                .attributes
+                .into_iter()
+                .map(|(code, attribute)| {
+                    let source = match attribute.source {
+                        vin::AttributeSource::EngineModel => AttributeSource::EngineModel,
+                        vin::AttributeSource::SpecificationSheet => {
+                            AttributeSource::SpecificationSheet
+                        }
+                        _ => AttributeSource::VinPattern,
+                    };
+                    let attribute = Attribute {
+                        name: attribute.name,
+                        value: attribute.value,
+                        source,
+                    };
+                    (code, attribute)
+                })
+                .collect(),
             catalog: selection.map(Selection::from),
             recalls: None,
         }
@@ -358,6 +671,15 @@ impl From<vin::Engine> for Engine {
             fuel: engine.fuel,
             turbo: engine.turbo,
             electrification: engine.electrification,
+            hp: engine.hp,
+            hp_to: engine.hp_to,
+            kw: engine.kw,
+            manufacturer: engine.manufacturer,
+            valve_train: engine.valve_train,
+            fuel_injection: engine.fuel_injection,
+            cooling: engine.cooling,
+            fuel_secondary: engine.fuel_secondary,
+            stroke_cycles: engine.stroke_cycles,
         }
     }
 }
@@ -385,7 +707,63 @@ impl From<vin::Safety> for Safety {
             park_assist: safety.park_assist,
             pedestrian_braking: safety.pedestrian_braking,
             lane_centering: safety.lane_centering,
+            keyless_ignition: safety.keyless_ignition,
+            headlamp_light_source: safety.headlamp_light_source,
+            adaptive_driving_beam: safety.adaptive_driving_beam,
+            adaptive_headlights: safety.adaptive_headlights,
+            automatic_high_beams: safety.automatic_high_beams,
+            daytime_running_lights: safety.daytime_running_lights,
+            auto_reverse_windows: safety.auto_reverse_windows,
+            crash_notification: safety.crash_notification,
+            event_data_recorder: safety.event_data_recorder,
+            pedestrian_alert_sound: safety.pedestrian_alert_sound,
+            seat_belts: safety.seat_belts,
+            pretensioner: safety.pretensioner,
+            airbags_seat_cushion: safety.airbags_seat_cushion,
         }
+    }
+}
+
+impl Drive {
+    /// The library's drive. `None` only for a kind the library adds later
+    /// and this server does not yet know.
+    fn from_vin(drive: vin::Drive) -> Option<Drive> {
+        Some(match drive {
+            vin::Drive::Fwd => Drive::Fwd,
+            vin::Drive::Rwd => Drive::Rwd,
+            vin::Drive::Awd => Drive::Awd,
+            vin::Drive::FourWd => Drive::FourWd,
+            vin::Drive::TwoWd => Drive::TwoWd,
+            _ => return None,
+        })
+    }
+}
+
+impl BodyStyle {
+    /// The library's body style, as [`Drive::from_vin`] treats drives.
+    fn from_vin(style: vin::BodyStyle) -> Option<BodyStyle> {
+        use vin::BodyStyle as Vin;
+        Some(match style {
+            Vin::Sedan => BodyStyle::Sedan,
+            Vin::Coupe => BodyStyle::Coupe,
+            Vin::Convertible => BodyStyle::Convertible,
+            Vin::Hatchback => BodyStyle::Hatchback,
+            Vin::Wagon => BodyStyle::Wagon,
+            Vin::Suv => BodyStyle::Suv,
+            Vin::Minivan => BodyStyle::Minivan,
+            Vin::Van => BodyStyle::Van,
+            Vin::Pickup => BodyStyle::Pickup,
+            Vin::Truck => BodyStyle::Truck,
+            Vin::Bus => BodyStyle::Bus,
+            Vin::Motorhome => BodyStyle::Motorhome,
+            Vin::Incomplete => BodyStyle::Incomplete,
+            Vin::Motorcycle => BodyStyle::Motorcycle,
+            Vin::OffRoad => BodyStyle::OffRoad,
+            Vin::LowSpeed => BodyStyle::LowSpeed,
+            Vin::Trailer => BodyStyle::Trailer,
+            Vin::Other => BodyStyle::Other,
+            _ => return None,
+        })
     }
 }
 

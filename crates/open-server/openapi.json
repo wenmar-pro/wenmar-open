@@ -3182,6 +3182,39 @@
   },
   "components": {
     "schemas": {
+      "Attribute": {
+        "type": "object",
+        "description": "One attribute of a decode.",
+        "required": [
+          "name",
+          "value",
+          "source"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "NHTSA's name for it.",
+            "example": "Engine Brake (hp) From"
+          },
+          "source": {
+            "$ref": "#/components/schemas/AttributeSource"
+          },
+          "value": {
+            "type": "string",
+            "description": "Its value as NHTSA words it. Notes that came more than once are\njoined with `; `.",
+            "example": "147"
+          }
+        }
+      },
+      "AttributeSource": {
+        "type": "string",
+        "description": "Where an attribute's value came from.",
+        "enum": [
+          "vin_pattern",
+          "engine_model",
+          "specification_sheet"
+        ]
+      },
       "BatchItem": {
         "oneOf": [
           {
@@ -3212,6 +3245,30 @@
             "maxItems": 50
           }
         }
+      },
+      "BodyStyle": {
+        "type": "string",
+        "description": "The body, in one word. `suv` takes crossovers; `pickup` takes sport\nutility trucks; `van` takes cargo, passenger and step vans; `incomplete`\nis a chassis another company finishes.",
+        "enum": [
+          "sedan",
+          "coupe",
+          "convertible",
+          "hatchback",
+          "wagon",
+          "suv",
+          "minivan",
+          "van",
+          "pickup",
+          "truck",
+          "bus",
+          "motorhome",
+          "incomplete",
+          "motorcycle",
+          "off_road",
+          "low_speed",
+          "trailer",
+          "other"
+        ]
       },
       "Bulletin": {
         "type": "object",
@@ -4090,6 +4147,86 @@
           }
         }
       },
+      "Drive": {
+        "type": "string",
+        "description": "The drive, in the words shops use.",
+        "enum": [
+          "FWD",
+          "RWD",
+          "AWD",
+          "4WD",
+          "2WD"
+        ]
+      },
+      "Electric": {
+        "type": "object",
+        "description": "Battery and charging, as the manufacturer reported them.",
+        "properties": {
+          "battery_info": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "battery_kwh": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Energy in kWh, or the lower end of a range."
+          },
+          "battery_kwh_to": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "battery_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Lithium-Ion/Li-Ion"
+          },
+          "battery_volts": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Voltage, or the lower end of a range."
+          },
+          "battery_volts_to": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "charger_level": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Level 2"
+          },
+          "charger_power_kw": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "drive_unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
       "Engine": {
         "type": "object",
         "properties": {
@@ -4098,6 +4235,13 @@
               "string",
               "null"
             ]
+          },
+          "cooling": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Such as `Water` or `Air`."
           },
           "cylinders": {
             "type": [
@@ -4134,6 +4278,45 @@
               "null"
             ]
           },
+          "fuel_injection": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Stoichiometric Gasoline Direct Injection (SGDI)"
+          },
+          "fuel_secondary": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The second fuel of a flexible-fuel or bi-fuel engine."
+          },
+          "hp": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Brake horsepower, or the lower end of a range.",
+            "example": 147.0
+          },
+          "hp_to": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "The upper end of the horsepower range."
+          },
+          "kw": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Power in kilowatts, as the manufacturer reported it."
+          },
           "label": {
             "type": [
               "string",
@@ -4142,17 +4325,40 @@
             "description": "The short name shops use, such as `2.0L Turbo` or `3.5L V6`.",
             "example": "2.0L"
           },
+          "manufacturer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Who made the engine."
+          },
           "model": {
             "type": [
               "string",
               "null"
             ]
           },
+          "stroke_cycles": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Two- or four-stroke.",
+            "minimum": 0
+          },
           "turbo": {
             "type": [
               "boolean",
               "null"
             ]
+          },
+          "valve_train": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Dual Overhead Cam (DOHC)"
           }
         }
       },
@@ -4687,6 +4893,55 @@
               "null"
             ],
             "example": "Automatic (S10)"
+          }
+        }
+      },
+      "Generation": {
+        "type": "object",
+        "description": "One generation of a model: a run of model years between redesigns.",
+        "required": [
+          "name",
+          "year_from"
+        ],
+        "properties": {
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The maker's platform or chassis code, when there is one.",
+            "example": "CP/CS"
+          },
+          "name": {
+            "type": "string",
+            "description": "How the generation is known.",
+            "example": "8th generation"
+          },
+          "ordinal": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Its number, when it has one that is commonly used.",
+            "example": 8,
+            "minimum": 0
+          },
+          "year_from": {
+            "type": "integer",
+            "format": "int32",
+            "example": 2008,
+            "minimum": 0
+          },
+          "year_to": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Left out while the generation is still made.",
+            "example": 2012,
+            "minimum": 0
           }
         }
       },
@@ -7094,6 +7349,19 @@
               "null"
             ]
           },
+          "adaptive_driving_beam": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "adaptive_headlights": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Headlamps that turn with the steering."
+          },
           "airbags_curtain": {
             "type": [
               "string",
@@ -7112,6 +7380,12 @@
               "null"
             ]
           },
+          "airbags_seat_cushion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "airbags_side": {
             "type": [
               "string",
@@ -7124,6 +7398,20 @@
               "null"
             ]
           },
+          "auto_reverse_windows": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Auto-reverse for power windows and sunroofs."
+          },
+          "automatic_high_beams": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Semiautomatic headlamp beam switching."
+          },
           "backup_camera": {
             "type": [
               "string",
@@ -7131,6 +7419,19 @@
             ]
           },
           "blind_spot": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "crash_notification": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Automatic or advanced automatic crash notification."
+          },
+          "daytime_running_lights": {
             "type": [
               "string",
               "null"
@@ -7148,11 +7449,31 @@
               "null"
             ]
           },
+          "event_data_recorder": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "forward_collision": {
             "type": [
               "string",
               "null"
             ]
+          },
+          "headlamp_light_source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Such as `LED` or `Halogen`."
+          },
+          "keyless_ignition": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A key that must be programmed to the vehicle."
           },
           "lane_centering": {
             "type": [
@@ -7178,13 +7499,32 @@
               "null"
             ]
           },
+          "pedestrian_alert_sound": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The sound a hybrid or electric vehicle makes for pedestrians."
+          },
           "pedestrian_braking": {
             "type": [
               "string",
               "null"
             ]
           },
+          "pretensioner": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "rear_cross_traffic": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "seat_belts": {
             "type": [
               "string",
               "null"
@@ -8558,9 +8898,34 @@
           "check_digit",
           "manufacturer",
           "plant",
-          "warnings"
+          "warnings",
+          "year_conclusive"
         ],
         "properties": {
+          "attributes": {
+            "type": "object",
+            "description": "Every attribute the decode resolved, by NHTSA's element code as\nNHTSA's own API names it, with where it came from. The fields above\nare taken from these; this also holds the ones they leave out.",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Attribute"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "axle_configuration": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "axles": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
           "base_price_usd": {
             "type": [
               "number",
@@ -8569,11 +8934,57 @@
             "format": "double",
             "description": "Manufacturer base price in US dollars, when NHTSA has one."
           },
+          "bed_length_in": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "bed_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "body": {
             "type": [
               "string",
               "null"
             ]
+          },
+          "body_style": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BodyStyle",
+                "description": "The body in one word. `body` has NHTSA's words."
+              }
+            ]
+          },
+          "brake_system": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Service brakes, such as `Hydraulic` or `Air`.",
+            "example": "Hydraulic"
+          },
+          "brake_system_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cab_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cab type of a truck, as NHTSA words it.",
+            "example": "Crew/Super Crew/Crew Max"
           },
           "catalog": {
             "oneOf": [
@@ -8589,6 +9000,20 @@
           "check_digit": {
             "$ref": "#/components/schemas/CheckDigit"
           },
+          "curb_weight_lb": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "destination_market": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The market the vehicle was built for, when NHTSA records one."
+          },
           "doors": {
             "type": [
               "integer",
@@ -8597,12 +9022,34 @@
             "format": "int32",
             "minimum": 0
           },
+          "drive": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Drive",
+                "description": "The drive in one of five words. Left out when NHTSA's value fits\nnone of them, such as `6x4`; `drivetrain` still has it."
+              }
+            ]
+          },
           "drivetrain": {
             "type": [
               "string",
               "null"
             ],
             "example": "FWD"
+          },
+          "electric": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Electric",
+                "description": "Battery and charging, for an electric or hybrid vehicle."
+              }
+            ]
           },
           "engine": {
             "oneOf": [
@@ -8614,12 +9061,30 @@
               }
             ]
           },
+          "generation": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Generation",
+                "description": "The generation of the model this model year belongs to, from\ncorgi-rs's table. Left out for a model the table does not list."
+              }
+            ]
+          },
           "gvwr": {
             "type": [
               "string",
               "null"
             ],
             "description": "Gross vehicle weight rating class, as NHTSA words it."
+          },
+          "gvwr_to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Upper end of the gross vehicle weight rating class, when NHTSA gives\na range."
           },
           "make": {
             "type": [
@@ -8637,6 +9102,13 @@
               "null"
             ],
             "example": "Kona"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Free-text notes the manufacturer filed, such as other engine or\nrestraint information, each once."
           },
           "plant": {
             "$ref": "#/components/schemas/Plant"
@@ -8684,6 +9156,33 @@
               "null"
             ]
           },
+          "series2": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "steering": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Left-Hand Drive (LHD)"
+          },
+          "top_speed_mph": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "track_width_in": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
           "transmission": {
             "type": [
               "string",
@@ -8704,6 +9203,12 @@
               "null"
             ],
             "example": "SE"
+          },
+          "trim2": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "valid": {
             "type": "boolean",
@@ -8738,6 +9243,30 @@
             "description": "Rear wheel diameter in inches.",
             "minimum": 0
           },
+          "wheelbase_in": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Wheelbase in inches, or the shorter end of a range."
+          },
+          "wheelbase_to_in": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "The longer end of the wheelbase range, in inches."
+          },
+          "wheels": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
           "year": {
             "type": [
               "integer",
@@ -8746,6 +9275,10 @@
             "format": "int32",
             "example": 2023,
             "minimum": 0
+          },
+          "year_conclusive": {
+            "type": "boolean",
+            "description": "Whether the model year is settled. Position 10 repeats every 30\nyears. For cars, multipurpose vehicles and light trucks position 7\nsettles which cycle; for other vehicles the year is the one the data\nexplains better, and it is not settled when both years have data.\nCheck the year on the vehicle's label when this is `false`."
           }
         }
       },

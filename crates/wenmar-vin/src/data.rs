@@ -110,6 +110,62 @@ impl Element {
         }
     }
 
+    /// vPIC's `element.id` for this element: the inverse of
+    /// [`Element::from_vpic_id`].
+    pub fn vpic_id(self) -> i64 {
+        match self {
+            Element::Make => 26,
+            Element::Model => 28,
+            Element::Series => 34,
+            Element::Trim => 38,
+            Element::BodyClass => 5,
+            Element::Doors => 14,
+            Element::DriveType => 15,
+            Element::TransmissionStyle => 37,
+            Element::TransmissionSpeeds => 63,
+            Element::EngineModel => 18,
+            Element::EngineConfiguration => 64,
+            Element::EngineCylinders => 9,
+            Element::DisplacementL => 13,
+            Element::DisplacementCc => 11,
+            Element::DisplacementCi => 12,
+            Element::FuelTypePrimary => 24,
+            Element::Turbo => 135,
+            Element::ElectrificationLevel => 126,
+            Element::PlantCity => 31,
+            Element::PlantState => 77,
+            Element::PlantCountry => 75,
+            Element::PlantCompany => 76,
+            Element::Abs => 86,
+            Element::Esc => 99,
+            Element::TpmsType => 168,
+            Element::AdaptiveCruise => 81,
+            Element::LaneKeep => 103,
+            Element::LaneDeparture => 102,
+            Element::BlindSpot => 88,
+            Element::ForwardCollision => 101,
+            Element::AutoBrake => 87,
+            Element::BackupCamera => 104,
+            Element::AirbagsFront => 65,
+            Element::AirbagsSide => 107,
+            Element::AirbagsCurtain => 55,
+            Element::AirbagsKnee => 69,
+            Element::TractionControl => 100,
+            Element::DynamicBrakeSupport => 170,
+            Element::RearCrossTraffic => 183,
+            Element::ParkAssist => 105,
+            Element::PedestrianBraking => 171,
+            Element::LaneCentering => 194,
+            Element::WheelSizeFront => 119,
+            Element::WheelSizeRear => 120,
+            Element::Seats => 33,
+            Element::SeatRows => 61,
+            Element::Gvwr => 25,
+            Element::BasePrice => 136,
+            Element::Other(id) => id,
+        }
+    }
+
     /// The element for a vPIC `element.id`, if this crate uses it.
     pub fn from_vpic_id(id: i64) -> Option<Element> {
         Some(match id {
@@ -294,5 +350,18 @@ impl<T: VinData + ?Sized> VinData for &T {
         year: u16,
     ) -> Result<Vec<SpecRow>, DataError> {
         (**self).specs(wmi, model_attribute, year)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn every_element_knows_its_vpic_id() {
+        for info in crate::vpic::ELEMENTS {
+            let element = Element::from_vpic_id(info.id).unwrap_or(Element::Other(info.id));
+            assert_eq!(element.vpic_id(), info.id, "{}", info.code);
+        }
     }
 }

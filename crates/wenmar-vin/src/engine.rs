@@ -25,6 +25,33 @@ pub struct Engine {
     pub turbo: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub electrification: Option<String>,
+    /// Brake horsepower, or the lower end of a range.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hp: Option<f64>,
+    /// The upper end of the horsepower range.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hp_to: Option<f64>,
+    /// Power in kilowatts, as the manufacturer reported it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub kw: Option<f64>,
+    /// Who made the engine.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub manufacturer: Option<String>,
+    /// Such as `Dual Overhead Cam (DOHC)`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub valve_train: Option<String>,
+    /// Such as `Stoichiometric Gasoline Direct Injection (SGDI)`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fuel_injection: Option<String>,
+    /// Such as `Water` or `Air`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cooling: Option<String>,
+    /// The second fuel of a flexible-fuel or bi-fuel engine.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fuel_secondary: Option<String>,
+    /// Two- or four-stroke.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stroke_cycles: Option<u8>,
 }
 
 /// The short engine name shops use, such as `3.5L V6` or `2.5L Hybrid`.

@@ -21,6 +21,7 @@ Every dataset Wenmar Open serves, where it comes from, and what its licence asks
 | VIN decoding data and vehicle catalog | NHTSA vPIC, the Product Information Catalog and Vehicle Listing, https://vpic.nhtsa.dot.gov/ | Public domain (United States government work) | None required. This site credits NHTSA. |
 | Popular makes, aliases, trim spellings and added trims | Written by hand for this project: data/catalog/makes.yaml, data/catalog/names.yaml and data/presets.yaml | MIT | Keep the copyright notice in LICENSE. |
 | Canadian sales tax and tire fee rates | Government and stewardship pages, each named on the calculator page, collected in data/rates/canada.toml | MIT for the collection. A rate is a fact. | Keep the copyright notice in LICENSE. |
+| Vehicle generations: which redesign of a model a model year belongs to | corgi-rs, tools/generations.tsv, https://github.com/wonderooo/corgi-rs, kept as published in crates/wenmar-vin/generations.tsv | MIT | Keep the corgi-rs copyright notice, given in NOTICE.md. |
 | Vehicle recall campaigns, United States | NHTSA recall flat files, https://static.nhtsa.gov/odi/ffdd/rcl/ | Public domain (United States government work) | None required. This site credits NHTSA. |
 | Vehicle recall campaigns, Canada | Transport Canada, Vehicle Recalls Database, https://open.canada.ca/data/en/dataset/1ec92326-47ef-4110-b7ca-959fab03f96d | Open Government Licence – Canada | Contains information licensed under the Open Government Licence – Canada. |
 | Vehicle defect investigations, United States | NHTSA investigations flat file, https://static.nhtsa.gov/odi/ffdd/inv/ | Public domain (United States government work) | None required. This site credits NHTSA. |
@@ -40,6 +41,34 @@ Every dataset Wenmar Open serves, where it comes from, and what its licence asks
 | Original-equipment tire sizes, pressures and wheel nut torque, read by hand | Door placards and owner manuals of the makers, each named in its record, collected in data/tires/ | MIT for the collection. A figure is a fact. | Keep the copyright notice in LICENSE. |
 | Links to owner manuals and maintenance schedules on the makers sites | Found and opened by a person, each with the day it was checked, collected in data/fluids/ and data/catalog/makes.yaml | MIT for the collection. An address is a fact. The documents belong to the makers and are not copied. | Keep the copyright notice in LICENSE. |
 <!-- Shop-data plans add one row per dataset above this line, and the same row in crates/open-server/src/site/licences.rs. -->
+
+## corgi-rs
+
+The table of vehicle generations, `crates/wenmar-vin/generations.tsv`, is `tools/generations.tsv` of corgi-rs (https://github.com/wonderooo/corgi-rs) at commit 1358549, kept as published with a header naming its source. The design of the VIN cache in `crates/wenmar-vehicles/src/vin_cache.rs` was prompted by corgi-rs, but no code was copied. Its licence:
+
+```
+MIT License
+
+Copyright (c) 2026 corgi-rs contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ## payroll-ca
 

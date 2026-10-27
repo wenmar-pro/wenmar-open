@@ -992,6 +992,26 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description One attribute of a decode. */
+        Attribute: {
+            /**
+             * @description NHTSA's name for it.
+             * @example Engine Brake (hp) From
+             */
+            name: string;
+            source: components["schemas"]["AttributeSource"];
+            /**
+             * @description Its value as NHTSA words it. Notes that came more than once are
+             *     joined with `; `.
+             * @example 147
+             */
+            value: string;
+        };
+        /**
+         * @description Where an attribute's value came from.
+         * @enum {string}
+         */
+        AttributeSource: "vin_pattern" | "engine_model" | "specification_sheet";
         /**
          * @description One answer of a batch: a decode, or the error a single request for that
          *     VIN would have given.
@@ -1007,6 +1027,13 @@ export interface components {
              */
             vins: string[];
         };
+        /**
+         * @description The body, in one word. `suv` takes crossovers; `pickup` takes sport
+         *     utility trucks; `van` takes cargo, passenger and step vans; `incomplete`
+         *     is a chassis another company finishes.
+         * @enum {string}
+         */
+        BodyStyle: "sedan" | "coupe" | "convertible" | "hatchback" | "wagon" | "suv" | "minivan" | "van" | "pickup" | "truck" | "bus" | "motorhome" | "incomplete" | "motorcycle" | "off_road" | "low_speed" | "trailer" | "other";
         /**
          * @description One manufacturer communication in a list: a service bulletin, a
          *     service campaign, a warranty extension or an over-the-air update.
@@ -1399,8 +1426,40 @@ export interface components {
              */
             rows: number;
         };
+        /**
+         * @description The drive, in the words shops use.
+         * @enum {string}
+         */
+        Drive: "FWD" | "RWD" | "AWD" | "4WD" | "2WD";
+        /** @description Battery and charging, as the manufacturer reported them. */
+        Electric: {
+            battery_info?: string | null;
+            /**
+             * Format: double
+             * @description Energy in kWh, or the lower end of a range.
+             */
+            battery_kwh?: number | null;
+            /** Format: double */
+            battery_kwh_to?: number | null;
+            /** @example Lithium-Ion/Li-Ion */
+            battery_type?: string | null;
+            /**
+             * Format: double
+             * @description Voltage, or the lower end of a range.
+             */
+            battery_volts?: number | null;
+            /** Format: double */
+            battery_volts_to?: number | null;
+            /** @example Level 2 */
+            charger_level?: string | null;
+            /** Format: double */
+            charger_power_kw?: number | null;
+            drive_unit?: string | null;
+        };
         Engine: {
             configuration?: string | null;
+            /** @description Such as `Water` or `Air`. */
+            cooling?: string | null;
             /** Format: int32 */
             cylinders?: number | null;
             /** Format: int32 */
@@ -1409,13 +1468,42 @@ export interface components {
             displacement_l?: number | null;
             electrification?: string | null;
             fuel?: string | null;
+            /** @example Stoichiometric Gasoline Direct Injection (SGDI) */
+            fuel_injection?: string | null;
+            /** @description The second fuel of a flexible-fuel or bi-fuel engine. */
+            fuel_secondary?: string | null;
+            /**
+             * Format: double
+             * @description Brake horsepower, or the lower end of a range.
+             * @example 147
+             */
+            hp?: number | null;
+            /**
+             * Format: double
+             * @description The upper end of the horsepower range.
+             */
+            hp_to?: number | null;
+            /**
+             * Format: double
+             * @description Power in kilowatts, as the manufacturer reported it.
+             */
+            kw?: number | null;
             /**
              * @description The short name shops use, such as `2.0L Turbo` or `3.5L V6`.
              * @example 2.0L
              */
             label?: string | null;
+            /** @description Who made the engine. */
+            manufacturer?: string | null;
             model?: string | null;
+            /**
+             * Format: int32
+             * @description Two- or four-stroke.
+             */
+            stroke_cycles?: number | null;
             turbo?: boolean | null;
+            /** @example Dual Overhead Cam (DOHC) */
+            valve_train?: string | null;
         };
         /** @description The engine oil viscosity grade of one engine. */
         EngineOil: {
@@ -1662,6 +1750,36 @@ export interface components {
             source_id?: string | null;
             /** @example Automatic (S10) */
             transmission?: string | null;
+        };
+        /** @description One generation of a model: a run of model years between redesigns. */
+        Generation: {
+            /**
+             * @description The maker's platform or chassis code, when there is one.
+             * @example CP/CS
+             */
+            code?: string | null;
+            /**
+             * @description How the generation is known.
+             * @example 8th generation
+             */
+            name: string;
+            /**
+             * Format: int32
+             * @description Its number, when it has one that is commonly used.
+             * @example 8
+             */
+            ordinal?: number | null;
+            /**
+             * Format: int32
+             * @example 2008
+             */
+            year_from: number;
+            /**
+             * Format: int32
+             * @description Left out while the generation is still made.
+             * @example 2012
+             */
+            year_to?: number | null;
         };
         /**
          * @description One NHTSA defect investigation. An investigation is not a finding that a
@@ -2741,22 +2859,42 @@ export interface components {
         Safety: {
             abs?: string | null;
             adaptive_cruise?: string | null;
+            adaptive_driving_beam?: string | null;
+            /** @description Headlamps that turn with the steering. */
+            adaptive_headlights?: string | null;
             airbags_curtain?: string | null;
             airbags_front?: string | null;
             airbags_knee?: string | null;
+            airbags_seat_cushion?: string | null;
             airbags_side?: string | null;
             auto_brake?: string | null;
+            /** @description Auto-reverse for power windows and sunroofs. */
+            auto_reverse_windows?: string | null;
+            /** @description Semiautomatic headlamp beam switching. */
+            automatic_high_beams?: string | null;
             backup_camera?: string | null;
             blind_spot?: string | null;
+            /** @description Automatic or advanced automatic crash notification. */
+            crash_notification?: string | null;
+            daytime_running_lights?: string | null;
             dynamic_brake_support?: string | null;
             esc?: string | null;
+            event_data_recorder?: string | null;
             forward_collision?: string | null;
+            /** @description Such as `LED` or `Halogen`. */
+            headlamp_light_source?: string | null;
+            /** @description A key that must be programmed to the vehicle. */
+            keyless_ignition?: string | null;
             lane_centering?: string | null;
             lane_departure?: string | null;
             lane_keep?: string | null;
             park_assist?: string | null;
+            /** @description The sound a hybrid or electric vehicle makes for pedestrians. */
+            pedestrian_alert_sound?: string | null;
             pedestrian_braking?: string | null;
+            pretensioner?: string | null;
             rear_cross_traffic?: string | null;
+            seat_belts?: string | null;
             /** @description How tire pressure is monitored, as NHTSA words it, such as `Direct`. */
             tpms?: string | null;
             traction_control?: string | null;
@@ -3287,25 +3425,68 @@ export interface components {
         /** @description A decoded VIN. A field that could not be determined is left out. */
         VinDecode: {
             /**
+             * @description Every attribute the decode resolved, by NHTSA's element code as
+             *     NHTSA's own API names it, with where it came from. The fields above
+             *     are taken from these; this also holds the ones they leave out.
+             */
+            attributes?: {
+                [key: string]: components["schemas"]["Attribute"];
+            };
+            axle_configuration?: string | null;
+            /** Format: int32 */
+            axles?: number | null;
+            /**
              * Format: double
              * @description Manufacturer base price in US dollars, when NHTSA has one.
              */
             base_price_usd?: number | null;
+            /** Format: double */
+            bed_length_in?: number | null;
+            bed_type?: string | null;
             body?: string | null;
+            body_style?: null | components["schemas"]["BodyStyle"];
+            /**
+             * @description Service brakes, such as `Hydraulic` or `Air`.
+             * @example Hydraulic
+             */
+            brake_system?: string | null;
+            brake_system_description?: string | null;
+            /**
+             * @description Cab type of a truck, as NHTSA words it.
+             * @example Crew/Super Crew/Crew Max
+             */
+            cab_type?: string | null;
             catalog?: null | components["schemas"]["Selection"];
             check_digit: components["schemas"]["CheckDigit"];
+            /** Format: double */
+            curb_weight_lb?: number | null;
+            /** @description The market the vehicle was built for, when NHTSA records one. */
+            destination_market?: string | null;
             /** Format: int32 */
             doors?: number | null;
+            drive?: null | components["schemas"]["Drive"];
             /** @example FWD */
             drivetrain?: string | null;
+            electric?: null | components["schemas"]["Electric"];
             engine?: null | components["schemas"]["Engine"];
+            generation?: null | components["schemas"]["Generation"];
             /** @description Gross vehicle weight rating class, as NHTSA words it. */
             gvwr?: string | null;
+            /**
+             * @description Upper end of the gross vehicle weight rating class, when NHTSA gives
+             *     a range.
+             */
+            gvwr_to?: string | null;
             /** @example Hyundai */
             make?: string | null;
             manufacturer: components["schemas"]["Manufacturer"];
             /** @example Kona */
             model?: string | null;
+            /**
+             * @description Free-text notes the manufacturer filed, such as other engine or
+             *     restraint information, each once.
+             */
+            notes?: string[];
             plant: components["schemas"]["Plant"];
             recalls?: null | components["schemas"]["VinRecallCount"];
             safety?: null | components["schemas"]["Safety"];
@@ -3314,11 +3495,19 @@ export interface components {
             /** Format: int32 */
             seats?: number | null;
             series?: string | null;
+            series2?: string | null;
+            /** @example Left-Hand Drive (LHD) */
+            steering?: string | null;
+            /** Format: double */
+            top_speed_mph?: number | null;
+            /** Format: double */
+            track_width_in?: number | null;
             transmission?: string | null;
             /** Format: int32 */
             transmission_speeds?: number | null;
             /** @example SE */
             trim?: string | null;
+            trim2?: string | null;
             /**
              * @description Whether the check digit, position 9, is right. Many genuine VINs from
              *     outside North America fail it.
@@ -3339,10 +3528,30 @@ export interface components {
              */
             wheel_size_rear?: number | null;
             /**
+             * Format: double
+             * @description Wheelbase in inches, or the shorter end of a range.
+             */
+            wheelbase_in?: number | null;
+            /**
+             * Format: double
+             * @description The longer end of the wheelbase range, in inches.
+             */
+            wheelbase_to_in?: number | null;
+            /** Format: int32 */
+            wheels?: number | null;
+            /**
              * Format: int32
              * @example 2023
              */
             year?: number | null;
+            /**
+             * @description Whether the model year is settled. Position 10 repeats every 30
+             *     years. For cars, multipurpose vehicles and light trucks position 7
+             *     settles which cycle; for other vehicles the year is the one the data
+             *     explains better, and it is not settled when both years have data.
+             *     Check the year on the vehicle's label when this is `false`.
+             */
+            year_conclusive: boolean;
         };
         /** @description The fluids for the vehicle a VIN decodes to. */
         VinFluids: {

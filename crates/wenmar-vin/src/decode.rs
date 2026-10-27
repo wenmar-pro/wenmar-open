@@ -1,16 +1,75 @@
 use std::cmp::Reverse;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::check_digit;
 use crate::data::{DataError, Element, Manufacturer, Pattern, SpecRow, VinData};
 use crate::engine::{self, Engine};
 use crate::error::VinError;
+use crate::generation;
 use crate::model_year;
 use crate::pattern;
-use crate::result::{Decoded, ManufacturerInfo, Plant, Safety, Warning, WarningCode};
+use crate::result::{
+    Attribute, AttributeSource, BodyStyle, Decoded, Drive, Electric, ManufacturerInfo, Plant,
+    Safety, Warning, WarningCode,
+};
 use crate::suggest;
 use crate::vin::Vin;
+use crate::vpic;
+
+/// vPIC's ids of the elements this crate shows but does not interpret. They
+/// stay [`Element::Other`], so the decoder weighs them as before.
+mod id {
+    pub const BATTERY_INFO: i64 = 1;
+    pub const BATTERY_TYPE: i64 = 2;
+    pub const BED_TYPE: i64 = 3;
+    pub const CAB_TYPE: i64 = 4;
+    pub const DESTINATION_MARKET: i64 = 10;
+    pub const ENGINE_CYCLES: i64 = 17;
+    pub const ENGINE_KW: i64 = 21;
+    pub const STEERING: i64 = 36;
+    pub const AXLES: i64 = 41;
+    pub const BRAKE_SYSTEM: i64 = 42;
+    pub const BED_LENGTH: i64 = 49;
+    pub const BRAKE_DESCRIPTION: i64 = 52;
+    pub const CURB_WEIGHT: i64 = 54;
+    pub const AIRBAGS_SEAT_CUSHION: i64 = 56;
+    pub const BATTERY_VOLTS: i64 = 58;
+    pub const BATTERY_KWH: i64 = 59;
+    pub const VALVE_TRAIN: i64 = 62;
+    pub const FUEL_SECONDARY: i64 = 66;
+    pub const FUEL_INJECTION: i64 = 67;
+    pub const ENGINE_HP: i64 = 71;
+    pub const EV_DRIVE_UNIT: i64 = 72;
+    pub const PRETENSIONER: i64 = 78;
+    pub const SEAT_BELTS: i64 = 79;
+    pub const ADAPTIVE_HEADLIGHTS: i64 = 82;
+    pub const TRIM2: i64 = 109;
+    pub const SERIES2: i64 = 110;
+    pub const WHEELBASE: i64 = 111;
+    pub const WHEELBASE_TO: i64 = 112;
+    pub const WHEELS: i64 = 115;
+    pub const COOLING: i64 = 122;
+    pub const ENGINE_HP_TO: i64 = 125;
+    pub const CHARGER_LEVEL: i64 = 127;
+    pub const CHARGER_KW: i64 = 128;
+    pub const BATTERY_VOLTS_TO: i64 = 133;
+    pub const BATTERY_KWH_TO: i64 = 134;
+    pub const TOP_SPEED: i64 = 139;
+    pub const AXLE_CONFIGURATION: i64 = 145;
+    pub const ENGINE_MANUFACTURER: i64 = 146;
+    pub const TRACK_WIDTH: i64 = 159;
+    pub const AUTO_REVERSE: i64 = 172;
+    pub const PEDESTRIAN_ALERT: i64 = 173;
+    pub const CRASH_NOTIFICATION: i64 = 174;
+    pub const EVENT_DATA_RECORDER: i64 = 175;
+    pub const KEYLESS_IGNITION: i64 = 176;
+    pub const DAYTIME_RUNNING_LIGHTS: i64 = 177;
+    pub const HEADLAMP_SOURCE: i64 = 178;
+    pub const AUTOMATIC_HIGH_BEAMS: i64 = 179;
+    pub const ADAPTIVE_DRIVING_BEAM: i64 = 180;
+    pub const GVWR_TO: i64 = 190;
+}
 
 /// Why a VIN could not be decoded at all.
 #[derive(Debug, thiserror::Error)]
@@ -79,6 +138,10 @@ struct Attempt {
     /// How many rows from the patterns and the engine model are notes, of
     /// which NHTSA keeps every one instead of choosing a value.
     notes: usize,
+    /// The engine model's note rows.
+    engine_notes: Vec<(Element, String)>,
+    /// Where the year is among the candidates, first being 0.
+    index: usize,
 }
 
 impl Attempt {
@@ -177,7 +240,8 @@ impl<D: VinData> Decoder<D> {
         let conclusive = manufacturer.light_vehicle;
         let key = vin.match_key();
         let mut best: Option<Attempt> = None;
-        for candidate in &years {
+        let mut with_schemas = 0usize;
+        for (index, candidate) in years.iter().enumerate() {
             let schemas = self
                 .data
                 .schemas(&manufacturer.wmi, *candidate)
@@ -185,6 +249,7 @@ impl<D: VinData> Decoder<D> {
             if schemas.is_empty() {
                 continue;
             }
+            with_schemas += 1;
             let mut year_from: HashMap<i64, u16> = HashMap::new();
             for schema in &schemas {
                 let latest = year_from.entry(schema.id).or_insert(schema.year_from);
@@ -199,8 +264,10 @@ impl<D: VinData> Decoder<D> {
                 .filter(|row| usable(&row.value) && pattern::matches(&row.keys, &key))
                 .collect();
             let mut values = select(&matched, &year_from);
-            let notes = matched.iter().filter(|row| is_note(row.element)).count()
-                + add_engine_model(&self.data, &mut values).map_err(DecodeError::Data)?;
+            let engine_notes =
+                add_engine_model(&self.data, &mut values).map_err(DecodeError::Data)?;
+            let notes =
+                matched.iter().filter(|row| is_note(row.element)).count() + engine_notes.len();
             add_specifications(&self.data, &manufacturer.wmi, *candidate, &mut values)
                 .map_err(DecodeError::Data)?;
             let attempt = Attempt {
@@ -208,6 +275,8 @@ impl<D: VinData> Decoder<D> {
                 matched,
                 values,
                 notes,
+                engine_notes,
+                index,
             };
             if conclusive {
                 best = Some(attempt);
@@ -220,10 +289,33 @@ impl<D: VinData> Decoder<D> {
                 best = Some(attempt);
             }
         }
-        let (year, matched, values) = match best {
-            Some(attempt) => (Some(attempt.year), attempt.matched, attempt.values),
-            None => (years.first().copied(), Vec::new(), Values::new()),
+        let (year, matched, values, engine_notes, index) = match best {
+            Some(attempt) => (
+                Some(attempt.year),
+                attempt.matched,
+                attempt.values,
+                attempt.engine_notes,
+                attempt.index,
+            ),
+            None => (
+                years.first().copied(),
+                Vec::new(),
+                Values::new(),
+                Vec::new(),
+                0,
+            ),
         };
+        // Position 7 settles the cycle of a light vehicle, unless the year it
+        // points to had no data. For another vehicle the year is settled
+        // only when one candidate alone had data.
+        let year_conclusive = year.is_some()
+            && with_schemas > 0
+            && (options.model_year.is_some()
+                || if conclusive {
+                    index == 0
+                } else {
+                    with_schemas == 1
+                });
         if year.is_none() {
             warnings.push(warning(
                 WarningCode::ModelYearUnknown,
@@ -245,19 +337,32 @@ impl<D: VinData> Decoder<D> {
 
         let text = |element: Element| text(&values, element);
         let count = |element: Element| count(&values, element);
+        let other = |id: i64| text(Element::Other(id));
+        let number = |id: i64| number(&values, Element::Other(id));
+        let notes = collect_notes(&matched, &engine_notes, &values);
+        let make = text(Element::Make).or_else(|| clean(manufacturer.make.clone()));
+        let model = text(Element::Model);
+        let body = text(Element::BodyClass);
+        let drivetrain = text(Element::DriveType);
+        let generation = match (&make, &model, year) {
+            (Some(make), Some(model), Some(year)) => generation::find(make, model, year),
+            _ => None,
+        };
 
         Ok(Decoded {
             vin: vin.as_str().to_owned(),
             valid: check_digit.valid,
             check_digit,
             year,
-            make: text(Element::Make).or_else(|| clean(manufacturer.make.clone())),
-            model: text(Element::Model),
+            make,
+            model,
             series: text(Element::Series),
             trim: text(Element::Trim),
-            body: text(Element::BodyClass),
+            body_style: body.as_deref().and_then(BodyStyle::from_vpic),
+            body,
             doors: count(Element::Doors),
-            drivetrain: text(Element::DriveType).map(|value| short_form(&value)),
+            drive: drivetrain.as_deref().and_then(Drive::from_vpic),
+            drivetrain: drivetrain.map(|value| short_form(&value)),
             transmission: text(Element::TransmissionStyle),
             transmission_speeds: count(Element::TransmissionSpeeds),
             engine: build_engine(&values),
@@ -282,6 +387,29 @@ impl<D: VinData> Decoder<D> {
                 company: text(Element::PlantCompany),
             },
             warnings,
+            year_conclusive,
+            generation,
+            series2: other(id::SERIES2),
+            trim2: other(id::TRIM2),
+            cab_type: other(id::CAB_TYPE),
+            bed_type: other(id::BED_TYPE),
+            bed_length_in: number(id::BED_LENGTH),
+            curb_weight_lb: number(id::CURB_WEIGHT),
+            gvwr_to: other(id::GVWR_TO),
+            wheelbase_in: number(id::WHEELBASE),
+            wheelbase_to_in: number(id::WHEELBASE_TO),
+            track_width_in: number(id::TRACK_WIDTH),
+            wheels: count(Element::Other(id::WHEELS)),
+            axles: count(Element::Other(id::AXLES)),
+            axle_configuration: other(id::AXLE_CONFIGURATION),
+            steering: other(id::STEERING),
+            brake_system: other(id::BRAKE_SYSTEM),
+            brake_system_description: other(id::BRAKE_DESCRIPTION),
+            destination_market: other(id::DESTINATION_MARKET),
+            top_speed_mph: number(id::TOP_SPEED),
+            electric: build_electric(&values),
+            attributes: attributes(&values, &notes),
+            notes: notes.into_iter().map(|(_, note)| note).collect(),
         })
     }
 
@@ -320,19 +448,23 @@ fn usable(value: &str) -> bool {
 }
 
 /// Adds what the engine model implies, for elements the VIN left empty.
-/// Returns how many of its rows are notes.
-fn add_engine_model<D: VinData>(data: &D, values: &mut Values) -> Result<usize, DataError> {
+/// Returns its note rows.
+fn add_engine_model<D: VinData>(
+    data: &D,
+    values: &mut Values,
+) -> Result<Vec<(Element, String)>, DataError> {
     let Some(name) = values
         .get(&Element::EngineModel)
         .map(|item| item.value.clone())
     else {
-        return Ok(0);
+        return Ok(Vec::new());
     };
     let mut rows = data.engine_model(&name)?;
     let notes = rows
         .iter()
         .filter(|row| is_note(row.element) && usable(&row.value))
-        .count();
+        .map(|row| (row.element, row.value.trim().to_owned()))
+        .collect();
     // Latest change first, then lowest id, so the first row seen per element wins.
     rows.sort_by(|a, b| b.changed_on.cmp(&a.changed_on).then(a.id.cmp(&b.id)));
     for row in rows {
@@ -470,6 +602,85 @@ fn text(values: &Values, element: Element) -> Option<String> {
         .map(|item| item.value.trim().to_owned())
 }
 
+/// A finite amount above zero.
+fn number(values: &Values, element: Element) -> Option<f64> {
+    values
+        .get(&element)
+        .and_then(|item| item.value.trim().parse::<f64>().ok())
+        .filter(|amount| amount.is_finite() && *amount > 0.0)
+}
+
+/// Every note, each once, by element and then as the rows come: those of
+/// the matched patterns in id order, the engine model's, then one from a
+/// specification sheet.
+fn collect_notes(
+    matched: &[Pattern],
+    engine_notes: &[(Element, String)],
+    values: &Values,
+) -> Vec<(Element, String)> {
+    let mut rows: Vec<&Pattern> = matched
+        .iter()
+        .filter(|row| is_note(row.element) && usable(&row.value))
+        .collect();
+    rows.sort_by_key(|row| (row.element.vpic_id(), row.id));
+    let mut found: Vec<(Element, String)> = rows
+        .into_iter()
+        .map(|row| (row.element, row.value.trim().to_owned()))
+        .collect();
+    found.extend(engine_notes.iter().cloned());
+    found.extend(
+        values
+            .iter()
+            .filter(|(element, item)| is_note(**element) && item.source == Source::Specification)
+            .map(|(element, item)| (*element, item.value.trim().to_owned())),
+    );
+    found.sort_by_key(|(element, _)| element.vpic_id());
+    let mut seen: HashSet<String> = HashSet::new();
+    found.retain(|(_, note)| seen.insert(note.clone()));
+    found
+}
+
+/// Every resolved element by vPIC's code. A note element carries all its
+/// notes.
+fn attributes(values: &Values, notes: &[(Element, String)]) -> BTreeMap<String, Attribute> {
+    values
+        .iter()
+        .map(|(element, item)| {
+            let id = element.vpic_id();
+            let info = vpic::element(id);
+            let code = info.map_or_else(|| format!("Element{id}"), |info| info.code.to_owned());
+            let name = info.map_or_else(|| code.clone(), |info| info.name.to_owned());
+            let value = if is_note(*element) {
+                let all: Vec<&str> = notes
+                    .iter()
+                    .filter(|(noted, _)| noted == element)
+                    .map(|(_, note)| note.as_str())
+                    .collect();
+                if all.is_empty() {
+                    item.value.trim().to_owned()
+                } else {
+                    all.join("; ")
+                }
+            } else {
+                item.value.trim().to_owned()
+            };
+            let source = match item.source {
+                Source::Pattern => AttributeSource::VinPattern,
+                Source::EngineModel => AttributeSource::EngineModel,
+                Source::Specification => AttributeSource::SpecificationSheet,
+            };
+            (
+                code,
+                Attribute {
+                    name,
+                    value,
+                    source,
+                },
+            )
+        })
+        .collect()
+}
+
 fn count(values: &Values, element: Element) -> Option<u8> {
     values
         .get(&element)
@@ -549,6 +760,15 @@ fn build_engine(values: &Values) -> Option<Engine> {
             .get(&Element::Turbo)
             .map(|item| item.value.trim().eq_ignore_ascii_case("yes")),
         electrification: text(values, Element::ElectrificationLevel),
+        hp: number(Element::Other(id::ENGINE_HP)),
+        hp_to: number(Element::Other(id::ENGINE_HP_TO)),
+        kw: number(Element::Other(id::ENGINE_KW)),
+        manufacturer: text(values, Element::Other(id::ENGINE_MANUFACTURER)),
+        valve_train: text(values, Element::Other(id::VALVE_TRAIN)),
+        fuel_injection: text(values, Element::Other(id::FUEL_INJECTION)),
+        cooling: text(values, Element::Other(id::COOLING)),
+        fuel_secondary: text(values, Element::Other(id::FUEL_SECONDARY)),
+        stroke_cycles: count(values, Element::Other(id::ENGINE_CYCLES)),
     };
     if engine == Engine::default() {
         return None;
@@ -586,8 +806,38 @@ fn build_safety(values: &Values) -> Option<Safety> {
         park_assist: text(values, Element::ParkAssist),
         pedestrian_braking: text(values, Element::PedestrianBraking),
         lane_centering: text(values, Element::LaneCentering),
+        keyless_ignition: text(values, Element::Other(id::KEYLESS_IGNITION)),
+        headlamp_light_source: text(values, Element::Other(id::HEADLAMP_SOURCE)),
+        adaptive_driving_beam: text(values, Element::Other(id::ADAPTIVE_DRIVING_BEAM)),
+        adaptive_headlights: text(values, Element::Other(id::ADAPTIVE_HEADLIGHTS)),
+        automatic_high_beams: text(values, Element::Other(id::AUTOMATIC_HIGH_BEAMS)),
+        daytime_running_lights: text(values, Element::Other(id::DAYTIME_RUNNING_LIGHTS)),
+        auto_reverse_windows: text(values, Element::Other(id::AUTO_REVERSE)),
+        crash_notification: text(values, Element::Other(id::CRASH_NOTIFICATION)),
+        event_data_recorder: text(values, Element::Other(id::EVENT_DATA_RECORDER)),
+        pedestrian_alert_sound: text(values, Element::Other(id::PEDESTRIAN_ALERT)),
+        seat_belts: text(values, Element::Other(id::SEAT_BELTS)),
+        pretensioner: text(values, Element::Other(id::PRETENSIONER)),
+        airbags_seat_cushion: text(values, Element::Other(id::AIRBAGS_SEAT_CUSHION)),
     };
     (safety != Safety::default()).then_some(safety)
+}
+
+fn build_electric(values: &Values) -> Option<Electric> {
+    let text = |id: i64| text(values, Element::Other(id));
+    let number = |id: i64| number(values, Element::Other(id));
+    let electric = Electric {
+        battery_type: text(id::BATTERY_TYPE),
+        battery_kwh: number(id::BATTERY_KWH),
+        battery_kwh_to: number(id::BATTERY_KWH_TO),
+        battery_volts: number(id::BATTERY_VOLTS),
+        battery_volts_to: number(id::BATTERY_VOLTS_TO),
+        battery_info: text(id::BATTERY_INFO),
+        drive_unit: text(id::EV_DRIVE_UNIT),
+        charger_level: text(id::CHARGER_LEVEL),
+        charger_power_kw: number(id::CHARGER_KW),
+    };
+    (electric != Electric::default()).then_some(electric)
 }
 
 /// The calendar year from the system clock. Only used as an upper bound on
