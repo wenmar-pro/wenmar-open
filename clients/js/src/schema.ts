@@ -2176,6 +2176,7 @@ export interface components {
             decode?: null | components["schemas"]["OverviewDecode"];
             fluids?: Record<string, unknown> | null;
             fuel?: Record<string, unknown> | null;
+            generation?: null | components["schemas"]["Generation"];
             labor?: Record<string, unknown> | null;
             links: components["schemas"]["OverviewLinks"];
             recalls?: null | components["schemas"]["OverviewRecalls"];

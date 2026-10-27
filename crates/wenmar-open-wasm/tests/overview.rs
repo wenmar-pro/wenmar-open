@@ -10,9 +10,10 @@ use common::{KONA, data, opened, opened_with_shop, run, run_with_shop, shop};
 const SITE: &str = "https://open.wenmarpro.com";
 
 /// Every key an overview has.
-const KEYS: [&str; 14] = [
+const KEYS: [&str; 15] = [
     "vehicle",
     "decode",
+    "generation",
     "specs",
     "fuel",
     "fluids",

@@ -1167,6 +1167,13 @@
           "decode": null,
           "fluids": null,
           "fuel": null,
+          "generation": {
+            "code": "OS",
+            "name": "OS",
+            "ordinal": 1,
+            "year_from": 2018,
+            "year_to": 2023
+          },
           "labor": null,
           "links": {
             "maker": null,
@@ -1226,6 +1233,13 @@
           },
           "fluids": null,
           "fuel": null,
+          "generation": {
+            "code": "OS",
+            "name": "OS",
+            "ordinal": 1,
+            "year_from": 2018,
+            "year_to": 2023
+          },
           "labor": null,
           "links": {
             "maker": null,
@@ -7205,6 +7219,13 @@
               "transmission": "AV"
             }
           ],
+          "generation": {
+            "code": "OS",
+            "name": "OS",
+            "ordinal": 1,
+            "year_from": 2018,
+            "year_to": 2023
+          },
           "labor": null,
           "links": {
             "maker": null,
@@ -7627,6 +7648,13 @@
             "transmission": []
           },
           "fuel": [],
+          "generation": {
+            "code": "FC/FK",
+            "name": "10th generation",
+            "ordinal": 10,
+            "year_from": 2016,
+            "year_to": 2021
+          },
           "labor": null,
           "links": {
             "maker": null,
@@ -7879,6 +7907,13 @@
               "transmission": "AV"
             }
           ],
+          "generation": {
+            "code": "OS",
+            "name": "OS",
+            "ordinal": 1,
+            "year_from": 2018,
+            "year_to": 2023
+          },
           "labor": null,
           "links": {
             "maker": null,
@@ -8221,6 +8256,7 @@
           },
           "fluids": null,
           "fuel": null,
+          "generation": null,
           "labor": null,
           "links": {
             "maker": null,

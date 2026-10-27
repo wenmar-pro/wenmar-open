@@ -285,6 +285,14 @@ pub async fn overview_of(
     };
     Ok(Overview {
         vehicle: found.map(|found| found.vehicle.clone()),
+        generation: found.and_then(|found| {
+            wenmar_vin::generation::find(
+                &found.vehicle.make,
+                &found.vehicle.model,
+                found.vehicle.year,
+            )
+            .map(Generation::from)
+        }),
         decode,
         specs,
         fuel,

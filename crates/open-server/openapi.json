@@ -5851,6 +5851,17 @@
               "null"
             ]
           },
+          "generation": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Generation",
+                "description": "The generation of the model the year belongs to, from corgi-rs's\ntable, as `/v1/models/{make}/{model}` gives it. `null` for a model\nthe table does not list, and when a VIN reaches no model year."
+              }
+            ]
+          },
           "labor": {
             "type": [
               "object",

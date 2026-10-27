@@ -906,7 +906,7 @@ fn without_the_shop_file_an_overview_still_answers_and_its_recalls_are_null() {
         answer["links"]["page"],
         format!("{SITE}/makes/hyundai/kona/2023")
     );
-    assert_eq!(answer.as_object().unwrap().len(), 14);
+    assert_eq!(answer.as_object().unwrap().len(), 15);
     assert_eq!(answer["complaints"], Value::Null);
 
     let run = offline(&fixture, &["vin", "overview", KONA]);
@@ -970,6 +970,7 @@ fn at_a_terminal_an_overview_is_text_that_says_may_apply() {
         "\
 2023 Hyundai Kona
 VIN KM8K2CAB4PU001140
+Generation: OS, 2018-2023
 Page: https://open.wenmarpro.com/makes/hyundai/kona/2023
 
 Recalls: 3 recall campaigns may apply
@@ -1071,7 +1072,7 @@ A recall listed here may apply to a vehicle of that year, make and model. Only t
     );
     assert_eq!(
         run.stdout,
-        "2023 Hyundai Kona\nPage: https://open.wenmarpro.com/makes/hyundai/kona/2023\n\nRecalls: no recall data is held where this was asked.\n"
+        "2023 Hyundai Kona\nGeneration: OS, 2018-2023\nPage: https://open.wenmarpro.com/makes/hyundai/kona/2023\n\nRecalls: no recall data is held where this was asked.\n"
     );
 }
 

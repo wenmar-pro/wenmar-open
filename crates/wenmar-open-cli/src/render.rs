@@ -824,6 +824,9 @@ fn overview(value: &Value) -> String {
     if let Some(vin) = field(&value["decode"], "vin") {
         text.push_str(&format!("VIN {vin}\n"));
     }
+    if let Some(generation) = generation(&value["generation"]) {
+        text.push_str(&format!("Generation: {generation}\n"));
+    }
     for warning in value["warnings"].as_array().into_iter().flatten() {
         if let Some(message) = field(warning, "message") {
             text.push_str(&format!("Warning: {message}\n"));

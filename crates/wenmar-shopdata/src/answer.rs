@@ -367,6 +367,8 @@ pub struct Links {
 pub struct Overview {
     pub vehicle: Option<Vehicle>,
     pub decode: Option<OverviewDecode>,
+    /// From corgi-rs's table, as the hosted API gives it.
+    pub generation: Option<wenmar_vin::Generation>,
     pub specs: Option<Json>,
     pub fuel: Option<Json>,
     pub fluids: Option<Json>,
@@ -1307,6 +1309,13 @@ impl<'a, S: Source, C: Source> Overviews<'a, S, C> {
         };
         Ok(Overview {
             vehicle: found.map(|found| found.vehicle.clone()),
+            generation: found.and_then(|found| {
+                wenmar_vin::generation::find(
+                    &found.vehicle.make,
+                    &found.vehicle.model,
+                    found.vehicle.year,
+                )
+            }),
             decode,
             specs: blocks.specs,
             fuel: blocks.fuel,

@@ -30,9 +30,10 @@ fn campaigns(list: &Value) -> Vec<&str> {
 }
 
 /// Every key an overview has, in the order they are written.
-const KEYS: [&str; 14] = [
+const KEYS: [&str; 15] = [
     "vehicle",
     "decode",
+    "generation",
     "specs",
     "fuel",
     "fluids",
@@ -65,6 +66,10 @@ async fn a_model_year_gets_everything_held_for_it_in_one_answer() {
         json!({ "id": "2023_hyundai_kona", "year": 2023, "make": "Hyundai", "model": "Kona" })
     );
     assert_eq!(body["decode"], Value::Null);
+    assert_eq!(
+        body["generation"],
+        json!({ "name": "OS", "ordinal": 1, "code": "OS", "year_from": 2018, "year_to": 2023 })
+    );
     let recalls = &body["recalls"];
     assert_eq!(recalls["may_apply"], true);
     assert_eq!(recalls["count"], json!({ "us": 3, "ca": 1 }));
@@ -203,6 +208,7 @@ async fn a_vin_that_reaches_no_catalog_vehicle_gets_nulls_and_a_warning() {
     let body = ok(&app, &format!("/v1/vin/{}/overview", common::COACH)).await;
     assert_shape(&body);
     assert_eq!(body["vehicle"], Value::Null);
+    assert_eq!(body["generation"], Value::Null);
     assert_eq!(body["recalls"], Value::Null);
     assert_eq!(body["links"]["page"], Value::Null);
     assert_eq!(body["decode"]["vin"], common::COACH);

@@ -1272,6 +1272,10 @@ pub struct Overview {
     /// What the VIN decoded to. `null` when the overview was asked for by
     /// vehicle id.
     pub decode: Option<OverviewDecode>,
+    /// The generation of the model the year belongs to, from corgi-rs's
+    /// table, as `/v1/models/{make}/{model}` gives it. `null` for a model
+    /// the table does not list, and when a VIN reaches no model year.
+    pub generation: Option<Generation>,
     #[schema(value_type = Option<Object>)]
     pub specs: Option<serde_json::Value>,
     #[schema(value_type = Option<Object>)]
