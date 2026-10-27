@@ -55,7 +55,7 @@ export async function everyMethod(signal: AbortSignal): Promise<void> {
   const found: Entry[] = await client.search({ q: "2019 civic si" });
   const entry: Entry = await client.vehicle("2019_honda_civic_si");
   const meta: Meta = await client.meta({ signal });
-  const batch: 50 = MAX_BATCH;
+  const batch: 250 = MAX_BATCH;
 
   void [vin, valid, year, label, vehicleId, warning, years, makes, models, submodels, trims, engines, found, entry, meta, batch];
 }
