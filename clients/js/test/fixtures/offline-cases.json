@@ -1333,7 +1333,7 @@
           "built_at": "2026-10-01 04:25:57",
           "data_version": "2026.09",
           "datasets": {},
-          "server_version": "0.3.0",
+          "server_version": "0.4.0",
           "vpic_release": "vPICList_lite_2026_09"
         }
       },
@@ -5225,7 +5225,7 @@
               "rows": 1
             }
           },
-          "server_version": "0.3.0",
+          "server_version": "0.4.0",
           "vpic_release": "vPICList_lite_2026_09"
         }
       },

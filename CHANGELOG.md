@@ -4,6 +4,8 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-27
+
 ### Added
 
 - A decode carries much more of what NHTSA records. `engine` gains `hp`, `hp_to`, `kw`, `manufacturer`, `valve_train`, `fuel_injection`, `cooling`, `fuel_secondary` and `stroke_cycles`. New top-level fields: `cab_type`, `bed_type`, `bed_length_in`, `curb_weight_lb`, `gvwr_to`, `wheelbase_in`, `wheelbase_to_in`, `track_width_in`, `wheels`, `axles`, `axle_configuration`, `steering`, `brake_system`, `brake_system_description`, `destination_market`, `top_speed_mph`, `series2`, `trim2`, and `electric` (battery type, energy, voltage, drive unit, charger level and power). `safety` gains `keyless_ignition`, `headlamp_light_source`, `adaptive_driving_beam`, `adaptive_headlights`, `automatic_high_beams`, `daytime_running_lights`, `auto_reverse_windows`, `crash_notification`, `event_data_recorder`, `pedestrian_alert_sound`, `seat_belts`, `pretensioner` and `airbags_seat_cushion`. `notes` lists the manufacturer's notes, each once. `attributes` holds every element resolved, by NHTSA's code, with its name, its value and its `source`: `vin_pattern`, `engine_model` or `specification_sheet`. On the parity corpus, horsepower is there for 42% of VINs and notes for 61%.
