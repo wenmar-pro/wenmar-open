@@ -103,7 +103,7 @@ items.forEach((item, index) => {
 });
 ```
 
-A batch holds at most 50 VINs (`MAX_BATCH`). The answer has one item per VIN, in the order sent. One bad VIN does not fail the batch.
+A batch holds at most 250 VINs (`MAX_BATCH`). The answer has one item per VIN, in the order sent. One bad VIN does not fail the batch.
 
 ## Choose a vehicle without a VIN
 

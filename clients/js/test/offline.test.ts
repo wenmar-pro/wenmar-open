@@ -118,7 +118,7 @@ test("a batch over 50 is refused before anything is read", async () => {
   const store = new RecordedStore();
   const error = await failure(offline(store).decodeVins(Array.from({ length: MAX_BATCH + 1 }, () => KONA)));
   assert.equal(error.code, "validation_failed");
-  assert.deepEqual(error.details, { field: "vins", max: 50, received: 51 });
+  assert.deepEqual(error.details, { field: "vins", max: 250, received: 251 });
   assert.equal(store.steps, 0);
 });
 

@@ -68,11 +68,11 @@ pub fn docs(state: &AppState) -> Doc {
             ),
             with_code(
                 section(
-                    "Decode up to 50 VINs",
-                    &["The answer is a list in the order asked. Each item is a decode, or the error a single request for that VIN would have given."],
+                    "Decode up to 250 VINs",
+                    &["The answer is a list in the order asked. Each item is a decode, or the error a single request for that VIN would have given. Add fields= to keep only some fields of each, as dotted paths such as engine.hp, and format=csv for a spreadsheet with one row per VIN. The page /vin/batch does the same from a browser."],
                 ),
                 format!(
-                    "curl -X POST {base}/v1/vin/batch \\\n  -H 'Content-Type: application/json' \\\n  -d '{{\"vins\": [\"KM8K2CAB4PU001140\", \"1HGCM82633A004352\"]}}'"
+                    "curl -X POST {base}/v1/vin/batch \\\n  -H 'Content-Type: application/json' \\\n  -d '{{\"vins\": [\"KM8K2CAB4PU001140\", \"1HGCM82633A004352\"]}}'\ncurl -X POST '{base}/v1/vin/batch?format=csv&fields=year,make,model,engine.label,engine.hp' \\\n  -H 'Content-Type: application/json' \\\n  -d '{{\"vins\": [\"KM8K2CAB4PU001140\"]}}'"
                 ),
             ),
             with_code(
@@ -120,7 +120,7 @@ pub fn docs(state: &AppState) -> Doc {
                 "Limits",
                 &[
                     &format!("One address may make {limit} requests a minute. That is far more than a shop needs, and it exists only so that one client cannot slow the service for everyone. Over it, the answer is 429 with a Retry-After header saying how many seconds to wait."),
-                    "A batch holds at most 50 VINs. A request body may be at most 16 KB.",
+                    "A batch holds at most 250 VINs (50 over MCP). A request body may be at most 16 KB.",
                 ],
             ),
             section(

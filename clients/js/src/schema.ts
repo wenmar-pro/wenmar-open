@@ -731,9 +731,12 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Decode up to 50 VINs.
+         * Decode up to 250 VINs.
          * @description The answer is an array in the order asked. Each item is a decode, or the
          *     error object a single request for that VIN would have returned.
+         *
+         *     `fields` narrows each decode to the fields named, and `format=csv`
+         *     answers with a spreadsheet of one row per VIN.
          *
          *     With `?include=recalls`, each decode that reaches a model year of the
          *     catalog also carries `recalls`: how many campaigns may apply to that
@@ -1019,7 +1022,7 @@ export interface components {
         BatchItem: components["schemas"]["VinDecode"] | components["schemas"]["ErrorBody"];
         BatchRequest: {
             /**
-             * @description At most 50 VINs.
+             * @description At most 250 VINs.
              * @example [
              *       "KM8K2CAB4PU001140",
              *       "1HGCM82633A004352"
@@ -5238,6 +5241,20 @@ export interface operations {
                  * @example recalls
                  */
                 include?: string;
+                /**
+                 * @description Only these fields of each decode, separated by commas: dotted paths
+                 *     such as `year`, `engine.hp` or `attributes.EngineHP.value`. `vin` is
+                 *     always given. An error item is given whole. Left out: every field.
+                 * @example year,make,model,engine.label,engine.hp
+                 */
+                fields?: string;
+                /**
+                 * @description `csv` answers with one row per VIN, in order: `vin`, the fields asked
+                 *     for (or a set for a fleet list), then `error` and `error_message`.
+                 *     Left out or `json`: the JSON array.
+                 * @example csv
+                 */
+                format?: string;
             };
             header?: never;
             path?: never;
@@ -5249,16 +5266,17 @@ export interface operations {
             };
         };
         responses: {
-            /** @description One item per VIN, in order. */
+            /** @description One item per VIN, in order. With `fields`, each decode holds only those fields and `vin`. With `format=csv`, the same as CSV. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["BatchItem"][];
+                    "text/csv": string;
                 };
             };
-            /** @description `validation_failed`: the body is not `{ "vins": [...] }` or lists more than 50, or `include` is not `recalls`. */
+            /** @description `validation_failed`: the body is not `{ "vins": [...] }` or lists more than 250, `include` is not `recalls`, `format` is not `json` or `csv`, or `fields` names something that is not a field. */
             400: {
                 headers: {
                     [name: string]: unknown;

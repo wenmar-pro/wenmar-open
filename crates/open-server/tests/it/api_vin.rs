@@ -228,26 +228,96 @@ async fn a_batch_split_over_connections_keeps_the_order_asked() {
 }
 
 #[tokio::test]
-async fn a_batch_of_fifty_is_accepted_and_fifty_one_is_not() {
+async fn a_batch_of_250_is_accepted_and_251_is_not() {
     let app = common::app().await;
     let vins = |count: usize| {
         serde_json::to_string(&json!({ "vins": vec![common::KONA; count] })).unwrap()
     };
-    let response = app.post_json("/v1/vin/batch", &vins(50)).await;
+    let response = app.post_json("/v1/vin/batch", &vins(250)).await;
     assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(body_json(response).await.as_array().unwrap().len(), 50);
+    assert_eq!(body_json(response).await.as_array().unwrap().len(), 250);
 
-    let response = app.post_json("/v1/vin/batch", &vins(51)).await;
+    let response = app.post_json("/v1/vin/batch", &vins(251)).await;
     assert_eq!(response.status(), StatusCode::BAD_REQUEST);
     let body = body_json(response).await;
     assert_eq!(body["error"]["code"], "validation_failed");
     assert_eq!(
         body["error"]["details"],
-        json!({ "field": "vins", "max": 50, "received": 51 })
+        json!({ "field": "vins", "max": 250, "received": 251 })
     );
 
     let response = app.post_json("/v1/vin/batch", r#"{ "vins": [] }"#).await;
     assert_eq!(body_json(response).await, json!([]));
+}
+
+#[tokio::test]
+async fn a_batch_can_be_narrowed_to_the_fields_asked_for() {
+    let app = common::app().await;
+    let response = app
+        .post_json(
+            "/v1/vin/batch?fields=year,model,engine.label,attributes.Model.source",
+            r#"{ "vins": ["KM8K2CAB4PU001140", "nope"] }"#,
+        )
+        .await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(
+        body_json(response).await,
+        json!([
+            {
+                "vin": "KM8K2CAB4PU001140",
+                "year": 2023,
+                "model": "Kona",
+                "engine": { "label": "2.0L" },
+                "attributes": { "Model": { "source": "vin_pattern" } }
+            },
+            {
+                "error": {
+                    "code": "invalid_vin",
+                    "message": "a VIN has 17 characters, this has 4",
+                    "details": { "suggestions": [] }
+                }
+            }
+        ])
+    );
+    let response = app
+        .post_json("/v1/vin/batch?fields=year;model", r#"{ "vins": [] }"#)
+        .await;
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    assert_eq!(
+        body_json(response).await["error"]["details"]["field"],
+        "fields"
+    );
+}
+
+#[tokio::test]
+async fn a_batch_can_be_a_spreadsheet() {
+    let app = common::app().await;
+    let response = app
+        .post_json(
+            "/v1/vin/batch?format=csv&fields=year,make,model,engine.label",
+            r#"{ "vins": ["KM8K2CAB4PU001140", "nope"] }"#,
+        )
+        .await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(
+        common::header(&response, "content-type"),
+        "text/csv; charset=utf-8"
+    );
+    assert_eq!(
+        common::header(&response, "content-disposition"),
+        "attachment; filename=\"vins.csv\""
+    );
+    assert_eq!(common::header(&response, "x-data-version"), "2026.09");
+    assert_eq!(
+        common::body_text(response).await,
+        "vin,year,make,model,engine.label,error,error_message\r\n\
+         KM8K2CAB4PU001140,2023,Hyundai,Kona,2.0L,,\r\n\
+         nope,,,,,invalid_vin,\"a VIN has 17 characters, this has 4\"\r\n"
+    );
+    let response = app
+        .post_json("/v1/vin/batch?format=xlsx", r#"{ "vins": [] }"#)
+        .await;
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
 }
 
 #[tokio::test]

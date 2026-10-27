@@ -11,10 +11,12 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - `year_conclusive`: `false` when position 10 leaves two model years possible and the data does not settle which. The VIN page and the command-line tool then say to check the label.
 - `generation`: the redesign of the model the year belongs to, with its number, code and years, from corgi-rs's `tools/generations.tsv` (MIT, 1,185 generations of 605 models; see NOTICE.md). The VIN page shows it.
 - The VIN page shows the new fields, in new groups "Battery and charging", "Lights and keys" and "From the manufacturer". `wenmar-open vin decode` shows the generation, the battery and the notes.
+- `POST /v1/vin/batch` takes `fields=`, dotted paths such as `year,make,engine.hp,attributes.EngineHP.value`, to keep only those fields of each decode, and `format=csv` for a spreadsheet of one row per VIN, in order, with `error` and `error_message` columns. A cell that a spreadsheet would read as a formula is given a leading `'`.
 - `bin/bench` (`mise run bench`) times decoding against the newest data file.
 
 ### Changed
 
+- A batch holds up to 250 VINs, up from 50 (`MAX_BATCH` in the npm package). Over MCP it stays at 50, because an agent reads every answer.
 - Decoding is about 30 times faster on a server. The rows VINs share (the manufacturer, its schemas, each schema's patterns compiled to bit masks, engine models and specification sheets) are kept between decodes, as are catalog matches: on the parity corpus a decode took 1.9 ms and now takes 64 µs once its rows are held. The cache is bounded by `OPEN_VIN_CACHE_ROWS` (default 200,000 pattern rows, about 40 MB; `0` turns it off). A batch is split over half the connections, so a batch of 50 takes about 3 ms. `wenmar-open-db` gains `Db::open_with_cache`, `Db::vin_cache_stats` and `Db::connections`; `wenmar-vehicles` gains `VinCache` and `SelectionCache`. Every answer is the same as before: the parity corpus decodes to the same JSON with the cache and without it. The offline npm package is unchanged.
 
 ## [0.3.0] - 2026-10-26

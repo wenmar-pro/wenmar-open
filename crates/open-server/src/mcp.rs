@@ -88,10 +88,10 @@ async fn vin_tool(state: &AppState, action: &str, given: &Value) -> Result<Value
         }
         "batch" => {
             let inputs = given.vins.unwrap_or_default();
-            if inputs.len() > vin::MOST_VINS {
+            if inputs.len() > vin::MOST_MCP_VINS {
                 return Err(ApiError::validation(format!(
                     "a batch holds at most {} VINs",
-                    vin::MOST_VINS
+                    vin::MOST_MCP_VINS
                 )));
             }
             let decoded = vin::decode_many(state, inputs, given.year).await?;

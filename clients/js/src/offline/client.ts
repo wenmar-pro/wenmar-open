@@ -169,7 +169,7 @@ export class WenmarOpenOffline {
   }
 
   /**
-   * Decode up to 50 VINs. The answer has one item per VIN, in order: a
+   * Decode up to 250 VINs. The answer has one item per VIN, in order: a
    * decode, or the error a single call for that VIN would have thrown.
    * Tell them apart with `isBatchError`.
    */

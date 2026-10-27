@@ -32,7 +32,7 @@ Every route is under `/v1`. Responses are plain JSON with no wrapper object, any
 
 ```
 GET  /v1/vin/{vin}               Decode one VIN (?year= to override the model year)
-POST /v1/vin/batch               Decode up to 50 VINs: { "vins": [...] } (include=recalls adds a recall count to each)
+POST /v1/vin/batch               Decode up to 250 VINs: { "vins": [...] } (include=recalls adds a recall count to each; fields= keeps only some fields; format=csv answers a spreadsheet)
 GET  /v1/vehicles/years          Model years, newest first
 GET  /v1/vehicles/makes          Makes, optionally for a year
 GET  /v1/vehicles/models         Models of a make

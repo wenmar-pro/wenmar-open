@@ -319,7 +319,7 @@ test("a batch over the limit is refused without a request", async () => {
     assert.ok(error instanceof WenmarOpenError);
     assert.equal(error.code, "validation_failed");
     assert.equal(error.status, undefined);
-    assert.deepEqual(error.details, { field: "vins", max: 50, received: 51 });
+    assert.deepEqual(error.details, { field: "vins", max: 250, received: 251 });
     return true;
   });
   assert.equal(api.received.length, before);

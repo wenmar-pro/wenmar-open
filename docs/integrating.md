@@ -21,7 +21,7 @@ Base address: `https://open.wenmarpro.com`. Every route is under `/v1`, answers 
 |---|---|
 | `DecodeVinValues/{vin}`, `DecodeVin/{vin}`, `DecodeVinValuesExtended/{vin}` | `GET /v1/vin/{vin}` |
 | the `modelyear` parameter of those | `GET /v1/vin/{vin}?year=2019` |
-| `DecodeVINValuesBatch` | `POST /v1/vin/batch` with `{ "vins": [...] }`, at most 50 |
+| `DecodeVINValuesBatch` | `POST /v1/vin/batch` with `{ "vins": [...] }`, at most 250; `?format=csv` for a spreadsheet |
 | `GetModelsForMakeYear/make/{make}/modelyear/{year}` | `GET /v1/vehicles/models?make={make}&year={year}` |
 | `GetMakesForVehicleType/{type}` | `GET /v1/vehicles/makes`, which lists cars, multipurpose vehicles and trucks unless `scope` says otherwise |
 | nothing | `GET /v1/vehicles/years`, `/v1/vehicles/submodels`, `/v1/vehicles/engines`, `/v1/vehicles/search?q=`, `/v1/vehicles/{id}` |
@@ -193,7 +193,7 @@ An answer changes only when the data does, about once a month.
 One address may make 600 requests a minute. Over that the answer is `429` with the code `rate_limited` and a `Retry-After` header, in seconds. The limit exists so that one client cannot slow the service for everyone; ordinary use does not come near it.
 
 - A server that calls the API on behalf of its users is one address. Cache catalog answers, as above.
-- A batch of 50 VINs is one request. Decode a list with `POST /v1/vin/batch`, not with 50 requests.
+- A batch of 250 VINs is one request. Decode a list with `POST /v1/vin/batch`, not with 250 requests.
 - When the server is too busy to answer, the answer is `503` with the code `unavailable` and a `Retry-After` header.
 - Retry only `429`, `503`, timeouts and connection failures, and wait for `Retry-After` when it is given. Never retry a `400` or a `404`: the answer will not change.
 - If your volume cannot fit, run the decoder in your own process, or run your own copy of the server. Both use the same data file and have no limit.

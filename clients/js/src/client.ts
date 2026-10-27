@@ -175,7 +175,7 @@ export class WenmarOpen {
   }
 
   /**
-   * Decode up to 50 VINs. The answer has one item per VIN, in order: a
+   * Decode up to 250 VINs. The answer has one item per VIN, in order: a
    * decode, or the error a single request for that VIN would have given.
    * Tell them apart with `isBatchError`.
    */

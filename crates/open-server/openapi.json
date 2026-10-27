@@ -2273,8 +2273,8 @@
         "tags": [
           "VIN"
         ],
-        "summary": "Decode up to 50 VINs.",
-        "description": "The answer is an array in the order asked. Each item is a decode, or the\nerror object a single request for that VIN would have returned.\n\nWith `?include=recalls`, each decode that reaches a model year of the\ncatalog also carries `recalls`: how many campaigns may apply to that\nmodel year. It is a count for the year, make and model, never a lookup\nby VIN.",
+        "summary": "Decode up to 250 VINs.",
+        "description": "The answer is an array in the order asked. Each item is a decode, or the\nerror object a single request for that VIN would have returned.\n\n`fields` narrows each decode to the fields named, and `format=csv`\nanswers with a spreadsheet of one row per VIN.\n\nWith `?include=recalls`, each decode that reaches a model year of the\ncatalog also carries `recalls`: how many campaigns may apply to that\nmodel year. It is a count for the year, make and model, never a lookup\nby VIN.",
         "operationId": "batch",
         "parameters": [
           {
@@ -2286,6 +2286,26 @@
               "type": "string"
             },
             "example": "recalls"
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "description": "Only these fields of each decode, separated by commas: dotted paths\nsuch as `year`, `engine.hp` or `attributes.EngineHP.value`. `vin` is\nalways given. An error item is given whole. Left out: every field.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "year,make,model,engine.label,engine.hp"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "`csv` answers with one row per VIN, in order: `vin`, the fields asked\nfor (or a set for a fleet list), then `error` and `error_message`.\nLeft out or `json`: the JSON array.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "csv"
           }
         ],
         "requestBody": {
@@ -2300,7 +2320,7 @@
         },
         "responses": {
           "200": {
-            "description": "One item per VIN, in order.",
+            "description": "One item per VIN, in order. With `fields`, each decode holds only those fields and `vin`. With `format=csv`, the same as CSV.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2309,11 +2329,16 @@
                     "$ref": "#/components/schemas/BatchItem"
                   }
                 }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
               }
             }
           },
           "400": {
-            "description": "`validation_failed`: the body is not `{ \"vins\": [...] }` or lists more than 50, or `include` is not `recalls`.",
+            "description": "`validation_failed`: the body is not `{ \"vins\": [...] }` or lists more than 250, `include` is not `recalls`, `format` is not `json` or `csv`, or `fields` names something that is not a field.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3237,12 +3262,12 @@
             "items": {
               "type": "string"
             },
-            "description": "At most 50 VINs.",
+            "description": "At most 250 VINs.",
             "example": [
               "KM8K2CAB4PU001140",
               "1HGCM82633A004352"
             ],
-            "maxItems": 50
+            "maxItems": 250
           }
         }
       },

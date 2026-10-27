@@ -64,7 +64,7 @@ use crate::state::AppState;
 /// holds the old one, whether or not the crate's version number changed.
 pub const BUILD_ID: &str = env!("OPEN_BUILD_ID");
 
-/// Largest request body read: a batch of 50 VINs is under 2 KB.
+/// Largest request body read: a batch of 250 VINs is under 10 KB.
 pub const BODY_LIMIT: usize = 16 * 1024;
 
 /// Longest address read: the path and the query string together. The longest

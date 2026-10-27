@@ -1,5 +1,6 @@
 //! The JSON API under `/v1`.
 
+pub mod batch_out;
 pub mod bulletins;
 pub mod codes;
 pub mod complaints;

@@ -3,12 +3,15 @@
 use axum::Json;
 use axum::extract::rejection::{JsonRejection, PathRejection, QueryRejection};
 use axum::extract::{Path, Query, State};
+use axum::http::header;
+use axum::response::{IntoResponse, Response};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
+use serde_json::{Value, json};
 use utoipa::{IntoParams, ToSchema};
 use wenmar_open_db::DecodeFailure;
 use wenmar_vin::DecodeOptions;
 
+use crate::api::batch_out;
 use crate::api::types::VinDecode;
 use crate::api::{bad_body, bad_query, blank_is_none};
 use crate::db::Worker;
@@ -18,7 +21,11 @@ use crate::state::AppState;
 pub use wenmar_open_db::current_year;
 
 /// Most VINs in one batch.
-pub const MOST_VINS: usize = 50;
+pub const MOST_VINS: usize = 250;
+
+/// Most VINs in one batch asked over MCP. An agent reads every answer, so
+/// a batch there stays small.
+pub const MOST_MCP_VINS: usize = 50;
 
 /// Longest text read as a VIN. A VIN has 17 characters; spaces and dashes
 /// are allowed, so there is some room. Anything longer is refused unread.
@@ -43,12 +50,22 @@ pub struct BatchQuery {
     /// may apply to the model year it reaches. Left out: nothing is added.
     #[param(example = "recalls")]
     pub include: Option<String>,
+    /// Only these fields of each decode, separated by commas: dotted paths
+    /// such as `year`, `engine.hp` or `attributes.EngineHP.value`. `vin` is
+    /// always given. An error item is given whole. Left out: every field.
+    #[param(example = "year,make,model,engine.label,engine.hp")]
+    pub fields: Option<String>,
+    /// `csv` answers with one row per VIN, in order: `vin`, the fields asked
+    /// for (or a set for a fleet list), then `error` and `error_message`.
+    /// Left out or `json`: the JSON array.
+    #[param(example = "csv")]
+    pub format: Option<String>,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct BatchRequest {
-    /// At most 50 VINs.
-    #[schema(max_items = 50, example = json!(["KM8K2CAB4PU001140", "1HGCM82633A004352"]))]
+    /// At most 250 VINs.
+    #[schema(max_items = 250, example = json!(["KM8K2CAB4PU001140", "1HGCM82633A004352"]))]
     pub vins: Vec<String>,
 }
 
@@ -196,10 +213,13 @@ pub async fn decode(
     }
 }
 
-/// Decode up to 50 VINs.
+/// Decode up to 250 VINs.
 ///
 /// The answer is an array in the order asked. Each item is a decode, or the
 /// error object a single request for that VIN would have returned.
+///
+/// `fields` narrows each decode to the fields named, and `format=csv`
+/// answers with a spreadsheet of one row per VIN.
 ///
 /// With `?include=recalls`, each decode that reaches a model year of the
 /// catalog also carries `recalls`: how many campaigns may apply to that
@@ -212,8 +232,11 @@ pub async fn decode(
     params(BatchQuery),
     request_body = BatchRequest,
     responses(
-        (status = 200, description = "One item per VIN, in order.", body = Vec<BatchItem>),
-        (status = 400, description = "`validation_failed`: the body is not `{ \"vins\": [...] }` or lists more than 50, or `include` is not `recalls`.", body = ErrorBody),
+        (status = 200, description = "One item per VIN, in order. With `fields`, each decode holds only those fields and `vin`. With `format=csv`, the same as CSV.", content(
+            (Vec<BatchItem> = "application/json"),
+            (String = "text/csv")
+        )),
+        (status = 400, description = "`validation_failed`: the body is not `{ \"vins\": [...] }` or lists more than 250, `include` is not `recalls`, `format` is not `json` or `csv`, or `fields` names something that is not a field.", body = ErrorBody),
         (status = 404, description = "`dataset_unavailable`: `include=recalls` was asked of a server that holds no recalls.", body = ErrorBody),
         (status = 413, description = "`payload_too_large`.", body = ErrorBody),
         (status = 429, description = "`rate_limited`.", body = ErrorBody)
@@ -223,9 +246,20 @@ pub async fn batch(
     State(state): State<AppState>,
     query: Result<Query<BatchQuery>, QueryRejection>,
     body: Result<Json<BatchRequest>, JsonRejection>,
-) -> Result<Json<Vec<BatchItem>>, ApiError> {
+) -> Result<Response, ApiError> {
     let Query(query) = query.map_err(bad_query)?;
     let with_recalls = crate::api::overview::include_recalls(query.include.as_deref())?;
+    let fields = batch_out::parse_fields(query.fields.as_deref())?;
+    let as_csv = match query.format.as_deref().map(str::trim) {
+        None | Some("") | Some("json") => false,
+        Some("csv") => true,
+        Some(other) => {
+            return Err(ApiError::Validation {
+                message: format!("format must be json or csv, not {other:?}"),
+                details: json!({ "field": "format", "allowed": ["json", "csv"] }),
+            });
+        }
+    };
     let Json(request) = body.map_err(bad_body)?;
     if request.vins.len() > MOST_VINS {
         return Err(ApiError::Validation {
@@ -233,17 +267,45 @@ pub async fn batch(
             details: json!({ "field": "vins", "max": MOST_VINS, "received": request.vins.len() }),
         });
     }
+    let inputs = as_csv.then(|| request.vins.clone());
     let mut decoded = decode_many(&state, request.vins, None).await?;
     if with_recalls {
         crate::api::overview::add_recall_counts(&state, &mut decoded).await?;
     }
+    let items: Vec<BatchItem> = decoded
+        .into_iter()
+        .map(|result| match result {
+            Ok(decode) => BatchItem::Decode(Box::new(decode)),
+            Err(error) => BatchItem::Error(error.body()),
+        })
+        .collect();
+    if fields.is_none() && !as_csv {
+        return Ok(Json(items).into_response());
+    }
+    let values: Vec<Value> = items
+        .iter()
+        .map(|item| serde_json::to_value(item).map_err(ApiError::internal))
+        .collect::<Result<_, _>>()?;
+    if let Some(inputs) = inputs {
+        let text = batch_out::csv(&values, &inputs, fields.as_deref());
+        return Ok((
+            [
+                (header::CONTENT_TYPE, "text/csv; charset=utf-8"),
+                (
+                    header::CONTENT_DISPOSITION,
+                    "attachment; filename=\"vins.csv\"",
+                ),
+            ],
+            text,
+        )
+            .into_response());
+    }
+    let fields = fields.unwrap_or_default();
     Ok(Json(
-        decoded
+        values
             .into_iter()
-            .map(|result| match result {
-                Ok(decode) => BatchItem::Decode(Box::new(decode)),
-                Err(error) => BatchItem::Error(error.body()),
-            })
-            .collect(),
-    ))
+            .map(|value| batch_out::project(value, &fields))
+            .collect::<Vec<Value>>(),
+    )
+    .into_response())
 }

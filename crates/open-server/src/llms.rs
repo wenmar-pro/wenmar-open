@@ -313,7 +313,7 @@ pub fn text(base: &str, data_version: &str, limit: u32, held: &Held) -> String {
 
 > {summary}
 
-To decode a VIN, fetch `{base}/v1/vin/` followed by the VIN, and read the JSON. No key, header or sign-up is needed. Spaces and dashes are ignored. A wrong check digit is not an error: the decode has `valid: false` and a warning, because many genuine VINs from outside North America fail the check. Up to 50 VINs at once: `POST {base}/v1/vin/batch` with `{{ \"vins\": [...] }}`.
+To decode a VIN, fetch `{base}/v1/vin/` followed by the VIN, and read the JSON. No key, header or sign-up is needed. Spaces and dashes are ignored. A wrong check digit is not an error: the decode has `valid: false` and a warning, because many genuine VINs from outside North America fail the check. Up to 250 VINs at once: `POST {base}/v1/vin/batch` with `{{ \"vins\": [...] }}`; add `?fields=year,make,model,engine.hp` to keep only those fields, or `?format=csv` for a spreadsheet.
 
 Responses are plain JSON with no wrapper. Errors are `{{ \"error\": {{ \"code\", \"message\", \"details\" }} }}`. One address may make {limit} requests a minute; over that the answer is 429 with `Retry-After`. Fields and endpoints are only ever added.
 
