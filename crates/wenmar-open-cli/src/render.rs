@@ -122,6 +122,21 @@ fn fields(value: &Value, first: &[&str], skip: &[&str]) -> Vec<Vec<String>> {
     rows
 }
 
+/// A generation on one line: `8th generation (CP/CS), 2008-2012`.
+fn generation(value: &Value) -> Option<String> {
+    let name = field(value, "name")?;
+    let code = field(value, "code")
+        .filter(|code| *code != name)
+        .map(|code| format!(" ({code})"))
+        .unwrap_or_default();
+    let from = field(value, "year_from")?;
+    let years = match field(value, "year_to") {
+        Some(to) => format!("{from}-{to}"),
+        None => format!("{from} on"),
+    };
+    Some(format!("{name}{code}, {years}"))
+}
+
 /// The scalar fields of an object on one line: `2.0L, cylinders 4`.
 fn inline(value: &Value, plain: &[&str]) -> Option<String> {
     let object = value.as_object()?;
@@ -176,10 +191,24 @@ fn decode(value: &Value) -> String {
             "transmission",
             "transmission_speeds",
         ],
-        &["vin", "valid", "year", "make", "model", "trim"],
+        &[
+            "vin",
+            "valid",
+            "year",
+            "make",
+            "model",
+            "trim",
+            "year_conclusive",
+        ],
     ));
     if let Some(engine) = inline(&value["engine"], &["label"]) {
         rows.push(vec!["Engine".to_owned(), engine]);
+    }
+    if let Some(generation) = generation(&value["generation"]) {
+        rows.push(vec!["Generation".to_owned(), generation]);
+    }
+    if let Some(battery) = inline(&value["electric"], &["battery_type"]) {
+        rows.push(vec!["Battery".to_owned(), battery]);
     }
     if let Some(maker) = inline(&value["manufacturer"], &["name", "country"]) {
         rows.push(vec!["Manufacturer".to_owned(), maker]);
@@ -205,6 +234,26 @@ fn decode(value: &Value) -> String {
             })
             .collect();
         text.push_str(&table(&indented));
+    }
+
+    if value.get("year_conclusive").and_then(Value::as_bool) == Some(false)
+        && value.get("year").is_some()
+    {
+        text.push_str(
+            "\nThe VIN does not settle the model year: check the label on the door jamb.\n",
+        );
+    }
+    let notes: Vec<&str> = value["notes"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(Value::as_str)
+        .collect();
+    if !notes.is_empty() {
+        text.push_str("\nFrom the manufacturer\n");
+        for note in notes {
+            text.push_str(&format!("  {note}\n"));
+        }
     }
 
     for warning in value["warnings"].as_array().into_iter().flatten() {

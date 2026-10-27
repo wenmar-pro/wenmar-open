@@ -96,9 +96,30 @@ pub fn groups(decode: &VinDecode) -> Vec<Group> {
     push(&mut vehicle, "Model", decode.model.as_ref());
     push(&mut vehicle, "Series", decode.series.as_ref());
     push(&mut vehicle, "Trim", decode.trim.as_ref());
+    push(
+        &mut vehicle,
+        "Generation",
+        decode.generation.as_ref().map(generation),
+    );
     push(&mut vehicle, "Body", decode.body.as_ref());
+    push(&mut vehicle, "Cab", decode.cab_type.as_ref());
+    push(&mut vehicle, "Bed", decode.bed_type.as_ref());
+    push(&mut vehicle, "Bed length, inches", decode.bed_length_in);
     push(&mut vehicle, "Doors", decode.doors);
     push(&mut vehicle, "Weight rating", decode.gvwr.as_ref());
+    push(
+        &mut vehicle,
+        "Weight rating, up to",
+        decode.gvwr_to.as_ref(),
+    );
+    push(&mut vehicle, "Curb weight, pounds", decode.curb_weight_lb);
+    if decode.year.is_some() && !decode.year_conclusive {
+        push(
+            &mut vehicle,
+            "Model year",
+            Some("Not settled by the VIN: check the label on the door jamb"),
+        );
+    }
 
     let mut engine = Vec::new();
     if let Some(found) = &decode.engine {
@@ -118,6 +139,31 @@ pub fn groups(decode: &VinDecode) -> Vec<Group> {
             "Electrification",
             found.electrification.as_ref(),
         );
+        push(&mut engine, "Horsepower", range(found.hp, found.hp_to));
+        push(&mut engine, "Valve train", found.valve_train.as_ref());
+        push(&mut engine, "Fuel injection", found.fuel_injection.as_ref());
+        push(&mut engine, "Second fuel", found.fuel_secondary.as_ref());
+        push(&mut engine, "Cooling", found.cooling.as_ref());
+        push(&mut engine, "Engine maker", found.manufacturer.as_ref());
+    }
+
+    let mut battery = Vec::new();
+    if let Some(found) = &decode.electric {
+        push(&mut battery, "Battery", found.battery_type.as_ref());
+        push(
+            &mut battery,
+            "Battery energy, kWh",
+            range(found.battery_kwh, found.battery_kwh_to),
+        );
+        push(
+            &mut battery,
+            "Battery voltage",
+            range(found.battery_volts, found.battery_volts_to),
+        );
+        push(&mut battery, "Battery details", found.battery_info.as_ref());
+        push(&mut battery, "Drive unit", found.drive_unit.as_ref());
+        push(&mut battery, "Charger level", found.charger_level.as_ref());
+        push(&mut battery, "Charger power, kW", found.charger_power_kw);
     }
 
     let mut driveline = Vec::new();
@@ -128,9 +174,29 @@ pub fn groups(decode: &VinDecode) -> Vec<Group> {
         decode.transmission_speeds,
     );
     push(&mut driveline, "Drivetrain", decode.drivetrain.as_ref());
+    push(&mut driveline, "Brakes", decode.brake_system.as_ref());
+    push(
+        &mut driveline,
+        "Brake details",
+        decode.brake_system_description.as_ref(),
+    );
+    push(&mut driveline, "Axles", decode.axles);
+    push(
+        &mut driveline,
+        "Axle layout",
+        decode.axle_configuration.as_ref(),
+    );
+    push(
+        &mut driveline,
+        "Wheelbase, inches",
+        range(decode.wheelbase_in, decode.wheelbase_to_in),
+    );
+    push(&mut driveline, "Track width, inches", decode.track_width_in);
+    push(&mut driveline, "Steering", decode.steering.as_ref());
 
     let mut safety = Vec::new();
     let mut assistance = Vec::new();
+    let mut lights = Vec::new();
     if let Some(found) = &decode.safety {
         push(&mut safety, "ABS", found.abs.as_ref());
         push(&mut safety, "Stability control", found.esc.as_ref());
@@ -148,6 +214,64 @@ pub fn groups(decode: &VinDecode) -> Vec<Group> {
             found.airbags_curtain.as_ref(),
         );
         push(&mut safety, "Knee air bags", found.airbags_knee.as_ref());
+        push(
+            &mut safety,
+            "Seat cushion air bags",
+            found.airbags_seat_cushion.as_ref(),
+        );
+        push(&mut safety, "Seat belts", found.seat_belts.as_ref());
+        push(&mut safety, "Pretensioners", found.pretensioner.as_ref());
+        push(
+            &mut safety,
+            "Crash notification",
+            found.crash_notification.as_ref(),
+        );
+        push(
+            &mut safety,
+            "Event data recorder",
+            found.event_data_recorder.as_ref(),
+        );
+
+        push(
+            &mut lights,
+            "Headlamps",
+            found.headlamp_light_source.as_ref(),
+        );
+        push(
+            &mut lights,
+            "Adaptive driving beam",
+            found.adaptive_driving_beam.as_ref(),
+        );
+        push(
+            &mut lights,
+            "Headlamps that turn",
+            found.adaptive_headlights.as_ref(),
+        );
+        push(
+            &mut lights,
+            "Automatic high beams",
+            found.automatic_high_beams.as_ref(),
+        );
+        push(
+            &mut lights,
+            "Daytime running lights",
+            found.daytime_running_lights.as_ref(),
+        );
+        push(
+            &mut lights,
+            "Keyless ignition",
+            found.keyless_ignition.as_ref(),
+        );
+        push(
+            &mut lights,
+            "Auto-reverse windows",
+            found.auto_reverse_windows.as_ref(),
+        );
+        push(
+            &mut lights,
+            "Pedestrian alert sound",
+            found.pedestrian_alert_sound.as_ref(),
+        );
 
         push(
             &mut assistance,
@@ -212,6 +336,7 @@ pub fn groups(decode: &VinDecode) -> Vec<Group> {
     push(&mut fitted, "Rear wheels, inches", decode.wheel_size_rear);
     push(&mut fitted, "Seats", decode.seats);
     push(&mut fitted, "Seat rows", decode.seat_rows);
+    push(&mut fitted, "Wheels", decode.wheels);
 
     let mut built = Vec::new();
     push(&mut built, "Manufacturer", Some(&decode.manufacturer.name));
@@ -233,20 +358,54 @@ pub fn groups(decode: &VinDecode) -> Vec<Group> {
     push(&mut built, "Plant city", decode.plant.city.as_ref());
     push(&mut built, "Plant state", decode.plant.state.as_ref());
     push(&mut built, "Plant country", decode.plant.country.as_ref());
+    push(&mut built, "Built for", decode.destination_market.as_ref());
+
+    let mut notes = Vec::new();
+    for note in &decode.notes {
+        push(&mut notes, "Note", Some(note));
+    }
 
     [
         ("Vehicle", vehicle),
         ("Engine", engine),
+        ("Battery and charging", battery),
         ("Transmission and drive", driveline),
         ("Safety equipment", safety),
         ("Driver assistance", assistance),
+        ("Lights and keys", lights),
         ("Wheels and seats", fitted),
         ("Where it was built", built),
+        ("From the manufacturer", notes),
     ]
     .into_iter()
     .filter(|(_, rows)| !rows.is_empty())
     .map(|(name, rows)| Group { name, rows })
     .collect()
+}
+
+/// A generation as a line: `8th generation (CP/CS), 2008-2012`.
+fn generation(found: &crate::api::types::Generation) -> String {
+    let code = found
+        .code
+        .as_deref()
+        .filter(|code| *code != found.name)
+        .map(|code| format!(" ({code})"))
+        .unwrap_or_default();
+    let years = match found.year_to {
+        Some(to) => format!("{}-{to}", found.year_from),
+        None => format!("{} on", found.year_from),
+    };
+    format!("{}{code}, {years}", found.name)
+}
+
+/// An amount, or a range of two.
+fn range(from: Option<f64>, to: Option<f64>) -> Option<String> {
+    match (from, to) {
+        (Some(from), Some(to)) if to > from => Some(format!("{from}-{to}")),
+        (Some(from), _) => Some(from.to_string()),
+        (None, Some(to)) => Some(format!("up to {to}")),
+        (None, None) => None,
+    }
 }
 
 /// The sheet as plain text, for the clipboard: the vehicle, the VIN, then
@@ -521,6 +680,63 @@ mod tests {
         // Nothing has moved into a group it does not belong in.
         assert_eq!(find("Vehicle", "Transmission"), None);
         assert_eq!(find("Vehicle", "Seats"), None);
+    }
+
+    #[test]
+    fn the_new_attributes_go_in_their_groups() {
+        let mut data = MemoryData::new()
+            .with_manufacturer(Manufacturer::new("KM8", "Hyundai Motor Co"))
+            .with_schema("KM8", 1, 2022, None);
+        for (element, value) in [
+            (Element::Model, "Kona"),
+            (Element::Make, "Hyundai"),
+            (Element::Other(71), "147"),
+            (Element::Other(125), "201"),
+            (Element::Other(42), "Hydraulic"),
+            (Element::Other(59), "64.8"),
+            (Element::Other(176), "Standard"),
+            (Element::Other(129), "Gasoline Direct Injection"),
+        ] {
+            data = data.with_pattern(1, "K2***", element, value);
+        }
+        let decoded = Decoder::new(data)
+            .decode(
+                "KM8K2CAB4PU001140",
+                DecodeOptions {
+                    current_year: Some(2026),
+                    ..DecodeOptions::default()
+                },
+            )
+            .unwrap();
+        let groups = groups(&VinDecode::new(decoded, None));
+        let find = |group: &str, label: &str| {
+            groups
+                .iter()
+                .find(|found| found.name == group)
+                .and_then(|found| found.rows.iter().find(|row| row.label == label))
+                .map(|row| row.value.clone())
+        };
+        assert_eq!(find("Engine", "Horsepower").as_deref(), Some("147-201"));
+        assert_eq!(
+            find("Transmission and drive", "Brakes").as_deref(),
+            Some("Hydraulic")
+        );
+        assert_eq!(
+            find("Battery and charging", "Battery energy, kWh").as_deref(),
+            Some("64.8")
+        );
+        assert_eq!(
+            find("Lights and keys", "Keyless ignition").as_deref(),
+            Some("Standard")
+        );
+        assert_eq!(
+            find("From the manufacturer", "Note").as_deref(),
+            Some("Gasoline Direct Injection")
+        );
+        assert_eq!(
+            find("Vehicle", "Generation").as_deref(),
+            Some("OS, 2018-2023")
+        );
     }
 
     #[test]

@@ -47,6 +47,29 @@ fn decodes_a_vin_as_the_api_does() {
             },
             "plant": { "code": "U", "city": "Ulsan" },
             "warnings": [],
+            "year_conclusive": true,
+            "body_style": "suv",
+            "generation": {
+                "name": "OS",
+                "ordinal": 1,
+                "code": "OS",
+                "year_from": 2018,
+                "year_to": 2023
+            },
+            "attributes": {
+                "ABS": { "name": "Antilock Braking System (ABS)", "value": "Standard", "source": "specification_sheet" },
+                "BodyClass": { "name": "Body Class", "value": "Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)", "source": "vin_pattern" },
+                "DisplacementL": { "name": "Displacement (L)", "value": "2.0", "source": "vin_pattern" },
+                "EngineCylinders": { "name": "Engine Number of Cylinders", "value": "4", "source": "engine_model" },
+                "EngineModel": { "name": "Engine Model", "value": "G4NH", "source": "vin_pattern" },
+                "FuelTypePrimary": { "name": "Fuel Type - Primary", "value": "Gasoline", "source": "engine_model" },
+                "Make": { "name": "Make", "value": "Hyundai", "source": "vin_pattern" },
+                "Model": { "name": "Model", "value": "Kona", "source": "vin_pattern" },
+                "PlantCity": { "name": "Plant City", "value": "Ulsan", "source": "vin_pattern" },
+                "TPMS": { "name": "Tire Pressure Monitoring System (TPMS) Type", "value": "Direct", "source": "specification_sheet" },
+                "TransmissionStyle": { "name": "Transmission Style", "value": "Automatic", "source": "specification_sheet" },
+                "Trim": { "name": "Trim", "value": "SE", "source": "vin_pattern" }
+            },
             "catalog": {
                 "entry": {
                     "id": "2023_hyundai_kona_se_2-0l",

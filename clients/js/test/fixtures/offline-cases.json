@@ -3,7 +3,75 @@
     {
       "answer": {
         "ok": {
+          "attributes": {
+            "ABS": {
+              "name": "Antilock Braking System (ABS)",
+              "source": "specification_sheet",
+              "value": "Standard"
+            },
+            "BodyClass": {
+              "name": "Body Class",
+              "source": "vin_pattern",
+              "value": "Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)"
+            },
+            "DisplacementL": {
+              "name": "Displacement (L)",
+              "source": "vin_pattern",
+              "value": "2.0"
+            },
+            "EngineCylinders": {
+              "name": "Engine Number of Cylinders",
+              "source": "engine_model",
+              "value": "4"
+            },
+            "EngineModel": {
+              "name": "Engine Model",
+              "source": "vin_pattern",
+              "value": "G4NH"
+            },
+            "FuelTypePrimary": {
+              "name": "Fuel Type - Primary",
+              "source": "engine_model",
+              "value": "Gasoline"
+            },
+            "Make": {
+              "name": "Make",
+              "source": "vin_pattern",
+              "value": "Hyundai"
+            },
+            "Model": {
+              "name": "Model",
+              "source": "vin_pattern",
+              "value": "Kona"
+            },
+            "NCSABodyType": {
+              "name": "NCSA Body Type",
+              "source": "vin_pattern",
+              "value": "Internal Element"
+            },
+            "PlantCity": {
+              "name": "Plant City",
+              "source": "vin_pattern",
+              "value": "Ulsan"
+            },
+            "TPMS": {
+              "name": "Tire Pressure Monitoring System (TPMS) Type",
+              "source": "specification_sheet",
+              "value": "Direct"
+            },
+            "TransmissionStyle": {
+              "name": "Transmission Style",
+              "source": "specification_sheet",
+              "value": "Automatic"
+            },
+            "Trim": {
+              "name": "Trim",
+              "source": "vin_pattern",
+              "value": "SE"
+            }
+          },
           "body": "Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)",
+          "body_style": "suv",
           "catalog": {
             "engine_id": "2-0l",
             "entry": {
@@ -36,6 +104,13 @@
             "label": "2.0L",
             "model": "G4NH"
           },
+          "generation": {
+            "code": "OS",
+            "name": "OS",
+            "ordinal": 1,
+            "year_from": 2018,
+            "year_to": 2023
+          },
           "make": "Hyundai",
           "manufacturer": {
             "country": "South Korea",
@@ -57,7 +132,8 @@
           "valid": true,
           "vin": "KM8K2CAB4PU001140",
           "warnings": [],
-          "year": 2023
+          "year": 2023,
+          "year_conclusive": true
         }
       },
       "args": {
@@ -70,7 +146,75 @@
     {
       "answer": {
         "ok": {
+          "attributes": {
+            "ABS": {
+              "name": "Antilock Braking System (ABS)",
+              "source": "specification_sheet",
+              "value": "Standard"
+            },
+            "BodyClass": {
+              "name": "Body Class",
+              "source": "vin_pattern",
+              "value": "Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)"
+            },
+            "DisplacementL": {
+              "name": "Displacement (L)",
+              "source": "vin_pattern",
+              "value": "2.0"
+            },
+            "EngineCylinders": {
+              "name": "Engine Number of Cylinders",
+              "source": "engine_model",
+              "value": "4"
+            },
+            "EngineModel": {
+              "name": "Engine Model",
+              "source": "vin_pattern",
+              "value": "G4NH"
+            },
+            "FuelTypePrimary": {
+              "name": "Fuel Type - Primary",
+              "source": "engine_model",
+              "value": "Gasoline"
+            },
+            "Make": {
+              "name": "Make",
+              "source": "vin_pattern",
+              "value": "Hyundai"
+            },
+            "Model": {
+              "name": "Model",
+              "source": "vin_pattern",
+              "value": "Kona"
+            },
+            "NCSABodyType": {
+              "name": "NCSA Body Type",
+              "source": "vin_pattern",
+              "value": "Internal Element"
+            },
+            "PlantCity": {
+              "name": "Plant City",
+              "source": "vin_pattern",
+              "value": "Ulsan"
+            },
+            "TPMS": {
+              "name": "Tire Pressure Monitoring System (TPMS) Type",
+              "source": "specification_sheet",
+              "value": "Direct"
+            },
+            "TransmissionStyle": {
+              "name": "Transmission Style",
+              "source": "specification_sheet",
+              "value": "Automatic"
+            },
+            "Trim": {
+              "name": "Trim",
+              "source": "vin_pattern",
+              "value": "SE"
+            }
+          },
           "body": "Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)",
+          "body_style": "suv",
           "catalog": {
             "engine_id": "2-0l",
             "entry": {
@@ -103,6 +247,13 @@
             "label": "2.0L",
             "model": "G4NH"
           },
+          "generation": {
+            "code": "OS",
+            "name": "OS",
+            "ordinal": 1,
+            "year_from": 2018,
+            "year_to": 2023
+          },
           "make": "Hyundai",
           "manufacturer": {
             "country": "South Korea",
@@ -124,7 +275,8 @@
           "valid": true,
           "vin": "KM8K2CAB4PU001140",
           "warnings": [],
-          "year": 2023
+          "year": 2023,
+          "year_conclusive": true
         }
       },
       "args": {
@@ -137,7 +289,75 @@
     {
       "answer": {
         "ok": {
+          "attributes": {
+            "ABS": {
+              "name": "Antilock Braking System (ABS)",
+              "source": "specification_sheet",
+              "value": "Standard"
+            },
+            "BodyClass": {
+              "name": "Body Class",
+              "source": "vin_pattern",
+              "value": "Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)"
+            },
+            "DisplacementL": {
+              "name": "Displacement (L)",
+              "source": "vin_pattern",
+              "value": "2.0"
+            },
+            "EngineCylinders": {
+              "name": "Engine Number of Cylinders",
+              "source": "engine_model",
+              "value": "4"
+            },
+            "EngineModel": {
+              "name": "Engine Model",
+              "source": "vin_pattern",
+              "value": "G4NH"
+            },
+            "FuelTypePrimary": {
+              "name": "Fuel Type - Primary",
+              "source": "engine_model",
+              "value": "Gasoline"
+            },
+            "Make": {
+              "name": "Make",
+              "source": "vin_pattern",
+              "value": "Hyundai"
+            },
+            "Model": {
+              "name": "Model",
+              "source": "vin_pattern",
+              "value": "Kona"
+            },
+            "NCSABodyType": {
+              "name": "NCSA Body Type",
+              "source": "vin_pattern",
+              "value": "Internal Element"
+            },
+            "PlantCity": {
+              "name": "Plant City",
+              "source": "vin_pattern",
+              "value": "Ulsan"
+            },
+            "TPMS": {
+              "name": "Tire Pressure Monitoring System (TPMS) Type",
+              "source": "specification_sheet",
+              "value": "Direct"
+            },
+            "TransmissionStyle": {
+              "name": "Transmission Style",
+              "source": "specification_sheet",
+              "value": "Automatic"
+            },
+            "Trim": {
+              "name": "Trim",
+              "source": "vin_pattern",
+              "value": "SE"
+            }
+          },
           "body": "Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)",
+          "body_style": "suv",
           "catalog": {
             "engine_id": "2-0l",
             "entry": {
@@ -170,6 +390,13 @@
             "label": "2.0L",
             "model": "G4NH"
           },
+          "generation": {
+            "code": "OS",
+            "name": "OS",
+            "ordinal": 1,
+            "year_from": 2018,
+            "year_to": 2023
+          },
           "make": "Hyundai",
           "manufacturer": {
             "country": "South Korea",
@@ -196,7 +423,8 @@
               "message": "Position 9 should be 4 for this VIN, but it is 0."
             }
           ],
-          "year": 2023
+          "year": 2023,
+          "year_conclusive": true
         }
       },
       "args": {
@@ -209,6 +437,18 @@
     {
       "answer": {
         "ok": {
+          "attributes": {
+            "Make": {
+              "name": "Make",
+              "source": "vin_pattern",
+              "value": "Hyundai"
+            },
+            "Model": {
+              "name": "Model",
+              "source": "vin_pattern",
+              "value": "Old Model"
+            }
+          },
           "check_digit": {
             "actual": "4",
             "expected": "4",
@@ -228,7 +468,8 @@
           "valid": true,
           "vin": "KM8K2CAB4PU001140",
           "warnings": [],
-          "year": 1993
+          "year": 1993,
+          "year_conclusive": true
         }
       },
       "args": {
@@ -336,7 +577,30 @@
     {
       "answer": {
         "ok": {
+          "attributes": {
+            "BodyClass": {
+              "name": "Body Class",
+              "source": "vin_pattern",
+              "value": "Bus"
+            },
+            "DriveType": {
+              "name": "Drive Type",
+              "source": "vin_pattern",
+              "value": "6x4"
+            },
+            "Make": {
+              "name": "Make",
+              "source": "vin_pattern",
+              "value": "MCI"
+            },
+            "Model": {
+              "name": "Model",
+              "source": "vin_pattern",
+              "value": "D-Series"
+            }
+          },
           "body": "Bus",
+          "body_style": "bus",
           "check_digit": {
             "actual": "1",
             "expected": "1",
@@ -357,7 +621,8 @@
           "valid": true,
           "vin": "1M8PDMPA1MP000001",
           "warnings": [],
-          "year": 2021
+          "year": 2021,
+          "year_conclusive": false
         }
       },
       "args": {
@@ -370,7 +635,30 @@
     {
       "answer": {
         "ok": {
+          "attributes": {
+            "BodyClass": {
+              "name": "Body Class",
+              "source": "vin_pattern",
+              "value": "Bus"
+            },
+            "EngineCylinders": {
+              "name": "Engine Number of Cylinders",
+              "source": "vin_pattern",
+              "value": "6"
+            },
+            "Make": {
+              "name": "Make",
+              "source": "vin_pattern",
+              "value": "MCI"
+            },
+            "Model": {
+              "name": "Model",
+              "source": "vin_pattern",
+              "value": "E-Series"
+            }
+          },
           "body": "Bus",
+          "body_style": "bus",
           "check_digit": {
             "actual": "5",
             "expected": "5",
@@ -393,7 +681,8 @@
           "valid": true,
           "vin": "1M8PEMPA5MP000001",
           "warnings": [],
-          "year": 1991
+          "year": 1991,
+          "year_conclusive": false
         }
       },
       "args": {
@@ -406,6 +695,18 @@
     {
       "answer": {
         "ok": {
+          "attributes": {
+            "Make": {
+              "name": "Make",
+              "source": "vin_pattern",
+              "value": "Ranger Trailers"
+            },
+            "Model": {
+              "name": "Model",
+              "source": "vin_pattern",
+              "value": "Tilt Deck"
+            }
+          },
           "catalog": {
             "entry": {
               "id": "2020_ranger-trailers_tilt-deck",
@@ -438,7 +739,8 @@
           "valid": true,
           "vin": "1A9100AB0L1881001",
           "warnings": [],
-          "year": 2020
+          "year": 2020,
+          "year_conclusive": true
         }
       },
       "args": {
@@ -1268,7 +1570,7 @@
           "901"
         ]
       ],
-      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n             FROM pattern\n             WHERE schema_id IN (?, ?)\n               AND ?3 GLOB (REPLACE(keys, '*', '?') || '*')"
+      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n                 FROM pattern\n                 WHERE schema_id IN (?, ?)\n                   AND ?3 GLOB (REPLACE(keys, '*', '?') || '*')"
     },
     {
       "params": [
@@ -1292,7 +1594,7 @@
           "2020-01-01 00:00:00"
         ]
       ],
-      "sql": "SELECT engine_model, id, element_id, attribute, value, changed_on\n             FROM engine_model_row WHERE engine_model IN (?) ORDER BY id"
+      "sql": "SELECT engine_model, id, element_id, attribute, value, changed_on\n         FROM engine_model_row WHERE engine_model IN (?) ORDER BY id"
     },
     {
       "params": [
@@ -1584,7 +1886,7 @@
           "901"
         ]
       ],
-      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n             FROM pattern\n             WHERE schema_id IN (?)\n               AND ?2 GLOB (REPLACE(keys, '*', '?') || '*')"
+      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n                 FROM pattern\n                 WHERE schema_id IN (?)\n                   AND ?2 GLOB (REPLACE(keys, '*', '?') || '*')"
     },
     {
       "params": [
@@ -1688,7 +1990,7 @@
           "6"
         ]
       ],
-      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n             FROM pattern\n             WHERE schema_id IN (?, ?)\n               AND ?3 GLOB (REPLACE(keys, '*', '?') || '*')"
+      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n                 FROM pattern\n                 WHERE schema_id IN (?, ?)\n                   AND ?3 GLOB (REPLACE(keys, '*', '?') || '*')"
     },
     {
       "params": [
@@ -1752,7 +2054,7 @@
           "951"
         ]
       ],
-      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n             FROM pattern\n             WHERE schema_id IN (?, ?)\n               AND ?3 GLOB (REPLACE(keys, '*', '?') || '*')"
+      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n                 FROM pattern\n                 WHERE schema_id IN (?, ?)\n                   AND ?3 GLOB (REPLACE(keys, '*', '?') || '*')"
     },
     {
       "params": [
@@ -1818,7 +2120,7 @@
           "9100"
         ]
       ],
-      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n             FROM pattern\n             WHERE schema_id IN (?)\n               AND ?2 GLOB (REPLACE(keys, '*', '?') || '*')"
+      "sql": "SELECT id, schema_id, keys, element_id, value, changed_on, make, attribute\n                 FROM pattern\n                 WHERE schema_id IN (?)\n                   AND ?2 GLOB (REPLACE(keys, '*', '?') || '*')"
     },
     {
       "params": [

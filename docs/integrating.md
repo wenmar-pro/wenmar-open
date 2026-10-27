@@ -45,13 +45,21 @@ The fields most applications read:
 | `ModelYear` | `year` |
 | `Make`, `Model`, `Series`, `Trim` | `make`, `model`, `series`, `trim` |
 | `BodyClass` | `body` |
-| `DriveType` | `drivetrain` |
+| `DriveType` | `drivetrain`, and `drive`: one of `FWD`, `RWD`, `AWD`, `4WD` or `2WD` |
 | `TransmissionStyle`, `TransmissionSpeeds` | `transmission`, `transmission_speeds` |
 | `DisplacementL`, `EngineCylinders`, `FuelTypePrimary`, `EngineModel` | `engine.displacement_l`, `engine.cylinders`, `engine.fuel`, `engine.model`; `engine.label` is a short name such as `2.0L Turbo` |
 | `Manufacturer`, `PlantCity`, `PlantCountry` | `manufacturer.name`, `plant.city`, `plant.country` |
 | `ABS`, `ESC`, `TPMS` and the driver-assistance fields | under `safety` |
 | `TPMS` | `safety.tpms`: the kind of tire-pressure monitor, as NHTSA words it, such as `Direct`. It decides whether a tire job needs sensor service. |
 | `WheelSizeFront`, `WheelSizeRear` | `wheel_size_front`, `wheel_size_rear`: rim diameter in whole inches. Left out where NHTSA has none or the value is not one number. |
+| `EngineHP`, `EngineHP_to`, `ValveTrainDesign`, `FuelInjectionType` | `engine.hp`, `engine.hp_to`, `engine.valve_train`, `engine.fuel_injection` |
+| `BrakeSystemType`, `WheelBaseShort`, `BodyCabType`, `SteeringLocation` | `brake_system`, `wheelbase_in`, `cab_type`, `steering` |
+| `BatteryKWh`, `BatteryType`, `ChargerLevel`, `EVDriveUnit` | under `electric` |
+| `KeylessIgnition`, `LowerBeamHeadlampLightSource`, `AdaptiveDrivingBeam` | `safety.keyless_ignition`, `safety.headlamp_light_source`, `safety.adaptive_driving_beam` |
+| `Note`, `OtherEngineInfo` and the other notes | `notes`, each once |
+| Any element at all | `attributes.<NHTSA code>`: `{ "name", "value", "source" }`, where `source` is `vin_pattern`, `engine_model` or `specification_sheet` |
+
+A decode also has `year_conclusive`, `false` when position 10 of the VIN leaves two model years possible and the data does not settle which; `body_style`, the body in one word such as `suv` or `pickup`; and `generation`, the redesign of the model the year belongs to, from corgi-rs's table, where the table lists the model.
 
 A decode also has `catalog`: the entry of the vehicle catalog the VIN reaches, with ids for the year, make and model, the trim, and the engine. An application with a vehicle form can fill the form from it.
 

@@ -24,7 +24,9 @@ KM8K2CAB4PU001140
 Check digit   valid
 Body          Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)
 Transmission  Automatic
+Body style    suv
 Engine        2.0L, cylinders 4, displacement cc 2000, displacement l 2.0, fuel Gasoline, model G4NH
+Generation    OS, 2018-2023
 Manufacturer  Hyundai Motor Co, South Korea, vehicle type Multipurpose Passenger Vehicle (MPV), wmi KM8
 Plant         Ulsan, code U
 Vehicle id    2023_hyundai_kona_se_2-0l

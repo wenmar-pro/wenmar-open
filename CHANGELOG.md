@@ -4,6 +4,19 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Added
+
+- A decode carries much more of what NHTSA records. `engine` gains `hp`, `hp_to`, `kw`, `manufacturer`, `valve_train`, `fuel_injection`, `cooling`, `fuel_secondary` and `stroke_cycles`. New top-level fields: `cab_type`, `bed_type`, `bed_length_in`, `curb_weight_lb`, `gvwr_to`, `wheelbase_in`, `wheelbase_to_in`, `track_width_in`, `wheels`, `axles`, `axle_configuration`, `steering`, `brake_system`, `brake_system_description`, `destination_market`, `top_speed_mph`, `series2`, `trim2`, and `electric` (battery type, energy, voltage, drive unit, charger level and power). `safety` gains `keyless_ignition`, `headlamp_light_source`, `adaptive_driving_beam`, `adaptive_headlights`, `automatic_high_beams`, `daytime_running_lights`, `auto_reverse_windows`, `crash_notification`, `event_data_recorder`, `pedestrian_alert_sound`, `seat_belts`, `pretensioner` and `airbags_seat_cushion`. `notes` lists the manufacturer's notes, each once. `attributes` holds every element resolved, by NHTSA's code, with its name, its value and its `source`: `vin_pattern`, `engine_model` or `specification_sheet`. On the parity corpus, horsepower is there for 42% of VINs and notes for 61%.
+- `drive` (`FWD`, `RWD`, `AWD`, `4WD` or `2WD`) and `body_style` (such as `suv`, `pickup`, `van` or `incomplete`) say what `drivetrain` and `body` say in a few fixed words.
+- `year_conclusive`: `false` when position 10 leaves two model years possible and the data does not settle which. The VIN page and the command-line tool then say to check the label.
+- `generation`: the redesign of the model the year belongs to, with its number, code and years, from corgi-rs's `tools/generations.tsv` (MIT, 1,185 generations of 605 models; see NOTICE.md). The VIN page shows it.
+- The VIN page shows the new fields, in new groups "Battery and charging", "Lights and keys" and "From the manufacturer". `wenmar-open vin decode` shows the generation, the battery and the notes.
+- `bin/bench` (`mise run bench`) times decoding against the newest data file.
+
+### Changed
+
+- Decoding is about 30 times faster on a server. The rows VINs share (the manufacturer, its schemas, each schema's patterns compiled to bit masks, engine models and specification sheets) are kept between decodes, as are catalog matches: on the parity corpus a decode took 1.9 ms and now takes 64 µs once its rows are held. The cache is bounded by `OPEN_VIN_CACHE_ROWS` (default 200,000 pattern rows, about 40 MB; `0` turns it off). A batch is split over half the connections, so a batch of 50 takes about 3 ms. `wenmar-open-db` gains `Db::open_with_cache`, `Db::vin_cache_stats` and `Db::connections`; `wenmar-vehicles` gains `VinCache` and `SelectionCache`. Every answer is the same as before: the parity corpus decodes to the same JSON with the cache and without it. The offline npm package is unchanged.
+
 ## [0.3.0] - 2026-10-26
 
 ### Added
