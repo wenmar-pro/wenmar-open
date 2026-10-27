@@ -192,11 +192,19 @@ fn with_the_shop_file_an_overview_counts_the_recalls_that_may_apply() {
             {
                 "id": "2023_hyundai_kona", "year": 2023,
                 "recalls": { "us": 2, "ca": 1 }, "bulletins": null,
+                "generation": {
+                    "name": "OS", "ordinal": 1, "code": "OS",
+                    "year_from": 2018, "year_to": 2023
+                },
                 "url": format!("{SITE}/makes/hyundai/kona/2023")
             },
             {
                 "id": "2022_hyundai_kona", "year": 2022,
                 "recalls": { "us": 0, "ca": 0 }, "bulletins": null,
+                "generation": {
+                    "name": "OS", "ordinal": 1, "code": "OS",
+                    "year_from": 2018, "year_to": 2023
+                },
                 "url": format!("{SITE}/makes/hyundai/kona/2022")
             }
         ])

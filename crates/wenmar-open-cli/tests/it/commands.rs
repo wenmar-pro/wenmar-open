@@ -450,3 +450,61 @@ fn reading_leaves_the_data_directory_untouched() {
     assert_eq!(fixture.files(), ["wenmar-open.sqlite3"]);
     assert_eq!(std::fs::read(fixture.file()).unwrap(), before);
 }
+
+#[test]
+fn a_batch_reads_vins_from_the_arguments_a_file_and_standard_input() {
+    let fixture = common::data_dir();
+    let env = common::env(&fixture);
+    let run = common::run(&env, &["vin", "batch", KONA, "nope"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    let items = run.json();
+    assert_eq!(items[0]["model"], "Kona");
+    assert_eq!(items[1]["error"]["code"], "invalid_vin");
+
+    // A spreadsheet column on standard input: every 17-character run is a VIN.
+    let piped = format!("unit,vin\n1,{}\n2,{UNKNOWN}\n", KONA.to_lowercase());
+    let run = common::run_with_input(
+        &env,
+        &["vin", "batch", "--fields", "year,model,engine.label"],
+        piped.as_bytes(),
+    );
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    let items = run.json();
+    assert_eq!(items.as_array().unwrap().len(), 2);
+    assert_eq!(
+        items[0],
+        json!({ "vin": KONA, "year": 2023, "model": "Kona", "engine": { "label": "2.0L" } })
+    );
+    // An error is kept whole, whatever fields were asked for.
+    assert_eq!(items[1]["error"]["code"], "not_found");
+
+    let list = fixture.directory().join("vins.txt");
+    std::fs::write(&list, format!("{KONA}\n{KONA_BAD_CHECK}\n")).unwrap();
+    let run = common::run(
+        &env,
+        &[
+            "vin",
+            "batch",
+            "--input",
+            list.to_str().unwrap(),
+            "--csv",
+            "--fields",
+            "year,make,valid",
+        ],
+    );
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(
+        run.stdout,
+        format!(
+            "vin,year,make,valid,error,error_message\r\n{KONA},2023,Hyundai,true,,\r\n{KONA_BAD_CHECK},2023,Hyundai,false,,\r\n"
+        )
+    );
+}
+
+#[test]
+fn a_batch_with_no_vin_says_how_to_give_one() {
+    let fixture = common::data_dir();
+    let run = common::run_with_input(&common::env(&fixture), &["vin", "batch"], b"hello\n");
+    assert_ne!(run.code, 0);
+    assert!(run.stderr.contains("no VIN was given"), "{}", run.stderr);
+}

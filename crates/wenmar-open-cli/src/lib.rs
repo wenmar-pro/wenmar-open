@@ -5,6 +5,7 @@
 //! process, a terminal or the network.
 
 pub mod backend;
+pub mod batch;
 pub mod cli;
 pub mod data;
 pub mod doctor;
@@ -29,7 +30,7 @@ use clap::Parser;
 use clap::error::ErrorKind;
 
 use crate::backend::Backend;
-use crate::cli::{Cli, Command, DataCommand};
+use crate::cli::{Cli, Command, DataCommand, VinCommand};
 use crate::env::Env;
 use crate::error::{CliError, USAGE};
 use crate::output::Mode;
@@ -84,7 +85,7 @@ fn usage(problem: &clap::Error) -> CliError {
 /// Opens the source of answers. What it has to say about its choice goes
 /// to standard error, for a person only: JSON on standard error is always
 /// an error.
-fn open(
+pub(crate) fn open(
     env: &Env,
     global: &cli::Global,
     mode: &Mode,
@@ -144,6 +145,25 @@ fn execute(
         }
         Some(Command::Jq { expression }) => {
             return jq::command(&expression, env, stdin, stdout);
+        }
+        Some(Command::Vin {
+            command:
+                VinCommand::Batch {
+                    vins,
+                    input,
+                    year,
+                    csv,
+                    fields,
+                },
+        }) => {
+            let asked = batch::Asked {
+                vins,
+                input,
+                year,
+                csv,
+                fields,
+            };
+            return batch::run(asked, env, &cli.global, mode, stdin, stdout, stderr);
         }
         Some(Command::Vin { command }) => command.request(),
         Some(Command::Vehicles { command }) => command.request(),

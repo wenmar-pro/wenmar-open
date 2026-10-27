@@ -11,12 +11,12 @@ use utoipa::{IntoParams, ToSchema};
 use wenmar_open_db::DecodeFailure;
 use wenmar_vin::DecodeOptions;
 
-use crate::api::batch_out;
 use crate::api::types::VinDecode;
 use crate::api::{bad_body, bad_query, blank_is_none};
 use crate::db::Worker;
 use crate::error::{ApiError, ErrorBody};
 use crate::state::AppState;
+use wenmar_shopdata::batch as batch_out;
 
 pub use wenmar_open_db::current_year;
 
@@ -249,7 +249,11 @@ pub async fn batch(
 ) -> Result<Response, ApiError> {
     let Query(query) = query.map_err(bad_query)?;
     let with_recalls = crate::api::overview::include_recalls(query.include.as_deref())?;
-    let fields = batch_out::parse_fields(query.fields.as_deref())?;
+    let fields =
+        batch_out::parse_fields(query.fields.as_deref()).map_err(|error| ApiError::Validation {
+            message: error.message,
+            details: error.details,
+        })?;
     let as_csv = match query.format.as_deref().map(str::trim) {
         None | Some("") | Some("json") => false,
         Some("csv") => true,

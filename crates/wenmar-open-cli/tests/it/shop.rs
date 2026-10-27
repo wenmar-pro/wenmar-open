@@ -824,11 +824,19 @@ fn the_overview_commands_answer_from_the_files_as_the_api_words_it() {
             {
                 "id": "2023_hyundai_kona", "year": 2023,
                 "recalls": { "us": 2, "ca": 1 }, "bulletins": null,
+                "generation": {
+                    "name": "OS", "ordinal": 1, "code": "OS",
+                    "year_from": 2018, "year_to": 2023
+                },
                 "url": format!("{SITE}/makes/hyundai/kona/2023")
             },
             {
                 "id": "2022_hyundai_kona", "year": 2022,
                 "recalls": { "us": 0, "ca": 0 }, "bulletins": null,
+                "generation": {
+                    "name": "OS", "ordinal": 1, "code": "OS",
+                    "year_from": 2018, "year_to": 2023
+                },
                 "url": format!("{SITE}/makes/hyundai/kona/2022")
             }
         ])

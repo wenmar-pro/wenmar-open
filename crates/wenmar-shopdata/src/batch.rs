@@ -1,9 +1,25 @@
 //! What a batch of decodes can be narrowed to and written as: only the
-//! fields asked for, and CSV for a spreadsheet.
+//! fields asked for, and CSV for a spreadsheet. The hosted API and the
+//! command-line tool both write a batch this way.
 
 use serde_json::{Map, Value, json};
 
-use crate::error::ApiError;
+/// Why `fields` was refused: the message, and the error's `details`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct FieldsError {
+    pub message: String,
+    pub details: Value,
+}
+
+/// Every 17-character run of letters and digits in the text, in order and
+/// in capitals. A VIN pasted with spaces or dashes inside it is passed
+/// over: there is no telling where one would end.
+pub fn find_vins(text: &str) -> Vec<String> {
+    text.split(|character: char| !character.is_ascii_alphanumeric())
+        .filter(|run| run.len() == 17)
+        .map(str::to_ascii_uppercase)
+        .collect()
+}
 
 /// Most fields one request may name.
 pub const MOST_FIELDS: usize = 60;
@@ -34,7 +50,7 @@ pub const DEFAULT_COLUMNS: &[&str] = &[
 
 /// The fields named in `fields`: dotted paths such as `engine.hp` or
 /// `attributes.EngineHP.value`. `None` when nothing is named.
-pub fn parse_fields(fields: Option<&str>) -> Result<Option<Vec<String>>, ApiError> {
+pub fn parse_fields(fields: Option<&str>) -> Result<Option<Vec<String>>, FieldsError> {
     let Some(fields) = fields.map(str::trim).filter(|fields| !fields.is_empty()) else {
         return Ok(None);
     };
@@ -45,7 +61,7 @@ pub fn parse_fields(fields: Option<&str>) -> Result<Option<Vec<String>>, ApiErro
         .map(str::to_owned)
         .collect();
     if paths.len() > MOST_FIELDS {
-        return Err(ApiError::Validation {
+        return Err(FieldsError {
             message: format!("fields names at most {MOST_FIELDS} fields"),
             details: json!({ "field": "fields", "max": MOST_FIELDS, "received": paths.len() }),
         });
@@ -60,7 +76,7 @@ pub fn parse_fields(fields: Option<&str>) -> Result<Option<Vec<String>>, ApiErro
         })
     };
     if let Some(bad) = paths.iter().find(|path| !well_formed(path)) {
-        return Err(ApiError::Validation {
+        return Err(FieldsError {
             message: format!(
                 "{bad:?} is not a field: name fields such as year, engine.hp or attributes.EngineHP.value, separated by commas"
             ),
@@ -190,6 +206,16 @@ mod tests {
             "notes": ["one", "two"],
             "attributes": { "EngineHP": { "name": "Engine Brake (hp) From", "value": "147" } }
         })
+    }
+
+    #[test]
+    fn vins_are_found_in_a_pasted_list_or_spreadsheet_column() {
+        let pasted = "unit,vin\n12,km8k2cab4pu001140\n14,\"1HGCM82633A004352\"\nnot-a-vin 1HGCM8263 3A004352\r\n";
+        assert_eq!(
+            find_vins(pasted),
+            vec!["KM8K2CAB4PU001140", "1HGCM82633A004352"]
+        );
+        assert!(find_vins("").is_empty());
     }
 
     #[test]

@@ -290,6 +290,7 @@ fn with_no_command_and_no_terminal_the_tool_says_what_it_is_and_stops() {
         commands,
         [
             "wenmar-open vin decode",
+            "wenmar-open vin batch",
             "wenmar-open vin overview",
             "wenmar-open vin fuel",
             "wenmar-open vin specs",

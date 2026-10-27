@@ -9,12 +9,12 @@ use axum::http::{HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
 
-use crate::api::batch_out;
 use crate::api::types::VinDecode;
 use crate::api::vin::{MOST_VINS, decode_many};
 use crate::error::ApiError;
 use crate::site::{self, Page};
 use crate::state::AppState;
+use wenmar_shopdata::batch as batch_out;
 
 /// One line of the result table.
 struct Line {
@@ -44,16 +44,6 @@ pub struct Pasted {
     #[serde(default)]
     vins: String,
     format: Option<String>,
-}
-
-/// Every 17-character run of letters and digits in the text, in order and
-/// in capitals. A VIN pasted with spaces or dashes inside it is passed
-/// over: there is no telling where one would end.
-pub fn find_vins(text: &str) -> Vec<String> {
-    text.split(|character: char| !character.is_ascii_alphanumeric())
-        .filter(|run| run.len() == 17)
-        .map(str::to_ascii_uppercase)
-        .collect()
 }
 
 fn page(state: &AppState) -> Page {
@@ -155,7 +145,7 @@ pub async fn decode(
             Vec::new(),
         );
     };
-    let mut vins = find_vins(&pasted.vins);
+    let mut vins = batch_out::find_vins(&pasted.vins);
     if vins.is_empty() {
         return render(
             &state,
@@ -203,19 +193,4 @@ pub async fn decode(
         .map(|(vin, result)| line(vin, result))
         .collect();
     render(&state, StatusCode::OK, pasted.vins, note, rows)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn vins_are_found_in_a_pasted_list_or_spreadsheet_column() {
-        let pasted = "unit,vin\n12,km8k2cab4pu001140\n14,\"1HGCM82633A004352\"\nnot-a-vin 1HGCM8263 3A004352\r\n";
-        assert_eq!(
-            find_vins(pasted),
-            vec!["KM8K2CAB4PU001140", "1HGCM82633A004352"]
-        );
-        assert!(find_vins("").is_empty());
-    }
 }

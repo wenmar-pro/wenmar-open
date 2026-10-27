@@ -27,7 +27,15 @@ wenmar-open vin decode KM8K2CAB4PU001140 --jq .catalog.entry.summary
 wenmar-open vin decode KM8K2CAB4PU001140 --year 2023
 ```
 
-The result has `year`, `make`, `model`, `trim`, `engine`, `transmission`, `safety` (ABS, TPMS and driver assistance, as the manufacturer reported them), `wheel_size_front` and `wheel_size_rear` (rim diameter in inches, where NHTSA has them), `manufacturer` and `plant`. `catalog.entry` is the matching catalog vehicle, and `catalog.entry.id` is its stable id.
+The result has `year`, `make`, `model`, `trim`, `engine`, `transmission`, `safety` (ABS, TPMS and driver assistance, as the manufacturer reported them), `wheel_size_front` and `wheel_size_rear` (rim diameter in inches, where NHTSA has them), `manufacturer` and `plant`. `catalog.entry` is the matching catalog vehicle, and `catalog.entry.id` is its stable id. It also has `generation`, `engine.hp`, `brake_system`, `electric` (battery and charging), the manufacturer's `notes`, and `attributes`: every element NHTSA resolved, by NHTSA's code, with where it came from. When `year_conclusive` is `false` the VIN leaves the model year open: say so and ask for the year on the label.
+
+Many VINs at once, from the arguments, a file or standard input (every 17-character run is a VIN, so a CSV export works as it is):
+
+```bash
+wenmar-open vin batch KM8K2CAB4PU001140 1HGCM82633A004352
+wenmar-open vin batch --input fleet.csv --fields year,make,model,engine.label
+wenmar-open vin batch --input fleet.csv --csv > decoded.csv
+```
 
 A wrong check digit is not an error: the result has `"valid": false` and a warning, because many genuine VINs from outside North America fail the check. A VIN of the wrong length or with the letters I, O or Q is `invalid_vin`, and `details.suggestions` lists what was probably meant.
 

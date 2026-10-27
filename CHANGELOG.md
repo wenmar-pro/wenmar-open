@@ -13,6 +13,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - The VIN page shows the new fields, in new groups "Battery and charging", "Lights and keys" and "From the manufacturer". `wenmar-open vin decode` shows the generation, the battery and the notes.
 - `POST /v1/vin/batch` takes `fields=`, dotted paths such as `year,make,engine.hp,attributes.EngineHP.value`, to keep only those fields of each decode, and `format=csv` for a spreadsheet of one row per VIN, in order, with `error` and `error_message` columns. A cell that a spreadsheet would read as a formula is given a leading `'`.
 - `/vins`: paste up to 250 VINs, one a line or a column from a spreadsheet, and get a table in the order pasted, each VIN linked to its own page, or a CSV file. It needs no JavaScript and is never indexed. The VIN box links it.
+- `wenmar-open vin batch`: many VINs from the arguments, `--input FILE` or standard input, where every 17-character run is a VIN, so a CSV export works as it is. It asks for them in parts the API accepts and answers in order; `--fields` keeps only some fields and `--csv` writes a spreadsheet. It works offline and online.
 - `bin/bench` (`mise run bench`) times decoding against the newest data file.
 
 ### Changed

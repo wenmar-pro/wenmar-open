@@ -204,6 +204,30 @@ pub enum VinCommand {
         #[arg(long)]
         year: Option<u16>,
     },
+    /// Decode many VINs: from the arguments, a file, or standard input.
+    ///
+    /// In a file or on standard input every 17-character run of letters
+    /// and digits is a VIN, so a list, a CSV export or a spreadsheet column
+    /// works as it is. With no VIN given and no file, the VINs are read from
+    /// standard input. The answer has one item per VIN, in order; `--csv`
+    /// writes a spreadsheet instead, one row per VIN.
+    Batch {
+        /// VINs to decode, as typed.
+        vins: Vec<String>,
+        /// Read VINs from this file. `-` is standard input.
+        #[arg(long, value_name = "FILE")]
+        input: Option<PathBuf>,
+        /// Use this model year instead of the one worked out from each VIN.
+        #[arg(long)]
+        year: Option<u16>,
+        /// Write CSV: `vin`, the fields, then `error` and `error_message`.
+        #[arg(long)]
+        csv: bool,
+        /// Only these fields of each decode, separated by commas, such as
+        /// `year,make,model,engine.hp`.
+        #[arg(long, value_name = "FIELDS")]
+        fields: Option<String>,
+    },
     /// Everything held for the model year a VIN decodes to, in one answer.
     ///
     /// What the VIN decoded to in brief, a count of the recall campaigns
@@ -956,6 +980,7 @@ impl VinCommand {
     pub fn request(self) -> Request {
         match self {
             VinCommand::Decode { vin, year } => Request::VinDecode { vin, year },
+            VinCommand::Batch { vins, year, .. } => Request::VinBatch { vins, year },
             VinCommand::Overview { vin, year } => Request::VinOverview { vin, year },
             VinCommand::Fuel { vin, year, country } => Request::VinFacts {
                 topic: Topic::Fuel,
