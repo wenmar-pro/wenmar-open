@@ -195,6 +195,11 @@ const calls: Record<string, { call: () => Promise<unknown>; method: string; url:
     method: "GET",
     url: "/v1/jobs/brake-pads-front",
   },
+  job_vehicles: {
+    call: () => client.jobVehicles("brake-pads-front", { limit: 5 }),
+    method: "GET",
+    url: "/v1/jobs/brake-pads-front/vehicles?limit=5",
+  },
   vehicle_labor: {
     call: () => client.labor("2018_ford_f-150"),
     method: "GET",

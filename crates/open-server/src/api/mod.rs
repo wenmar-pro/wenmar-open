@@ -82,6 +82,7 @@ pub fn router() -> (axum::Router<AppState>, utoipa::openapi::OpenApi) {
         .routes(routes!(codes::vehicle_code))
         .routes(routes!(labor::jobs))
         .routes(routes!(labor::job))
+        .routes(routes!(labor::job_vehicles))
         .routes(routes!(labor::vehicle_labor))
         .routes(routes!(labor::vehicle_labor_job))
         .routes(routes!(labor::vin_labor))

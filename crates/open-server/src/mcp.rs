@@ -388,6 +388,8 @@ struct LaborArguments {
     id: Option<String>,
     vin: Option<String>,
     year: Option<u16>,
+    limit: Option<usize>,
+    cursor: Option<String>,
 }
 
 /// The job list and the labour estimates. Each action is the function
@@ -411,7 +413,19 @@ async fn labor_tool(state: &AppState, action: &str, given: &Value) -> Result<Val
             };
             to_value(labor::vin_labor_op(state, vin, asked.year, asked.job).await?)
         }
-        _ => Err(ApiError::validation("action must be jobs, vehicle or vin")),
+        "coverage" => {
+            let Some(job) = asked.job else {
+                return Err(ApiError::validation("job is required for action=coverage"));
+            };
+            let query = labor::JobVehiclesQuery {
+                limit: asked.limit,
+                cursor: asked.cursor,
+            };
+            to_value(labor::job_vehicles_op(state, job, query).await?)
+        }
+        _ => Err(ApiError::validation(
+            "action must be jobs, vehicle, vin or coverage",
+        )),
     }
 }
 /// Runs one `tools/call`. `Err` is a protocol error; a tool that fails

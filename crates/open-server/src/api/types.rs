@@ -2524,6 +2524,13 @@ pub struct LaborFigure {
     pub updated: String,
     /// The job's page on this site.
     pub url: String,
+    /// The page that shows this figure to a person, for the vehicle asked
+    /// about: its `labor` page, with `?engine=` for an engine's figure.
+    /// `null` in a job's class list, which is for no vehicle.
+    #[schema(
+        example = "https://open.wenmarpro.com/makes/hyundai/kona/2023/labor/brake-pads-front"
+    )]
+    pub page_url: Option<String>,
 }
 
 /// One repair job: what it covers, and what it typically takes by class
@@ -2581,6 +2588,9 @@ pub struct VehicleLabor {
     /// One for each job that has a figure covering the vehicle, in the
     /// order of the job list.
     pub estimates: Vec<LaborFigure>,
+    /// The jobs of the list with no figure for this vehicle, in the order
+    /// of the job list: there is no Wenmar estimate for them.
+    pub missing: Vec<JobLink>,
     /// "An estimate, not a quote. …"
     pub note: String,
     pub attribution: Vec<String>,
@@ -2596,7 +2606,40 @@ pub struct VinLabor {
     pub class: Option<LaborClass>,
     pub as_of: Option<String>,
     pub estimates: Vec<LaborFigure>,
+    /// The jobs of the list with no figure for this vehicle, in the order
+    /// of the job list: there is no Wenmar estimate for them.
+    pub missing: Vec<JobLink>,
     pub note: String,
     pub attribution: Vec<String>,
     pub warnings: Vec<Warning>,
+}
+
+/// A vehicle that has its own figure for a job: the model, and the figure
+/// that is narrower than class.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct JobVehicle {
+    #[schema(example = "Hyundai")]
+    pub make: String,
+    #[schema(example = "hyundai")]
+    pub make_slug: String,
+    #[schema(example = "Kona")]
+    pub model: String,
+    #[schema(example = "kona")]
+    pub model_slug: String,
+    /// The figure. Its `page_url` is the newest model year of its range
+    /// that the catalog holds.
+    pub figure: LaborFigure,
+}
+
+/// The vehicles that have their own figure for one job.
+#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
+pub struct JobVehicles {
+    pub job: JobLink,
+    /// In make, model and year order.
+    pub vehicles: Vec<JobVehicle>,
+    /// Pass it back as `cursor` for the next page. `null` on the last.
+    pub next_cursor: Option<String>,
+    /// What an estimate is not.
+    pub note: String,
+    pub attribution: Vec<String>,
 }

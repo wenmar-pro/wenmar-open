@@ -136,7 +136,8 @@ async fn a_vehicle_gets_the_narrowest_figure_of_each_job_and_which_scope_it_was(
             "notes": null,
             "updated": "2026-10-10",
             "method_url": "https://open.example/jobs/how-estimates-are-made",
-            "url": "https://open.example/jobs/test-job-a"
+            "url": "https://open.example/jobs/test-job-a",
+            "page_url": "https://open.example/makes/hyundai/kona/2023/labor/test-job-a"
         })
     );
     let measured = &body["estimates"][1];
@@ -245,6 +246,7 @@ async fn each_route_needs_its_dataset() {
         "/v1/vehicles/2023_hyundai_kona/labor".to_owned(),
         "/v1/vehicles/2023_hyundai_kona/labor/test-job-a".to_owned(),
         "/v1/vehicles/2019_honda_nothing/labor".to_owned(),
+        "/v1/jobs/test-job-a/vehicles".to_owned(),
         format!("/v1/vin/{}/labor", common::KONA),
         format!("/v1/vin/{}/labor/test-job-a", common::KONA),
     ] {
@@ -307,4 +309,129 @@ async fn every_figure_says_where_its_method_is_explained() {
             );
         }
     }
+}
+
+#[tokio::test]
+async fn a_vehicles_figures_link_the_page_a_person_can_open() {
+    let app = common::labor_app().await;
+    let body = ok(&app, "/v1/vehicles/2023_hyundai_kona/labor").await;
+    // The page of the vehicle asked about, one per job; the job's own page
+    // stays in `url`.
+    assert_eq!(
+        body["estimates"][0]["page_url"],
+        "https://open.example/makes/hyundai/kona/2023/labor/test-job-a"
+    );
+    assert_eq!(
+        body["estimates"][1]["page_url"],
+        "https://open.example/makes/hyundai/kona/2023/labor/test-job-b"
+    );
+    assert_eq!(
+        body["estimates"][0]["url"],
+        "https://open.example/jobs/test-job-a"
+    );
+    // An engine's own figure is at the page for that engine.
+    let body = ok(&app, "/v1/vehicles/2023_hyundai_kona__2-0l/labor").await;
+    assert_eq!(body["estimates"][0]["scope"], "engine");
+    assert_eq!(
+        body["estimates"][0]["page_url"],
+        "https://open.example/makes/hyundai/kona/2023/labor/test-job-a?engine=2-0l"
+    );
+    // A job's class figures are for no vehicle, so there is no such page.
+    let job = ok(&app, "/v1/jobs/test-job-a").await;
+    assert_eq!(job["estimates"][0]["page_url"], Value::Null);
+}
+
+#[tokio::test]
+async fn a_vehicle_answer_names_the_jobs_it_has_no_figure_for() {
+    let app = common::labor_app().await;
+    let no_figure = json!([{
+        "id": "test-job-c",
+        "name": "Test job C",
+        "system": "engine",
+        "url": "https://open.example/jobs/test-job-c"
+    }]);
+    let body = ok(&app, "/v1/vehicles/2023_hyundai_kona/labor").await;
+    assert_eq!(body["missing"], no_figure);
+    // Nothing reaches a vehicle that has no figure of its own and no
+    // class: every job is named.
+    let body = ok(&app, "/v1/vehicles/2019_honda_civic/labor").await;
+    assert_eq!(body["missing"].as_array().unwrap().len(), 3);
+    // The VIN answer has both fields too.
+    let body = ok(&app, &format!("/v1/vin/{}/labor", common::KONA)).await;
+    assert_eq!(body["missing"], no_figure);
+    assert_eq!(
+        body["estimates"][0]["page_url"],
+        "https://open.example/makes/hyundai/kona/2023/labor/test-job-a"
+    );
+    // A VIN that reaches no catalog vehicle has no figure for any job.
+    let body = ok(&app, &format!("/v1/vin/{}/labor", common::TRAILER)).await;
+    assert_eq!(body["missing"].as_array().unwrap().len(), 3);
+}
+
+#[tokio::test]
+async fn a_job_lists_the_vehicles_it_has_a_figure_for() {
+    let app = common::labor_ai_app().await;
+    let body = ok(&app, "/v1/jobs/test-job-c/vehicles").await;
+    assert_eq!(body["job"]["id"], "test-job-c");
+    assert_eq!(body["job"]["url"], "https://open.example/jobs/test-job-c");
+    assert_eq!(body["note"], NOTE);
+    assert_eq!(body["attribution"], json!([common::LABOR_CREDIT]));
+    assert_eq!(body["next_cursor"], Value::Null);
+    assert_eq!(body["vehicles"].as_array().unwrap().len(), 1);
+    let vehicle = &body["vehicles"][0];
+    assert_eq!(vehicle["make"], "Hyundai");
+    assert_eq!(vehicle["make_slug"], "hyundai");
+    assert_eq!(vehicle["model"], "Kona");
+    assert_eq!(vehicle["model_slug"], "kona");
+    assert_eq!(vehicle["figure"]["basis"], "ai");
+    assert_eq!(vehicle["figure"]["scope"], "generation");
+    assert_eq!(vehicle["figure"]["confidence_pct"], 45);
+    assert_eq!(
+        vehicle["figure"]["years"],
+        json!({ "from": 2021, "to": 2024 })
+    );
+    // The newest model year of the range that the catalog holds.
+    assert_eq!(
+        vehicle["figure"]["page_url"],
+        "https://open.example/makes/hyundai/kona/2023/labor/test-job-c"
+    );
+    assert_eq!(
+        vehicle["figure"]["method_url"],
+        "https://open.example/jobs/how-estimates-are-made"
+    );
+    assert_eq!(
+        vehicle["figure"]["hours"],
+        json!({ "low": 12.0, "typical": 13.0, "high": 15.0 })
+    );
+
+    // A job whose figures are all class figures has no vehicles.
+    let app = common::labor_app().await;
+    let body = ok(&app, "/v1/jobs/test-job-b/vehicles").await;
+    assert_eq!(body["vehicles"], json!([]));
+    let body = refused(&app, "/v1/jobs/test-job-z/vehicles", "not_found").await;
+    assert_eq!(body["error"]["message"], "No job has that id.");
+
+    // Paging: one at a time, with the cursor the page before gave.
+    let body = ok(&app, "/v1/jobs/test-job-a/vehicles?limit=1").await;
+    assert_eq!(body["vehicles"].as_array().unwrap().len(), 1);
+    assert_eq!(body["vehicles"][0]["figure"]["scope"], "model");
+    assert_eq!(
+        body["vehicles"][0]["figure"]["page_url"],
+        "https://open.example/makes/hyundai/kona/2023/labor/test-job-a"
+    );
+    assert_eq!(body["next_cursor"], "1");
+    let body = ok(&app, "/v1/jobs/test-job-a/vehicles?limit=1&cursor=1").await;
+    assert_eq!(body["vehicles"].as_array().unwrap().len(), 1);
+    assert_eq!(body["vehicles"][0]["figure"]["scope"], "engine");
+    assert_eq!(
+        body["vehicles"][0]["figure"]["page_url"],
+        "https://open.example/makes/hyundai/kona/2023/labor/test-job-a?engine=2-0l"
+    );
+    assert_eq!(body["next_cursor"], Value::Null);
+    let (status, body) = app
+        .json("/v1/jobs/test-job-a/vehicles?cursor=not-a-cursor")
+        .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(body["error"]["code"], "validation_failed");
+    assert_eq!(body["error"]["details"]["field"], "cursor");
 }

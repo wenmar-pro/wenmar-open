@@ -238,15 +238,17 @@ pub fn tools() -> Value {
         {
             "name": "wenmar_labor",
             "title": "Labour estimates",
-            "description": "Wenmar's own estimates of the hours a repair job takes: written by people who do the work, measured from repair orders, or worked out by AI from the repair steps; never copied from a labour guide. An estimate, not a quote. Rust, seized fasteners and added equipment change the time. action=jobs lists the jobs an estimate can be about; with `job` it gives one job: what it includes, what it excludes, and its typical hours by class of vehicle. action=vehicle takes `id`, a vehicle id such as \"2018_ford_f-150\" (an id that ends with an engine asks for that engine), and optionally `job`: for each job it gives `hours` (low, typical, high), `basis` (expert, observed or ai: an AI estimate worked out from the repair steps, not checked by a person; say so, with its confidence_pct) and `scope`, which says what the figure is for: engine, generation, model or class. `notes` says what an AI estimate assumed (the engine, both sides or one): repeat it when it matters; `method_url` is the page that says how estimates are made. A class figure is typical for vehicles of that class and was not worked out on this vehicle: say so. A job with no figure for the vehicle is not listed. action=vin takes `vin` (and optionally `year`, `job`) and does the same for the vehicle the VIN decodes to. No answer holds a price: multiply by the shop's own rate. Credit the data as `attribution` says: Labour estimates by Wenmar Pro, CC BY 4.0.",
+            "description": "Wenmar's own estimates of the hours a repair job takes: written by people who do the work, measured from repair orders, or worked out by AI from the repair steps; never copied from a labour guide. An estimate, not a quote. Rust, seized fasteners and added equipment change the time. action=jobs lists the jobs an estimate can be about; with `job` it gives one job: what it includes, what it excludes, and its typical hours by class of vehicle. action=vehicle takes `id`, a vehicle id such as \"2018_ford_f-150\" (an id that ends with an engine asks for that engine), and optionally `job`: for each job it gives `hours` (low, typical, high), `basis` (expert, observed or ai: an AI estimate worked out from the repair steps, not checked by a person; say so, with its confidence_pct) and `scope`, which says what the figure is for: engine, generation, model or class. `notes` says what an AI estimate assumed (the engine, both sides or one): repeat it when it matters; `page_url` is a page to give a person; `method_url` is the page that says how estimates are made. A class figure is typical for vehicles of that class and was not worked out on this vehicle: say so. A vehicle answer's `missing` lists the jobs with no Wenmar estimate for that vehicle: say there is none, never make one up. action=vin takes `vin` (and optionally `year`, `job`) and does the same for the vehicle the VIN decodes to. action=coverage takes `job` and lists the vehicles that have their own figure for it (make, model, years), for 'which vehicles do you have times for'; pass `next_cursor` back as `cursor` for more. No answer holds a price: multiply by the shop's own rate. Credit the data as `attribution` says: Labour estimates by Wenmar Pro, CC BY 4.0.",
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "action": { "type": "string", "enum": ["jobs", "vehicle", "vin"] },
+                    "action": { "type": "string", "enum": ["jobs", "vehicle", "vin", "coverage"] },
                     "job": { "type": "string", "description": "A job id, such as brake-pads-front." },
                     "id": { "type": "string", "description": "A vehicle id, such as 2018_ford_f-150." },
                     "vin": { "type": "string", "description": "A 17-character VIN. Spaces and dashes are ignored." },
-                    "year": { "type": "integer", "description": "For vin: the model year to use." }
+                    "year": { "type": "integer", "description": "For vin: the model year to use." },
+                    "limit": { "type": "integer", "description": "For coverage: at most this many vehicles, up to 500. The default is 100." },
+                    "cursor": { "type": "string", "description": "For coverage: `next_cursor` from the page before, unchanged." }
                 },
                 "required": ["action"]
             },
@@ -505,10 +507,13 @@ mod tests {
             "{description}"
         );
         assert!(description.contains("`notes`"), "{description}");
+        assert!(description.contains("missing"), "{description}");
+        assert!(description.contains("`page_url`"), "{description}");
         assert!(description.contains("`method_url`"), "{description}");
+        assert!(description.contains("action=coverage"), "{description}");
         assert_eq!(
             tool["inputSchema"]["properties"]["action"]["enum"],
-            json!(["jobs", "vehicle", "vin"])
+            json!(["jobs", "vehicle", "vin", "coverage"])
         );
         assert!(INSTRUCTIONS.contains("wenmar_labor"));
     }

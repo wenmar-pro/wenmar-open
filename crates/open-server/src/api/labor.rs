@@ -9,20 +9,24 @@
 use axum::Json;
 use axum::extract::rejection::{PathRejection, QueryRejection};
 use axum::extract::{Path, Query, State};
+use serde::Deserialize;
+use serde_json::json;
+use utoipa::IntoParams;
 pub use wenmar_shopdata::labor::METHOD_PATH;
 use wenmar_shopdata::labor::{self as shopdata, NOTE, class_name};
 use wenmar_shopdata::{Dataset, ShopError, jobs};
-use wenmar_vehicles::VehicleId;
 use wenmar_vehicles::text::is_slug;
+use wenmar_vehicles::{CatalogError, Source, Value, VehicleId};
 
-use crate::api::bad_query;
 use crate::api::fuel::VinYearQuery;
 use crate::api::recalls::{ModelYear, model_year};
 use crate::api::types::{
-    JobComponent, JobDetail, JobLink, JobList, LaborClass, LaborFigure, LaborHours, LaborSample,
-    LaborYears, RecallDecode, VehicleLabor, VinLabor, Warning,
+    JobComponent, JobDetail, JobLink, JobList, JobVehicle, JobVehicles, LaborClass, LaborFigure,
+    LaborHours, LaborSample, LaborYears, RecallDecode, VehicleLabor, VinLabor, Warning,
 };
 use crate::api::vin::decode_many;
+use crate::api::{bad_query, blank_is_none};
+use crate::db::Worker;
 use crate::error::{ApiError, ErrorBody};
 use crate::shop::ShopDb;
 use crate::state::AppState;
@@ -37,6 +41,12 @@ pub const NO_CATALOG_VEHICLE: &str = "This VIN does not decode to a year, make a
 pub fn job_url(base: &str, id: &str) -> String {
     format!("{base}/jobs/{id}")
 }
+
+/// Vehicles in a job's list when `limit` is not given.
+pub const VEHICLES_DEFAULT: usize = 100;
+
+/// The most vehicles in one page of a job's list.
+pub const MOST_VEHICLES: usize = 500;
 
 /// The credit line of the labour dataset.
 pub fn attribution(shop: &ShopDb) -> Vec<String> {
@@ -62,10 +72,41 @@ pub fn hours(hundredths: i64) -> f64 {
     hundredths as f64 / 100.0
 }
 
-/// An estimate as the API and the pages give it.
-pub fn figure(base: &str, found: shopdata::LaborEstimate) -> LaborFigure {
+/// The page of one figure as a person sees it: the vehicle's `labor` page
+/// for the job, with the engine when the figure is the engine's.
+pub fn page_url(
+    base: &str,
+    make: &str,
+    model: &str,
+    year: u16,
+    job: &str,
+    engine: Option<&str>,
+) -> String {
+    let mut url = format!("{base}/makes/{make}/{model}/{year}/labor/{job}");
+    if let Some(engine) = engine {
+        url.push_str("?engine=");
+        url.push_str(engine);
+    }
+    url
+}
+
+/// An estimate as the API and the pages give it. `vehicle` is the make's
+/// and the model's id forms and the model year asked about, when the
+/// answer is for one: then the figure also says where a person can see it.
+pub fn figure(
+    base: &str,
+    found: shopdata::LaborEstimate,
+    vehicle: Option<(&str, &str, u16)>,
+) -> LaborFigure {
     let inputs = (found.basis == "ai").then(|| found.inputs.clone());
+    let page_url = vehicle.map(|(make, model, year)| {
+        let engine = (found.scope == "engine")
+            .then_some(found.engine.as_deref())
+            .flatten();
+        page_url(base, make, model, year, &found.job_id, engine)
+    });
     LaborFigure {
+        page_url,
         inputs,
         url: job_url(base, &found.job_id),
         job: found.job_id,
@@ -157,8 +198,11 @@ pub async fn job_op(state: &AppState, id: String) -> Result<JobDetail, ApiError>
             .into_iter()
             .map(|other| link(base, other))
             .collect(),
-        estimates: estimates
-            .map(|list| list.into_iter().map(|found| figure(base, found)).collect()),
+        estimates: estimates.map(|list| {
+            list.into_iter()
+                .map(|found| figure(base, found, None))
+                .collect()
+        }),
         note: NOTE.to_owned(),
         attribution: if held { attribution(shop) } else { Vec::new() },
     })
@@ -189,15 +233,33 @@ pub async fn labor_of(
                 return Ok::<_, ShopError>(None);
             }
             let class = reader.vehicle_class(model_id, year)?;
-            let estimates =
-                reader.labor_for_vehicle(model_id, year, engine.as_deref(), job.as_deref())?;
-            Ok(Some((class, estimates)))
+            // Every job's figure, so that the answer can also say which
+            // jobs have none.
+            let all = reader.labor_for_vehicle(model_id, year, engine.as_deref(), None)?;
+            let missing: Vec<jobs::JobSummary> = reader
+                .jobs()?
+                .into_iter()
+                .filter(|summary| !all.iter().any(|estimate| estimate.job_id == summary.id))
+                .collect();
+            let estimates = match &job {
+                Some(job) => all
+                    .into_iter()
+                    .filter(|estimate| &estimate.job_id == job)
+                    .collect(),
+                None => all,
+            };
+            Ok(Some((class, estimates, missing)))
         })
         .await??;
-    let Some((class, estimates)) = answer else {
+    let Some((class, estimates, missing)) = answer else {
         return Ok(None);
     };
     let base = &state.config().base_url;
+    let vehicle = Some((
+        found.make_slug.as_str(),
+        found.model_slug.as_str(),
+        found.vehicle.year,
+    ));
     Ok(Some(VehicleLabor {
         vehicle: found.vehicle.clone(),
         engine: asked_engine,
@@ -212,8 +274,9 @@ pub async fn labor_of(
             .map(|entry| entry.as_of.clone()),
         estimates: estimates
             .into_iter()
-            .map(|found| figure(base, found))
+            .map(|found| figure(base, found, vehicle))
             .collect(),
+        missing: missing.into_iter().map(|job| link(base, job)).collect(),
         note: NOTE.to_owned(),
         attribution: attribution(shop),
     }))
@@ -289,6 +352,10 @@ pub async fn vin_labor_op(
             message: NO_CATALOG_VEHICLE.to_owned(),
             suggestions: Vec::new(),
         });
+        // No figure reaches the vehicle, so every job is named as having
+        // none.
+        let missing = shop.run(|reader| reader.jobs()).await??;
+        let base = &state.config().base_url;
         return Ok(VinLabor {
             decode: summary,
             vehicle: None,
@@ -299,6 +366,7 @@ pub async fn vin_labor_op(
                 .get(Dataset::Labor)
                 .map(|entry| entry.as_of.clone()),
             estimates: Vec::new(),
+            missing: missing.into_iter().map(|job| link(base, job)).collect(),
             note: NOTE.to_owned(),
             attribution: attribution(shop),
             warnings,
@@ -314,9 +382,207 @@ pub async fn vin_labor_op(
         class: answer.class,
         as_of: answer.as_of,
         estimates: answer.estimates,
+        missing: answer.missing,
         note: answer.note,
         attribution: answer.attribution,
         warnings,
+    })
+}
+
+/// What the catalog says about one model: its names and id forms, and the
+/// run of model years it holds.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct ModelInfo {
+    make: String,
+    make_slug: String,
+    model: String,
+    model_slug: String,
+    year_from: u16,
+    year_to: u16,
+}
+
+/// Catalog models by id, for naming the vehicles of a job. Ids the catalog
+/// lacks are left out, as in `model_slugs`.
+fn model_info(
+    worker: &Worker,
+    model_ids: &[i64],
+) -> Result<std::collections::HashMap<i64, ModelInfo>, CatalogError> {
+    let mut found = std::collections::HashMap::new();
+    for chunk in model_ids.chunks(400) {
+        // The ids are numbers from the shop file, so they are written into
+        // the statement as they are.
+        let list: Vec<String> = chunk.iter().map(i64::to_string).collect();
+        let sql = format!(
+            "SELECT md.id, mk.slug, mk.name, md.slug, md.name, md.year_from, md.year_to
+             FROM catalog_model md JOIN catalog_make mk ON mk.id = md.make_id
+             WHERE md.id IN ({})",
+            list.join(",")
+        );
+        for row in worker
+            .source
+            .query(&sql, &[])
+            .map_err(CatalogError::Source)?
+        {
+            let (Some(id), Some(make_slug), Some(make), Some(model_slug), Some(model)) = (
+                row.first().and_then(Value::integer),
+                row.get(1).and_then(Value::text),
+                row.get(2).and_then(Value::text),
+                row.get(3).and_then(Value::text),
+                row.get(4).and_then(Value::text),
+            ) else {
+                continue;
+            };
+            let (Some(from), Some(to)) = (
+                row.get(5).and_then(Value::integer),
+                row.get(6).and_then(Value::integer),
+            ) else {
+                continue;
+            };
+            let (Ok(year_from), Ok(year_to)) = (u16::try_from(from), u16::try_from(to)) else {
+                continue;
+            };
+            if !is_slug(make_slug) || !is_slug(model_slug) {
+                continue;
+            }
+            found.insert(
+                id,
+                ModelInfo {
+                    make: make.to_owned(),
+                    make_slug: make_slug.to_owned(),
+                    model: model.to_owned(),
+                    model_slug: model_slug.to_owned(),
+                    year_from,
+                    year_to,
+                },
+            );
+        }
+    }
+    Ok(found)
+}
+
+/// What a list of a job's vehicles may be narrowed by.
+#[derive(Debug, Default, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
+pub struct JobVehiclesQuery {
+    /// At most this many, up to 500. The default is 100.
+    #[serde(default, deserialize_with = "blank_is_none")]
+    #[param(value_type = Option<usize>)]
+    pub limit: Option<usize>,
+    /// `next_cursor` from the page before, unchanged.
+    pub cursor: Option<String>,
+}
+
+fn bad_cursor() -> ApiError {
+    ApiError::Validation {
+        message: "cursor is not one this API gave out".to_owned(),
+        details: json!({ "field": "cursor" }),
+    }
+}
+
+/// Where a page left off: the number of vehicles given out before it.
+fn offset(cursor: Option<String>) -> Result<usize, ApiError> {
+    let Some(text) = cursor
+        .map(|text| text.trim().to_owned())
+        .filter(|text| !text.is_empty())
+    else {
+        return Ok(0);
+    };
+    if text.len() > 9 || !text.bytes().all(|byte| byte.is_ascii_digit()) {
+        return Err(bad_cursor());
+    }
+    text.parse().map_err(|_| bad_cursor())
+}
+
+/// The newest model year of a figure's range that the catalog holds.
+fn newest_year(info: &ModelInfo, from: Option<u16>, to: Option<u16>) -> Option<u16> {
+    let (from, to) = match (from, to) {
+        (Some(from), Some(to)) => (from, to),
+        // A model-scope figure is for the whole model.
+        _ => (info.year_from, info.year_to),
+    };
+    let from = from.max(info.year_from);
+    let to = to.min(info.year_to);
+    (from <= to).then_some(to)
+}
+
+/// The vehicles that have their own figure for one job: make, model, its
+/// years and the figure. A class-scope figure is not a vehicle's own, so
+/// it is not listed.
+pub async fn job_vehicles_op(
+    state: &AppState,
+    id: String,
+    query: JobVehiclesQuery,
+) -> Result<JobVehicles, ApiError> {
+    let shop = state.dataset(Dataset::Labor)?;
+    if !is_slug(&id) {
+        return Err(ApiError::NotFound(NO_JOB.to_owned()));
+    }
+    let offset = offset(query.cursor)?;
+    let limit = query
+        .limit
+        .unwrap_or(VEHICLES_DEFAULT)
+        .clamp(1, MOST_VEHICLES);
+    let asked = id.clone();
+    let answer = shop
+        .run(move |reader| {
+            let Some(job) = reader.job(&asked)? else {
+                return Ok::<_, ShopError>(None);
+            };
+            // One more than asked for, to learn whether a page follows.
+            let found = reader.job_vehicles(&job.id, offset, limit + 1)?;
+            Ok(Some((job, found)))
+        })
+        .await??;
+    let Some((job, mut found)) = answer else {
+        return Err(ApiError::NotFound(NO_JOB.to_owned()));
+    };
+    let more = found.len() > limit;
+    found.truncate(limit);
+    let model_ids: Vec<i64> = found
+        .iter()
+        .filter_map(|estimate| estimate.model_id)
+        .collect();
+    let models = if model_ids.is_empty() {
+        std::collections::HashMap::new()
+    } else {
+        state
+            .db()
+            .run(move |worker| model_info(worker, &model_ids))
+            .await??
+    };
+    let base = &state.config().base_url;
+    let mut vehicles = Vec::with_capacity(found.len());
+    for estimate in found {
+        let Some(info) = estimate.model_id.and_then(|id| models.get(&id)) else {
+            continue;
+        };
+        let year = newest_year(info, estimate.year_from, estimate.year_to);
+        let figure = figure(
+            base,
+            estimate,
+            year.map(|year| (info.make_slug.as_str(), info.model_slug.as_str(), year)),
+        );
+        vehicles.push(JobVehicle {
+            make: info.make.clone(),
+            make_slug: info.make_slug.clone(),
+            model: info.model.clone(),
+            model_slug: info.model_slug.clone(),
+            figure,
+        });
+    }
+    Ok(JobVehicles {
+        job: link(
+            base,
+            jobs::JobSummary {
+                id: job.id,
+                name: job.name,
+                system: job.system,
+            },
+        ),
+        vehicles,
+        next_cursor: more.then(|| (offset + limit).to_string()),
+        note: NOTE.to_owned(),
+        attribution: attribution(shop),
     })
 }
 
@@ -355,6 +621,36 @@ pub async fn job(
         return Err(ApiError::NotFound(NO_JOB.to_owned()));
     };
     Ok(Json(job_op(&state, id).await?))
+}
+
+/// The vehicles that have their own figure for one job. A class-scope
+/// figure is typical of a class and is not a vehicle's own, so it is not
+/// listed: what a shop does for one of these vehicles may take a different
+/// time.
+#[utoipa::path(
+    get,
+    path = "/jobs/{job}/vehicles",
+    tag = "Labour",
+    params(
+        ("job" = String, Path, description = "A job id.", example = "brake-pads-front"),
+        JobVehiclesQuery
+    ),
+    responses(
+        (status = 200, description = "The vehicles that have a figure of their own for the job, in make, model and year order.", body = JobVehicles),
+        (status = 400, description = "`validation_failed`: `limit` or `cursor` is wrong.", body = ErrorBody),
+        (status = 404, description = "`not_found`: no job has that id. `dataset_unavailable`: this server holds no labour estimates.", body = ErrorBody)
+    )
+)]
+pub async fn job_vehicles(
+    State(state): State<AppState>,
+    path: Result<Path<String>, PathRejection>,
+    query: Result<Query<JobVehiclesQuery>, QueryRejection>,
+) -> Result<Json<JobVehicles>, ApiError> {
+    let Ok(Path(id)) = path else {
+        return Err(ApiError::NotFound(NO_JOB.to_owned()));
+    };
+    let Query(query) = query.map_err(bad_query)?;
+    Ok(Json(job_vehicles_op(&state, id, query).await?))
 }
 
 /// Labour estimates for a model year: for each job, the hours of the

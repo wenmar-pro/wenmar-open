@@ -126,6 +126,10 @@ pub struct LaborEstimate {
     pub scope: String,
     /// The class, for a class-scope figure.
     pub class: Option<String>,
+    /// The make and model the figure is for, for a figure narrower than
+    /// class. `None` for a class-scope figure.
+    pub make_id: Option<i64>,
+    pub model_id: Option<i64>,
     /// The run of model years, for a generation or an engine.
     pub year_from: Option<u16>,
     pub year_to: Option<u16>,
@@ -186,7 +190,7 @@ fn columns(ai: bool) -> String {
         "NULL, NULL, NULL, NULL"
     };
     format!(
-        "e.job_id, j.name, e.scope, e.class, e.year_from, e.year_to, e.engine, e.hours_low, e.hours_typical, e.hours_high, e.basis, e.sample_jobs, e.sample_shops, e.notes, e.updated, {extra}"
+        "e.job_id, j.name, e.scope, e.class, e.year_from, e.year_to, e.engine, e.hours_low, e.hours_typical, e.hours_high, e.basis, e.sample_jobs, e.sample_shops, e.notes, e.updated, {extra}, e.make_id, e.model_id"
     )
 }
 
@@ -262,6 +266,8 @@ fn estimate(row: &[Value]) -> Result<LaborEstimate, ShopError> {
         job_name: text(row, 1)?,
         scope: text(row, 2)?,
         class: optional_text(row, 3),
+        make_id: row.get(19).and_then(Value::integer),
+        model_id: row.get(20).and_then(Value::integer),
         year_from: year(row, 4),
         year_to: year(row, 5),
         engine: optional_text(row, 6),
@@ -438,6 +444,36 @@ impl<S: Source> ShopData<S> {
             }
         }
         Ok(found)
+    }
+
+    /// The figures of one job that are narrower than class: the model,
+    /// generation and engine figures, which are the vehicles that have
+    /// their own time for it. In make, model, year and engine order. A
+    /// class-scope figure is not a vehicle's own.
+    pub fn job_vehicles(
+        &self,
+        job: &str,
+        offset: usize,
+        limit: usize,
+    ) -> Result<Vec<LaborEstimate>, ShopError> {
+        self.require(Dataset::Labor)?;
+        let ai = self.holds_labor_ai();
+        let rows = self.query(
+            &format!(
+                "SELECT {columns} FROM labor_estimate e JOIN job j ON j.id = e.job_id {join}
+                 WHERE e.job_id = ?1 AND e.scope <> 'class'
+                 ORDER BY e.make_id, e.model_id, e.year_from, e.engine, e.id
+                 LIMIT ?2 OFFSET ?3",
+                columns = columns(ai),
+                join = ai_join(ai),
+            ),
+            &[
+                job.into(),
+                i64::try_from(limit).unwrap_or(i64::MAX).into(),
+                i64::try_from(offset).unwrap_or(i64::MAX).into(),
+            ],
+        )?;
+        rows.iter().map(|row| estimate(row.as_slice())).collect()
     }
 
     /// The class-scope figures of one job, in the order of [`CLASSES`]:

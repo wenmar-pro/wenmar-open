@@ -402,6 +402,78 @@
         }
       }
     },
+    "/v1/jobs/{job}/vehicles": {
+      "get": {
+        "tags": [
+          "Labour"
+        ],
+        "summary": "The vehicles that have their own figure for one job. A class-scope\nfigure is typical of a class and is not a vehicle's own, so it is not\nlisted: what a shop does for one of these vehicles may take a different\ntime.",
+        "operationId": "job_vehicles",
+        "parameters": [
+          {
+            "name": "job",
+            "in": "path",
+            "description": "A job id.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "brake-pads-front"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "At most this many, up to 500. The default is 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "`next_cursor` from the page before, unchanged.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The vehicles that have a figure of their own for the job, in make, model and year order.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobVehicles"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`validation_failed`: `limit` or `cursor` is wrong.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`not_found`: no job has that id. `dataset_unavailable`: this server holds no labour estimates.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/makes/{make}": {
       "get": {
         "tags": [
@@ -5242,6 +5314,78 @@
           }
         }
       },
+      "JobVehicle": {
+        "type": "object",
+        "description": "A vehicle that has its own figure for a job: the model, and the figure\nthat is narrower than class.",
+        "required": [
+          "make",
+          "make_slug",
+          "model",
+          "model_slug",
+          "figure"
+        ],
+        "properties": {
+          "figure": {
+            "$ref": "#/components/schemas/LaborFigure",
+            "description": "The figure. Its `page_url` is the newest model year of its range\nthat the catalog holds."
+          },
+          "make": {
+            "type": "string",
+            "example": "Hyundai"
+          },
+          "make_slug": {
+            "type": "string",
+            "example": "hyundai"
+          },
+          "model": {
+            "type": "string",
+            "example": "Kona"
+          },
+          "model_slug": {
+            "type": "string",
+            "example": "kona"
+          }
+        }
+      },
+      "JobVehicles": {
+        "type": "object",
+        "description": "The vehicles that have their own figure for one job.",
+        "required": [
+          "job",
+          "vehicles",
+          "note",
+          "attribution"
+        ],
+        "properties": {
+          "attribution": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "job": {
+            "$ref": "#/components/schemas/JobLink"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pass it back as `cursor` for the next page. `null` on the last."
+          },
+          "note": {
+            "type": "string",
+            "description": "What an estimate is not."
+          },
+          "vehicles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobVehicle"
+            },
+            "description": "In make, model and year order."
+          }
+        }
+      },
       "LaborClass": {
         "type": "object",
         "description": "The class a model year is in.",
@@ -5362,6 +5506,14 @@
               "string",
               "null"
             ]
+          },
+          "page_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The page that shows this figure to a person, for the vehicle asked\nabout: its `labor` page, with `?engine=` for an engine's figure.\n`null` in a job's class list, which is for no vehicle.",
+            "example": "https://open.wenmarpro.com/makes/hyundai/kona/2023/labor/brake-pads-front"
           },
           "sample": {
             "oneOf": [
@@ -8708,6 +8860,7 @@
         "required": [
           "vehicle",
           "estimates",
+          "missing",
           "note",
           "attribution"
         ],
@@ -8749,6 +8902,13 @@
               "$ref": "#/components/schemas/LaborFigure"
             },
             "description": "One for each job that has a figure covering the vehicle, in the\norder of the job list."
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobLink"
+            },
+            "description": "The jobs of the list with no figure for this vehicle, in the order\nof the job list: there is no Wenmar estimate for them."
           },
           "note": {
             "type": "string",
@@ -9547,6 +9707,7 @@
         "required": [
           "decode",
           "estimates",
+          "missing",
           "note",
           "attribution",
           "warnings"
@@ -9588,6 +9749,13 @@
             "items": {
               "$ref": "#/components/schemas/LaborFigure"
             }
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobLink"
+            },
+            "description": "The jobs of the list with no figure for this vehicle, in the order\nof the job list: there is no Wenmar estimate for them."
           },
           "note": {
             "type": "string"

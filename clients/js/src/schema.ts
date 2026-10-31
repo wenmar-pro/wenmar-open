@@ -124,6 +124,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/jobs/{job}/vehicles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The vehicles that have their own figure for one job. A class-scope
+         *     figure is typical of a class and is not a vehicle's own, so it is not
+         *     listed: what a shop does for one of these vehicles may take a different
+         *     time.
+         */
+        get: operations["job_vehicles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/makes/{make}": {
         parameters: {
             query?: never;
@@ -1914,6 +1936,36 @@ export interface components {
             /** @description In the order of the list. */
             jobs: components["schemas"]["JobLink"][];
         };
+        /**
+         * @description A vehicle that has its own figure for a job: the model, and the figure
+         *     that is narrower than class.
+         */
+        JobVehicle: {
+            /**
+             * @description The figure. Its `page_url` is the newest model year of its range
+             *     that the catalog holds.
+             */
+            figure: components["schemas"]["LaborFigure"];
+            /** @example Hyundai */
+            make: string;
+            /** @example hyundai */
+            make_slug: string;
+            /** @example Kona */
+            model: string;
+            /** @example kona */
+            model_slug: string;
+        };
+        /** @description The vehicles that have their own figure for one job. */
+        JobVehicles: {
+            attribution: string[];
+            job: components["schemas"]["JobLink"];
+            /** @description Pass it back as `cursor` for the next page. `null` on the last. */
+            next_cursor?: string | null;
+            /** @description What an estimate is not. */
+            note: string;
+            /** @description In make, model and year order. */
+            vehicles: components["schemas"]["JobVehicle"][];
+        };
         /** @description The class a model year is in. */
         LaborClass: {
             /** @example small-suv */
@@ -1976,6 +2028,13 @@ export interface components {
             model?: string | null;
             name: string;
             notes?: string | null;
+            /**
+             * @description The page that shows this figure to a person, for the vehicle asked
+             *     about: its `labor` page, with `?engine=` for an engine's figure.
+             *     `null` in a job's class list, which is for no vehicle.
+             * @example https://open.wenmarpro.com/makes/hyundai/kona/2023/labor/brake-pads-front
+             */
+            page_url?: string | null;
             sample?: null | components["schemas"]["LaborSample"];
             /**
              * @description What the figure is for, and so how far to trust it for one
@@ -3372,6 +3431,11 @@ export interface components {
              *     order of the job list.
              */
             estimates: components["schemas"]["LaborFigure"][];
+            /**
+             * @description The jobs of the list with no figure for this vehicle, in the order
+             *     of the job list: there is no Wenmar estimate for them.
+             */
+            missing: components["schemas"]["JobLink"][];
             /** @description "An estimate, not a quote. …" */
             note: string;
             vehicle: components["schemas"]["RecallVehicle"];
@@ -3625,6 +3689,11 @@ export interface components {
             decode: components["schemas"]["RecallDecode"];
             engine?: string | null;
             estimates: components["schemas"]["LaborFigure"][];
+            /**
+             * @description The jobs of the list with no figure for this vehicle, in the order
+             *     of the job list: there is no Wenmar estimate for them.
+             */
+            missing: components["schemas"]["JobLink"][];
             note: string;
             vehicle?: null | components["schemas"]["RecallVehicle"];
             warnings: components["schemas"]["Warning"][];
@@ -3974,6 +4043,55 @@ export interface operations {
                 };
             };
             /** @description `not_found`: no job has that id. `dataset_unavailable`: this server holds no job list. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    job_vehicles: {
+        parameters: {
+            query?: {
+                /** @description At most this many, up to 500. The default is 100. */
+                limit?: number;
+                /** @description `next_cursor` from the page before, unchanged. */
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description A job id.
+                 * @example brake-pads-front
+                 */
+                job: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The vehicles that have a figure of their own for the job, in make, model and year order. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobVehicles"];
+                };
+            };
+            /** @description `validation_failed`: `limit` or `cursor` is wrong. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description `not_found`: no job has that id. `dataset_unavailable`: this server holds no labour estimates. */
             404: {
                 headers: {
                     [name: string]: unknown;

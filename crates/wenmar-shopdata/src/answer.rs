@@ -1688,6 +1688,10 @@ pub struct LaborFigure {
     pub method_url: Option<String>,
     pub updated: String,
     pub url: String,
+    /// The page that shows this figure to a person, for the vehicle asked
+    /// about: its `labor` page, with `?engine=` for an engine's figure.
+    /// `null` in a job's class list, which is for no vehicle.
+    pub page_url: Option<String>,
 }
 
 /// One job, as `GET /v1/jobs/{job}` gives it.
@@ -1723,6 +1727,9 @@ pub struct VehicleLabor {
     pub class: Option<LaborClass>,
     pub as_of: Option<String>,
     pub estimates: Vec<LaborFigure>,
+    /// The jobs of the list with no figure for this vehicle, in the order
+    /// of the job list: there is no Wenmar estimate for them.
+    pub missing: Vec<JobLink>,
     pub note: String,
     pub attribution: Vec<String>,
 }
@@ -1736,6 +1743,9 @@ pub struct VinLabor {
     pub class: Option<LaborClass>,
     pub as_of: Option<String>,
     pub estimates: Vec<LaborFigure>,
+    /// The jobs of the list with no figure for this vehicle, in the order
+    /// of the job list: there is no Wenmar estimate for them.
+    pub missing: Vec<JobLink>,
     pub note: String,
     pub attribution: Vec<String>,
     pub warnings: Vec<Json>,
@@ -1767,10 +1777,28 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
         }
     }
 
-    fn labor_figure(&self, found: crate::labor::LaborEstimate) -> LaborFigure {
+    fn labor_figure(
+        &self,
+        found: crate::labor::LaborEstimate,
+        vehicle: Option<(&str, &str, u16)>,
+    ) -> LaborFigure {
         let hours = |hundredths: i64| hundredths as f64 / 100.0;
         let inputs = (found.basis == "ai").then(|| found.inputs.clone());
+        let page_url = vehicle.map(|(make, model, year)| {
+            let mut url = format!(
+                "{}/makes/{make}/{model}/{year}/labor/{}",
+                self.base, found.job_id
+            );
+            if found.scope == "engine"
+                && let Some(engine) = found.engine.as_deref()
+            {
+                url.push_str("?engine=");
+                url.push_str(engine);
+            }
+            url
+        });
         LaborFigure {
+            page_url,
             inputs,
             confidence_pct: found.confidence_pct,
             model: found.model,
@@ -1831,7 +1859,7 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
                 self.shop
                     .class_estimates_for_job(&job.id)?
                     .into_iter()
-                    .map(|found| self.labor_figure(found))
+                    .map(|found| self.labor_figure(found, None))
                     .collect(),
             )
         } else {
@@ -1877,9 +1905,28 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
         let class = self
             .shop
             .vehicle_class(found.model_id, found.vehicle.year)?;
-        let estimates =
-            self.shop
-                .labor_for_vehicle(found.model_id, found.vehicle.year, engine, job)?;
+        let all = self
+            .shop
+            .labor_for_vehicle(found.model_id, found.vehicle.year, engine, None)?;
+        let missing: Vec<JobLink> = self
+            .shop
+            .jobs()?
+            .into_iter()
+            .filter(|summary| !all.iter().any(|estimate| estimate.job_id == summary.id))
+            .map(|summary| self.job_link(summary))
+            .collect();
+        let estimates = match job {
+            Some(job) => all
+                .into_iter()
+                .filter(|estimate| estimate.job_id == job)
+                .collect(),
+            None => all,
+        };
+        let vehicle = Some((
+            found.make_slug.as_str(),
+            found.model_slug.as_str(),
+            found.vehicle.year,
+        ));
         Ok(Some(VehicleLabor {
             vehicle: found.vehicle.clone(),
             engine: engine.map(str::to_owned),
@@ -1893,8 +1940,9 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
             as_of: self.shop.labor_as_of().map(str::to_owned),
             estimates: estimates
                 .into_iter()
-                .map(|found| self.labor_figure(found))
+                .map(|found| self.labor_figure(found, vehicle))
                 .collect(),
+            missing,
             note: crate::labor::NOTE.to_owned(),
             attribution: self.labor_credit(),
         }))
@@ -1951,6 +1999,12 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
                 "code": "no_catalog_vehicle",
                 "message": NO_LABOR_VEHICLE,
             }));
+            let missing: Vec<JobLink> = self
+                .shop
+                .jobs()?
+                .into_iter()
+                .map(|summary| self.job_link(summary))
+                .collect();
             return Ok(VinLabor {
                 decode: summary,
                 vehicle: None,
@@ -1958,6 +2012,7 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
                 class: None,
                 as_of: self.shop.labor_as_of().map(str::to_owned),
                 estimates: Vec::new(),
+                missing,
                 note: crate::labor::NOTE.to_owned(),
                 attribution: self.labor_credit(),
                 warnings,
@@ -1974,6 +2029,7 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
             class: answer.class,
             as_of: answer.as_of,
             estimates: answer.estimates,
+            missing: answer.missing,
             note: answer.note,
             attribution: answer.attribution,
             warnings,

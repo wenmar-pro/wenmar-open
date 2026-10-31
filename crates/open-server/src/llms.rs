@@ -199,6 +199,7 @@ fn labor_text(base: &str, labor: bool) -> (String, String, String) {
         api.push_str(&format!(
             "- [Labour estimates for a model year]({base}/v1/vehicles/2019_honda_civic/labor): `GET /v1/vehicles/{{id}}/labor` and `GET /v1/vehicles/{{id}}/labor/{{job}}`
 - [Labour estimates for the vehicle a VIN decodes to]({base}/v1/vin/KM8K2CAB4PU001140/labor): `GET /v1/vin/{{vin}}/labor` and `GET /v1/vin/{{vin}}/labor/{{job}}`
+- [The vehicles that have a time for a job]({base}/v1/jobs/brake-pads-front/vehicles): `GET /v1/jobs/{{job}}/vehicles`
 "
         ));
     }

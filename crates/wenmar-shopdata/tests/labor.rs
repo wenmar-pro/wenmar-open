@@ -308,6 +308,71 @@ fn a_file_without_the_labor_ai_dataset_still_reads() {
 }
 
 #[test]
+fn a_jobs_vehicles_are_its_figures_narrower_than_class() {
+    // A third job with nothing but a class figure: a class is not a
+    // vehicle of its own.
+    let class_only = r#"
+INSERT INTO job VALUES ('test-job-c', 'Test job C', 'engine', '[]', '[]', '[]', 2);
+INSERT INTO labor_estimate VALUES
+  (11, 'test-job-c', 'class', 'compact-car', NULL, NULL, NULL, NULL, NULL, 500, 600, 700, 'expert', NULL, NULL, NULL, 'test-author', 'test-reviewer', '2026-10-30');
+"#;
+    let shop = shop_with(
+        AI_ENTRIES,
+        &[wenmar_shopdata::schema::LABOR_AI, AI_ROWS, class_only],
+    );
+    let found = shop.job_vehicles("test-job-a", 0, 100).unwrap();
+    let answers: Vec<(i64, &str, &str, Option<i64>)> = found
+        .iter()
+        .map(|estimate| {
+            (
+                estimate.model_id.unwrap(),
+                estimate.scope.as_str(),
+                estimate.basis.as_str(),
+                estimate.confidence_pct,
+            )
+        })
+        .collect();
+    // The model, generation and engine figures, in make, model and year
+    // order; a model's written figure before a model's.
+    assert_eq!(
+        answers,
+        [
+            (7001, "model", "expert", None),
+            (7001, "generation", "expert", None),
+            (7001, "engine", "expert", None),
+            (7002, "model", "ai", Some(45)),
+            (7002, "model", "expert", None),
+        ]
+    );
+    let years: Vec<(Option<u16>, Option<u16>)> = found
+        .iter()
+        .map(|estimate| (estimate.year_from, estimate.year_to))
+        .collect();
+    assert_eq!(
+        years,
+        [
+            (None, None),
+            (Some(2001), Some(2001)),
+            (Some(2001), Some(2002)),
+            (None, None),
+            (None, None),
+        ]
+    );
+    assert_eq!(found[0].make_id, Some(7000));
+    assert_eq!(found[2].engine.as_deref(), Some("9-9l-test"));
+    assert_eq!(found[2].hours_typical, 6800);
+    assert_eq!(found[3].job_name, "Test job A");
+    assert_eq!(found[3].model.as_deref(), Some("test-model"));
+    // One page, and a job whose figures are all class figures has no
+    // vehicles.
+    let page = shop.job_vehicles("test-job-a", 2, 2).unwrap();
+    assert_eq!(page.len(), 2);
+    assert_eq!(page[0].scope, "engine");
+    assert_eq!(page[1].confidence_pct, Some(45));
+    assert!(shop.job_vehicles("test-job-c", 0, 100).unwrap().is_empty());
+}
+
+#[test]
 fn the_method_counts_say_what_the_file_holds() {
     let shop = ai_shop(true);
     let counts = shop.labor_counts().unwrap();

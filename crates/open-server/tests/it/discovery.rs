@@ -826,6 +826,16 @@ async fn a_server_with_codes_or_labour_says_so_where_a_model_looks() {
         );
         assert_eq!(app.get(address).await.status(), StatusCode::OK, "{address}");
     }
+    // The vehicles that have a time for a job, which the fixtures must ask
+    // for one of their own.
+    assert!(
+        text.contains("](https://open.example/v1/jobs/brake-pads-front/vehicles): `GET /v1/jobs/{job}/vehicles`"),
+        "{text}"
+    );
+    assert_eq!(
+        app.get("/v1/jobs/test-job-a/vehicles").await.status(),
+        StatusCode::OK
+    );
     for needle in [
         "`basis`",
         "`ai`",

@@ -1460,6 +1460,10 @@ async fn the_labor_tool_gives_what_the_api_gives() {
             json!({ "action": "vin", "vin": common::KONA, "job": "test-job-a" }),
             format!("/v1/vin/{}/labor/test-job-a", common::KONA),
         ),
+        (
+            json!({ "action": "coverage", "job": "test-job-a", "limit": 1 }),
+            "/v1/jobs/test-job-a/vehicles?limit=1".to_owned(),
+        ),
     ];
     for (arguments, path) in cases {
         let result = call(&app, "wenmar_labor", arguments.clone()).await;
@@ -1469,6 +1473,23 @@ async fn the_labor_tool_gives_what_the_api_gives() {
         assert_eq!(text(&result), served, "{arguments}");
         assert_eq!(result["structuredContent"], served, "{arguments}");
     }
+}
+
+#[tokio::test]
+async fn the_labor_tool_lists_a_jobs_vehicles() {
+    let app = common::labor_ai_app().await;
+    let result = call(
+        &app,
+        "wenmar_labor",
+        json!({ "action": "coverage", "job": "test-job-c" }),
+    )
+    .await;
+    assert_eq!(result["isError"], false);
+    let (status, served) = app.json("/v1/jobs/test-job-c/vehicles").await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(text(&result), served);
+    assert_eq!(result["structuredContent"], served);
+    assert_eq!(served["vehicles"][0]["model"], "Kona");
 }
 
 #[tokio::test]
@@ -1500,7 +1521,11 @@ async fn the_labor_tool_fails_as_a_tool_error_the_model_can_read() {
         (json!({ "action": "vin" }), "vin is required for action=vin"),
         (
             json!({ "action": "nonsense" }),
-            "action must be jobs, vehicle or vin",
+            "action must be jobs, vehicle, vin or coverage",
+        ),
+        (
+            json!({ "action": "coverage" }),
+            "job is required for action=coverage",
         ),
         (
             json!({ "action": "vehicle", "id": "2023_hyundai_kona", "job": "test-job-z" }),

@@ -40,6 +40,8 @@ import type {
   VehicleInvestigationsQuery,
   JobDetail,
   JobList,
+  JobVehicles,
+  JobVehiclesQuery,
   VehicleLabor,
   VinLabor,
   VehicleBulletins,
@@ -303,6 +305,21 @@ export class WenmarOpen {
   /** One repair job: what it covers, and what it typically takes by class of vehicle. */
   async job(job: string, options: RequestOptions = {}): Promise<JobDetail> {
     return this.#request("GET", `/v1/jobs/${segment("job", job)}`, undefined, options);
+  }
+
+  /**
+   * The vehicles that have their own figure for one `job`, in make, model
+   * and year order. A class figure is typical of a class of vehicle, not a
+   * vehicle's own, so it is not listed. Pass `next_cursor` back as
+   * `cursor`.
+   */
+  async jobVehicles(
+    job: string,
+    query: JobVehiclesQuery = {},
+    options: RequestOptions = {},
+  ): Promise<JobVehicles> {
+    const path = `/v1/jobs/${segment("job", job)}/vehicles${queryString(query)}`;
+    return this.#request("GET", path, undefined, options);
   }
 
   /**
