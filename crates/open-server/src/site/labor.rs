@@ -10,18 +10,24 @@ use axum::extract::{Path, Query, State};
 use axum::http::{StatusCode, Uri};
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::Deserialize;
+use serde_json::json;
 use shop_math::labor_rate::labor_charge;
 use shop_math::{Hours, Money};
 use wenmar_shopdata::Dataset;
+use wenmar_shopdata::labor::{
+    AI_MOST_CONFIDENCE, AI_MOST_HUNDREDTHS, AI_MOST_SPREAD, ATTRIBUTION, LEAST_HUNDREDTHS,
+    MIN_JOBS, MIN_SHOPS, NOTE,
+};
 use wenmar_vehicles::text::{is_slug, slug, squeeze};
 
+pub use crate::api::labor::METHOD_PATH;
 use crate::api::labor::{job_op, jobs_op, labor_of};
 use crate::api::recalls::model_year;
 use crate::api::types::{JobDetail, JobLink, LaborFigure};
 use crate::error::ApiError;
 use crate::site::markdown::{self, Format, escape};
 use crate::site::tools::canada_invoice_tax::rates::{self, Province};
-use crate::site::{self, Page, report, seo};
+use crate::site::{self, Page, jsonld, report, seo};
 use crate::state::AppState;
 
 /// Hours as a page shows them: `98`, `97.5`, `99.25`.
@@ -52,6 +58,198 @@ pub fn range_words(figure: &LaborFigure) -> String {
         shown(figure.hours.typical),
         basis_words(figure)
     )
+}
+
+// ----- how estimates are made -----
+
+/// The page's one heading, and the name its breadcrumb and structured data
+/// give it.
+pub const METHOD_HEADING: &str = "How Wenmar's labour estimates are made";
+
+const METHOD_DESCRIPTION: &str = "How Wenmar's labour times are made: written by technicians, measured from repair orders, or worked out by AI from repair steps, never copied from a labour guide.";
+
+/// `n` with the right noun: `1 figure`, `2 figures`.
+fn counted(n: i64, one: &str, many: &str) -> String {
+    if n == 1 {
+        format!("1 {one}")
+    } else {
+        format!("{n} {many}")
+    }
+}
+
+/// What a basis is, in words a reader knows.
+fn basis_phrase(basis: &str) -> &'static str {
+    match basis {
+        "observed" => "measured from repair orders",
+        "ai" => "worked out by a model",
+        _ => "written by people",
+    }
+}
+
+/// The page's text, made once so that HTML and Markdown say the same.
+struct Method {
+    lead: String,
+    /// What the file holds, one line each.
+    holds: Vec<String>,
+    expert: Vec<String>,
+    observed: Vec<String>,
+    ai: Vec<String>,
+    which: Vec<String>,
+    not: Vec<String>,
+    suggest: String,
+    credit: String,
+}
+
+impl Method {
+    fn of(counts: &wenmar_shopdata::labor::LaborCounts) -> Method {
+        let mut holds = Vec::new();
+        if counts.figures == 0 {
+            holds.push("No figure is on file yet.".to_owned());
+        } else {
+            holds.push(format!(
+                "{}, for {}, on {} of {}.",
+                counted(counts.figures, "figure", "figures"),
+                counted(counts.jobs, "job", "jobs"),
+                counted(counts.models, "model", "models"),
+                counted(counts.makes, "make", "makes")
+            ));
+            let by_basis: Vec<String> = counts
+                .by_basis
+                .iter()
+                .map(|(basis, n)| {
+                    format!(
+                        "{} {}",
+                        basis_phrase(basis),
+                        counted(*n, "figure", "figures")
+                    )
+                })
+                .collect();
+            if !by_basis.is_empty() {
+                holds.push(format!("By basis: {}.", by_basis.join("; ")));
+            }
+            holds.push(format!(
+                "The AI figures worked out with the repair steps: {}.",
+                counted(counts.ai_with_steps, "figure", "figures")
+            ));
+            holds.push(if counts.ai_answered_by.is_empty() {
+                "No AI figure names the model that answered it.".to_owned()
+            } else {
+                format!("Answered by: {}.", counts.ai_answered_by.join(", "))
+            });
+            holds.push(if counts.ai_methods.is_empty() {
+                "No AI figure names the prompt version it answered.".to_owned()
+            } else {
+                format!("Prompt versions: {}.", counts.ai_methods.join(", "))
+            });
+            holds.push(match &counts.newest {
+                Some(day) => format!("Updated {day}."),
+                None => "No figure names the day it was changed.".to_owned(),
+            });
+        }
+        let least = Hours::from_hundredths(LEAST_HUNDREDTHS).to_string();
+        let most = Hours::from_hundredths(AI_MOST_HUNDREDTHS).to_string();
+        Method {
+            lead: "Every figure is the hours one job takes on one vehicle or kind of vehicle. It is written by a technician, measured from repair orders, or worked out by a model from the vehicle, the job and a repair procedure's steps, and never copied from a labour guide.".to_owned(),
+            holds,
+            expert: vec![
+                "The person who writes a figure does the work. It is never taken from a labour guide, a maker's warranty time, shop software or another website.".to_owned(),
+                "Every written figure records who wrote it and who reviewed it, and the reviewer is someone else. Wenmar publishes a figure only with both.".to_owned(),
+            ],
+            observed: vec![format!(
+                "A measured figure is the median of at least {MIN_JOBS} repair orders from at least {MIN_SHOPS} shops. The low and the high are the 10th and the 90th percentile of those orders, not the least and the most."
+            ),
+            "It says how many repair orders and shops stand behind it, and never which shops: no shop, customer, VIN or invoice number is in the data.".to_owned()],
+            ai: vec![
+                "The model is given the job's name, what it includes and excludes, the vehicle, and, when there is one, the steps of a repair procedure with every hour figure and every line about labour time removed. It is never given a labour time, and no procedure text is published.".to_owned(),
+                "It answers a low, a typical and a high figure in hours, its confidence as a percentage, and what it assumed. The confidence and the assumptions are published with the figure.".to_owned(),
+                format!("An answer is refused, not corrected, when a figure is below {least} or above {most} hours, when the high is more than {AI_MOST_SPREAD} times the typical, or when the confidence is above {AI_MOST_CONFIDENCE} percent. No refused figure is published."),
+                "A job that does not exist on a vehicle, such as a timing belt on an engine with a chain, gets no figure: the model may answer that it does not apply, and nothing is written.".to_owned(),
+                "No person checked an AI figure. It is labelled with its basis and its confidence, and within one scope it comes after a measured and a written figure.".to_owned(),
+            ],
+            which: vec![
+                "A vehicle gets the narrowest figure that covers it: the engine, then the generation, then the model, then the class.".to_owned(),
+                "Within one scope a measured figure comes first, then a written one, then an AI one. The answer says which scope answered, so a figure for a class of vehicles is never shown as one worked out on a particular vehicle.".to_owned(),
+            ],
+            not: vec![
+                NOTE.to_owned(),
+                "Agreement with the hours shops bill means agreement with what shops charge for the job, not with a clock: the time a technician spends also holds the diagnosis, the test drive, waiting for parts and the unexpected.".to_owned(),
+            ],
+            suggest: format!("/feedback/labor?page={}", report::encode(METHOD_PATH)),
+            credit: format!(
+                "{ATTRIBUTION}. Published under CC BY 4.0; reuse it with this credit."
+            ),
+        }
+    }
+}
+
+fn method_markdown(method: &Method, base: &str) -> String {
+    let mut text = format!("# {METHOD_HEADING}\n\n{}\n", escape(&method.lead));
+    text.push_str("\n## What the data holds\n\n");
+    for line in &method.holds {
+        text.push_str(&format!("- {}\n", escape(line)));
+    }
+    for (heading, paragraphs) in [
+        ("Written by people who do the work", &method.expert),
+        ("Measured from repair orders", &method.observed),
+        ("Worked out by a model from the repair steps", &method.ai),
+        ("Which figure a vehicle gets", &method.which),
+        ("What a figure is not", &method.not),
+    ] {
+        text.push_str(&format!("\n## {heading}\n\n"));
+        for paragraph in paragraphs {
+            text.push_str(&format!("{}\n\n", escape(paragraph)));
+        }
+    }
+    text.push_str(&format!("\n{}\n", escape(&method.credit)));
+    text.push_str(&format!(
+        "\n- [Suggest a time for a job]({base}{})\n- [Every job and its hours]({base}/jobs)\n- [The job list as JSON]({base}/v1/jobs)\n- [Wenmar Open for AI agents]({base}/llms.txt)\n",
+        method.suggest
+    ));
+    text
+}
+
+#[derive(Template)]
+#[template(path = "labor_method.html")]
+struct MethodPage {
+    page: Page,
+    method: Method,
+}
+
+/// `/jobs/how-estimates-are-made` and its Markdown twin.
+pub async fn method(State(state): State<AppState>, uri: Uri) -> Response {
+    let Ok(shop) = state.dataset(Dataset::Labor) else {
+        return site::not_found(&state);
+    };
+    let counts = match shop.run(|reader| reader.labor_counts()).await {
+        Ok(Ok(counts)) => counts,
+        Ok(Err(error)) => return site::failed(&state, &ApiError::from(error)),
+        Err(error) => return site::failed(&state, &ApiError::from(error)),
+    };
+    let method = Method::of(&counts);
+    let base = &state.config().base_url;
+    if uri.path().ends_with(".md") {
+        let canonical = format!("{base}{METHOD_PATH}");
+        return markdown::response(method_markdown(&method, base), &canonical);
+    }
+    let description = seo::description(&[&[METHOD_DESCRIPTION.to_owned()]], 160);
+    let page = Page::new(
+        &state,
+        seo::title("How labour estimates are made"),
+        description.clone(),
+    )
+    .with_markdown(&format!("{METHOD_PATH}.md"))
+    .with_json("/v1/jobs")
+    .under(vec![("Jobs".to_owned(), "/jobs".to_owned())])
+    .as_article();
+    let trail = page.trail(METHOD_HEADING);
+    let mut article = jsonld::article(base, METHOD_PATH, METHOD_HEADING, &description);
+    if let Some(newest) = &counts.newest {
+        article["dateModified"] = json!(newest);
+    }
+    let page = page
+        .describing(vec![trail, article])
+        .indexed(&state, METHOD_PATH);
+    site::html(StatusCode::OK, &MethodPage { page, method })
 }
 
 // ----- /jobs -----
@@ -99,7 +297,10 @@ pub async fn index_md(State(state): State<AppState>) -> Response {
         Err(ApiError::DatasetUnavailable(_)) => return site::not_found(&state),
         Err(error) => return site::failed(&state, &error),
     };
-    let mut text = "# Repair jobs and labour times\n\nHow long a repair job takes, as estimated by Wenmar: written by people who do the work, and never taken from a labour guide.\n\n".to_owned();
+    let mut text = format!(
+        "# Repair jobs and labour times\n\nHow long common repair jobs take on each vehicle: written by people who do the work, measured from repair orders, or worked out by AI from the repair steps; never copied from a labour guide. [How estimates are made]({}{METHOD_PATH}).\n\n",
+        state.config().base_url
+    );
     for job in &list.jobs {
         text.push_str(&format!("- [{}]({})\n", escape(&job.name), job.url));
     }
@@ -133,7 +334,7 @@ struct JobPage {
     report: report::ReportLinks,
 }
 
-fn job_markdown(job: &JobDetail) -> String {
+fn job_markdown(job: &JobDetail, base: &str) -> String {
     let mut text = format!("# {}\n", escape(&job.name));
     for (heading, entries) in [
         ("Includes", &job.includes),
@@ -161,6 +362,9 @@ fn job_markdown(job: &JobDetail) -> String {
             text.push_str(&format!("\n{}.\n", escape(credit)));
         }
     }
+    text.push_str(&format!(
+        "\n[How estimates are made]({base}{METHOD_PATH})\n"
+    ));
     text
 }
 
@@ -188,7 +392,7 @@ pub async fn job(
     let path = format!("/jobs/{}", found.id);
     if format == Format::Markdown {
         let canonical = format!("{}{path}", state.config().base_url);
-        return markdown::response(job_markdown(&found), &canonical);
+        return markdown::response(job_markdown(&found, &state.config().base_url), &canonical);
     }
     let labor_held = state.dataset(Dataset::Labor).is_ok();
     // A vehicle was asked for: go to its page, or say it is not known.
@@ -512,6 +716,10 @@ pub async fn model_year_labor(
             }
             None => text.push_str("\nNo estimate covers this job on this vehicle yet.\n"),
         }
+        text.push_str(&format!(
+            "\n[How estimates are made]({}{METHOD_PATH})\n",
+            state.config().base_url
+        ));
         let canonical = format!("{}{path}", state.config().base_url);
         return markdown::response(text, &canonical);
     }

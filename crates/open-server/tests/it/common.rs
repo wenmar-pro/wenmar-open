@@ -1582,3 +1582,30 @@ pub async fn labor_app_at(base_url: &str) -> TestApp {
     })
     .await
 }
+
+/// [`LABOR_DATASETS`] with the `labor_ai` dataset: one AI figure and how
+/// it was worked out.
+pub const LABOR_AI_DATASETS: &str = r#"{"recalls_us":{"as_of":"2026-10-11","rows":7,"licence":"public-domain","attribution":""},"recalls_ca":{"as_of":"2026-10-06","rows":2,"licence":"ogl-canada","attribution":"Contains information licensed under the Open Government Licence – Canada."},"jobs":{"as_of":"2026-10-11","rows":3,"licence":"mit","attribution":""},"labor":{"as_of":"2026-10-12","rows":6,"licence":"cc-by-4.0","attribution":"Labour estimates by Wenmar Pro, CC BY 4.0"},"labor_ai":{"as_of":"2026-10-30","rows":1,"licence":"cc-by-4.0","attribution":"Labour estimates by Wenmar Pro, CC BY 4.0"}}"#;
+
+/// [`LABOR_INSERTS`] plus one AI figure of job C for the Kona and how it
+/// was worked out.
+pub const LABOR_AI_INSERTS: &str = r#"
+INSERT INTO labor_estimate VALUES
+  (7, 'test-job-c', 'generation', NULL, 498, 900, 2021, 2024, NULL, 1200, 1300, 1500, 'ai', NULL, NULL, 'Made-up assumption.', NULL, NULL, '2026-10-30');
+INSERT INTO labor_ai VALUES (7, 45, 'test-model', 'open-labour-ai-1', 'vehicle,job,procedure');
+"#;
+
+/// [`labor_rows`], then the `labor_ai` table and [`LABOR_AI_INSERTS`].
+pub fn labor_ai_rows() -> String {
+    format!(
+        "{}{}{LABOR_AI_INSERTS}",
+        labor_rows(),
+        wenmar_shopdata::schema::LABOR_AI
+    )
+}
+
+/// The application over the small data file and a shop file holding
+/// recalls, the job list, labour estimates and one AI figure.
+pub async fn labor_ai_app() -> TestApp {
+    app_with_shop(LABOR_AI_DATASETS, &labor_ai_rows()).await
+}

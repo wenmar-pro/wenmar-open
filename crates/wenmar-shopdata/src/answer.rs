@@ -1684,6 +1684,8 @@ pub struct LaborFigure {
     pub method: Option<String>,
     pub inputs: Option<Vec<String>>,
     pub notes: Option<String>,
+    /// The page that says how figures of this basis are made.
+    pub method_url: Option<String>,
     pub updated: String,
     pub url: String,
 }
@@ -1799,6 +1801,7 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
                 _ => None,
             },
             notes: found.notes,
+            method_url: Some(format!("{}{}", self.base, crate::labor::METHOD_PATH)),
             updated: found.updated,
         }
     }

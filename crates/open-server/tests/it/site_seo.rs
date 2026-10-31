@@ -218,3 +218,16 @@ async fn a_sitemap_that_does_not_exist_is_404() {
         assert_eq!(status, StatusCode::NOT_FOUND, "{path}");
     }
 }
+
+#[tokio::test]
+async fn the_pages_sitemap_lists_the_method_page_only_where_labour_is_held() {
+    let app = common::labor_app().await;
+    let (_, pages) = page(&app, "/sitemaps/pages.xml").await;
+    assert!(
+        pages.contains("<loc>https://open.example/jobs/how-estimates-are-made</loc>"),
+        "{pages}"
+    );
+    let app = common::app_with_shop(common::JOB_DATASETS, &common::job_rows()).await;
+    let (_, pages) = page(&app, "/sitemaps/pages.xml").await;
+    assert!(!pages.contains("how-estimates-are-made"), "{pages}");
+}

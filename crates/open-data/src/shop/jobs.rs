@@ -24,6 +24,8 @@ pub const MOST_ENTRIES: usize = 12;
 pub const MOST_COMPONENTS: usize = 8;
 /// The most related jobs a job may name.
 pub const MOST_RELATED: usize = 10;
+/// Job ids a page of the site already uses, so no job may take them.
+pub const RESERVED_JOB_IDS: &[&str] = &["how-estimates-are-made"];
 
 /// Whether the list is complete.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -119,6 +121,9 @@ impl Jobs {
             let id = record.id.clone();
             if !is_slug(&id) {
                 bail!("jobs.yaml: {id:?} is not an id; use lowercase words joined by hyphens");
+            }
+            if RESERVED_JOB_IDS.contains(&id.as_str()) {
+                bail!("jobs.yaml: {id} is a reserved id; the page /jobs/{id} has that address");
             }
             if !ids.insert(id.clone()) {
                 bail!("jobs.yaml lists {id} twice");

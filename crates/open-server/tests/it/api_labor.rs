@@ -135,6 +135,7 @@ async fn a_vehicle_gets_the_narrowest_figure_of_each_job_and_which_scope_it_was(
             "inputs": null,
             "notes": null,
             "updated": "2026-10-10",
+            "method_url": "https://open.example/jobs/how-estimates-are-made",
             "url": "https://open.example/jobs/test-job-a"
         })
     );
@@ -268,5 +269,42 @@ async fn each_route_needs_its_dataset() {
             "dataset_unavailable",
         )
         .await;
+    }
+}
+
+#[tokio::test]
+async fn an_ai_figure_says_how_it_was_made() {
+    let app = common::labor_ai_app().await;
+    let body = ok(&app, "/v1/vehicles/2023_hyundai_kona/labor/test-job-c").await;
+    let figure = &body["estimates"][0];
+    assert_eq!(figure["basis"], "ai");
+    assert_eq!(figure["scope"], "generation");
+    assert_eq!(figure["confidence_pct"], 45);
+    assert_eq!(figure["model"], "test-model");
+    assert_eq!(figure["method"], "open-labour-ai-1");
+    assert_eq!(figure["inputs"], json!(["vehicle", "job", "procedure"]));
+    assert_eq!(figure["notes"], "Made-up assumption.");
+    assert_eq!(
+        figure["method_url"],
+        "https://open.example/jobs/how-estimates-are-made"
+    );
+}
+
+#[tokio::test]
+async fn every_figure_says_where_its_method_is_explained() {
+    let app = common::labor_app().await;
+    for path in [
+        "/v1/jobs/test-job-a",
+        "/v1/vehicles/2023_hyundai_kona/labor",
+        "/v1/vehicles/2023_hyundai_kona/labor/test-job-b",
+        &format!("/v1/vin/{}/labor", common::KONA),
+    ] {
+        let body = ok(&app, path).await;
+        for figure in body["estimates"].as_array().unwrap() {
+            assert_eq!(
+                figure["method_url"], "https://open.example/jobs/how-estimates-are-made",
+                "{path}: {figure}"
+            );
+        }
     }
 }

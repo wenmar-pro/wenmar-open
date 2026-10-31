@@ -460,6 +460,9 @@ pub async fn sitemap(
             if state.dataset(Dataset::Jobs).is_ok() {
                 paths.push("/jobs".to_owned());
             }
+            if state.dataset(Dataset::Labor).is_ok() {
+                paths.push(site::labor::METHOD_PATH.to_owned());
+            }
             paths.push(site::rules::INDEX_PATH.to_owned());
             paths.extend(
                 site::rules::PROVINCES

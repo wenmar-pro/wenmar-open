@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>How Wenmar's labour estimates are made</h1>
+<p>{{ method.lead }}</p>
+<h2>What the data holds</h2>
+<ul>
+{% for line in method.holds -%}
+<li>{{ line }}</li>
+{% endfor -%}
+</ul>
+<h2>Written by people who do the work</h2>
+{% for paragraph in method.expert -%}
+<p>{{ paragraph }}</p>
+{% endfor -%}
+<h2>Measured from repair orders</h2>
+{% for paragraph in method.observed -%}
+<p>{{ paragraph }}</p>
+{% endfor -%}
+<h2>Worked out by a model from the repair steps</h2>
+{% for paragraph in method.ai -%}
+<p>{{ paragraph }}</p>
+{% endfor -%}
+<h2>Which figure a vehicle gets</h2>
+{% for paragraph in method.which -%}
+<p>{{ paragraph }}</p>
+{% endfor -%}
+<h2>What a figure is not</h2>
+{% for paragraph in method.not -%}
+<p>{{ paragraph }}</p>
+{% endfor -%}
+<ul class="plain links">
+<li><a href="{{ method.suggest }}">Suggest a time for a job</a></li>
+<li><a href="/jobs">Every job and its hours</a></li>
+<li><a href="/v1/jobs">The job list as JSON</a></li>
+<li><a href="/llms.txt">Wenmar Open for AI agents</a></li>
+</ul>
+<p class="note">{{ method.credit }}</p>
+{% endblock %}

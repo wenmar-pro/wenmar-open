@@ -9,6 +9,7 @@
 use axum::Json;
 use axum::extract::rejection::{PathRejection, QueryRejection};
 use axum::extract::{Path, Query, State};
+pub use wenmar_shopdata::labor::METHOD_PATH;
 use wenmar_shopdata::labor::{self as shopdata, NOTE, class_name};
 use wenmar_shopdata::{Dataset, ShopError, jobs};
 use wenmar_vehicles::VehicleId;
@@ -95,6 +96,7 @@ pub fn figure(base: &str, found: shopdata::LaborEstimate) -> LaborFigure {
         model: found.model,
         method: found.method,
         notes: found.notes,
+        method_url: Some(format!("{base}{METHOD_PATH}")),
         updated: found.updated,
     }
 }

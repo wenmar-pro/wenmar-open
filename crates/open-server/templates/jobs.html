@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Repair jobs and labour times</h1>
-<p>How long a repair job takes, as estimated by Wenmar: written by people who do the work, and never taken from a labour guide. Each job says what it includes, so that a time means the same work in every shop.</p>
+<p>How long common repair jobs take on each vehicle: written by people who do the work, measured from repair orders, or worked out by AI from the repair steps; never copied from a labour guide. <a href="/jobs/how-estimates-are-made">How estimates are made</a>. Each job says what it includes, so that a time means the same work in every shop.</p>
 <table class="prose">
 <caption>Jobs{% if !dated.is_empty() %}, {{ dated }}{% endif %}</caption>
 <tbody>

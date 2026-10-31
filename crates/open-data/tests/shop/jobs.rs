@@ -202,6 +202,15 @@ fn a_mistake_in_the_file_is_named() {
 }
 
 #[test]
+fn a_job_may_not_take_the_method_pages_address() {
+    let yaml = REVIEWED.replace("id: test-job-c", "id: how-estimates-are-made");
+    let error = Jobs::parse(&yaml, &components()).unwrap_err();
+    let message = format!("{error:#}");
+    assert!(message.contains("how-estimates-are-made"), "{message}");
+    assert!(message.contains("reserved"), "{message}");
+}
+
+#[test]
 fn the_file_in_the_repository_loads() {
     let data = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data");
     let components = Components::load(&data).unwrap();

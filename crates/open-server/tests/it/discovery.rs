@@ -826,6 +826,14 @@ async fn a_server_with_codes_or_labour_says_so_where_a_model_looks() {
         );
         assert_eq!(app.get(address).await.status(), StatusCode::OK, "{address}");
     }
+    for needle in [
+        "`basis`",
+        "`ai`",
+        "`confidence_pct`",
+        "/jobs/how-estimates-are-made",
+    ] {
+        assert!(text.contains(needle), "{needle}: {text}");
+    }
     assert!(!text.contains("/v1/codes"), "{text}");
 
     // Every tool is named whatever is held, and nothing else is said of

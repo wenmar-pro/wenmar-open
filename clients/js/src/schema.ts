@@ -1970,6 +1970,8 @@ export interface components {
              * @example open-labour-ai-1
              */
             method?: string | null;
+            /** @description The page that says how figures of this basis are made. */
+            method_url?: string | null;
             /** @description For an `ai` figure: the model that answered. `null` for the others. */
             model?: string | null;
             name: string;
@@ -2187,9 +2189,8 @@ export interface components {
          * @description Everything held for one model year, in one answer.
          *
          *     A block this server has no data for is `null`: `specs`, `fuel`,
-         *     `fluids`, `tires` and `labor` are `null` in every answer today, and
-         *     each is filled when its data arrives. A client must accept
-         *     an object there.
+         *     `fluids` and `tires` are `null` in every answer today, and each is
+         *     filled when its data arrives. A client must accept an object there.
          */
         Overview: {
             /** @description The credit lines the data's licences ask for. */
@@ -2200,6 +2201,10 @@ export interface components {
             fluids?: Record<string, unknown> | null;
             fuel?: Record<string, unknown> | null;
             generation?: null | components["schemas"]["Generation"];
+            /**
+             * @description The vehicle's labour figures, as `/v1/vehicles/{id}/labor` gives
+             *     them. `null` when this server holds no labour estimates.
+             */
             labor?: Record<string, unknown> | null;
             links: components["schemas"]["OverviewLinks"];
             recalls?: null | components["schemas"]["OverviewRecalls"];

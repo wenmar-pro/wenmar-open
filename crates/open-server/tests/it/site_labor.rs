@@ -26,7 +26,7 @@ async fn the_job_list_and_a_job_have_pages() {
             "{id}"
         );
     }
-    assert!(html.contains("never taken from a labour guide"));
+    assert!(html.contains("never copied from a labour guide"));
     let text = common::markdown(&app, "/jobs.md").await;
     assert!(text.starts_with("# Repair jobs and labour times\n"));
     assert!(text.contains("- [Test job A](https://open.example/jobs/test-job-a)"));
@@ -262,4 +262,111 @@ async fn every_labour_page_links_the_form_that_suggests_a_time() {
         assert!(html.contains("vehicle=2023%20Hyundai%20Kona"), "{job}");
         assert!(html.contains("Suggest a time for this job"), "{job}");
     }
+}
+
+const METHOD: &str = "/jobs/how-estimates-are-made";
+
+const METHOD_HEADINGS: [&str; 3] = [
+    "Written by people who do the work",
+    "Measured from repair orders",
+    "Worked out by a model from the repair steps",
+];
+
+#[tokio::test]
+async fn the_method_page_says_how_each_figure_is_made() {
+    let app = common::labor_ai_app().await;
+    let (status, html) = page(&app, METHOD).await;
+    assert_eq!(status, StatusCode::OK);
+    common::assert_basics(&html, METHOD);
+    common::assert_head(&html, METHOD);
+    assert!(html.contains("<h1>How Wenmar's labour estimates are made</h1>"));
+    for heading in METHOD_HEADINGS {
+        assert!(html.contains(&format!(">{heading}</h2>")), "{heading}");
+    }
+    // The counts are the file's: one AI figure, and how it was made.
+    assert!(html.contains("1 figure"), "{html}");
+    assert!(html.contains("test-model"), "{html}");
+    assert!(html.contains("open-labour-ai-1"), "{html}");
+    assert!(html.contains(common::LABOR_CREDIT));
+    // A page worth citing: indexed, with a canonical address.
+    assert!(
+        html.contains(&format!(
+            r#"<link rel="canonical" href="https://open.example{METHOD}">"#
+        )),
+        "{html}"
+    );
+    assert!(!html.contains("noindex"), "{html}");
+    // The structured data is an article dated by the newest figure.
+    assert!(html.contains(r#""@type":"Article""#), "{html}");
+    assert!(html.contains(r#""dateModified":"2026-10-30""#), "{html}");
+}
+
+#[tokio::test]
+async fn the_method_page_is_not_a_job() {
+    let app = common::labor_ai_app().await;
+    let (status, html) = page(&app, METHOD).await;
+    assert_eq!(status, StatusCode::OK);
+    // The job page of a job with no figure says this; the method page does
+    // not. The static route won over `/jobs/{job}`.
+    assert!(!html.contains("What the job includes"), "{html}");
+    assert!(!html.contains("For one vehicle"), "{html}");
+}
+
+#[tokio::test]
+async fn the_method_page_has_a_markdown_twin() {
+    let app = common::labor_ai_app().await;
+    let text = common::markdown(&app, "/jobs/how-estimates-are-made.md").await;
+    assert!(text.starts_with("# How Wenmar's labour estimates are made\n"));
+    for heading in METHOD_HEADINGS {
+        assert!(text.contains(&format!("## {heading}\n")), "{heading}");
+    }
+    assert!(text.contains("1 figure"), "{text}");
+    assert!(
+        text.contains("The AI figures worked out with the repair steps: 1 figure."),
+        "{text}"
+    );
+    assert!(text.contains(r"Updated 2026\-10\-30."), "{text}");
+    assert!(text.contains(common::LABOR_CREDIT));
+}
+
+#[tokio::test]
+async fn without_labour_the_method_page_is_absent() {
+    let app = common::app_with_shop(common::JOB_DATASETS, &common::job_rows()).await;
+    for path in [METHOD, "/jobs/how-estimates-are-made.md"] {
+        let (status, html) = page(&app, path).await;
+        assert_eq!(status, StatusCode::NOT_FOUND, "{path}");
+        assert!(html.contains("There is no page here"), "{path}");
+    }
+}
+
+#[tokio::test]
+async fn every_labour_page_links_the_page_that_says_how_the_figures_are_made() {
+    let app = common::labor_app().await;
+    for path in ["/jobs", "/jobs/test-job-a", KONA_A] {
+        let (status, html) = page(&app, path).await;
+        assert_eq!(status, StatusCode::OK, "{path}");
+        assert!(
+            html.contains(r#"href="/jobs/how-estimates-are-made""#),
+            "{path}"
+        );
+        let text = common::markdown(&app, &format!("{path}.md")).await;
+        assert!(
+            text.contains("https://open.example/jobs/how-estimates-are-made"),
+            "{path}.md"
+        );
+    }
+}
+
+#[tokio::test]
+async fn the_job_list_says_where_the_figures_come_from() {
+    let app = common::labor_app().await;
+    let sentence = "written by people who do the work, measured from repair orders, or worked out by AI from the repair steps; never copied from a labour guide";
+    let old = "written by people who do the work, and never taken from a labour guide";
+    let (status, html) = page(&app, "/jobs").await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains(sentence), "{html}");
+    assert!(!html.contains(old), "{html}");
+    let text = common::markdown(&app, "/jobs.md").await;
+    assert!(text.contains(sentence), "{text}");
+    assert!(!text.contains(old), "{text}");
 }

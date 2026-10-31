@@ -134,7 +134,7 @@ pub const LICENCES: &[Licence] = &[
     },
     Licence {
         dataset: "Labour estimates worked out by AI: the hours a repair job takes",
-        source: "Wenmar Pro. Worked out by a model from the job and, when there is one, the steps of a repair procedure with every number removed, in data/labor/ai/. Never taken from a labour guide",
+        source: "Wenmar Pro. Worked out by a model from the job and, when there is one, the steps of a repair procedure with every number removed, in data/labor/ai/. Never taken from a labour guide. How each is made: /jobs/how-estimates-are-made",
         licence: "Creative Commons Attribution 4.0 International (CC BY 4.0)",
         licence_id: "cc-by-4.0",
         attribution: "Labour estimates by Wenmar Pro, CC BY 4.0",

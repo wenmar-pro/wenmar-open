@@ -2,7 +2,7 @@
 {% block content %}
 <h1>{{ job.name }} on the {{ name }}: labour time</h1>
 {% if let Some(words) = range -%}
-<p><strong>{{ words }}</strong> {{ scope_words }} {{ basis }}</p>
+<p><strong>{{ words }}</strong> {{ scope_words }} {{ basis }} <a href="/jobs/how-estimates-are-made">How estimates are made</a>.</p>
 <p class="note">{{ note }}</p>
 {% for credit in attribution -%}
 <p class="note">{{ credit }}.</p>

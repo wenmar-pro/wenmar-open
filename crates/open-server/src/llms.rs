@@ -182,7 +182,7 @@ fn code_text(base: &str) -> (String, String, String) {
 fn labor_text(base: &str, labor: bool) -> (String, String, String) {
     let estimates = if labor {
         format!(
-            " Wenmar's estimate of the hours a job takes on a vehicle is at `{base}/v1/vehicles/` followed by a vehicle id and `/labor`, or `{base}/v1/vin/` followed by a VIN and `/labor`: `hours` (low, typical, high), and `scope`, which says whether the figure is for that engine, generation or model, or is typical of its class of vehicle. It is an estimate, not a quote, and holds no price. Credit it as `attribution` says."
+            " Wenmar's estimate of the hours a job takes on a vehicle is at `{base}/v1/vehicles/` followed by a vehicle id and `/labor`, or `{base}/v1/vin/` followed by a VIN and `/labor`: `hours` (low, typical, high), and `scope`, which says whether the figure is for that engine, generation or model, or is typical of its class of vehicle. Each figure has a `basis`: `expert` (written by a person who does the work), `observed` (measured from repair orders) or `ai` (worked out by a model from the repair steps, not checked by a person). An `ai` figure carries `confidence_pct`, `model`, `method`, `inputs` and `notes`, which says what it assumed: say so when you quote it, and link `method_url`, the page that says how estimates are made. It is an estimate, not a quote, and holds no price. Credit it as `attribution` says."
         )
     } else {
         String::new()
@@ -202,10 +202,17 @@ fn labor_text(base: &str, labor: bool) -> (String, String, String) {
 "
         ));
     }
+    let made = if labor {
+        format!(
+            "- [How labour estimates are made]({base}/jobs/how-estimates-are-made.md): how every figure is made, counted from the data held\n"
+        )
+    } else {
+        String::new()
+    };
     let pages = format!(
         "- [Repair jobs and labour times]({base}/jobs.md): the list of jobs
 - [One repair job, such as front brake pads]({base}/jobs/brake-pads-front.md): `/jobs/{{job}}.md`
-"
+{made}"
     );
     (prose, api, pages)
 }

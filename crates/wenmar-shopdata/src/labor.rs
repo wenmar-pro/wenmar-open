@@ -16,6 +16,9 @@ use crate::shop::ShopData;
 /// The credit every labour answer and page carries.
 pub const ATTRIBUTION: &str = "Labour estimates by Wenmar Pro, CC BY 4.0";
 
+/// The path of the page that says how every labour figure is made.
+pub const METHOD_PATH: &str = "/jobs/how-estimates-are-made";
+
 /// What every labour answer and page says.
 pub const NOTE: &str =
     "An estimate, not a quote. Rust, seized fasteners and added equipment change the time.";
@@ -34,6 +37,15 @@ pub const SCOPES: [&str; 4] = ["engine", "generation", "model", "class"];
 /// worked out by a model. Within one scope a lookup prefers them in the
 /// order observed, expert, ai.
 pub const BASES: [&str; 3] = ["expert", "observed", "ai"];
+
+/// The fewest hundredths of an hour a figure may be: 0.01.
+pub const LEAST_HUNDREDTHS: i64 = 1;
+
+/// The most hundredths of an hour an `ai` figure may be: 40 hours.
+pub const AI_MOST_HUNDREDTHS: i64 = 4_000;
+
+/// An `ai` figure's high may be at most this many times its typical.
+pub const AI_MOST_SPREAD: i64 = 3;
 
 /// The most confidence an `ai` figure may claim, in percent.
 pub const AI_MOST_CONFIDENCE: i64 = 60;
@@ -138,6 +150,31 @@ pub struct LaborEstimate {
     pub model: Option<String>,
     pub method: Option<String>,
     pub inputs: Vec<String>,
+}
+
+/// What a shop file holds about its labour estimates: the counts the
+/// method page shows. Every field is counted from the file.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct LaborCounts {
+    /// Every `labor_estimate` row.
+    pub figures: i64,
+    /// The figures of each basis, in [`BASES`] order, a basis with no
+    /// figures left out.
+    pub by_basis: Vec<(String, i64)>,
+    /// The jobs that have at least one figure.
+    pub jobs: i64,
+    /// The distinct models of the figures narrower than class.
+    pub models: i64,
+    /// The distinct makes of the figures narrower than class.
+    pub makes: i64,
+    /// The `ai` figures worked out with a repair procedure's steps.
+    pub ai_with_steps: i64,
+    /// The models that answered an `ai` figure, sorted.
+    pub ai_answered_by: Vec<String>,
+    /// The prompt versions of the `ai` figures, sorted.
+    pub ai_methods: Vec<String>,
+    /// The newest day any figure was changed, as `2026-10-12`.
+    pub newest: Option<String>,
 }
 
 /// The columns [`estimate`] reads. With `ai`, the `labor_ai` columns from
@@ -265,6 +302,90 @@ impl<S: Source> ShopData<S> {
     /// `labor_ai` dataset). A file built before it existed does not.
     pub fn holds_labor_ai(&self) -> bool {
         self.datasets().contains(Dataset::LaborAi)
+    }
+
+    /// What the file holds about its labour estimates: how many figures,
+    /// of which basis, for how many jobs, models and makes, and how the
+    /// `ai` figures were worked out. Every count is read from the file.
+    pub fn labor_counts(&self) -> Result<LaborCounts, ShopError> {
+        self.require(Dataset::Labor)?;
+        let count = |sql: &str| -> Result<i64, ShopError> {
+            self.query(sql, &[])?
+                .first()
+                .and_then(|row| row.first())
+                .and_then(Value::integer)
+                .ok_or(ShopError::Shape(TABLE))
+        };
+        let texts = |sql: &str| -> Result<Vec<String>, ShopError> {
+            self.query(sql, &[])?
+                .iter()
+                .map(|row| text(row, 0))
+                .collect()
+        };
+        let figures = count("SELECT COUNT(*) FROM labor_estimate")?;
+        let rows = self.query(
+            "SELECT basis, COUNT(*) FROM labor_estimate GROUP BY basis",
+            &[],
+        )?;
+        let mut held = Vec::with_capacity(rows.len());
+        for row in &rows {
+            held.push((text(row, 0)?, integer(row, 1)?));
+        }
+        let by_basis = BASES
+            .iter()
+            .filter_map(|basis| {
+                held.iter()
+                    .find(|(name, _)| name == basis)
+                    .map(|(_, n)| ((*basis).to_owned(), *n))
+            })
+            .collect();
+        let jobs = count("SELECT COUNT(DISTINCT job_id) FROM labor_estimate")?;
+        let models = count(
+            "SELECT COUNT(DISTINCT model_id) FROM labor_estimate
+             WHERE scope <> 'class' AND model_id IS NOT NULL",
+        )?;
+        let makes = count(
+            "SELECT COUNT(DISTINCT make_id) FROM labor_estimate
+             WHERE scope <> 'class' AND make_id IS NOT NULL",
+        )?;
+        let newest = self
+            .query("SELECT MAX(updated) FROM labor_estimate", &[])?
+            .first()
+            .and_then(|row| row.first())
+            .and_then(Value::text)
+            .map(str::to_owned);
+        let (ai_with_steps, ai_answered_by, ai_methods) = if self.holds_labor_ai() {
+            let with_steps = count(
+                "SELECT COUNT(*) FROM labor_estimate e
+                 JOIN labor_ai a ON a.estimate_id = e.id
+                 WHERE e.basis = 'ai'
+                   AND instr(',' || a.inputs || ',', ',procedure,') > 0",
+            )?;
+            let answered_by = texts(
+                "SELECT DISTINCT a.model FROM labor_ai a
+                 JOIN labor_estimate e ON e.id = a.estimate_id
+                 WHERE e.basis = 'ai' ORDER BY a.model",
+            )?;
+            let methods = texts(
+                "SELECT DISTINCT a.method FROM labor_ai a
+                 JOIN labor_estimate e ON e.id = a.estimate_id
+                 WHERE e.basis = 'ai' ORDER BY a.method",
+            )?;
+            (with_steps, answered_by, methods)
+        } else {
+            (0, Vec::new(), Vec::new())
+        };
+        Ok(LaborCounts {
+            figures,
+            by_basis,
+            jobs,
+            models,
+            makes,
+            ai_with_steps,
+            ai_answered_by,
+            ai_methods,
+            newest,
+        })
     }
 
     /// The class of one model year and where it came from: `epa`, or

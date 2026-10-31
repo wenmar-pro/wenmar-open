@@ -306,3 +306,33 @@ fn a_file_without_the_labor_ai_dataset_still_reads() {
     assert_eq!(found[0].confidence_pct, None);
     assert!(found[0].inputs.is_empty());
 }
+
+#[test]
+fn the_method_counts_say_what_the_file_holds() {
+    let shop = ai_shop(true);
+    let counts = shop.labor_counts().unwrap();
+    assert_eq!(counts.figures, 10);
+    assert_eq!(
+        counts.by_basis,
+        [
+            ("expert".to_owned(), 7),
+            ("observed".to_owned(), 1),
+            ("ai".to_owned(), 2),
+        ]
+    );
+    assert_eq!(counts.jobs, 2);
+    assert_eq!(counts.models, 2);
+    assert_eq!(counts.makes, 1);
+    assert_eq!(counts.ai_with_steps, 1);
+    assert_eq!(counts.ai_answered_by, ["test-model"]);
+    assert_eq!(counts.ai_methods, ["test-method-1"]);
+    assert_eq!(counts.newest.as_deref(), Some("2026-10-30"));
+    // A file built before the AI figures said how they were made counts
+    // the figures and says nothing about how they were worked out.
+    let old = ai_shop(false).labor_counts().unwrap();
+    assert_eq!(old.figures, 10);
+    assert_eq!(old.by_basis, counts.by_basis);
+    assert_eq!(old.ai_with_steps, 0);
+    assert!(old.ai_answered_by.is_empty());
+    assert!(old.ai_methods.is_empty());
+}

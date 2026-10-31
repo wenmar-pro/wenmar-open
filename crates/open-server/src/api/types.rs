@@ -1261,9 +1261,8 @@ pub struct OverviewLinks {
 /// Everything held for one model year, in one answer.
 ///
 /// A block this server has no data for is `null`: `specs`, `fuel`,
-/// `fluids`, `tires` and `labor` are `null` in every answer today, and
-/// each is filled when its data arrives. A client must accept
-/// an object there.
+/// `fluids` and `tires` are `null` in every answer today, and each is
+/// filled when its data arrives. A client must accept an object there.
 #[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
 pub struct Overview {
     /// The model year. `null` when a VIN reaches no model year of the
@@ -1295,6 +1294,8 @@ pub struct Overview {
     /// holds no ratings, and when a VIN reaches no model year.
     #[schema(value_type = Option<VehicleSafety>)]
     pub safety: Option<serde_json::Value>,
+    /// The vehicle's labour figures, as `/v1/vehicles/{id}/labor` gives
+    /// them. `null` when this server holds no labour estimates.
     #[schema(value_type = Option<Object>)]
     pub labor: Option<serde_json::Value>,
     /// The bulletins of the model year, in brief. `null` when this server
@@ -2516,6 +2517,8 @@ pub struct LaborFigure {
     /// never its numbers). `null` for the others.
     pub inputs: Option<Vec<String>>,
     pub notes: Option<String>,
+    /// The page that says how figures of this basis are made.
+    pub method_url: Option<String>,
     /// The day the figure was last changed.
     #[schema(example = "2026-10-12")]
     pub updated: String,

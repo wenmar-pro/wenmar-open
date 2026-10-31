@@ -9,8 +9,8 @@ use anyhow::{Context, Result, bail};
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::Deserialize;
 use wenmar_shopdata::labor::{
-    AI_INPUTS, AI_MOST_CONFIDENCE, ATTRIBUTION, CLASSES, MIN_JOBS, MIN_SHOPS, class_name,
-    class_of_epa,
+    AI_INPUTS, AI_MOST_CONFIDENCE, AI_MOST_HUNDREDTHS, AI_MOST_SPREAD, ATTRIBUTION, CLASSES,
+    MIN_JOBS, MIN_SHOPS, class_name, class_of_epa,
 };
 use wenmar_shopdata::{Dataset, DatasetEntry, licence, schema};
 use wenmar_vehicles::text::{is_slug, slug, squeeze};
@@ -605,10 +605,6 @@ pub fn load_observed(
 
 // ----- figures worked out by a model -----
 
-/// The most hours an `ai` figure may be, in hundredths: 40.
-pub const AI_MOST_HUNDREDTHS: i64 = 4_000;
-/// An `ai` figure's high may be at most this many times its typical.
-pub const AI_MOST_SPREAD: i64 = 3;
 /// The longest a model's or a method's name may be, in characters.
 pub const AI_LONGEST_NAME: usize = 80;
 
