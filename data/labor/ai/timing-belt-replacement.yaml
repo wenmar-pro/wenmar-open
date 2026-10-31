@@ -1,9 +1,9 @@
 # Written by Wenmar's labour generator: AI estimates, not checked by a person.
 # Do not edit by hand; run the generator again.
 job: timing-belt-replacement
-method: "open-labour-ai-1"
-model: "claude-opus-5-5"
-generated: 2026-10-30
+method: "open-labour-ai-2"
+model: "deepseek-flash"
+generated: 2026-10-31
 estimates:
   - scope: generation
     make: chevrolet
@@ -16,6 +16,8 @@ estimates:
     confidence: 25
     inputs: [vehicle, job]
     notes: "The gasoline V6/V8 and 2.7L turbo engines use timing chains, so this estimate applies only to the 3.0L Duramax inline-six diesel (LM2/LZ0). That engine has a belt at the rear (flywheel end), so the job is assumed to include removing the 10-speed transmission, transfer case on 4WD, and flexplate."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: gmc
     model: sierra
@@ -27,6 +29,8 @@ estimates:
     confidence: 25
     inputs: [vehicle, job]
     notes: "The 5.3L and 6.2L V8s and the 2.7L turbo four use timing chains, so this estimate applies only to the 3.0L Duramax inline-six diesel, which has an oil-wetted cam drive belt at the rear of the engine."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: ford
     model: escape
@@ -38,6 +42,8 @@ estimates:
     confidence: 35
     inputs: [vehicle, job]
     notes: "Assumes the 1.6L or 1.5L EcoBoost four-cylinder, which uses a dry timing belt. The 2.0L EcoBoost and 2.5L engines use timing chains, so this job does not apply to them."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: ford
     model: escape
@@ -49,6 +55,8 @@ estimates:
     confidence: 28
     inputs: [vehicle, job]
     notes: "This applies only to the 1.5L EcoBoost three-cylinder, which has an oil-bathed (wet) timing belt behind a sealed front cover; the 2.0L EcoBoost and the 2.5L hybrid/plug-in engines use timing chains and have no belt."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: dodge
     model: grand-caravan
@@ -60,6 +68,8 @@ estimates:
     confidence: 35
     inputs: [vehicle, job]
     notes: "Only the 2009-2010 4.0L SOHC V6 in this generation has a timing belt; the 3.3L, 3.8L and the 3.6L Pentastar used from 2011 on have timing chains, so for those engines this job does not apply."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: honda
     model: accord
@@ -71,6 +81,8 @@ estimates:
     confidence: 40
     inputs: [vehicle, job]
     notes: "Applies only to the 3.5 L J-series V6; the 2.4 L four-cylinder has a timing chain and needs no belt service. Assumes a transverse V6 with the engine supported from below so the side mount can come out, plus removal of the drive belt, crank pulley and upper and lower covers, with a hydraulic or auto…"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: honda
     model: accord
@@ -82,6 +94,8 @@ estimates:
     confidence: 40
     inputs: [vehicle, job, procedure]
     notes: "This applies only to the 3.5L V6. The 2.4L four-cylinder and the hybrid engines use timing chains, so the job does not exist on those. The estimate covers the V6 belt, the auto-tensioner and the idler, with the engine supported on a jack, the side mount and crank pulley removed, timing checked by…"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: subaru
     model: outback
@@ -93,6 +107,8 @@ estimates:
     confidence: 38
     inputs: [vehicle, job, procedure]
     notes: "This applies only to the 2010-2012 2.5L EJ253 SOHC engine, which has a timing belt; the 2013-2014 FB25 and the 3.6L EZ36 use timing chains, so the job does not exist on those."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: volkswagen
     model: jetta
@@ -104,6 +120,8 @@ estimates:
     confidence: 40
     inputs: [vehicle, job]
     notes: "Assumed a belt-driven engine (2.0 TDI, base 2.0 8-valve or 1.4 TSI EA211). The 2.5 five-cylinder and the 1.8/2.0 TSI EA888 use timing chains, so the job does not apply to them."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: volkswagen
     model: jetta
@@ -115,3 +133,2326 @@ estimates:
     confidence: 40
     inputs: [vehicle, job]
     notes: "Assumes the common 1.4 TSI or 1.5 TSI EA211 engine with a cambelt; the GLI 2.0 TSI uses a timing chain, so this job does not apply to it. Includes supporting the engine, removing the right-hand mount, covers and crank pulley, and fitting the cam locking tool with crank pin to retime the keyless…"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
+  - scope: generation
+    make: ford
+    model: transit
+    year_from: 2015
+    year_to: 2027
+    low: "3.2"
+    typical: "4.2"
+    high: "6"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a common diesel Ford Transit with the timing belt at the front of a transverse engine, standard shop tools and no added equipment. High allows for the more involved EcoBlue belt variant and seized or corroded fasteners."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2001
+    year_to: 2005
+    low: "2.2"
+    typical: "3.1"
+    high: "4.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2001-2005 Civic with the common 1.7L D17 SOHC engine and automatic transmission, in ordinary rust-free condition with standard shop tools including a crank pulley holder/impact. Covers timing belt, tensioner, and idler only; water pump, seals, and drive belt replacement are not included."
+  - scope: generation
+    make: ford
+    model: ranger
+    year_from: 1998
+    year_to: 2011
+    low: "2.1"
+    typical: "2.83"
+    high: "4.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Estimated for the 2.5L Lima SOHC four-cylinder Ranger, the engine in this range that uses a timing belt; the 2.3L Duratec and 3.0/4.0 V6 engines use timing chains. Assumes no water pump or seal replacement and ordinary access."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 1996
+    year_to: 2000
+    low: "1.6"
+    typical: "2.25"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 1.6L SOHC D16 Civic with power steering and A/C, standard shop tools and no rust or seized fasteners; high covers a harder engine/accessory layout and rusted crank pulley or mount bolts."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 1998
+    year_to: 2002
+    low: "2.4"
+    typical: "3.1"
+    high: "4.2"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 1998-2002 Accord with the 2.3L F23A1 SOHC engine, no rust or seized fasteners, and that the balance shaft belt and water pump are not being replaced. Typical time for an experienced technician with a lift and air tools."
+  - scope: generation
+    make: dodge
+    model: journey
+    year_from: 2009
+    year_to: 2020
+    low: "3.2"
+    typical: "4.25"
+    high: "5.8"
+    confidence: 55
+    inputs: [vehicle, job]
+    notes: "AI estimate assumes the 2009-2010 3.5L V6, the only Dodge Journey engine in this range with a timing belt; the 2.4L and 3.6L engines use timing chains. High allows for rust and seized fasteners on an older vehicle."
+  - scope: generation
+    make: ford
+    model: transit-connect
+    year_from: 2014
+    year_to: 2023
+    low: "2.2"
+    typical: "2.9"
+    high: "4.5"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "AI estimate for a common belt-driven transverse-engine Transit Connect (typically a 1.6/1.5 diesel or 1.6 petrol), front-wheel drive, with no extra equipment and no water pump or seal work. Chain-driven petrol variants would not have this job in its usual form."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 1997
+    year_to: 2001
+    low: "2.4"
+    typical: "3.2"
+    high: "4.4"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L DOHC B20 engine in a typical 1999 CR-V with automatic transmission, normal access, and no rust or seized fasteners. The job replaces the timing belt, tensioner, and idler only, without water pump, seals, or drive belt replacement."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 1999
+    year_to: 2005
+    low: "2"
+    typical: "2.7"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I treated the typical case as a common Mk4 Jetta belt-equipped engine, with the high figure allowing for a harder 1.8T/TDI layout or rusted fasteners. The 2.8 VR6 is chain-driven, so this belt job does not apply to that engine."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2003
+    year_to: 2007
+    low: "3.1"
+    typical: "3.9"
+    high: "5.5"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "Estimated for the 3.0L V6 J30 engine, the only 2003-2007 Accord engine with a timing belt; the common 2.4L four-cylinder uses a timing chain and is not applicable. Assumes FWD and ordinary condition."
+  - scope: generation
+    make: dodge
+    model: caravan
+    year_from: 1991
+    year_to: 1995
+    low: "2.6"
+    typical: "3.65"
+    high: "5.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 1993 Dodge Caravan with the 3.0L SOHC V6, assuming stock accessories and no water pump or seal replacement. High allows for seized engine-mount or bracket fasteners and rusted covers."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 1994
+    year_to: 1997
+    low: "1.6"
+    typical: "2.2"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1996 Accord EX with the 2.2L SOHC engine and automatic transmission, replacing only the timing belt, tensioner and idler while reusing the accessory belts and not replacing the water pump or seals. Times are for an ordinary rust-free car;"
+  - scope: generation
+    make: ford
+    model: focus
+    year_from: 2000
+    year_to: 2007
+    low: "2.5"
+    typical: "3.2"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the vehicle has the 2.0L SPI engine (most common for this generation) and that the job includes replacing the timing belt, tensioner and idler as stated, without water pump or seals. I assumed no rust or seized fasteners for typical time."
+  - scope: generation
+    make: volkswagen
+    model: golf
+    year_from: 1999
+    year_to: 2006
+    low: "2.7"
+    typical: "3.4"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assuming the common 1.9 TDI ALH engine in a Mk4 Golf with manual transmission and no rust; the estimate covers belt, tensioner and idler only, not the water pump or seals. High allows for seized mount/crank fasteners and tight access."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2001
+    year_to: 2007
+    low: "2.4"
+    typical: "3.1"
+    high: "4.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Estimated for the 2.0L Zetec engine, the only 2001-2007 Escape engine offered with a timing belt; the 2.3L and 3.0L engines use timing chains, so this job does not apply to them. Assumes a transverse FWD vehicle in ordinary condition with no rust or seized fasteners."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 1998
+    year_to: 2002
+    low: "1.3"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Estimated for the common transverse petrol belt engines in the E110 Corolla (4A-FE/7A-FE type), with ordinary access and no rust. Chain-driven ZZ engines do not use this timing-belt job; the high figure also covers a harder diesel/rusty example."
+  - scope: generation
+    make: acura
+    model: mdx
+    year_from: 2001
+    year_to: 2006
+    low: "3.4"
+    typical: "4.5"
+    high: "5.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 3.5L V6 MDX in ordinary condition, with the existing accessory drive belt removed and reused. No water pump, camshaft seal, or crankshaft seal replacement is included."
+  - scope: generation
+    make: nissan
+    model: pathfinder
+    year_from: 1996
+    year_to: 2004
+    low: "3.3"
+    typical: "4.4"
+    high: "6.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the 3.3L VG33E SOHC V6, which uses a timing belt; the 3.5L VQ35DE uses a timing chain and is not covered by this job. I also assumed the water pump, seals, and drive belts are not being replaced."
+  - scope: generation
+    make: toyota
+    model: tercel
+    year_from: 1991
+    year_to: 1994
+    low: "2.6"
+    typical: "3.8"
+    high: "5.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the common 1.5L transverse FWD Tercel with A/C and/or power steering, in ordinary condition with no seized fasteners. The estimate covers timing belt, tensioner and idler only and excludes water pump, seals and drive belt replacement."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 1997
+    year_to: 2001
+    low: "3.3"
+    typical: "4.4"
+    high: "6.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.2L four-cylinder Camry in ordinary condition, with only the timing belt job and removal/refit of drive belts and accessories as listed. Water pump, camshaft/crankshaft seals and drive belt replacement are excluded; high allows for the harder V6 engine and rust/seized fasteners."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2006
+    year_to: 2010
+    low: "2.4"
+    typical: "3.4"
+    high: "5.2"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Estimated for the 2.0T EA113, the more common belt-driven Jetta Mk5 engine; the 2.5L five-cylinder uses a timing chain and is not covered, and TDI versions can differ. No water pump, seals or replacement drive belts are included."
+  - scope: generation
+    make: acura
+    model: mdx
+    year_from: 2007
+    year_to: 2013
+    low: "3.4"
+    typical: "4.6"
+    high: "6.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "AI-estimated for a 2010 Acura MDX with the common 3.7L V6 and SH-AWD in ordinary condition, replacing only the timing belt, tensioner and idler; water pump, seals and drive belt replacement are excluded."
+  - scope: generation
+    make: toyota
+    model: sienna
+    year_from: 2004
+    year_to: 2010
+    low: "3.3"
+    typical: "4.2"
+    high: "5.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Estimated for the 2004-2006 Sienna with the 3.3L 3MZ-FE V6, the listed configuration that uses a timing belt; the 2007-2010 3.5L 2GR-FE uses a timing chain, so this job does not apply to those later engines."
+  - scope: generation
+    make: volvo
+    model: s70
+    year_from: 1998
+    year_to: 2000
+    low: "1.8"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 5-cylinder S70 with AWD, cold engine, standard hand tools, and only the timing belt, tensioner and idler being replaced; water pump, seals and drive belts are excluded. Typical assumes clean access;"
+  - scope: generation
+    make: acura
+    model: tl
+    year_from: 2004
+    year_to: 2008
+    low: "3.4"
+    typical: "4.5"
+    high: "6.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.2L V6 Acura TL on a lift with standard shop tools, reusing the accessory drive belts and not replacing the water pump or seals. The high estimate allows for a seized crankshaft pulley bolt or rusted fasteners."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 1992
+    year_to: 1996
+    low: "2.5"
+    typical: "3.3"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1994 Toyota Camry with 2.2L 4-cylinder engine, front-wheel drive, in average condition with no severe rust. The job includes removing the alternator and engine mount for access, but does not include water pump, seals, or drive belt replacement."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2002
+    year_to: 2006
+    low: "2.9"
+    typical: "3.6"
+    high: "5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a 3.3L 3MZ-FE V6 (most common V6 in later years) with automatic transaxle; the 2.4L I4 uses a timing chain so this job does not apply to that engine."
+  - scope: generation
+    make: honda
+    model: odyssey
+    year_from: 2005
+    year_to: 2010
+    low: "3.2"
+    typical: "4.4"
+    high: "6.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2005-2010 Honda Odyssey with the common 3.5L V6 and front-wheel drive, in ordinary condition with no rust or seized fasteners. The job includes removing and reinstalling the drive belt but not replacing it, and does not include water pump, seal, or cooling system work."
+  - scope: generation
+    make: acura
+    model: integra
+    year_from: 1994
+    year_to: 2001
+    low: "2.5"
+    typical: "3.1"
+    high: "4.2"
+    confidence: 47
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 1998 Acura Integra GS 1.8L automatic in ordinary condition, replacing only the timing belt/tensioner/idler and reusing drive belts, with no water pump or seal work."
+  - scope: generation
+    make: ford
+    model: focus
+    year_from: 2012
+    year_to: 2018
+    low: "2.4"
+    typical: "3.4"
+    high: "6.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a European-market Mk3 Focus with a conventional dry timing belt, transverse FWD, most likely a 1.6 Ti-VCT petrol; high covers the hardest belt engine offered and rust/seized fasteners."
+  - scope: generation
+    make: honda
+    model: odyssey
+    year_from: 1999
+    year_to: 2004
+    low: "3.6"
+    typical: "4.8"
+    high: "6.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 3.5L V6 Odyssey in ordinary condition, replacing the timing belt, tensioner and idler only; accessory belts are removed and refitted, but the water pump, seals and drive belts are not replaced."
+  - scope: generation
+    make: toyota
+    model: 4runner
+    year_from: 1996
+    year_to: 2002
+    low: "3.2"
+    typical: "4.1"
+    high: "5.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the 3.4L V6 5VZ-FE with 4WD and A/C; the 2.7L I4 in this range uses a timing chain, so the timing-belt job does not apply to it. High allows for rust and seized fasteners on the 3.4L."
+  - scope: generation
+    make: audi
+    model: a4
+    year_from: 2009
+    year_to: 2016
+    low: "3.8"
+    typical: "4.9"
+    high: "6.5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a common 2.0 TDI common-rail diesel with a timing belt and longitudinal drivetrain; the gasoline TFSI engines in this range use timing chains. Estimate includes putting the front lock carrier into service position but excludes water pump, seals, and drive belt replacement."
+  - scope: generation
+    make: lexus
+    model: rx
+    year_from: 2004
+    year_to: 2009
+    low: "3.4"
+    typical: "4.4"
+    high: "6.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed a 3.3L 3MZ-FE V6 (RX330/RX400h), the XU30 engine that uses a timing belt; the 3.5L 2GR-FE RX350 uses a timing chain and is not covered. Estimate is for a transverse engine in ordinary condition with hand tools; AWD/hybrid access and rust could push toward the high figure."
+  - scope: generation
+    make: chevrolet
+    model: cruze
+    year_from: 2011
+    year_to: 2015
+    low: "3.6"
+    typical: "4.55"
+    high: "5.8"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the 1.8L LUW/LWE engine, which uses a timing belt; the 1.4L turbo in this generation uses a timing chain and this job would not apply to it. Times assume no rust or seized fasteners and use of the specified locking tools."
+  - scope: generation
+    make: honda
+    model: pilot
+    year_from: 2003
+    year_to: 2008
+    low: "2.75"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2006 Pilot with the J35A9 V6 in ordinary condition, with the existing accessory drive belt removed and refitted but not replaced, and no water pump or seal work performed. High allows for rusted fasteners and a seized crankshaft pulley bolt or tensioner."
+  - scope: generation
+    make: hyundai
+    model: santa-fe
+    year_from: 2007
+    year_to: 2012
+    low: "3.4"
+    typical: "4.6"
+    high: "6.8"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed the common belt-driven engine in transverse FWD/AWD form, such as the 2.7 V6 petrol or early 2.2 CRDi diesel; the 3.3 V6 uses a timing chain and is not included. High time allows for seized fasteners, extra intake/mount access and difficult belt tensioning."
+  - scope: generation
+    make: dodge
+    model: avenger
+    year_from: 2008
+    year_to: 2014
+    low: "2.5"
+    typical: "3.3"
+    high: "4.6"
+    confidence: 32
+    inputs: [vehicle, job]
+    notes: "Only the 3.5 L V6 in this range uses a timing belt (the 2.4 L four, 2.7 L V6 and 3.6 L V6 are chain driven), so the estimate is for a transverse 3.5 L V6 with the right mount and covers removed; the water pump and seals are not touched."
+  - scope: generation
+    make: honda
+    model: odyssey
+    year_from: 2011
+    year_to: 2017
+    low: "1.9"
+    typical: "2.7"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.5 L V6 front-wheel-drive Odyssey in ordinary condition with no rust or seized fasteners, and that only the timing belt, tensioner and idler are replaced; water pump, seals and drive belt are not replaced."
+  - scope: generation
+    make: kia
+    model: sorento
+    year_from: 2003
+    year_to: 2009
+    low: "3.4"
+    typical: "4.5"
+    high: "6.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2006 Sorento 3.5L V6 4WD automatic in ordinary condition, with timing belt replacement only and no water pump, seals or drive belt replacement. Estimate is for a professional technician with a lift and standard shop tools."
+  - scope: generation
+    make: ford
+    model: focus
+    year_from: 2008
+    year_to: 2011
+    low: "1.6"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed the most common 1.6 petrol Duratec/Ti-VCT engine with a timing belt, ordinary condition and standard timing tools available; higher time covers a harder belt engine or seized fasteners."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 1993
+    year_to: 1997
+    low: "2.2"
+    typical: "2.9"
+    high: "4.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 1993-97 Corolla E100 with the common 1.6L DOHC as typical; the high figure covers the harder 1.8L and rust/seized fasteners. Assumed A/C compressor may need unbolting on equipped cars, but no water pump or seal replacement is included."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2001
+    year_to: 2006
+    low: "1.9"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L transverse four-cylinder Elantra with A/C and power steering, no rust or seized fasteners, and existing accessory drive belts and water pump retained."
+  - scope: generation
+    make: subaru
+    model: impreza
+    year_from: 2008
+    year_to: 2011
+    low: "1.6"
+    typical: "2.3"
+    high: "3.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the most common 2008-2011 Impreza engine, the 2.5L SOHC non-turbo, with the car in ordinary condition and no water pump or seal work included; the high figure covers the DOHC turbo (WRX/GT) engine with AVCS sprockets, extra covers, timing belt guides and intercooler removal."
+  - scope: generation
+    make: ford
+    model: transit-connect
+    year_from: 2010
+    year_to: 2013
+    low: "2.7"
+    typical: "3.75"
+    high: "5.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common European-market 1.8 TDCi/1.8 Duratec four-cylinder with a timing belt, transverse FWD; the US-market 2.0 Duratec petrol uses a chain and would not need this service. Estimate is for the common diesel."
+  - scope: generation
+    make: audi
+    model: q5
+    year_from: 2018
+    year_to: 2027
+    low: "4.8"
+    typical: "6.1"
+    high: "7.8"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a European-market Q5 FY 2.0 TDI, since the common 2.0/3.0 TFSI and 3.0 TDI engines use timing chains. Estimate includes front-end service position, engine mount, accessory belts and covers; water pump and seals are excluded."
+  - scope: generation
+    make: volvo
+    model: s60
+    year_from: 2001
+    year_to: 2009
+    low: "1.25"
+    typical: "1.75"
+    high: "2.8"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common non-turbo 2.4L five-cylinder S60 in ordinary condition; high allows for turbo plumbing, rust and seized fasteners. Water pump, seals and drive belt replacement are excluded as stated."
+  - scope: generation
+    make: toyota
+    model: sienna
+    year_from: 1998
+    year_to: 2003
+    low: "2.6"
+    typical: "3.6"
+    high: "5"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 1MZ-FE V6 front-wheel-drive Sienna in ordinary condition, with drive belts removed and refitted but not replaced and no water pump or seal work. The hours are an AI estimate for timing belt, tensioner and idler replacement."
+  - scope: generation
+    make: audi
+    model: q5
+    year_from: 2009
+    year_to: 2017
+    low: "4.5"
+    typical: "5.8"
+    high: "7.5"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "I assumed the common 2.0 TDI longitudinal engine, since it is the Q5 8R engine in this range with a timing belt; the petrol and V6 engines use chains. The estimate includes front carrier service position and engine mount access but excludes water pump, seals and accessory belt replacement."
+  - scope: generation
+    make: audi
+    model: a4
+    year_from: 2006
+    year_to: 2008
+    low: "3.2"
+    typical: "4.1"
+    high: "6"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 2006-2008 B7 Audi A4 with the common belt-driven 2.0 TFSI engine, assuming no water pump, seal or drive-belt replacement and no rust. High allows for a harder belt-engine variant and seized fasteners; 3.2 V6 cars use a timing chain, so this job does not apply to them."
+  - scope: generation
+    make: audi
+    model: a4
+    year_from: 2002
+    year_to: 2005
+    low: "3.4"
+    typical: "4.6"
+    high: "7"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common B6 A4 1.8T longitudinal petrol engine, with the high figure allowing for harder V6/TDI variants and rusted or seized front-end fasteners. This is an AI estimate for replacing the timing belt only, without water pump, seals or drive belt renewal."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2001
+    year_to: 2005
+    low: "2.6"
+    typical: "3.55"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the 2.0 D-4D 1CD-FTV diesel, the XA20 variant with a timing belt; the petrol 1ZZ/1AZ/2AZ engines use chains and are excluded. Water pump, seals and drive belts are not included."
+  - scope: generation
+    make: acura
+    model: tl
+    year_from: 1999
+    year_to: 2003
+    low: "2.8"
+    typical: "3.7"
+    high: "5.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "AI estimate for the common 3.2L SOHC V6 transverse front-wheel-drive Acura TL, assuming the original accessory belts are refitted and the water pump, seals and drive belts are not replaced. High time allows for rust and a seized crank pulley bolt or mount bolts."
+  - scope: generation
+    make: volvo
+    model: s80
+    year_from: 1999
+    year_to: 2006
+    low: "2"
+    typical: "2.75"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.9L non-turbo S80 as the most common application, with the engine cold and standard hand tools; high covers twin-turbo pipe removal and rust/seized fasteners. Times are AI estimates, not manual or warranty figures."
+  - scope: generation
+    make: volvo
+    model: xc90
+    year_from: 2003
+    year_to: 2014
+    low: "1.5"
+    typical: "2.2"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the common 2.5L turbo belt engine; XC90 3.2/V8 engines use timing chains and are not covered by this job. High allows for the 2.9L twin-turbo layout, rust and seized fasteners."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2001
+    year_to: 2007
+    low: "3.3"
+    typical: "4.3"
+    high: "6.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed the V6 3.0/3.3 engine, since the 2.4 four-cylinder uses a timing chain and does not have a timing belt to replace. The estimate covers the belt, tensioner and idler only, not the water pump, seals or new drive belts."
+  - scope: generation
+    make: toyota
+    model: tundra
+    year_from: 2000
+    year_to: 2006
+    low: "3.3"
+    typical: "4.5"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2003 Tundra 4WD automatic with the 3.4L V6 in ordinary condition, with no rust or seized fasteners, and standard shop tools including a pulley holder and press/vice for tensioner retraction. Timing belt only; water pump and cam/crank seals are not replaced."
+  - scope: generation
+    make: lexus
+    model: rx
+    year_from: 1999
+    year_to: 2003
+    low: "2.6"
+    typical: "3.5"
+    high: "5.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 3.0L 1MZ-FE V6 RX300, FWD or AWD, in average condition. Water pump, camshaft or crankshaft seal replacement, and drive belt replacement are excluded."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 1990
+    year_to: 1992
+    low: "2.5"
+    typical: "3.4"
+    high: "4.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the common transverse 1.6L DOHC 1990-92 Corolla in ordinary condition, reusing the accessory drive belts and not replacing the water pump or seals."
+  - scope: generation
+    make: kia
+    model: soul
+    year_from: 2010
+    year_to: 2013
+    low: "2.1"
+    typical: "2.8"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "This estimate is for the 2.0L Beta II engine, the common Soul engine in this range that uses a timing belt; the 1.6L Gamma and later 2.0L Nu engines use timing chains. The job is a timing belt-only replacement, with no water pump, seals or drive belt replacement included."
+  - scope: generation
+    make: fiat
+    model: 500
+    year_from: 2012
+    year_to: 2019
+    low: "2.2"
+    typical: "3.3"
+    high: "5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed the most common engine with a timing belt, the 1.2 8V petrol; the 1.4 16V is similar but more complex, while the 0.9 TwinAir and 1.3 Multijet use timing chains and are not covered."
+  - scope: generation
+    make: dodge
+    model: stratus
+    year_from: 1995
+    year_to: 2000
+    low: "2"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 1998 Dodge Stratus with the 2.0L SOHC engine and ordinary condition; water pump, cam/crank seals, and drive belt replacement are not included. High allows for rust, seized fasteners, and extra time for tensioner/mount access."
+  - scope: generation
+    make: toyota
+    model: tercel
+    year_from: 1995
+    year_to: 1999
+    low: "1.75"
+    typical: "2.35"
+    high: "3.25"
+    confidence: 55
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1995-1999 Tercel with the 1.5L 5E-FE engine and automatic transaxle, in ordinary condition with no rust or seized fasteners, and that the water pump, seals and drive belts are not being replaced."
+  - scope: generation
+    make: honda
+    model: pilot
+    year_from: 2009
+    year_to: 2015
+    low: "2.8"
+    typical: "3.6"
+    high: "4.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2012 Honda Pilot 3.5L V6 with typical FWD/AWD, no rust or seized fasteners, and reusable drive belts. Timing belt, tensioner and idler are replaced; water pump and engine seals are not replaced."
+  - scope: generation
+    make: acura
+    model: mdx
+    year_from: 2014
+    year_to: 2020
+    low: "3.8"
+    typical: "5"
+    high: "7"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the 3.5L V6 Acura MDX with no rust or seized fasteners, replacing the timing belt, tensioner and idler only; water pump and seals are not included."
+  - scope: generation
+    make: subaru
+    model: forester
+    year_from: 2009
+    year_to: 2013
+    low: "2.2"
+    typical: "2.8"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the common 2.5 L SOHC non-turbo Forester SH with automatic transmission; the turbo/DOHC version may need extra clearance work. Assumes no seized crank pulley bolt, rusted covers or extra engine-mount removal, and that the water pump and seals are not replaced."
+  - scope: generation
+    make: volkswagen
+    model: passat
+    year_from: 1998
+    year_to: 2005
+    low: "2.9"
+    typical: "4.1"
+    high: "6.3"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed the most common B5 engine, the 1.8T longitudinal four-cylinder, with standard shop tools and no rust or seized fasteners. The job excludes water pump, camshaft/crankshaft seals and accessory drive belt replacement."
+  - scope: generation
+    make: audi
+    model: a4
+    year_from: 1996
+    year_to: 2001
+    low: "2.5"
+    typical: "3.35"
+    high: "5.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Typical time is for the most common 1.8L turbo engine (AEB/ATW) with automatic transmission, based on the provided procedure. High allows for rust, seized fasteners, and the more complex V6 or TDI engines offered in this vehicle."
+  - scope: generation
+    make: acura
+    model: rdx
+    year_from: 2013
+    year_to: 2018
+    low: "3.2"
+    typical: "4.4"
+    high: "6.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2013-2018 Acura RDX with the 3.5L V6 and AWD, using standard shop tools and reusing the drive belt. The estimate includes replacing the timing belt, tensioner, and idler but not the water pump, cam/crank seals, or drive belt."
+  - scope: generation
+    make: acura
+    model: tl
+    year_from: 2009
+    year_to: 2014
+    low: "3.3"
+    typical: "4"
+    high: "5.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common 3.5 L J35Z6 V6 base TL with reused accessory belt and mount hardware; high covers the 3.7 L SH-AWD version and possible rust or seized fasteners."
+  - scope: generation
+    make: saturn
+    model: vue
+    year_from: 2002
+    year_to: 2007
+    low: "2.8"
+    typical: "3.8"
+    high: "5"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "I assumed the 3.5 L Honda V6, the only first-generation Vue engine with a timing belt; the 2.2 L and 3.0 L engines use timing chains and are not covered by this job."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2005
+    year_to: 2009
+    low: "2.3"
+    typical: "3"
+    high: "4.6"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the 2007 Tucson GLS 2.0L G4GC four-cylinder as shown in the repair steps, with standard shop tools and no water pump or seal replacement. High allowance covers rusted or seized fasteners and mount hardware."
+  - scope: generation
+    make: volkswagen
+    model: beetle
+    year_from: 1998
+    year_to: 2010
+    low: "2.2"
+    typical: "3"
+    high: "4.4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "AI estimate for the common 2.0L transverse gasoline engine, assuming no rust or seized fasteners, standard shop tools, and that water pump, seals and drive belt replacement are excluded. High allows for the more crowded 1.8T/1.9 TDI belt engines;"
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 1996
+    year_to: 2000
+    low: "3.2"
+    typical: "4.3"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L four-cylinder RAV4 with a timing belt, typical ABS-equipped AWD automatic, and no water pump, seal or drive belt replacement. Times are for a lift-equipped professional with no rust; high allows for seized fasteners and ABS bleeding."
+  - scope: generation
+    make: lexus
+    model: es
+    year_from: 1997
+    year_to: 2001
+    low: "2"
+    typical: "2.7"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed an ES300 with the transverse 3.0L V6 and front-wheel drive, in ordinary condition with no rust or seized fasteners. The estimate excludes water pump, camshaft/crankshaft seals and drive belt replacement."
+  - scope: generation
+    make: dodge
+    model: magnum
+    year_from: 2005
+    year_to: 2008
+    low: "2.6"
+    typical: "3.4"
+    high: "5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Estimated for the 3.5L V6 Magnum, the only engine in this range with a timing belt; the 2.7L V6 and 5.7L HEMI use timing chains, so this job does not apply to those engines. Assumes RWD, no rust or seized fasteners, and no water pump or seal replacement."
+  - scope: generation
+    make: chrysler
+    model: sebring
+    year_from: 2001
+    year_to: 2006
+    low: "2.6"
+    typical: "3.4"
+    high: "5.4"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Estimated for the transverse FWD 2.4L four-cylinder timing-belt engine, which is the common belt application; the 2.7L V6 uses a timing chain and is not included, while the high figure covers the harder 3.0L V6 belt engine."
+  - scope: generation
+    make: ford
+    model: fusion
+    year_from: 2013
+    year_to: 2020
+    low: "3.2"
+    typical: "4.2"
+    high: "5.8"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "The estimate is for the 1.5L/1.6L EcoBoost four-cylinder Fusion engines that use a timing belt; the 2.5L, 2.0L/2.7L EcoBoost and hybrid engines use timing chains. No water pump, camshaft/crankshaft seals or replacement drive belts are included."
+  - scope: generation
+    make: dodge
+    model: charger
+    year_from: 2006
+    year_to: 2010
+    low: "4"
+    typical: "5"
+    high: "6.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 2006-2010 Dodge Charger with the 3.5L SOHC V6, the only common LX engine in this range that uses a timing belt; 2.7L and 5.7L engines use chains. Assumed RWD, ordinary condition, no rust or seized fasteners, and no water pump or seal replacement."
+  - scope: generation
+    make: dodge
+    model: spirit
+    year_from: 1990
+    year_to: 1995
+    low: "2.6"
+    typical: "3.6"
+    high: "5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse front-wheel-drive 2.5L SOHC engine in a typical Spirit with power steering and likely A/C, using standard hand tools. Water pump and seals are not replaced; accessory removal is only to gain timing cover access."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2007
+    year_to: 2010
+    low: "2.5"
+    typical: "3.4"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L G4GC four-cylinder Elantra with automatic transmission in ordinary condition, using standard shop tools. The estimate follows the procedure including valve cover and camshaft sprocket removal, but excludes water pump, seals, and replacement drive belts beyond removal/refit."
+  - scope: generation
+    make: hyundai
+    model: sonata
+    year_from: 1999
+    year_to: 2005
+    low: "3"
+    typical: "4.2"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the most common 2.4L four-cylinder Sonata, with the main timing belt and the balance-shaft timing belt included because they share the same covers and access; the high figure allows for the V6 engine and rust/seized fasteners. Water pump, seals, and drive belts are not included."
+  - scope: generation
+    make: volkswagen
+    model: passat
+    year_from: 2012
+    year_to: 2022
+    low: "2.7"
+    typical: "3.5"
+    high: "5.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "I assumed the 2.0 TDI common-rail diesel, the only common NMS Passat engine with a timing belt; the 1.8T/2.0T/2.5/3.6 variants use timing chains, so this estimate would not apply to them. This is an AI estimate, not a manual or book time."
+  - scope: generation
+    make: volkswagen
+    model: golf
+    year_from: 2010
+    year_to: 2014
+    low: "2.8"
+    typical: "3.6"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse front-wheel-drive Golf Mk6 with the common 1.6 TDI belt-driven diesel and no added equipment; chain-driven TSI engines would not have this job. The estimate excludes water pump, seal and drive belt replacement beyond removal/refit."
+  - scope: generation
+    make: chrysler
+    model: 300c
+    year_from: 2005
+    year_to: 2010
+    low: "3.6"
+    typical: "4.8"
+    high: "6.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Estimated for the 3.5L V6, the common LX engine that uses a timing belt; the 2.7L V6 and 5.7L/6.1L Hemi engines use timing chains and are not covered by this job. Assumed RWD and an ordinary, non-rusted vehicle."
+  - scope: generation
+    make: acura
+    model: tlx
+    year_from: 2015
+    year_to: 2020
+    low: "3.8"
+    typical: "5"
+    high: "6.7"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the 3.5L V6, the only TLX engine in this range with a timing belt; the 2.4L four-cylinder uses a chain and would not need this service. Times assume ordinary condition and include timing belt, tensioner and idler replacement."
+  - scope: generation
+    make: volvo
+    model: v70
+    year_from: 2001
+    year_to: 2007
+    low: "1.5"
+    typical: "2.09"
+    high: "2.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a typical 2001-2007 P2 Volvo V70 five-cylinder, most likely 2.4L non-turbo FWD, with no water pump or seal replacement; high allows for rust/seized fasteners and harder engine/mount access."
+  - scope: generation
+    make: volvo
+    model: v70
+    year_from: 1998
+    year_to: 2000
+    low: "1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 2.3L/2.4L five-cylinder V70 with FWD or AWD and no water pump, seal or drive belt replacement beyond removal/refit. Times allow for standard hand tools and normal access; no engine mount removal was assumed because the listed procedure does not require it."
+  - scope: generation
+    make: toyota
+    model: 4runner
+    year_from: 1990
+    year_to: 1995
+    low: "3.4"
+    typical: "4.5"
+    high: "6"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the 1993-95-style 3.0L 3VZ-E V6 4WD with automatic, using the late tensioner/fan-bracket setup; the 2.4L 22R-E uses a timing chain and is not covered. No water pump, camshaft/crankshaft seals, or drive belt replacement included."
+  - scope: generation
+    make: subaru
+    model: legacy
+    year_from: 2010
+    year_to: 2014
+    low: "2"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the common 2.5L EJ belt engine with the engine left in the car; the 3.6R chain engine does not use a timing belt. The provided engine-removal steps were not treated as part of an in-car timing belt replacement."
+  - scope: generation
+    make: volkswagen
+    model: tiguan
+    year_from: 2018
+    year_to: 2024
+    low: "2.6"
+    typical: "3.3"
+    high: "5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "I assumed this record includes the belt-equipped 1.5 TSI/2.0 TDI variants; the 2.0 TSI EA888 uses a timing chain, so this job does not apply to that engine. AI estimate excludes water pump and seal replacement."
+  - scope: generation
+    make: audi
+    model: a6
+    year_from: 2005
+    year_to: 2011
+    low: "3.7"
+    typical: "5"
+    high: "6.6"
+    confidence: 44
+    inputs: [vehicle, job]
+    notes: "I assumed the common 2.0 TDI longitudinal engine in an A6 C6, requiring the front end to be moved to service position; this is an AI estimate and excludes water pump, seal and drive belt replacement. Engines with timing chains are not represented by this estimate."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 1990
+    year_to: 1991
+    low: "2.1"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the common 2.0/2.2L four-cylinder FWD Camry; I assumed no rust, standard shop tools, and included alternator and engine-mount removal as listed."
+  - scope: generation
+    make: ford
+    model: mustang
+    year_from: 1990
+    year_to: 1993
+    low: "3.1"
+    typical: "4.1"
+    high: "5.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the 2.3L four-cylinder, the only 1990-93 Mustang engine with a timing belt; the 5.0L V8 uses a timing chain. Assumed factory A/C is fitted and its bracket must be moved, so A/C recovery/recharge is included."
+  - scope: generation
+    make: honda
+    model: ridgeline
+    year_from: 2006
+    year_to: 2014
+    low: "2.6"
+    typical: "3.3"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.5L V6 Ridgeline with normal access and no rust or seized fasteners; timing belt only, with no water pump, seal, or drive belt replacement included."
+  - scope: generation
+    make: subaru
+    model: impreza
+    year_from: 2002
+    year_to: 2007
+    low: "2"
+    typical: "3"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common 2.5L SOHC non-turbo Impreza engine, with no water pump, seals, or radiator removal; high allows for the turbo/STi intercooler and seized fasteners. The engine mount is not normally removed for this timing belt job."
+  - scope: generation
+    make: dodge
+    model: neon
+    year_from: 2000
+    year_to: 2005
+    low: "2"
+    typical: "2.7"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 2.0L SOHC Neon with ordinary condition, reusing the drive belts and not replacing the water pump or seals. The estimate covers belt, tensioner and idler replacement with engine mount bracket removal for access."
+  - scope: generation
+    make: audi
+    model: a5
+    year_from: 2008
+    year_to: 2017
+    low: "3"
+    typical: "4.2"
+    high: "6.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed an A5 8T with the 2.0 TDI common-rail engine that uses a timing belt, in ordinary condition with standard shop tools. Petrol and 3.0 TDI versions use timing chains, so this estimate would not apply to those engines."
+  - scope: generation
+    make: chrysler
+    model: pacifica
+    year_from: 2004
+    year_to: 2008
+    low: "2.5"
+    typical: "3.3"
+    high: "5"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Estimated for the common 3.5L V6 Pacifica with a transverse front-drive/AWD layout and the right-side engine mount removed for timing-belt access. No water pump, cam/crank seal, or drive-belt replacement is included."
+  - scope: generation
+    make: nissan
+    model: nv200
+    year_from: 2013
+    year_to: 2021
+    low: "2.6"
+    typical: "3.55"
+    high: "4.9"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a 1.5 dCi K9K diesel NV200, the variant with a timing belt; petrol HR16DE variants use a timing chain and are not covered. Belt-only job, with no water pump or seal replacement."
+  - scope: generation
+    make: kia
+    model: rio
+    year_from: 2006
+    year_to: 2011
+    low: "3.2"
+    typical: "4.3"
+    high: "6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 1.6L G4ED transverse FWD engine with a timing belt, ordinary condition, and that the RH engine mount must be removed for access. The water pump, cam/crank seals and drive belts are not being replaced, only removed and reinstalled as needed."
+  - scope: generation
+    make: jeep
+    model: compass
+    year_from: 2017
+    year_to: 2027
+    low: "3.2"
+    typical: "4.4"
+    high: "6.5"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "AI estimate for the belt-equipped 2.0L MultiJet diesel Compass, transverse FWD/AWD; the 2.4L Tigershark and 1.3L petrol engines use timing chains and are not covered. Assumes ordinary condition, no rust or seized fasteners, and reuse of the accessory drive belt."
+  - scope: generation
+    make: land-rover
+    model: range-rover
+    year_from: 2013
+    year_to: 2021
+    low: "5.8"
+    typical: "7.6"
+    high: "10.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2017 L405 with the 3.0L TDV6 diesel VIN K and a front timing belt, in ordinary condition with no seized fasteners; includes removing the starter for flywheel locking and an engine mount for access, but not water pump, seals or drive belt replacement."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 1995
+    year_to: 2004
+    low: "2.4"
+    typical: "3.2"
+    high: "4.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Estimate is for the 3.4L 5VZ-FE V6, the Tacoma engine offered with a timing belt; the 2.4L/2.7L four-cylinders use timing chains. Assumes a 4WD or Prerunner V6 in ordinary condition with no seized fasteners or added skid-plate complications."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 1995
+    year_to: 2002
+    low: "2.4"
+    typical: "3.1"
+    high: "4.5"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2.0L four-cylinder 4WD Sportage; assumed in-vehicle timing belt replacement only, without water pump or seals, and no rust or seized fasteners for the typical figure."
+  - scope: generation
+    make: subaru
+    model: forester
+    year_from: 2003
+    year_to: 2008
+    low: "2.15"
+    typical: "2.85"
+    high: "4.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2006 Forester 2.5 L SOHC non-turbo with the engine in the car and the accessory belts reused; no water pump, seals, or radiator removal included. High covers a turbocharged engine and rust/seized fasteners."
+  - scope: generation
+    make: volkswagen
+    model: golf
+    year_from: 2015
+    year_to: 2021
+    low: "2.2"
+    typical: "2.9"
+    high: "4.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "A belt-driven Mk7 Golf engine such as 1.6 TDI or 1.4 TSI is assumed; EA888 1.8/2.0 TSI chain engines are not covered by this timing belt job. No water pump, seals or drive belts are replaced, and no rust or seized fasteners are assumed for the typical figure."
+  - scope: generation
+    make: volkswagen
+    model: passat
+    year_from: 2006
+    year_to: 2010
+    low: "1.9"
+    typical: "2.5"
+    high: "3.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Estimated for the most common B6 Passat timing-belt engine, the 2.0 TDI; chain-driven petrol engines do not have this job. High allows for rust, seized fasteners and extra access on harder belt-engine variants."
+  - scope: generation
+    make: lexus
+    model: es
+    year_from: 2002
+    year_to: 2006
+    low: "3.4"
+    typical: "4.3"
+    high: "6.2"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse front-wheel-drive ES 300/ES 330 with the 3.0L 1MZ-FE or 3.3L 3MZ-FE V6, with accessory belts removed and reused and no water pump or seal work. The high estimate allows for rust or seized crank pulley and engine mount fasteners."
+  - scope: generation
+    make: chevrolet
+    model: sonic
+    year_from: 2012
+    year_to: 2020
+    low: "2.5"
+    typical: "3.5"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the 1.8L LUW/LWE engine, which uses a timing belt; the 1.4L turbo uses a timing chain so this job does not apply to it. Assumed front-wheel drive, automatic transmission, standard tools, and no rust or seized fasteners."
+  - scope: generation
+    make: kia
+    model: rio
+    year_from: 2018
+    year_to: 2023
+    low: "1.8"
+    typical: "2.4"
+    high: "3.6"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Estimated for the 1.4 CRDi diesel, the Rio YB variant that uses a timing belt; the petrol engines in this generation are chain-driven. Assumes transverse FWD, no rust or seized fasteners, and no water pump or seal work."
+  - scope: generation
+    make: kia
+    model: sedona
+    year_from: 2002
+    year_to: 2005
+    low: "2.8"
+    typical: "3.85"
+    high: "5.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.5L V6 front-wheel-drive Sedona with no rust or seized fasteners and that the existing drive belts are reused; water pump and seals are not replaced."
+  - scope: generation
+    make: lexus
+    model: lx
+    year_from: 1998
+    year_to: 2007
+    low: "3.3"
+    typical: "4.2"
+    high: "5.6"
+    confidence: 44
+    inputs: [vehicle, job]
+    notes: "Assumed a Lexus LX470 with the 4.7L 2UZ-FE V8 and four-wheel drive, replacing only the timing belt, tensioner and idler while reusing the drive belts and not replacing the water pump or seals."
+  - scope: generation
+    make: lexus
+    model: es
+    year_from: 1992
+    year_to: 1996
+    low: "2.4"
+    typical: "3.3"
+    high: "4.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 3.0 V6 ES300 (3VZ-FE or 1MZ-FE) with front-wheel drive, timing belt access requiring removal of accessory belts, timing covers, crankshaft pulley and right engine mount; water pump, seals and drive belt replacement are excluded."
+  - scope: generation
+    make: audi
+    model: a3
+    year_from: 2015
+    year_to: 2020
+    low: "2.6"
+    typical: "3.6"
+    high: "5.4"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a common transverse EA211/EA288 four-cylinder with a timing belt, such as a 1.4 TSI or 1.6 TDI; chain-driven 1.8/2.0 TSI engines do not use this job. High allows for seized fasteners and the harder diesel installation."
+  - scope: generation
+    make: chrysler
+    model: sebring
+    year_from: 2007
+    year_to: 2010
+    low: "2.8"
+    typical: "3.7"
+    high: "5.2"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Estimated for the 3.5L V6 Sebring, which uses a timing belt; the more common 2.4L and 2.7L engines use timing chains, so this job does not apply to them. The estimate assumes a transverse FWD engine bay in ordinary condition with no rust or seized fasteners."
+  - scope: generation
+    make: acura
+    model: tsx
+    year_from: 2009
+    year_to: 2014
+    low: "3.8"
+    typical: "5.1"
+    high: "7"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Estimated for the 3.5L V6 J35 engine, which uses a timing belt; the 2.4L four-cylinder uses a timing chain and is not applicable. The estimate includes drive belt removal/refit but excludes water pump and seal replacement."
+  - scope: generation
+    make: jaguar
+    model: xf
+    year_from: 2009
+    year_to: 2015
+    low: "3.6"
+    typical: "4.8"
+    high: "7"
+    confidence: 34
+    inputs: [vehicle, job]
+    notes: "Assumed the common 2.2-litre diesel XF with a front-mounted timing belt, longitudinal RWD layout, and no rust or seized fasteners; high allows for harder access and corrosion on other belt-equipped variants."
+  - scope: generation
+    make: volkswagen
+    model: tiguan
+    year_from: 2009
+    year_to: 2017
+    low: "2.4"
+    typical: "3.2"
+    high: "4.6"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 2.0 TDI common-rail diesel Tiguan, the variant that uses a timing belt; petrol 1.4/2.0 TSI engines in this range generally use chains, so this estimate would not apply to them. No rust, seized fasteners, water pump or seal work was included."
+  - scope: generation
+    make: audi
+    model: a6
+    year_from: 1998
+    year_to: 2004
+    low: "3"
+    typical: "4"
+    high: "7"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a typical C5 A6 with a longitudinal 4-cylinder turbo petrol or TDI timing-belt engine; V8 chain engines are excluded. High allows for harder V6/TDI variants and rust or seized fasteners."
+  - scope: generation
+    make: toyota
+    model: 4runner
+    year_from: 2003
+    year_to: 2009
+    low: "3.8"
+    typical: "5.2"
+    high: "7"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the 4.7L 2UZ-FE V8 4WD, the only 2003-2009 4Runner engine with a timing belt; the 4.0L V6 uses a timing chain and is not covered. Assumes no water pump, seals or drive belts are replaced and no severe rust."
+  - scope: generation
+    make: toyota
+    model: previa
+    year_from: 1991
+    year_to: 1997
+    low: "3.4"
+    typical: "4.5"
+    high: "6.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 2.4L 2TZ-FE mid-engine Previa with RWD or AWD and normal access through the cabin, with no water pump or seal replacement and no rusted or seized fasteners."
+  - scope: generation
+    make: ford
+    model: fiesta
+    year_from: 2011
+    year_to: 2019
+    low: "2.9"
+    typical: "3.65"
+    high: "5.2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common 1.6L Duratec-16V Ti-VCT Sigma engine and that the special timing tools are available. This is an AI estimate for a rust-free vehicle with no water pump, seal or drive belt replacement included."
+  - scope: generation
+    make: audi
+    model: tt
+    year_from: 2008
+    year_to: 2015
+    low: "3"
+    typical: "3.9"
+    high: "5.8"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "AI estimate for a transverse Audi TT 8J with the common belt-driven 2.0 TFSI engine; high allows for the harder 2.0 TDI layout and rust/seized fasteners. I assumed no water pump, seal or drive belt replacement, and no extra equipment."
+  - scope: generation
+    make: volvo
+    model: s40
+    year_from: 2000
+    year_to: 2004
+    low: "1.8"
+    typical: "2.5"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1.9L turbo engine with a timing belt, standard shop tools, and no rust or seized fasteners. The high estimate allows for engine-mount and cover fastener difficulties on a higher-mileage car."
+  - scope: generation
+    make: chevrolet
+    model: colorado
+    year_from: 2015
+    year_to: 2022
+    low: "3.9"
+    typical: "5.1"
+    high: "7.2"
+    confidence: 34
+    inputs: [vehicle, job]
+    notes: "Assumed the 2.8L Duramax diesel, the only Colorado engine in this range with a timing belt; the 2.5L and 3.6L engines use timing chains, so this estimate does not apply to them. Assumed normal front engine access and that timing tools are available."
+  - scope: generation
+    make: hyundai
+    model: accent
+    year_from: 2000
+    year_to: 2005
+    low: "1.9"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1.6L DOHC transverse front-wheel-drive Accent in ordinary condition, with the engine mount and accessory belts removed for access. The estimate excludes water pump, camshaft/crankshaft seal and drive belt replacement."
+  - scope: generation
+    make: audi
+    model: q3
+    year_from: 2015
+    year_to: 2018
+    low: "2.6"
+    typical: "3.45"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common 2.0 TDI transverse-engine Q3 with a belt-driven camshaft; 2.0/1.8 TFSI versions are chain-driven and would not apply. Water pump and drive belt replacement are excluded, and high time allows for rust/seized fasteners."
+  - scope: generation
+    make: cadillac
+    model: escalade
+    year_from: 2021
+    year_to: 2027
+    low: "12"
+    typical: "14.6"
+    high: "19"
+    confidence: 30
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2023 Escalade with the 3.0L diesel (LM2) and 4WD, as per the provided procedure. The timing belt is the rear oil-pump drive belt accessed by removing the transmission; no front tensioner/idler is involved."
+  - scope: generation
+    make: hyundai
+    model: accent
+    year_from: 2006
+    year_to: 2011
+    low: "2.4"
+    typical: "3.3"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2009 Accent 1.6 G4ED gasoline with automatic transmission, assuming no rust, seized fasteners or extra engine-mount removal. It includes removing and refitting the drive belts but not replacing them or the water pump/seals."
+  - scope: generation
+    make: hyundai
+    model: santa-fe
+    year_from: 2001
+    year_to: 2006
+    low: "3.3"
+    typical: "4.3"
+    high: "5.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2004 Santa Fe 2.7 V6 AWD with the timing belt job only; it assumes no water pump, cam/crank seal or drive belt replacement, and no rust or seized fasteners."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2005
+    year_to: 2009
+    low: "2.2"
+    typical: "3.1"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the 2.5L EJ belt-driven engine, the most common Outback variant; the 3.0L H6 uses a timing chain and is not this job. High allows for rust/seized fasteners and extra turbo plumbing."
+  - scope: generation
+    make: lexus
+    model: ls
+    year_from: 1995
+    year_to: 2000
+    low: "2.8"
+    typical: "3.9"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed the most common 1UZ-FE 4.0 V8 RWD LS400 with no rust or seized fasteners; the high figure allows for rust, a stuck crank pulley bolt and extra access trouble."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2005
+    year_to: 2010
+    low: "3.3"
+    typical: "4.4"
+    high: "6.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a transverse 2.0L four-cylinder gasoline Sportage, the common engine, with AWD and automatic; the high figure allows for the harder engine variant and rust or seized fasteners."
+  - scope: generation
+    make: subaru
+    model: forester
+    year_from: 1998
+    year_to: 2002
+    low: "2.1"
+    typical: "2.65"
+    high: "4.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2000 Forester with the 2.5L SOHC automatic as shown; no water pump, seals, or drive belt replacement is included. High allows for a harder/turbo engine variant and rusted or seized fasteners."
+  - scope: generation
+    make: dodge
+    model: dart
+    year_from: 2013
+    year_to: 2016
+    low: "2.8"
+    typical: "3.5"
+    high: "5.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a 1.4L MultiAir turbo Dart, the only common Dart engine with a timing belt; the 2.0L and 2.4L Tigershark engines use timing chains. Estimated for a transverse FWD car in ordinary condition with no rust or seized fasteners."
+  - scope: generation
+    make: chrysler
+    model: pt-cruiser
+    year_from: 2001
+    year_to: 2010
+    low: "3.4"
+    typical: "4.5"
+    high: "6.2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2.4L DOHC non-turbo PT Cruiser with timing belt, tensioner and idler replacement; turbo engines may be slightly more crowded. Assumes water pump, seals and drive belts are not replaced and no fasteners are seized."
+  - scope: generation
+    make: chrysler
+    model: sebring
+    year_from: 1996
+    year_to: 2000
+    low: "2.6"
+    typical: "3.5"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 2.5L V6 front-wheel-drive Sebring as named in the procedure, with the timing belt driven by the crank and no water pump, seals or drive belts included. The estimate covers normal condition; high allows for rust and seized fasteners."
+  - scope: generation
+    make: volvo
+    model: s40
+    year_from: 2005
+    year_to: 2011
+    low: "2.4"
+    typical: "3.4"
+    high: "4.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 5-cylinder S40 2.4/2.5 with one accessory belt, existing belts reused, and a cold engine. Typical is for the common 2.4L with no rust or seized fasteners; high allows for rust, seized mount/PS fittings and harder 2.5L turbo access."
+  - scope: generation
+    make: volvo
+    model: c70
+    year_from: 1998
+    year_to: 2004
+    low: "2"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 1998-2004 Volvo C70 P80 2.3L/2.4L five-cylinder with mechanical tensioner, assuming ordinary condition and no water pump or seal replacement. The high figure allows for rust, seized fasteners, and the hardest engine/accessory layout offered."
+  - scope: generation
+    make: nissan
+    model: juke
+    year_from: 2011
+    year_to: 2017
+    low: "2.4"
+    typical: "3.1"
+    high: "4.6"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Estimated for the 1.5 dCi K9K diesel, the common Juke variant with a timing belt; the 1.6 petrol HR16DE/MR16DDT engines use timing chains, so this job does not apply to them. Assumes ordinary condition with no water pump or seal work."
+  - scope: generation
+    make: volkswagen
+    model: touareg
+    year_from: 2004
+    year_to: 2010
+    low: "5"
+    typical: "6.5"
+    high: "9"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the 2.5 TDI R5 diesel, the common Touareg 7L engine that uses a timing belt; the other common engines use timing chains. Estimate is for a clean vehicle with standard shop tools and no added equipment."
+  - scope: generation
+    make: lexus
+    model: gs
+    year_from: 2006
+    year_to: 2011
+    low: "3.4"
+    typical: "4.5"
+    high: "6.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "This estimate is for the GS430 with the 3UZ-FE V8, the only S190 GS engine covered here that uses a timing belt; GS300/350/450h engines use timing chains. It assumes RWD, ordinary condition, no seized fasteners, and no water pump or seal replacement."
+  - scope: generation
+    make: audi
+    model: a6
+    year_from: 2012
+    year_to: 2018
+    low: "3.8"
+    typical: "4.9"
+    high: "6.5"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed the most common A6 C7 engine with a timing belt, the 2.0 TDI longitudinal four-cylinder; other common A6 C7 engines use timing chains, so this job applies only to the belt-driven engine."
+  - scope: generation
+    make: toyota
+    model: sequoia
+    year_from: 2001
+    year_to: 2007
+    low: "4.3"
+    typical: "5.6"
+    high: "7.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 4.7L 2UZ-FE V8 Sequoia, 4WD, in ordinary condition with no water pump, seal or drive-belt replacement; engine cold for timing belt service."
+  - scope: generation
+    make: lexus
+    model: ls
+    year_from: 2001
+    year_to: 2006
+    low: "3.2"
+    typical: "4.3"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a Lexus LS430 with the 4.3L 3UZ-FE V8 and rear-wheel drive, using a timing belt. The job is for the belt, tensioner and idler only, with no water pump, cam/crank seals or replacement drive belts included."
+  - scope: generation
+    make: chevrolet
+    model: cruze
+    year_from: 2016
+    year_to: 2019
+    low: "2.9"
+    typical: "3.9"
+    high: "5.5"
+    confidence: 25
+    inputs: [vehicle, job]
+    notes: "Only the 1.6L diesel version of this Cruze has a belt-driven camshaft; the far more common 1.4L turbo petrol engine uses a timing chain and has no belt to replace, so these hours describe the diesel with its locking tools, engine mount removal and HP pump drive belt routing."
+  - scope: generation
+    make: honda
+    model: odyssey
+    year_from: 2018
+    year_to: 2027
+    low: "3.2"
+    typical: "4.1"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 3.5L V6 gasoline Odyssey with front-wheel drive, and the estimate excludes water pump, seals, coolant drain/refill and drive belt replacement. Times are for a rust-free vehicle with standard shop tools."
+  - scope: generation
+    make: dodge
+    model: nitro
+    year_from: 2007
+    year_to: 2011
+    low: "5.2"
+    typical: "7.15"
+    high: "9.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2009 Dodge Nitro R/T with the 4.0L V6 and 4WD, since that is the Nitro engine covered by the timing belt procedure. The estimate includes valve cover and rocker arm access and engine mount removal, but excludes water pump, seals and drive belt replacement."
+  - scope: generation
+    make: lexus
+    model: gx
+    year_from: 2003
+    year_to: 2009
+    low: "3.3"
+    typical: "4.2"
+    high: "5.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a Lexus GX470 with the 4.7L 2UZ-FE V8 and four-wheel drive, in ordinary condition with no rust or seized fasteners. The estimate covers timing belt, tensioner and idler only; water pump, seals and drive belt replacement are not included."
+  - scope: generation
+    make: audi
+    model: a3
+    year_from: 2006
+    year_to: 2013
+    low: "2.3"
+    typical: "3"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Estimated for a common belt-driven A3 8P diesel with standard tools and no water pump, seal or drive belt replacement; chain-driven TSI/TFSI variants do not use this job."
+  - scope: generation
+    make: audi
+    model: tt
+    year_from: 2000
+    year_to: 2006
+    low: "2.8"
+    typical: "4"
+    high: "5.6"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Estimated for the common 1.8T transverse petrol engine with a timing belt; the 3.2 VR6 uses a timing chain and is not covered by this belt job. Work assumes no water pump, seals or drive belt replacement, and ordinary condition without rust or seized fasteners."
+  - scope: generation
+    make: mitsubishi
+    model: lancer
+    year_from: 2002
+    year_to: 2007
+    low: "2.2"
+    typical: "3.1"
+    high: "4.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L SOHC 4G94 engine in a front-wheel-drive Lancer with the balancer belt left in place; the job covers belt, tensioner and idler only, with no water pump, seals or drive belts replaced."
+  - scope: generation
+    make: toyota
+    model: celica
+    year_from: 1990
+    year_to: 1993
+    low: "2.8"
+    typical: "3.9"
+    high: "7.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed typical is the common 2.2L 5S-FE GT/GT-S; high covers the 2.0L 3S-GTE All-Trac with intercooler/EGR/throttle-body/alternator removal plus rust allowance. Timing belt only; no water pump, seals or new drive belts."
+  - scope: generation
+    make: nissan
+    model: xterra
+    year_from: 2000
+    year_to: 2004
+    low: "3.1"
+    typical: "3.95"
+    high: "5.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a naturally aspirated VG33E 3.3 V6 4WD automatic Xterra; radiator and cooling fan are removed for access and original drive belts are reinstalled, not replaced. High allows for rust, seized fasteners and a supercharged engine if encountered."
+  - scope: generation
+    make: gmc
+    model: terrain
+    year_from: 2018
+    year_to: 2027
+    low: "4.3"
+    typical: "5.3"
+    high: "7.8"
+    confidence: 25
+    inputs: [vehicle, job]
+    notes: "AI estimate for the 1.6L turbo-diesel variant, the only 2018-2027 Terrain engine with a timing belt; the 1.5L/2.0L gasoline engines use timing chains. Assumes transverse FWD/AWD layout, ordinary condition, and no water pump or seal replacement."
+  - scope: generation
+    make: bmw
+    model: 318i
+    year_from: 1992
+    year_to: 1998
+    low: "2.3"
+    typical: "3.3"
+    high: "4.8"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed an early European-market E36 318i with the M40 1.8 SOHC timing-belt engine; later M43/M42/M44 engines use a timing chain, for which this job would not apply."
+  - scope: generation
+    make: lexus
+    model: gs
+    year_from: 1998
+    year_to: 2005
+    low: "2.7"
+    typical: "3.6"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a GS300 with the 2JZ-GE, the most common engine in this range; I assumed standard tools, no rust and no extra equipment. The high figure allows for the V8 GS400/GS430 and for seized fasteners."
+  - scope: generation
+    make: audi
+    model: q3
+    year_from: 2019
+    year_to: 2027
+    low: "2.6"
+    typical: "3.45"
+    high: "5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "AI estimate for the common 1.5 TFSI EA211 evo belt engine in a transverse Audi Q3 F3; the 2.0 TFSI EA888 uses a timing chain and is not covered. The high figure allows for the harder 2.0 TDI belt layout and for rust/seized fasteners."
+  - scope: generation
+    make: audi
+    model: a8
+    year_from: 1997
+    year_to: 2003
+    low: "6"
+    typical: "7.7"
+    high: "10.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed the most common D2 A8 belt-equipped engine is the 4.2 V8 petrol quattro and that the front end is put into service position rather than fully removed. Figures are AI estimates; high covers tighter TDI/V8 variants and rusted fasteners."
+  - scope: generation
+    make: chrysler
+    model: concorde
+    year_from: 1998
+    year_to: 2004
+    low: "2.8"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Estimate is for the 3.2/3.5 L SOHC V6 Concorde, transverse front-wheel drive, with the timing belt and right-side engine mount in the way; the 2.7 L V6 uses a timing chain, so this timing-belt job does not apply to that engine."
+  - scope: generation
+    make: mitsubishi
+    model: outlander
+    year_from: 2003
+    year_to: 2006
+    low: "2.9"
+    typical: "3.9"
+    high: "5.3"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 2.4L Mitsubishi Outlander with the listed timing-belt engine and standard tools; no water pump, seals, or drive belt replacement is included. High time allows for rust, seized mount/cover fasteners, and difficult tensioner adjustment."
+  - scope: generation
+    make: toyota
+    model: avalon
+    year_from: 2000
+    year_to: 2004
+    low: "2.2"
+    typical: "3"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2000-2004 Avalon with the 3.0L V6 and front-wheel drive, in ordinary condition with no rust or seized fasteners; the job replaces the timing belt, tensioner and idler pulleys only, not the water pump, seals or drive belts."
+  - scope: generation
+    make: toyota
+    model: supra
+    year_from: 1993
+    year_to: 1998
+    low: "3.3"
+    typical: "4.15"
+    high: "6.2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common Supra A80 engine is the non-turbo 2JZ-GE inline-six, which uses a timing belt. High estimate covers the twin-turbo engine and possible rust or seized fasteners; no camshaft or crankshaft seal work is included."
+  - scope: generation
+    make: toyota
+    model: t100
+    year_from: 1993
+    year_to: 1998
+    low: "4.8"
+    typical: "6.3"
+    high: "8.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.4L V6 4WD T100 as the common V6 example, in ordinary condition with no rust or seized fasteners; the 2.4L four uses a timing chain, so this job applies only to the V6 engines. High allows for the harder 3.0L V6 or rust/seized hardware."
+  - scope: generation
+    make: toyota
+    model: mr2
+    year_from: 1991
+    year_to: 1995
+    low: "3.25"
+    typical: "4.15"
+    high: "5.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 1993 MR2 2.2L 5S-FE automatic with the timing belt replaced; assumes drive belts are reused and water pump/seals are not replaced. Access is tight because the engine is mid-mounted, and no rust or seized fasteners are assumed."
+  - scope: generation
+    make: ford
+    model: ranger
+    year_from: 2019
+    year_to: 2023
+    low: "2.7"
+    typical: "3.5"
+    high: "5.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the common 2.0L EcoBlue diesel Ranger, which uses a timing belt; the 2.3L EcoBoost petrol uses a timing chain and is not covered by this estimate."
+  - scope: generation
+    make: honda
+    model: pilot
+    year_from: 2016
+    year_to: 2022
+    low: "3.4"
+    typical: "4.6"
+    high: "6.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2019 Pilot EX AWD with the 3.5L V6 and no rust or seized fasteners, using standard shop tools. The estimate covers timing belt, tensioner, and idler service but not water pump, seals, or accessory drive belt replacement."
+  - scope: generation
+    make: gmc
+    model: canyon
+    year_from: 2015
+    year_to: 2022
+    low: "3.8"
+    typical: "4.9"
+    high: "7.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate is for the 2.8L Duramax diesel only, which is the Canyon engine with a timing belt; the common 2.5L I4 and 3.6L V6 gasoline engines use timing chains and have no timing belt. Estimate assumes a longitudinal RWD/4WD installation in ordinary condition with no seized fasteners."
+  - scope: generation
+    make: subaru
+    model: legacy
+    year_from: 2005
+    year_to: 2009
+    low: "2.1"
+    typical: "2.8"
+    high: "4.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the most common 2005-2009 Legacy 2.5L SOHC non-turbo engine with the timing belt replaced in the car; high covers the turbo 2.5L and rust/seized fasteners. The 3.0L H6 uses a timing chain, so this belt job does not apply to that engine."
+  - scope: generation
+    make: audi
+    model: a4
+    year_from: 2017
+    year_to: 2025
+    low: "4.2"
+    typical: "5.25"
+    high: "7.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Estimated for the Audi A4 B9 2.0 TDI EA288, which uses a timing belt; the common 2.0 TFSI petrol engines use a timing chain and are not covered by this job. Assumed standard longitudinal A4 layout requiring front-end service position and an engine mount to be moved."
+  - scope: generation
+    make: audi
+    model: 200
+    year_from: 1990
+    year_to: 1991
+    low: "2.2"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1991 Audi 200 with the 2.2L I5 in ordinary condition, replacing the timing belt only; the water pump is not replaced, only used as the tensioner. Figures are AI estimates."
+  - scope: generation
+    make: chrysler
+    model: 300
+    year_from: 1999
+    year_to: 2004
+    low: "2.7"
+    typical: "3.6"
+    high: "5.1"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 1999-2004 Chrysler 300M with the common 3.5L V6 and front-wheel drive, in ordinary condition with no rust or seized fasteners. The job is a timing belt replacement only, without water pump, seals, or drive belt replacement."
+  - scope: generation
+    make: chrysler
+    model: cirrus
+    year_from: 1995
+    year_to: 2000
+    low: "1.6"
+    typical: "2"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "We assumed the vehicle is equipped with the 2.5L V6 engine, as referenced in the provided repair steps for the Cirrus. The job is performed on a lift with standard tools, with no rust or seized fasteners for the typical time; the water pump and seals are not replaced."
+  - scope: generation
+    make: toyota
+    model: camry-solara
+    year_from: 1999
+    year_to: 2003
+    low: "3.2"
+    typical: "4.2"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the 3.0L V6 1MZ-FE front-wheel-drive Camry Solara with ordinary condition fasteners. The job is a timing belt, tensioner and idler replacement only, with no water pump, camshaft/crankshaft seal or drive belt replacement."
+  - scope: generation
+    make: toyota
+    model: avalon
+    year_from: 1995
+    year_to: 1999
+    low: "3.2"
+    typical: "4.3"
+    high: "5.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1997 Avalon XL with the 3.0L V6, front-wheel drive, in ordinary condition with no rust or seized fasteners. The job is timing belt, tensioner and idler replacement only, reusing drive belts and not replacing the water pump or seals."
+  - scope: generation
+    make: nissan
+    model: frontier
+    year_from: 1998
+    year_to: 2004
+    low: "3.2"
+    typical: "4.05"
+    high: "6.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 3.3L VG33E V6 Frontier; the 2.4L four-cylinder uses a timing chain, so this timing-belt job applies only to the V6. Assumed ordinary condition with no rust/seized fasteners and no water pump or seal replacement."
+  - scope: generation
+    make: volkswagen
+    model: gti
+    year_from: 2006
+    year_to: 2009
+    low: "2.3"
+    typical: "3.25"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Estimated for the 2.0T FSI EA113 belt-driven engine common in early Mk5 GTIs; later Mk5 GTI 2.0 TSI engines use a timing chain, so this belt job does not apply to those. Assumes no water pump, seal, or drive-belt replacement and no rust/seizure except in the high figure."
+  - scope: generation
+    make: lexus
+    model: is
+    year_from: 2001
+    year_to: 2005
+    low: "2.2"
+    typical: "2.75"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a RWD Lexus IS with the common inline-six timing-belt engine, no rust or seized fasteners; typical is for the more common 1G-FE/IS200 layout and high covers the 2JZ-GE or a seized crankshaft pulley."
+  - scope: generation
+    make: lexus
+    model: sc
+    year_from: 1992
+    year_to: 2000
+    low: "2.8"
+    typical: "3.8"
+    high: "6.2"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed the most common SC300 with 2JZ-GE inline-six for the step times and typical figure; high covers the 1UZ-FE SC400 V8, which needs more access and has more timing-belt hardware. No water pump, seals or drive belts are included."
+  - scope: generation
+    make: audi
+    model: a5
+    year_from: 2018
+    year_to: 2027
+    low: "4"
+    typical: "5.2"
+    high: "7"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a European-market Audi A5 F5 with the common 2.0 TDI longitudinal diesel engine, which uses a timing belt; petrol 2.0 TFSI and larger engines use chains and are not covered by this job."
+  - scope: generation
+    make: jaguar
+    model: xf
+    year_from: 2016
+    year_to: 2024
+    low: "3.6"
+    typical: "4.85"
+    high: "7.2"
+    confidence: 36
+    inputs: [vehicle, job]
+    notes: "Assumed the common 2.0 Ingenium diesel with rear-wheel drive and a conventional dry timing belt, using standard front-engine access. No water pump, camshaft/crankshaft seals or drive belt renewal is included; high allows for tight cooling-pack access and corroded fasteners."
+  - scope: generation
+    make: toyota
+    model: celica
+    year_from: 1994
+    year_to: 1999
+    low: "2"
+    typical: "2.7"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "The job exists on the T200 Celica's petrol engines; I estimated the common 2.2L transverse four-cylinder in a US-market GT with normal access. Water pump, seals, and drive belt replacement are excluded."
+  - scope: generation
+    make: toyota
+    model: pick-up
+    year_from: 1990
+    year_to: 1995
+    low: "3.2"
+    typical: "4.1"
+    high: "5.6"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Estimated for the 3VZ-E 3.0L V6, the common N80 engine that uses a timing belt; the more common 22R-E four-cylinder uses a timing chain and is not covered by this job. Assumed a 4WD vehicle in ordinary condition with no rust or seized fasteners."
+  - scope: generation
+    make: toyota
+    model: tercel
+    year_from: 1990
+    year_to: 1990
+    low: "1.7"
+    typical: "2.4"
+    high: "3.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 1990 Tercel with the 1.5L engine and automatic transaxle, assuming no major optional accessories complicate belt access. High allows for rusted or seized fasteners and extra time if A/C or power steering is fitted."
+  - scope: generation
+    make: kia
+    model: optima
+    year_from: 2006
+    year_to: 2010
+    low: "3.6"
+    typical: "4.6"
+    high: "6.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed the 2.7L V6, because the 2.4L four-cylinder in this generation uses a timing chain; the estimate is for a transverse front-wheel-drive car in ordinary condition with no rust or seized fasteners."
+  - scope: generation
+    make: subaru
+    model: legacy
+    year_from: 2000
+    year_to: 2004
+    low: "2.3"
+    typical: "3"
+    high: "4.8"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the common 2.5L SOHC EJ25 engine with the job done in the car; the high figure allows for the turbo DOHC engine and rusted fasteners. The 3.0L H6 uses a timing chain, so this job does not apply to that engine."
+  - scope: generation
+    make: subaru
+    model: impreza
+    year_from: 1993
+    year_to: 2001
+    low: "1.25"
+    typical: "1.8"
+    high: "3.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the common 2.2L SOHC engine with A/C and power steering, in ordinary condition with no rust or seized fasteners; high allows for the harder turbo/DOHC layout and rust."
+  - scope: generation
+    make: volkswagen
+    model: beetle
+    year_from: 2012
+    year_to: 2019
+    low: "2.3"
+    typical: "3.3"
+    high: "4.6"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Estimated for the 2.0 TDI common-rail engine, the main engine in this Beetle range that uses a timing belt; the 2.5 and 1.8/2.0 TSI gasoline engines use timing chains. Water pump and accessory drive belt replacement are excluded."
+  - scope: generation
+    make: bmw
+    model: 525i
+    year_from: 1990
+    year_to: 1995
+    low: "2.5"
+    typical: "3.35"
+    high: "4.8"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed an early E34 525i with the M20B25 belt-driven six; later M50-engined 525i models use a timing chain and are not covered by this belt job. Typical is for a clean, ordinary-condition car, with high allowing for rust or seized fasteners."
+  - scope: generation
+    make: dodge
+    model: challenger
+    year_from: 2008
+    year_to: 2023
+    low: "3"
+    typical: "4"
+    high: "5.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Estimated for the early 2008-2010 Challenger 3.5L V6, the only commonly offered Challenger engine with a timing belt; later 3.6L and HEMI engines use timing chains, so the job does not apply to them. The estimate assumes no water pump or seal replacement and ordinary condition."
+  - scope: generation
+    make: audi
+    model: a8
+    year_from: 2004
+    year_to: 2010
+    low: "5"
+    typical: "7.1"
+    high: "10"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Estimated for the 3.0 V6 petrol A8 D3, the only common engine in this range with a timing belt; other A8 engines use chains. Assumes no water pump, seal or accessory belt replacement and no rust/seized fasteners; high allows for front-end and mount fastener problems."
+  - scope: generation
+    make: audi
+    model: s8
+    year_from: 2001
+    year_to: 2003
+    low: "7"
+    typical: "9"
+    high: "12.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 2001-2003 Audi S8 D2 with the 4.2L V8 petrol engine and front-mounted timing belt; the front end is moved to service position and coolant is drained/refilled. It does not include water pump, camshaft/crankshaft seals, or replacement drive belts."
+  - scope: generation
+    make: audi
+    model: a6
+    year_from: 1995
+    year_to: 1997
+    low: "2.7"
+    typical: "3.6"
+    high: "5.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 1995-1997 Audi A6 C4 with the common 2.8L 12-valve V6, assuming no water pump, camshaft/crankshaft seals, or drive belt replacement is included. The estimate allows for removing an engine mount/bracket and normal reassembly, with high time covering rust or seized fasteners."
+  - scope: generation
+    make: chrysler
+    model: lebaron
+    year_from: 1990
+    year_to: 1995
+    low: "2.2"
+    typical: "3.2"
+    high: "4.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 2.5L SOHC four-cylinder in a 1990-1995 LeBaron, ordinary condition, with no A/C refrigerant line disconnect; high allows for seized fasteners or the more obstructed 2.2L/2.2L turbo variant."
+  - scope: generation
+    make: acura
+    model: mdx
+    year_from: 2022
+    year_to: 2027
+    low: "3.3"
+    typical: "4.2"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.5L V6 transverse-engine MDX and a timing belt job done without water pump, camshaft/crankshaft seal or accessory belt replacement. Coolant drain/refill is included because the water passage is removed."
+  - scope: generation
+    make: volvo
+    model: xc60
+    year_from: 2018
+    year_to: 2027
+    low: "2.6"
+    typical: "3.3"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a common transverse 2.0L Volvo B420T/B420T2 petrol XC60 with standard timing locking tools; water pump, cam/crank seals and drive belt replacement are not included. High allows for rust/seized fasteners and the hardest engine variant."
+  - scope: generation
+    make: volvo
+    model: xc90
+    year_from: 2016
+    year_to: 2027
+    low: "2.2"
+    typical: "2.9"
+    high: "4.1"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common 2.0L four-cylinder Drive-E gasoline XC90 (T5/T6) in ordinary condition with a transverse engine, where the right-side mount and crank pulley need to come off for timing cover access. High allows for extra access on diesel/hybrid variants and for rust or seized fasteners."
+  - scope: generation
+    make: volvo
+    model: xc70
+    year_from: 2008
+    year_to: 2016
+    low: "2.6"
+    typical: "3.35"
+    high: "4.5"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed the 2.4 D5 five-cylinder diesel, which is the XC70 P3 variant that uses a timing belt; petrol 3.2/T6 engines use timing chains and are not covered by this estimate. Estimated for a clean, standard vehicle with no rust or seized fasteners."
+  - scope: generation
+    make: toyota
+    model: yaris
+    year_from: 2012
+    year_to: 2019
+    low: "2.6"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Estimated for the 1.4 D-4D diesel, the XP130 variant that uses a timing belt; the common 1.0/1.33 petrol and 1.5 hybrid engines use timing chains, so this job does not apply to them. Assumes a transverse front-wheel-drive car in ordinary condition with standard accessories."
+  - scope: generation
+    make: mazda
+    model: mx-5
+    year_from: 1990
+    year_to: 1997
+    low: "2.3"
+    typical: "3.1"
+    high: "4.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a stock 1990-1997 Mazda MX-5 NA with the common 1.6/1.8 engine, standard accessories, no rust or seized fasteners, and normal access; engine mount removal is not normally needed on this longitudinal RWD layout."
+  - scope: generation
+    make: dodge
+    model: stealth
+    year_from: 1991
+    year_to: 1996
+    low: "3.4"
+    typical: "4.7"
+    high: "6.2"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the common 3.0L SOHC V6 base model with automatic transmission, assuming no water pump or seal replacement. High allows for seized mount/reamer bolts and the harder DOHC/turbo variants."
+  - scope: generation
+    make: lexus
+    model: sc
+    year_from: 2002
+    year_to: 2010
+    low: "3.2"
+    typical: "4.4"
+    high: "6.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "The vehicle is a Lexus SC430 Z40 with the 3UZ-FE 4.3 V8 timing-belt engine, and the job is a straight timing belt/tensioner/idler replacement reusing the original drive belts, with no water pump or seal work. No rust or seized fasteners are assumed for the typical estimate;"
+  - scope: generation
+    make: lexus
+    model: ls
+    year_from: 1990
+    year_to: 1994
+    low: "3.2"
+    typical: "4.15"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 1990-1994 LS400 with the 1UZ-FE 4.0 V8 and RWD, in ordinary condition with no rust or seized fasteners; no engine mount removal was included because this longitudinal installation does not need it for the belt."
+  - scope: generation
+    make: audi
+    model: tts
+    year_from: 2009
+    year_to: 2015
+    low: "2.75"
+    typical: "3.45"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed an Audi TTS 8J with the transverse 2.0 TFSI EA113 timing-belt engine and quattro drivetrain, in ordinary condition. The estimate excludes water pump, cam/crank seals and drive belt replacement, but includes removing and refitting the drive belt and engine mount."
+  - scope: generation
+    make: audi
+    model: s4
+    year_from: 2000
+    year_to: 2002
+    low: "4"
+    typical: "5"
+    high: "7.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2001 Audi S4 B5 with the 2.7T biturbo V6 and Quattro automatic, using standard shop tools on a rust-free vehicle. The job includes loosening the camshaft sprockets as required by the procedure, but excludes water pump, camshaft/crankshaft seals and drive belt replacement."
+  - scope: generation
+    make: chrysler
+    model: lhs
+    year_from: 1999
+    year_to: 2001
+    low: "3.2"
+    typical: "4.3"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 3.5L V6 front-wheel-drive LHS in ordinary condition with original camshaft sprockets still in place. The estimate includes removing/refitting access parts and the engine mount/bracket, but not water pump, seals, or replacement drive belts."
+  - scope: generation
+    make: volvo
+    model: s60
+    year_from: 2011
+    year_to: 2018
+    low: "2.5"
+    typical: "3.2"
+    high: "4.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.0L B4204T four-cylinder in the listed S60 range; the 3.0L six-cylinder uses a timing chain and is not covered by this belt job. The estimate excludes water pump, camshaft/crankshaft seals and drive belt replacement."
+  - scope: generation
+    make: volvo
+    model: xc60
+    year_from: 2010
+    year_to: 2017
+    low: "2.2"
+    typical: "2.9"
+    high: "4.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "This estimate assumes a belt-equipped Volvo XC60, chiefly the 2.0L Drive-E B4204T as the common belt engine; the 3.0/3.2 six-cylinder variants are chain-driven and not covered by this timing-belt job."
+  - scope: generation
+    make: volvo
+    model: c30
+    year_from: 2008
+    year_to: 2013
+    low: "2"
+    typical: "2.6"
+    high: "3.5"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 2.4L or 2.5L turbo five-cylinder C30 with normal access and a cold engine for tension adjustment. Water pump, cam/crank seal and drive belt replacement are not included."
+  - scope: generation
+    make: land-rover
+    model: discovery-sport
+    year_from: 2015
+    year_to: 2027
+    low: "3.4"
+    typical: "4.4"
+    high: "6.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "AI estimate for the common transverse 2.0 Ingenium diesel, which uses a timing belt in its usual form; petrol Ingenium engines with a chain are not covered. Assumes standard access with no rust or seized fasteners."

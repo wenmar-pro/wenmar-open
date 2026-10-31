@@ -1,9 +1,9 @@
 # Written by Wenmar's labour generator: AI estimates, not checked by a person.
 # Do not edit by hand; run the generator again.
 job: wheel-bearing-front
-method: "open-labour-ai-1"
-model: "claude-opus-5-5"
-generated: 2026-10-30
+method: "open-labour-ai-2"
+model: "deepseek-flash"
+generated: 2026-10-31
 estimates:
   - scope: generation
     make: ford
@@ -16,6 +16,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumes one side and the bolt-on sealed hub-and-bearing unit used on this generation, held by four bolts to the knuckle. The speed sensor lead is routed back to its connector at the fender apron."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: ford
     model: f-150
@@ -27,6 +29,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumed one side of a 4WD F-150 using the bolt-in hub-bearing unit, so the whole hub is replaced rather than a bearing being pressed. The work covers caliper, bracket and rotor removal, routing the speed-sensor harness to the fender-apron connector, removing the axle nut, IWE vacuum retraction…"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: ford
     model: f-150
@@ -38,6 +42,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumed a 4WD truck with a bolt-on front hub and bearing unit that has the wheel speed sensor built in. The job covers removing the hub nut, caliper, bracket and rotor, routing the sensor harness to its connector on the fender apron, and replacing the hub with its four bolts."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: ram
     model: 1500
@@ -49,6 +55,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumed one side, a bolt-in hub/bearing unit (no pressing), and the more involved 4x4 procedure: halfshaft nut, tie rod end and upper ball joint separated to free the axle. A 4x2 truck would take noticeably less time, while corroded hub-to-knuckle seating pushes toward the high figure."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: ram
     model: 1500
@@ -60,6 +68,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumed one side on a 4WD truck with a bolt-in three-bolt hub unit, so no pressing is needed. The job covers the halfshaft nut, separating the tie rod end, and removing the caliper and bracket as an assembly. The high figure allows for a hub rusted into the knuckle and seized bolts;"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: chevrolet
     model: silverado
@@ -71,6 +81,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job]
     notes: "Assumes one front side on a 1500-series GMT900 truck with the bolt-on sealed hub-bearing unit held by three bolts to the knuckle. On 4WD models the axle nut is removed and the CV shaft pushed back; 2WD models need no axle work, and no pressing is required."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: chevrolet
     model: silverado
@@ -82,6 +94,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job]
     notes: "Assumes one side on a 4WD truck, where the front bearing is a bolt-in hub unit held to the knuckle by bolts from behind, so no pressing is needed. The job is removing the axle nut, caliper bracket, rotor and sensor connector, then unbolting and swapping the hub;"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: chevrolet
     model: silverado
@@ -93,6 +107,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job]
     notes: "Assumes one side on a Silverado 1500 with the bolt-on front hub and bearing unit, held by bolts from the back of the knuckle, so no bearing pressing is needed. On 4WD the axle nut is removed and the CV shaft is freed from the hub splines;"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: gmc
     model: sierra
@@ -104,6 +120,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job]
     notes: "Assumes the GMT900 bolt-on sealed hub unit held by three bolts from the back of the knuckle, replaced on one side of a 4WD truck with an axle nut; 2WD trucks have no axle nut and run slightly quicker."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: gmc
     model: sierra
@@ -115,6 +133,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job]
     notes: "Assumes one side on a 4WD or 2WD truck, which uses a bolt-on hub and bearing unit held to the knuckle by bolts from behind, so no pressing is needed; 4WD trucks also need the axle nut removed. The high figure allows for a hub corroded into the knuckle and seized mounting bolts."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: gmc
     model: sierra
@@ -126,6 +146,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job]
     notes: "Assumes one side on a 1500-series truck, where the front bearing is a sealed hub unit bolted to the knuckle with four bolts. On 4WD trucks the axle nut is removed and the CV shaft is pushed back; 2WD trucks have no drive axle."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: rav4
@@ -137,6 +159,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumed one side of a 2006-2012 RAV4 (2.5 or 3.5, FWD or AWD), where the bearing is a bolt-on hub unit held to the knuckle by four bolts. Following the factory route, the knuckle comes off after separating the tie rod, lower ball joint and strut, and the transaxle fluid is drained and topped up;"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: rav4
@@ -148,6 +172,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumes one side of a 4th-gen RAV4, FWD or AWD, with a bolt-on hub unit held by four bolts. Following the given procedure, the knuckle is separated from the strut, tie rod and lower arm to swap the hub in a vise, and the job includes the runout check, re-staking the axle nut and a road test, but…"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: rav4
@@ -159,6 +185,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumed one front side on a 5th-gen RAV4, petrol or hybrid, with the bolt-on hub unit held by four bolts. The knuckle is removed from the strut per the procedure, and on brake-by-wire versions the brake control is disabled and re-enabled with DTC clearing."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: honda
     model: cr-v
@@ -170,6 +198,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "I assumed one side only, with the press-in cartridge bearing in the knuckle that the 2007-2011 CR-V uses. The knuckle is removed, the hub and bearing are pressed out and in on a shop press, and new spindle, castle and pinch-bolt fasteners are fitted. Alignment is excluded."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: honda
     model: cr-v
@@ -181,6 +211,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumed one front side on a 2.4L CR-V, FWD or AWD, with a press-in cartridge bearing. The knuckle comes off the car so the hub and bearing can be pressed out and in on a shop press. Wheel alignment is excluded; a short HDS sensor reset may be needed, but no drive axle or brake parts are replaced."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: honda
     model: cr-v
@@ -192,6 +224,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumed the press-in bearing design used on this CR-V. The knuckle is removed from the vehicle (tie rod, lower ball joint, strut pinch bolt and axle separated), then the hub and bearing are pressed out and the new bearing pressed in on a shop press, with one side done on either FWD or AWD."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: honda
     model: cr-v
@@ -203,6 +237,8 @@ estimates:
     confidence: 40
     inputs: [vehicle, job]
     notes: "Assumed one front side on a 6th-gen CR-V (1.5T or hybrid, FWD or AWD), where the bearing is pressed into the steering knuckle. The knuckle is removed from the vehicle by freeing the axle nut, tie rod end, lower ball joint and strut bolts, then the hub and bearing are pressed out and the new bearing…"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: honda
     model: civic
@@ -214,6 +250,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "I assumed one side of a non-hybrid 8th-generation Civic, where the bearing is pressed into the steering knuckle. The knuckle is removed (tie-rod end, lower arm or ball joint, damper pinch bolts, driveshaft) and taken to a shop press to remove the hub, snap ring and bearing and press in new parts…"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: honda
     model: civic
@@ -225,6 +263,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumed one front side on a non-hybrid 9th-gen Civic with a press-in cartridge bearing. The knuckle comes off the car (caliper, rotor, spindle nut, tie-rod end, lower ball joint and strut pinch bolts) and the hub and bearing are pressed out and in on a shop press; alignment is excluded."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: honda
     model: civic
@@ -236,6 +276,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumes one side on a standard (non-Type R) Civic, where the front bearing is pressed into the knuckle. The knuckle is removed from the strut, ball joint and tie rod, and the hub and bearing are pressed out and in on a bench press."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: honda
     model: civic
@@ -247,6 +289,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job]
     notes: "Assumes one front side on a typical 11th-gen Civic, where the bearing is pressed into the steering knuckle. The knuckle is removed (axle nut, tie rod end, lower ball joint and strut bolts) so the hub and bearing can be pressed out and the new ones pressed in on a bench press."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: corolla
@@ -258,6 +302,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumes one side on a front-drive Corolla, where the bearing is pressed into the steering knuckle. The knuckle is removed from the car by unbolting the strut, tie rod end and lower arm."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: corolla
@@ -269,6 +315,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumed one front side on a FWD 11th-generation Corolla, where the bearing is pressed into the steering knuckle. The knuckle is removed from the car (tie rod end, lower arm, strut bolts and drive shaft separated), then the hub and bearing are pressed out and in on a shop press, followed by…"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: corolla
@@ -280,6 +328,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumes one side on a front-wheel-drive Corolla with a bolt-on hub unit held by three bolts. The knuckle is removed from the strut, tie rod end and lower ball joint and set in a vise to unbolt the hub, then refitted with a new staked axle nut and checked for runout. Alignment is excluded."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: camry
@@ -291,6 +341,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "One side of a non-hybrid XV40 Camry with a press-in front bearing. The knuckle is removed from the strut, tie rod and lower arm, then the hub and bearing are pressed out and the new ones pressed in on a bench press, including moving the lower ball joint and dust shield."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: camry
@@ -302,6 +354,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumes one front side on a non-hybrid XV50 Camry, which uses a press-in bearing: the knuckle is removed from the strut, lower ball joint, tie rod and drive shaft, then the hub and bearing are pressed out and in on a bench press."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: camry
@@ -313,6 +367,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumes one side of a front-wheel-drive Camry with the bolt-on hub held by four bolts, removed by taking the knuckle off the strut as the procedure describes: separate the axle, tie rod and lower ball joint, swap the hub on the bench, then refit, torque, stake the nut and check runout."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: camry
@@ -324,6 +380,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumed the hybrid XV80 Camry, FWD or AWD, with a bolt-on front hub unit; per the procedure the knuckle is removed from the strut, tie rod, lower arm and driveshaft, and the hub is unbolted on the bench."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: ford
     model: escape
@@ -335,6 +393,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumes one side of a 2008-2012 Escape (FWD or AWD), where the front bearing is a press-fit cartridge in the knuckle. The knuckle must come off (axle nut, caliper and rotor, tie-rod end, ball joint, strut bolts, speed sensor) so the hub and bearing can be pressed out and in on a shop press;"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: ford
     model: escape
@@ -346,6 +406,8 @@ estimates:
     confidence: 40
     inputs: [vehicle, job, procedure]
     notes: "Assumed the press-in bearing design, where the knuckle is removed from the vehicle (axle nut, caliper, rotor, sensor, tie rod end, ball joint and strut bolts) and the hub and bearing are pressed out and in on a hydraulic press with the snap ring swapped."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: ford
     model: escape
@@ -357,6 +419,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumes one front side on a 4th-gen Escape (FWD or AWD), where the bearing is a press-in cartridge held by a snap ring. The knuckle comes off the vehicle: axle nut, caliper and rotor, speed sensor, tie-rod end, lower ball joint and strut bolts."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: nissan
     model: rogue
@@ -368,6 +432,8 @@ estimates:
     confidence: 38
     inputs: [vehicle, job]
     notes: "Assumed one side on a 2.5L FWD or AWD Rogue with a press-in front bearing, so the axle nut, tie-rod end and ball joint are released and the knuckle comes off to press the hub and bearing out and in on a bench press. High allows for a seized axle spline, ball joint or rusted hub;"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: nissan
     model: rogue
@@ -379,6 +445,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumes one side only, with the bolt-on hub and bearing assembly used on this generation (no pressing). The axle is pushed out of the hub after separating the lower ball joint, and the hub bolts are removed from behind the knuckle."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: nissan
     model: rogue
@@ -390,6 +458,8 @@ estimates:
     confidence: 40
     inputs: [vehicle, job]
     notes: "Assumes one front side on a typical 2.5L or 1.5L turbo Rogue (FWD or AWD), with a bolt-in hub-and-bearing unit held to the knuckle by rear-mounted bolts, so no press work is needed. The axle only needs to be freed from the hub splines, not removed."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: chevrolet
     model: equinox
@@ -401,6 +471,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumes one side only, on the bolt-on unit hub of this generation, which is held by three bolts from the back of the knuckle with no pressing needed. The time covers the axle nut, caliper, bracket, rotor and speed sensor removal, plus cleaning the bolt threads and applying threadlocker;"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: chevrolet
     model: equinox
@@ -412,6 +484,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumes the bolt-on hub and bearing unit held by three bolts from behind the knuckle, with no pressing required. The job covers one side only: remove the axle nut and separate the half shaft from the hub, clean and grease the knuckle pilot bore, then reinstall and torque everything."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: hyundai
     model: tucson
@@ -423,6 +497,8 @@ estimates:
     confidence: 40
     inputs: [vehicle, job]
     notes: "Assumed one front side on a 2WD or AWD model, where the bearing is pressed into the steering knuckle and held by a snap ring. The knuckle comes off the vehicle (axle nut, tie rod end, lower ball joint and strut bolts) so the hub and bearing can be pressed out and in on a bench press;"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: hyundai
     model: tucson
@@ -434,6 +510,8 @@ estimates:
     confidence: 40
     inputs: [vehicle, job]
     notes: "Assumes one side, and that the front bearing is a press-fit cartridge in the steering knuckle. The knuckle comes off the car (axle nut, tie-rod end, lower ball joint and strut bolts) so the hub and bearing can be pressed out and in on a bench press; this applies to both FWD and AWD versions."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: hyundai
     model: tucson
@@ -445,6 +523,8 @@ estimates:
     confidence: 35
     inputs: [vehicle, job]
     notes: "Assumes one front side on a FWD or AWD 4th-generation Tucson with a cartridge-type bearing. The time covers either unbolting a hub/bearing unit from the knuckle or pulling the knuckle to press the bearing out and in, including the axle nut, caliper, rotor and speed sensor work."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: hyundai
     model: elantra
@@ -456,6 +536,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job]
     notes: "I assumed one side only and the press-in cartridge bearing used on this generation, which means pulling the steering knuckle (axle nut, tie rod end, lower ball joint, strut bolts) and pressing the hub and bearing out and in on a bench press."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: hyundai
     model: elantra
@@ -467,6 +549,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job]
     notes: "I assumed one side on a front-wheel-drive Elantra, where the front bearing is a press-fit unit in the steering knuckle. The knuckle comes off the car (axle nut, tie-rod end, lower ball joint and strut bolts) so the hub and bearing can be pressed out and the new bearing pressed in on a bench press."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: hyundai
     model: elantra
@@ -478,6 +562,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job]
     notes: "Assumes one side only and the press-in front bearing used on the 7th-gen Elantra (gasoline, hybrid and N variants), which means removing the steering knuckle (axle nut, tie rod end, lower ball joint, strut bolts), pressing out the hub and bearing on a shop press, and pressing in new parts."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: dodge
     model: grand-caravan
@@ -489,6 +575,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumed one side on a front-drive or AWD Grand Caravan with a bolt-on hub and bearing unit that has the integral wheel speed sensor, so no bearing pressing is needed."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: tacoma
@@ -500,6 +588,8 @@ estimates:
     confidence: 40
     inputs: [vehicle, job, procedure]
     notes: "Assumed one side of a 2WD or 4WD Tacoma with a bolt-on hub and bearing unit. The work covers removing the caliper, rotor and speed sensor and, as the factory steps describe, separating the tie rod and ball joints to free the knuckle, then reassembling, bleeding the brakes and road testing."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: tacoma
@@ -511,6 +601,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "I assumed a 4WD or PreRunner Tacoma with a bolt-on front hub unit, removed with the knuckle off the vehicle: tie rod, stabilizer link and upper and lower ball joints separated, and the axle nut removed on 4WD."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: tacoma
@@ -522,6 +614,8 @@ estimates:
     confidence: 40
     inputs: [vehicle, job, procedure]
     notes: "Assumes one side on a 4WD or 2WD 4th-gen Tacoma, with a bolt-on hub and bearing unit that has an integrated ABS sensor. The service procedure has the steering knuckle come off first (tie rod end, ball joints, axle nut on 4WD), then the hub is unbolted on the bench, so the time includes knuckle…"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: jeep
     model: grand-cherokee
@@ -533,6 +627,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumed one side on a 4x4 WK2 with a bolt-in hub/bearing unit held by three bolts from behind the knuckle, so no pressing is needed; the job covers caliper and rotor removal, the axle nut and the speed sensor."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: jeep
     model: grand-cherokee
@@ -544,6 +640,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job]
     notes: "Assumed one side on a WL with independent front suspension and a bolt-in hub-and-bearing unit held to the knuckle by bolts from behind. On 4x4 models the axle nut is removed and the half-shaft pushed back; no pressing is needed, and RWD models take slightly less time."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: ford
     model: explorer
@@ -555,6 +653,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumed a bolt-on hub and bearing unit held to the knuckle by four bolts on an AWD or FWD Explorer, with the halfshaft pushed inward rather than removed."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: ford
     model: explorer
@@ -566,6 +666,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "I assumed one side of a 4WD/AWD Explorer with a bolt-on hub and bearing unit held by four knuckle bolts. The job is wheel off, hub nut off, caliper and rotor off, speed sensor aside, halfshaft pressed out of the hub, then the unit swapped and reinstalled with a new hub nut and torque-angle bolts…"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: highlander
@@ -577,6 +679,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumes one front corner on a 2008-2013 Highlander (FWD or AWD, 2.7 or 3.5 engine), where the knuckle is removed from the strut and the press-in bearing and hub are pressed out and in on a bench press. Alignment is excluded, but the hub-nut staking and speed sensor check are included."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: highlander
@@ -588,6 +692,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumes one front side on a 3.5L V6 (AWD or FWD) with a press-in bearing. The steering knuckle is removed from the strut, tie rod, lower arm and drive shaft, and the hub and bearing are pressed out and in on a bench press. Wheel alignment is not included."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: toyota
     model: highlander
@@ -599,6 +705,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumed one side on a gasoline or hybrid FWD/AWD Highlander with a bolt-on hub unit, where the knuckle must come off the strut so the four hub bolts can be removed in a vise, plus brake-control disable/enable on hybrids. Alignment is excluded even though the knuckle-to-strut bolts are disturbed."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: mazda
     model: cx-5
@@ -610,6 +718,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumed one front side on a 2.0L or 2.5L FWD/AWD CX-5, where the bearing is pressed into the steering knuckle. The knuckle comes off the vehicle (axle nut, tie rod end, ball joint and strut bolts) so the hub and bearing can be pressed out and in on a bench press, with grease applied to the inner…"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: mazda
     model: cx-5
@@ -621,6 +731,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumes the front bearing is a press-fit unit in the steering knuckle, so the knuckle comes off the car (axle nut, tie-rod end, lower ball joint, strut-to-knuckle bolts) and the hub and bearing are pressed out and in on a bench press."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: kia
     model: sportage
@@ -632,6 +744,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job]
     notes: "Assumes one side only, on the usual press-in front bearing design, where the steering knuckle comes off the vehicle (axle nut, tie rod end, lower ball joint and strut bolts) so the hub and bearing can be pressed out and the new bearing pressed in on a bench press."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: kia
     model: sportage
@@ -643,6 +757,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job, procedure]
     notes: "Assumed the 4th-gen Sportage uses a bearing pressed into the knuckle, so the knuckle comes off the strut, tie rod end and lower ball joint and goes to the bench press, with a new staked axle nut fitted. Times cover one side on FWD or AWD, which are treated as essentially the same."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: kia
     model: sportage
@@ -654,6 +770,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumes one front side on a non-hybrid 2WD or AWD Sportage with a bolt-on hub unit held by four bolts from the back of the knuckle, so the knuckle stays on the car and no press work is needed."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: honda
     model: accord
@@ -665,6 +783,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumed one front side on a 4-cylinder or V6 car where the bearing is pressed into the knuckle, so the knuckle comes out (caliper, rotor, spindle nut, tie-rod and both ball joints) and the hub and bearing are pressed out and in on a bench press."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: honda
     model: accord
@@ -676,6 +796,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumed one front side on a 9th-generation Accord, non-hybrid, with the press-in cartridge bearing. The knuckle comes off the car (tie-rod end, lower ball joint, damper pinch bolt and axle released), the hub and bearing are pressed out and in on a shop press, and everything is refitted with new…"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: honda
     model: accord
@@ -687,6 +809,8 @@ estimates:
     confidence: 40
     inputs: [vehicle, job]
     notes: "Assumes one front corner where the bearing is pressed into the steering knuckle, so the axle nut, tie-rod end, lower ball joint and strut-to-knuckle bolts must be undone and the knuckle removed for bench pressing."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: honda
     model: accord
@@ -698,6 +822,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job]
     notes: "I assumed one front side on an FWD Accord with the 1.5T or hybrid powertrain, where the bearing is pressed into the steering knuckle. That means removing the knuckle (axle nut, tie rod end, lower ball joint and strut bolts) and pressing the hub and bearing out and in on a shop press."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: subaru
     model: outback
@@ -709,6 +835,8 @@ estimates:
     confidence: 42
     inputs: [vehicle, job]
     notes: "Assumed one front side on a 4th-generation Outback, where the bearing is pressed into the steering knuckle. The knuckle is removed (axle nut, tie rod end, lower ball joint and strut bolts, with the camber position marked) so the hub and bearing can be pressed out and new parts pressed in on a shop…"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: subaru
     model: outback
@@ -720,6 +848,8 @@ estimates:
     confidence: 40
     inputs: [vehicle, job]
     notes: "Assumes one front side on an AWD Outback, where the bearing is a press-in unit in the steering knuckle. The knuckle is removed from the vehicle (axle nut, tie-rod end, ball joint and strut bolts) and the hub and bearing are pressed out and in on a bench press."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: subaru
     model: outback
@@ -731,6 +861,8 @@ estimates:
     confidence: 40
     inputs: [vehicle, job]
     notes: "Assumed one side on an AWD Outback with a press-in front bearing. The job is taken to need the axle nut, tie-rod end, lower ball joint and strut-to-knuckle bolts removed, so the knuckle can come out and the hub and bearing be pressed on a bench press, then everything refitted and torqued."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: jeep
     model: wrangler
@@ -742,6 +874,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumes one side on a 4WD JK with the Dana 30 front axle and a bolt-on sealed hub-bearing unit held by three bolts from the back of the knuckle, with the axle nut removed and refitted and no pressing required."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: jeep
     model: wrangler
@@ -753,6 +887,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job]
     notes: "Assumes one side of a JL with the solid front axle (Dana 30/44 type), which uses a bolt-on unit hub held to the knuckle by three rear bolts with the axle shaft splined through it, so no bearing pressing is needed."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: volkswagen
     model: jetta
@@ -764,6 +900,8 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumed one side on a front-drive 6th-generation Jetta with a bolt-on hub/bearing unit held to the knuckle by bolts, so no pressing is needed. The work includes removing the caliper, rotor, ABS sensor and splash plate, separating the lower ball joint, pushing the axle out, and fitting a new…"
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
   - scope: generation
     make: volkswagen
     model: jetta
@@ -775,3 +913,60 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumes one side on a front-drive MQB Jetta with a bolt-in hub/bearing unit held by four bolts behind the knuckle. Removal goes through the axle bolt, caliper and rotor, stabilizer link and ball-joint-to-control-arm nuts so the axle can be withdrawn; no pressing is needed."
+    method: "open-labour-ai-1"
+    llm: "claude-opus-5-5"
+  - scope: generation
+    make: volkswagen
+    model: golf
+    year_from: 1999
+    year_to: 2006
+    low: "2"
+    typical: "3"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed one front wheel bearing on a common FWD Mk4 Golf 2.0 with press-fit bearing in the steering knuckle, using a shop press and no rust or seized fasteners. The estimate covers removing the knuckle and pressing the bearing, but not alignment or brake replacement."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2001
+    year_to: 2007
+    low: "2.4"
+    typical: "3.3"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.0 V6 4WD Escape with the original press-in front wheel bearing in the steering knuckle, working on a rust-free vehicle. The estimate includes knuckle removal and bearing press work but no alignment or brake replacement."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 1998
+    year_to: 2002
+    low: "1.8"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "One front wheel bearing on a typical 1998-2002 Corolla E110 with ABS and a press-in bearing in the steering knuckle; a shop press and standard hand tools are available. The estimate assumes no severe rust or seized fasteners, and does not include alignment or brake replacement."
+  - scope: generation
+    make: acura
+    model: mdx
+    year_from: 2001
+    year_to: 2006
+    low: "1.6"
+    typical: "2.2"
+    high: "3.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed one front wheel on a 2001-2006 Acura MDX with the 3.5L V6 and a press-in knuckle bearing, so the knuckle must be removed and the bearing/hub pressed. Normal condition is assumed for typical; high allows for rust or seized fasteners, and no alignment is included."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 1999
+    year_to: 2004
+    low: "1.2"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 55
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4.0L 4WD WJ with a unit hub/bearing on one front side, working on an ordinary vehicle with standard shop tools. No alignment, brake pad/rotor replacement or axle shaft replacement is included."
