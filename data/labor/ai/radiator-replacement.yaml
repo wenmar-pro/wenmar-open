@@ -7801,3 +7801,91 @@ estimates:
     confidence: 35
     inputs: [vehicle, job]
     notes: "Assumed a typical transverse 1.6 petrol Countryman with automatic transmission cooler lines and no front-end damage; the radiator is removed from above after the fan/shroud and hoses are cleared. High allows for seized lower mounts, corroded cooler lines and extra plumbing on harder engine variants."
+  - scope: generation
+    make: cadillac
+    model: srx
+    year_from: 2010
+    year_to: 2016
+    low: "5"
+    typical: "6.2"
+    high: "8.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 3.6L V6 SRX and that the condenser is removed/refitted with A/C recovery and recharge because the procedure lists condenser removal; if it can be set aside without opening the refrigerant circuit, subtract roughly 1.0-1.5 hours."
+  - scope: generation
+    make: volvo
+    model: v70
+    year_from: 2001
+    year_to: 2007
+    low: "1.7"
+    typical: "2.5"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the common 2.4-litre five-cylinder petrol V70 with FWD and automatic transmission; the A/C condenser is assumed to be supported aside without discharging the A/C system. High covers turbo/diesel plumbing, AWD, and rusted or seized fasteners."
+  - scope: generation
+    make: volvo
+    model: v70
+    year_from: 1998
+    year_to: 2000
+    low: "2"
+    typical: "2.8"
+    high: "4"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1999 V70 AWD with the 2.3/2.4L turbo five-cylinder and automatic transmission, so charge air pipe, oil cooler lines and condenser support are included. Times assume no seized fasteners or rusty condenser/oil cooler fittings."
+  - scope: generation
+    make: nissan
+    model: frontier
+    year_from: 2005
+    year_to: 2021
+    low: "2.3"
+    typical: "3"
+    high: "4.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 4.0L VQ40DE Frontier in ordinary condition, assumed automatic with A/T cooler hoses in the radiator; manual-transmission vehicles would be slightly simpler. No thermostat, hose replacement or A/C condenser work is included."
+  - scope: generation
+    make: subaru
+    model: legacy
+    year_from: 2010
+    year_to: 2014
+    low: "1.1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a common 2010-2014 Legacy with the 2.5L boxer and CVT; the radiator is removed with the cooling fans attached and CVTF cooler lines are included. High allows for a harder engine bay or seized fasteners/hoses."
+  - scope: generation
+    make: volkswagen
+    model: tiguan
+    year_from: 2018
+    year_to: 2024
+    low: "2.5"
+    typical: "3.6"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 2.0 TSI Tiguan with AWD and automatic transmission; this is an AI estimate for radiator replacement including front bumper cover R&I and coolant bleed. High allows for corroded fasteners and extra bleeding time."
+  - scope: generation
+    make: lexus
+    model: rx
+    year_from: 2016
+    year_to: 2022
+    low: "2.4"
+    typical: "3.4"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the most common RX350 3.5L V6 with automatic transmission and radiator-integrated cooler, in ordinary condition. The high estimate allows for the hybrid variant and seized or rusted fasteners/cooler fittings."
+  - scope: generation
+    make: audi
+    model: a6
+    year_from: 2005
+    year_to: 2011
+    low: "3.6"
+    typical: "4.8"
+    high: "6.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a common 3.2L V6 Quattro with automatic/Multitronic transmission, so ATF cooler lines are included. High allows for rust, seized fasteners or a harder engine/transmission variant."

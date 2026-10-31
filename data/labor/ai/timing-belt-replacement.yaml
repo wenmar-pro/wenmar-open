@@ -2467,3 +2467,2007 @@ estimates:
     confidence: 24
     inputs: [vehicle, job]
     notes: "Estimate is for the early 3.0 V6 diesel F-Pace, the only common variant with a timing belt; its belt is rear-mounted and requires gearbox removal. Other F-Pace engines are chain-driven and not covered by this job."
+  - scope: engine
+    make: honda
+    model: accord
+    year_from: 1998
+    year_to: 2002
+    engine: 2-3l
+    low: "1.9"
+    typical: "2.45"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.3L SOHC F23A1 Accord in ordinary condition, with the job covering only timing belt, tensioner and idler replacement plus R&R of drive belts and the right mount, not water pump or seals."
+  - scope: engine
+    make: honda
+    model: accord
+    year_from: 1998
+    year_to: 2002
+    engine: 3-0l-v6
+    low: "2.5"
+    typical: "3.2"
+    high: "4.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a transverse 3.0L V6 Accord in ordinary condition with no added accessories, using hand tools and engine support. The job is only the timing belt, tensioner and idler, with drive belts removed and reused, and no water pump or seal replacement."
+  - scope: engine
+    make: volkswagen
+    model: jetta
+    year_from: 2000
+    year_to: 2005
+    engine: 1-8l
+    low: "2.6"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 1.8L turbo Jetta in ordinary condition with no seized fasteners; the job is timing belt, tensioner and idler only, reusing the accessory belt and not replacing the water pump, seals or drive belt."
+  - scope: engine
+    make: volkswagen
+    model: jetta
+    year_from: 1999
+    year_to: 2005
+    engine: 2-0l
+    low: "2"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a 2.0L SOHC gasoline Jetta in ordinary condition with standard tools, reusing the existing accessory drive belts. The estimate excludes water pump, camshaft/crankshaft seals and drive belt replacement."
+  - scope: engine
+    make: honda
+    model: accord
+    year_from: 2003
+    year_to: 2007
+    engine: 3-0l-v6
+    low: "3.2"
+    typical: "4.1"
+    high: "5.9"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "Assumes the 3.0L V6 Accord is in ordinary condition with no rust or seized fasteners and that the water pump, seals and drive belts are not being replaced. The estimate covers removing and refitting the parts in the way, replacing the timing belt, tensioner and idler, and checking engine operation."
+  - scope: engine
+    make: dodge
+    model: caravan
+    year_from: 1991
+    year_to: 1995
+    engine: 2-5l
+    low: "1.6"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse FWD 2.5L SOHC four-cylinder with standard accessories and no rust or seized fasteners; the 2.5L uses a timing belt, so the job applies."
+  - scope: engine
+    make: dodge
+    model: caravan
+    year_from: 1991
+    year_to: 1995
+    engine: 3-0l-v6
+    low: "3.4"
+    typical: "4.6"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 3.0L V6 Caravan in ordinary condition with no rust or seized fasteners, using standard shop tools; water pump, seals and drive belt replacement are not included. Accessory brackets and the front engine mount are removed as needed for timing cover access."
+  - scope: engine
+    make: honda
+    model: accord
+    year_from: 1995
+    year_to: 1996
+    engine: 2-7l-v6
+    low: "2.8"
+    typical: "3.9"
+    high: "5.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a stock 1995-1996 Accord with the 2.7L V6, in ordinary condition with no rust or seized fasteners for the typical time. The high estimate allows for rust, seized crank pulley bolt, and extra time with the engine mount and covers."
+  - scope: engine
+    make: ford
+    model: focus
+    year_from: 2000
+    year_to: 2007
+    engine: 2-0l
+    low: "2.2"
+    typical: "3"
+    high: "4.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse front-wheel-drive 2000-2007 Ford Focus with the common 2.0L SPI engine, standard tools, and no water pump, seal, or accessory drive belt replacement beyond refitting. Times allow for the listed engine mount, cover, spark plug, and pulley removal steps."
+  - scope: engine
+    make: volkswagen
+    model: golf
+    year_from: 2000
+    year_to: 2005
+    engine: 1-8l
+    low: "2.5"
+    typical: "3.5"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the 1.8L engine is the transverse Golf engine, front-wheel drive, in ordinary condition, and that the water pump, seals and accessory drive belt are not being replaced. The estimate covers removing and refitting the existing parts and checking the timing."
+  - scope: engine
+    make: volkswagen
+    model: golf
+    year_from: 1999
+    year_to: 2006
+    engine: 1-9l-diesel
+    low: "2.75"
+    typical: "3.65"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a typical 1.9L diesel Golf with the most common TDI engine and standard tools; the timing belt job includes engine mount removal but not water pump, seals or drive belt replacement. High time allows for rusted or seized fasteners and mount hardware."
+  - scope: engine
+    make: volkswagen
+    model: golf
+    year_from: 1999
+    year_to: 2006
+    engine: 2-0l
+    low: "1.5"
+    typical: "2.05"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse front-wheel-drive 1999-2006 Golf with the common 2.0L SOHC petrol engine and a timing belt driving the camshaft. The job is a belt/tensioner/idler replacement only, without water pump, seals or drive belt replacement."
+  - scope: engine
+    make: ford
+    model: escape
+    year_from: 2001
+    year_to: 2004
+    engine: 2-0l
+    low: "2.3"
+    typical: "3.2"
+    high: "4.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 2.0L engine with normal A/C and power steering accessories, no added equipment, and typical clean fasteners. High allows for seized mount, pulley, and cover bolts."
+  - scope: engine
+    make: nissan
+    model: pathfinder
+    year_from: 1996
+    year_to: 1997
+    engine: 3-3l-v6
+    low: "2.9"
+    typical: "3.8"
+    high: "5.3"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate; assumed a 4WD 1996-1997 Pathfinder with the 3.3L V6, cold engine, standard hand tools plus a timing belt tension gauge and feeler gauge, with coolant drained/refilled but no water pump, seals or drive belts replaced."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 1997
+    year_to: 2001
+    engine: 2-2l
+    low: "2.15"
+    typical: "2.75"
+    high: "4.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 1997-2001 Camry with the 2.2L engine in ordinary condition, with no water pump or seal replacement and with the original drive belts removed and refitted. The estimate includes removing the alternator and front engine mount for access, as described in the repair steps."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 1997
+    year_to: 2001
+    engine: 3-0l-v6
+    low: "2.9"
+    typical: "3.9"
+    high: "5.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a transverse 3.0L V6 Camry in ordinary condition, replacing only the timing belt/tensioner/idler with no water pump or seal work; the supplied procedural text is for the 2.2L, but the job is applied to the listed 3.0L V6."
+  - scope: engine
+    make: volkswagen
+    model: jetta
+    year_from: 2009
+    year_to: 2010
+    engine: 2-0l-turbo-diesel
+    low: "3.2"
+    typical: "4.25"
+    high: "5.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed a transverse 2.0L turbo-diesel Jetta with standard tools and no rust or seized fasteners; the water pump, seals and drive belt replacement are not included."
+  - scope: engine
+    make: toyota
+    model: sienna
+    year_from: 2004
+    year_to: 2006
+    engine: 3-3l-v6
+    low: "3.3"
+    typical: "4.4"
+    high: "6.4"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "Assumed a 2004-2006 Toyota Sienna with the 3.3L V6 in ordinary condition, with the original accessory drive belts reused and no water pump or seal replacement. The estimate covers timing belt, tensioner and idler replacement only."
+  - scope: engine
+    make: volvo
+    model: s70
+    year_from: 1999
+    year_to: 2000
+    engine: 2-3l-turbo
+    low: "1.4"
+    typical: "2"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 1999-2000 Volvo S70 2.3L turbo in ordinary condition, assuming the accessory belt is reused and no water pump or seal work is done. It also assumes normal access to the timing cover and mount hardware."
+  - scope: engine
+    make: volvo
+    model: s70
+    year_from: 1998
+    year_to: 2000
+    engine: 2-4l
+    low: "2.1"
+    typical: "2.8"
+    high: "3.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate assuming a normal transverse 2.4L five-cylinder S70 with the timing belt, tensioner and idler being replaced but not the water pump, seals or drive belt. Includes removal/refit of the right engine mount only as needed for access."
+  - scope: engine
+    make: acura
+    model: tl
+    year_from: 2004
+    year_to: 2008
+    engine: 3-2l-v6
+    low: "2.8"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2004-2008 Acura TL 3.2L V6 in ordinary condition. Assumes the existing drive belt is reused and no water pump, camshaft/crankshaft seals or drive belt replacement is included."
+  - scope: engine
+    make: acura
+    model: tl
+    year_from: 2007
+    year_to: 2008
+    engine: 3-5l-v6
+    low: "3"
+    typical: "4"
+    high: "5.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.5L V6 transverse FWD TL in ordinary condition with standard shop tools and a lift, and that the water pump, cam/crank seals and drive belt replacement are not included."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 1992
+    year_to: 1993
+    engine: 2-2l
+    low: "2"
+    typical: "2.7"
+    high: "4"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 2.2L four-cylinder Camry with the timing belt on the right side, ordinary condition and no rust or seized fasteners. The job replaces the belt and idler/tensioner only; the water pump, seals and drive belts are not replaced, and the original drive belts are reused."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 1995
+    year_to: 1996
+    engine: 2-2l
+    low: "2.8"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1995-1996 Camry with the common 2.2L four-cylinder in ordinary condition, reusing the drive belts and not replacing the water pump or seals. Low/typical assume no rust or seized fasteners; high allows for rust and difficult mount or pulley bolts."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 1992
+    year_to: 1993
+    engine: 3-0l-v6
+    low: "2.9"
+    typical: "3.8"
+    high: "4.9"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "The vehicle is a 1992-1993 Toyota Camry with the 3.0L V6 (3VZ-FE) engine. The job is a timing belt replacement including removing necessary components, setting timing, replacing belt, tensioner, and idler, and reassembling. No water pump or seal replacement is included."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 1995
+    year_to: 1996
+    engine: 3-0l-v6
+    low: "2.5"
+    typical: "3.4"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a rust-free 1995-96 Camry 3.0L V6 with the timing belt only, not water pump, seals, or drive belt replacement. Access is through the right-hand wheel well and engine mount on the transverse front-wheel-drive engine."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 2002
+    year_to: 2003
+    engine: 3-0l-v6
+    low: "2.9"
+    typical: "4.1"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 2002-2003 Camry with the 3.0L V6, transverse FWD, in ordinary condition with no rust or seized fasteners. Estimated only the timing belt job; accessory belts are reused and the water pump, seals and drive belt replacement are not included."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 2004
+    year_to: 2006
+    engine: 3-3l-v6
+    low: "3.4"
+    typical: "4.25"
+    high: "5.8"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "I assumed this is the transverse 3.3L V6 Camry with ordinary condition, no rust or seized fasteners, and standard shop tools. The job is timing belt tensioner/idler replacement only, with no water pump, cam/crank seals, or new drive belts included."
+  - scope: engine
+    make: toyota
+    model: 4runner
+    year_from: 1996
+    year_to: 2002
+    engine: 3-4l-v6
+    low: "4"
+    typical: "4.9"
+    high: "6.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4WD 1996-2002 4Runner with the 3.4L V6, ordinary condition, and no water pump, seals, or drive belt replacement beyond refitting the existing belts. No engine mount removal was needed based on the 3.4L procedure."
+  - scope: engine
+    make: lexus
+    model: rx
+    year_from: 2004
+    year_to: 2006
+    engine: 3-3l-v6
+    low: "2.75"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 3.3L V6 RX330 in ordinary condition with no rust or seized fasteners; AWD/FWD differences were treated as minor. The estimate covers timing belt, tensioner and idler only, with no water pump, seals or replacement drive belts."
+  - scope: engine
+    make: chevrolet
+    model: cruze
+    year_from: 2011
+    year_to: 2015
+    engine: 1-8l
+    low: "3.4"
+    typical: "4.4"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2011-2015 Chevrolet Cruze with the 1.8L engine and automatic transmission in ordinary condition; the timing belt, tensioner and idler are replaced, but the water pump and seals are not."
+  - scope: engine
+    make: dodge
+    model: dakota
+    year_from: 1990
+    year_to: 1996
+    engine: 2-5l
+    low: "2.1"
+    typical: "2.8"
+    high: "3.9"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed a 2.5L four-cylinder Dakota with a timing belt, rear-wheel drive and no extra accessories beyond standard belts; the job includes removing the fan/shroud and the right-side engine mount for cover access. No rust or seized fasteners was assumed."
+  - scope: engine
+    make: toyota
+    model: corolla
+    year_from: 1993
+    year_to: 1997
+    engine: 1-6l
+    low: "2.2"
+    typical: "3"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1993-97 Corolla with the 1.6L transverse engine, likely A/C equipped, in ordinary condition with no rust or seized fasteners. Replacing the belt, tensioner and idler only; water pump, seals and drive belts are not included."
+  - scope: engine
+    make: toyota
+    model: corolla
+    year_from: 1995
+    year_to: 1997
+    engine: 1-8l
+    low: "2.2"
+    typical: "3"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1.8L 1995-97 Corolla with A/C and ordinary rust-free condition; the job includes the A/C compressor mount and right engine mount as shown in the procedure, but not water pump or seal replacement."
+  - scope: engine
+    make: subaru
+    model: impreza
+    year_from: 2008
+    year_to: 2011
+    engine: 2-5l
+    low: "2.8"
+    typical: "3.4"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2010 Subaru Impreza 2.5L DOHC engine, possibly with manual transmission and timing belt guides. Standard shop tools including a press for the tensioner. Vehicle in ordinary condition without rust or seized fasteners for typical time."
+  - scope: engine
+    make: subaru
+    model: impreza
+    year_from: 2008
+    year_to: 2011
+    engine: 2-5l-turbo
+    low: "2.3"
+    typical: "3.24"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2008-2011 Subaru Impreza 2.5L turbo flat-four in ordinary condition with standard shop tools. I included engine mount/parts removal as stated in the job description, though access needs can vary."
+  - scope: engine
+    make: volvo
+    model: s60
+    year_from: 2001
+    year_to: 2004
+    engine: 2-3l
+    low: "1.6"
+    typical: "2.2"
+    high: "3.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2001-2004 Volvo S60 2.3L turbo five-cylinder in ordinary condition, with standard shop tools and no water pump, seal or drive-belt replacement included. Access is via the right wheel arch and upper engine bay, with no rust or seized fasteners allowed in the typical figure."
+  - scope: engine
+    make: volvo
+    model: s60
+    year_from: 2001
+    year_to: 2009
+    engine: 2-4l
+    low: "2.8"
+    typical: "3.85"
+    high: "5.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2005 Volvo S60 with the 2.4L non-turbo engine in average condition, no rust or seized fasteners. The procedure includes removal of turbocharger pipes as per the provided steps, which may add time;"
+  - scope: engine
+    make: volvo
+    model: s60
+    year_from: 2004
+    year_to: 2009
+    engine: 2-5l
+    low: "1.55"
+    typical: "2.05"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2.5L turbo five-cylinder S60 in ordinary condition, with the job limited to timing belt, tensioner, and idler and not replacing the water pump, seals, or drive belts. I assumed the engine stabilizer brace and accessories are removed/reinstalled only as access."
+  - scope: engine
+    make: audi
+    model: a4
+    year_from: 2002
+    year_to: 2005
+    engine: 1-8l
+    low: "3"
+    typical: "4"
+    high: "5.4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "AI estimate for a standard 2002-2005 Audi A4 1.8L with normal access and no rust or seized fasteners; the front carrier is moved to service position. Water pump, seals and drive belt replacement are excluded."
+  - scope: engine
+    make: audi
+    model: a4
+    year_from: 2002
+    year_to: 2005
+    engine: 3-0l
+    low: "3.5"
+    typical: "4.6"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed this is the 3.0L V6 Audi A4 B6 with the timing belt at the front of the engine, and that the front carrier is moved to service position for access."
+  - scope: engine
+    make: volvo
+    model: xc90
+    year_from: 2004
+    year_to: 2006
+    engine: 2-5l
+    low: "1.5"
+    typical: "1.95"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.5L five-cylinder transverse XC90 in ordinary condition, using a timing belt kit with tensioner and idler and reusing the existing drive belts; water pump, cam/crank seals and drive belt replacement are not included."
+  - scope: engine
+    make: toyota
+    model: highlander
+    year_from: 2001
+    year_to: 2003
+    engine: 3-0l-v6
+    low: "3.5"
+    typical: "4.3"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "FWD 3.0L V6 in good condition with no rust or seized fasteners; water pump and seals are not replaced; engine mount is removed as needed and A/C compressor is unbolted and set aside without disconnecting lines."
+  - scope: engine
+    make: toyota
+    model: highlander
+    year_from: 2004
+    year_to: 2007
+    engine: 3-3l-v6
+    low: "2.75"
+    typical: "3.55"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 3.3L V6 Highlander in ordinary condition with no rust or seized fasteners, using standard shop tools. The job is applicable because this engine uses a timing belt; water pump, camshaft/crankshaft seals and new drive belts are not included."
+  - scope: engine
+    make: toyota
+    model: tundra
+    year_from: 2000
+    year_to: 2004
+    engine: 3-4l-v6
+    low: "2.9"
+    typical: "3.8"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 4WD 2003 Tundra with the 3.4L V6, A/C and power steering, no rust or seized fasteners, and that the right cam pulley and coolant drain/bleed are included as in the catalog steps; timing belt only, no water pump or seals."
+  - scope: engine
+    make: toyota
+    model: tundra
+    year_from: 2000
+    year_to: 2006
+    engine: 4-7l-v8
+    low: "2.9"
+    typical: "4"
+    high: "5.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2UZ-FE 4.7L V8 Tundra in ordinary condition with standard shop tools. The supplied repair steps are for the 3.4L V6, so I estimated the V8 timing belt job directly and did not include water pump, camshaft/crankshaft seals, or drive belt replacement beyond removal/refit;"
+  - scope: engine
+    make: kia
+    model: soul
+    year_from: 2010
+    year_to: 2013
+    engine: 2-0l
+    low: "1.8"
+    typical: "2.4"
+    high: "3.4"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the 2.0L is the earlier Beta II belt-driven engine used in 2010-2011 Souls; later 2.0L Nu engines use a timing chain and would not apply. The estimate excludes water pump, seals and drive belt replacement."
+  - scope: engine
+    make: dodge
+    model: stratus
+    year_from: 1995
+    year_to: 2000
+    engine: 2-0l
+    low: "2.3"
+    typical: "3.1"
+    high: "4.8"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L SOHC transverse front-wheel-drive Stratus in ordinary condition with standard hand tools. The estimate includes removing and refitting the crankshaft pulley and right-side engine mount, but not the water pump, seals or drive belt replacement."
+  - scope: engine
+    make: dodge
+    model: stratus
+    year_from: 1996
+    year_to: 2000
+    engine: 2-4l
+    low: "1.5"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "1996-2000 Dodge Stratus with the 2.4L DOHC engine; timing belt job only, with no water pump, seal or drive belt replacement, on an ordinary unrusty vehicle. This is an AI estimate, not a manual or labour-guide time."
+  - scope: engine
+    make: dodge
+    model: stratus
+    year_from: 1995
+    year_to: 2000
+    engine: 2-5l-v6
+    low: "2.2"
+    typical: "2.9"
+    high: "4.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a transverse FWD 1995-2000 Stratus with the 2.5L V6 timing belt engine in ordinary condition and standard shop tools. Assumes no water pump, camshaft seal or crankshaft seal replacement and no added equipment."
+  - scope: engine
+    make: subaru
+    model: forester
+    year_from: 2009
+    year_to: 2013
+    engine: 2-5l
+    low: "2.2"
+    typical: "3"
+    high: "4.4"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate assuming the common naturally aspirated 2.5L SOHC Subaru engine with AWD and A/C, in ordinary condition with no rust or seized fasteners. The job is timing belt replacement only, with no water pump, seals or drive belt replacement included."
+  - scope: engine
+    make: subaru
+    model: forester
+    year_from: 2012
+    year_to: 2013
+    engine: 2-5l-turbo
+    low: "3.2"
+    typical: "4.25"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a stock 2012-2013 Forester 2.5L turbo AWD in ordinary condition, with the stated timing-belt job including accessory belts, fans, covers and engine-mount/parts clearance; water pump, seals and drive-belt replacement are excluded."
+  - scope: engine
+    make: volkswagen
+    model: passat
+    year_from: 1998
+    year_to: 2005
+    engine: 2-8l
+    low: "3.8"
+    typical: "5.05"
+    high: "6.8"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a longitudinal 2.8L V6 Passat needing front-end service position access and one engine mount removed; no water pump, seals or drive belts are replaced. Times assume ordinary condition with no rust or seized fasteners."
+  - scope: engine
+    make: audi
+    model: a4
+    year_from: 1997
+    year_to: 2001
+    engine: 1-8l
+    low: "4.3"
+    typical: "5.6"
+    high: "7.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 1997-2001 Audi A4 sedan with the longitudinal 1.8L turbo engine, using standard shop tools and a vehicle without rust or seized fasteners. The job is a timing belt, tensioner and idler replacement only; water pump, seals and drive belts are not replaced."
+  - scope: engine
+    make: audi
+    model: a4
+    year_from: 1996
+    year_to: 2001
+    engine: 2-8l
+    low: "4.5"
+    typical: "5.8"
+    high: "7.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 1999 Audi A4 2.8L V6 with front-end service position, two camshaft sprockets, and engine mount removal, based on the 1.8L procedure but adjusted for V6 complexity. Assume no rust or seized fasteners for typical time; high allows for such issues."
+  - scope: engine
+    make: acura
+    model: tl
+    year_from: 2009
+    year_to: 2014
+    engine: 3-5l-v6
+    low: "2.75"
+    typical: "3.5"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the transverse 3.5L V6 in ordinary condition with standard shop tools; it includes timing belt, tensioner and idler but not the water pump, seals or drive belt replacement."
+  - scope: engine
+    make: saturn
+    model: vue
+    year_from: 2002
+    year_to: 2005
+    engine: 3-0l-v6
+    low: "3.2"
+    typical: "4.4"
+    high: "6.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate; assumes a transverse 3.0L V6 Saturn Vue in ordinary condition, likely front-wheel drive, with no rust, seized fasteners, or extra accessory relocation beyond the listed job. Includes removing the engine mount and crank pulley as needed for timing belt access."
+  - scope: engine
+    make: saturn
+    model: vue
+    year_from: 2004
+    year_to: 2007
+    engine: 3-5l-v6
+    low: "3"
+    typical: "3.9"
+    high: "5.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the Vue has the transverse Honda-derived 3.5L V6 with a timing belt and that the job is timing belt, tensioner and idler only, with no water pump, seals or drive belt replacement. Times assume ordinary condition; high allows for rust and seized fasteners."
+  - scope: engine
+    make: hyundai
+    model: tucson
+    year_from: 2005
+    year_to: 2009
+    engine: 2-0l
+    low: "2.9"
+    typical: "3.7"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L G4GC Tucson in ordinary condition with reused accessory belts and no water pump, seal or drive belt replacement. The estimate includes removing the engine mount and camshaft sprocket as listed."
+  - scope: engine
+    make: hyundai
+    model: tucson
+    year_from: 2008
+    year_to: 2009
+    engine: 2-7l-v6
+    low: "2.7"
+    typical: "3.4"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a transverse 2.7L V6 Tucson where the timing belt is accessible by removing the engine mount bracket, accessory belts, crank pulley and timing covers without removing the valve covers or camshaft sprockets. The high figure allows for rusted or seized mount and crank pulley fasteners."
+  - scope: engine
+    make: cadillac
+    model: cts
+    year_from: 2003
+    year_to: 2004
+    engine: 3-2l-v6
+    low: "2.8"
+    typical: "4"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the 3.2L V6 in this CTS is the belt-driven V6 in a rear-wheel-drive car, in ordinary condition with no rust or seized fasteners. No water pump, seals or drive belt replacement is included."
+  - scope: engine
+    make: dodge
+    model: magnum
+    year_from: 2005
+    year_to: 2008
+    engine: 3-5l-v6
+    low: "2.6"
+    typical: "3.5"
+    high: "5.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the 2005-2008 Magnum has the 3.5L V6 with a timing belt, RWD, engine cold and no added accessories. Water pump, cam/crank seals and drive belt replacement are not included."
+  - scope: engine
+    make: chrysler
+    model: sebring
+    year_from: 2001
+    year_to: 2006
+    engine: 2-4l
+    low: "2.4"
+    typical: "3.1"
+    high: "4.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse FWD 2.4L DOHC engine in ordinary condition with standard shop tools, replacing the timing belt only and not the water pump or seals. Accessory belts are removed and refitted as part of the job, not replaced."
+  - scope: engine
+    make: ford
+    model: fusion
+    year_from: 2014
+    year_to: 2020
+    engine: 1-5l
+    low: "2.8"
+    typical: "3.9"
+    high: "5.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a transverse 1.5L EcoBoost Fusion with a dry timing belt, no rust or seized fasteners, and standard shop tools. The job includes removing the accessory belt and right-side engine mount but does not include water pump, seals or drive belt replacement."
+  - scope: engine
+    make: dodge
+    model: charger
+    year_from: 2006
+    year_to: 2008
+    engine: 2-7l-v6
+    low: "2.5"
+    typical: "3.5"
+    high: "5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Timing belt replacement on a 2006-2008 Dodge Charger with 2.7L V6, RWD, in ordinary condition. Assumes no additional parts like water pump or seals are replaced. Estimated for a professional technician with standard tools."
+  - scope: engine
+    make: dodge
+    model: charger
+    year_from: 2006
+    year_to: 2008
+    engine: 3-5l-v6
+    low: "4"
+    typical: "5.5"
+    high: "7.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "The vehicle is a 2006-2008 Dodge Charger with the 3.5L V6 and RWD, in ordinary condition with no rust or seized fasteners. The job is a timing belt replacement only, with the non-freewheeling engine requiring both valve covers to come off and the rocker assemblies to be loosened;"
+  - scope: engine
+    make: dodge
+    model: spirit
+    year_from: 1990
+    year_to: 1994
+    engine: 2-5l
+    low: "2.8"
+    typical: "4"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical 2.5L Dodge Spirit with A/C and power steering, in ordinary condition, replacing the timing belt, tensioner and idler without water pump or seal replacement."
+  - scope: engine
+    make: dodge
+    model: spirit
+    year_from: 1991
+    year_to: 1995
+    engine: 3-0l-v6
+    low: "2.5"
+    typical: "3.4"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1993-95 Dodge Spirit with the 3.0L V6, front-wheel drive, in ordinary condition; the 3.0L V6 uses a timing belt, and no water pump or seals are being replaced. Estimate is for a professional technician with standard hand tools."
+  - scope: engine
+    make: hyundai
+    model: sonata
+    year_from: 1999
+    year_to: 2005
+    engine: 2-4l
+    low: "2.2"
+    typical: "3"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse FWD 2.4L Sonata in ordinary condition, replacing only the main timing belt, tensioner and idler. Balance shaft belt, water pump, seals and new drive belts are not included."
+  - scope: engine
+    make: hyundai
+    model: sonata
+    year_from: 1999
+    year_to: 2001
+    engine: 2-5l
+    low: "2.6"
+    typical: "3.45"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse front-wheel-drive 2.5L V6 Sonata in ordinary condition with no rust or seized fasteners; the job is timing belt, tensioner and idler only, not water pump, seals or drive belt replacement."
+  - scope: engine
+    make: hyundai
+    model: sonata
+    year_from: 2002
+    year_to: 2004
+    engine: 2-7l-v6
+    low: "2.6"
+    typical: "3.55"
+    high: "5"
+    confidence: 48
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2002-2004 Hyundai Sonata with the 2.7L V6 in ordinary condition, with no extra accessories or rusted fasteners. The estimate covers accessory belts, crank pulley, right engine mount, timing covers, timing belt/tensioner/idler and timing verification, but not the water pump, seals or…"
+  - scope: engine
+    make: volkswagen
+    model: golf
+    year_from: 2010
+    year_to: 2014
+    engine: 2-0l-diesel
+    low: "3.6"
+    typical: "4.7"
+    high: "6.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "AI estimate for a transverse 2.0L diesel Golf with ordinary condition and no water pump or seal work. Assumed standard shop tools, no seized fasteners, and that the belt is accessed from the right-hand engine bay side."
+  - scope: engine
+    make: chrysler
+    model: 300c
+    year_from: 2005
+    year_to: 2008
+    engine: 3-5l-v6
+    low: "3"
+    typical: "4"
+    high: "5.5"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a RWD 2005-2008 Chrysler 300C with the 3.5L V6 in ordinary condition and no water pump or seal work. Times are AI estimates based on the listed operations."
+  - scope: engine
+    make: acura
+    model: tlx
+    year_from: 2015
+    year_to: 2020
+    engine: 3-5l-v6
+    low: "3.8"
+    typical: "4.8"
+    high: "6.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the vehicle is a 2015-2020 Acura TLX with the 3.5L V6 in ordinary condition, no rust or seized fasteners, and that the job includes removing and reinstalling the accessory drive belts and tensioner but not replacing them. Water pump and seals are not included."
+  - scope: engine
+    make: volvo
+    model: v70
+    year_from: 2001
+    year_to: 2004
+    engine: 2-3l
+    low: "1.5"
+    typical: "2.3"
+    high: "3.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.3L transverse five-cylinder V70 in ordinary condition, with crank pulley/damper removal and possible right-side mount bracket access. No water pump, cam/crank seal, or drive belt replacement is included."
+  - scope: engine
+    make: volvo
+    model: v70
+    year_from: 2001
+    year_to: 2007
+    engine: 2-4l
+    low: "1.3"
+    typical: "1.8"
+    high: "2.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the 2.4L five-cylinder V70 with ordinary condition and no water pump or seal replacement. The listed procedure did not require engine mount removal, but the high figure allows for extra stuck fasteners or access issues."
+  - scope: engine
+    make: volvo
+    model: v70
+    year_from: 2004
+    year_to: 2007
+    engine: 2-5l
+    low: "1.4"
+    typical: "2.1"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for an ordinary-condition 2004-2007 Volvo V70 2.5L five-cylinder wagon, assuming the right engine mount/bracket must be moved for access; water pump, cam/crank seals and drive belt replacement are not included."
+  - scope: engine
+    make: volvo
+    model: v70
+    year_from: 1999
+    year_to: 2000
+    engine: 2-3l-turbo
+    low: "2.1"
+    typical: "2.9"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 1999-2000 Volvo V70 2.3L turbo in ordinary condition with the right engine mount moved only as needed for access. I assumed no water pump, camshaft/crankshaft seal, or drive belt replacement is included beyond refitting the existing accessory belt."
+  - scope: engine
+    make: volvo
+    model: v70
+    year_from: 1998
+    year_to: 2000
+    engine: 2-4l
+    low: "1.5"
+    typical: "2"
+    high: "2.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Transverse 2.4L five-cylinder in a V70 wagon, engine cold, standard tools, no rust or seized fasteners; the job covers belt, tensioner and idler only, with the water pump, crank/cam seals and drive belt excluded."
+  - scope: engine
+    make: toyota
+    model: 4runner
+    year_from: 1990
+    year_to: 1995
+    engine: 3-0l-v6
+    low: "4"
+    typical: "5.5"
+    high: "7.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 1993-1995 Toyota 4Runner 3.0L V6 4WD automatic with power steering, assuming ordinary condition and no rust or seized fasteners. Timing belt only; water pump, seals, and drive belts are not replaced."
+  - scope: engine
+    make: subaru
+    model: legacy
+    year_from: 2010
+    year_to: 2014
+    engine: 2-5l
+    low: "2.1"
+    typical: "3"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2010-2012 EJ25 SOHC belt engine shown by the 2012 example, AWD sedan, with in-car replacement and no water pump, seals, drive belt replacement, radiator removal or coolant service. Later 2.5L timing-chain engines are not this job; figures are an AI estimate."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 1990
+    year_to: 1991
+    engine: 2-0l
+    low: "3.5"
+    typical: "4.5"
+    high: "6.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1990-1991 Toyota Camry with 2.0L 4-cylinder engine, likely AWD, in average condition with no rust or seized fasteners for typical. Low reflects an experienced technician in ideal conditions; high accounts for rust and seized bolts."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 1990
+    year_to: 1991
+    engine: 2-5l-v6
+    low: "2.4"
+    typical: "3.25"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a transverse-front-wheel-drive 1990-1991 Camry with the 2.5L V6, ordinary condition with no rust or seized fasteners, and that the water pump and cam/crank seals are not being replaced."
+  - scope: engine
+    make: ford
+    model: mustang
+    year_from: 1990
+    year_to: 1993
+    engine: 2-3l
+    low: "2.6"
+    typical: "3.8"
+    high: "5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 1990-1993 Mustang 2.3L with A/C and power steering, standard tools, and no rust or seized fasteners. The A/C compressor bracket is moved aside without refrigerant recovery; if the system must be discharged and recharged, add time."
+  - scope: engine
+    make: chrysler
+    model: pacifica
+    year_from: 2004
+    year_to: 2006
+    engine: 3-5l-v6
+    low: "3.1"
+    typical: "4.2"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a transverse 3.5L V6 Pacifica with a timing belt; assumes no water pump, cam/crank seals or drive belts are replaced and no rust or seized fasteners."
+  - scope: engine
+    make: chrysler
+    model: pacifica
+    year_from: 2007
+    year_to: 2008
+    engine: 4-0l-v6
+    low: "2.6"
+    typical: "3.4"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 4.0L V6 with a timing belt in ordinary condition; drive belts are removed and refitted but not replaced, and the water pump and engine seals are not touched."
+  - scope: engine
+    make: toyota
+    model: tacoma
+    year_from: 1995
+    year_to: 2004
+    engine: 3-4l-v6
+    low: "2.9"
+    typical: "4.1"
+    high: "5.7"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the 3.4L V6 is a timing-belt engine in ordinary condition, with no water pump, camshaft/crankshaft seal or drive belt replacement included. Hours are an AI estimate for a professional technician using standard shop tools."
+  - scope: engine
+    make: subaru
+    model: forester
+    year_from: 2003
+    year_to: 2008
+    engine: 2-5l
+    low: "2.2"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for an in-car timing belt replacement on the most common 2.5L SOHC non-turbo Forester, with no water pump or seal work and no rust or seized fasteners. High allows for rust/seizure and possible extra work on a turbo/intercooler-equipped 2.5L variant."
+  - scope: engine
+    make: lexus
+    model: es
+    year_from: 2002
+    year_to: 2003
+    engine: 3-0l-v6
+    low: "3.4"
+    typical: "4.45"
+    high: "6.1"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 3.0L V6 ES300 in ordinary condition, with the old accessory belts reused and no water pump or seal work; the estimate covers access, engine mount removal, crank pulley, timing covers, belt/tensioner/idler replacement, timing verification and reassembly."
+  - scope: engine
+    make: lexus
+    model: es
+    year_from: 2004
+    year_to: 2006
+    engine: 3-3l-v6
+    low: "3.8"
+    typical: "4.9"
+    high: "6.8"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "The vehicle is a 2004-2006 Lexus ES 330 with the 3.3L V6 (3MZ-FE), transverse FWD, 60% of generation sales. Job is timing belt replacement only, excluding water pump and seals; typical assumes no rust or seized fasteners, high allows for rust and seized fasteners."
+  - scope: engine
+    make: chevrolet
+    model: sonic
+    year_from: 2012
+    year_to: 2018
+    engine: 1-8l
+    low: "2.8"
+    typical: "3.65"
+    high: "5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1.8L Sonic in ordinary condition with standard hand tools and the specified cam locking tools; the job replaces the timing belt, tensioner and idler only, without water pump, seals or drive belt replacement. High allows for rust and seized fasteners, especially the crankshaft bolt."
+  - scope: engine
+    make: acura
+    model: tsx
+    year_from: 2010
+    year_to: 2014
+    engine: 3-5l-v6
+    low: "3.8"
+    typical: "4.8"
+    high: "6.3"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "Assumed the Acura TSX 3.5L V6 uses a timing belt and is transverse front-wheel drive, with the job done in ordinary condition using standard shop tools. The estimate excludes water pump, cam/crank seals, and replacement of the accessory drive belts themselves."
+  - scope: engine
+    make: audi
+    model: a6
+    year_from: 2000
+    year_to: 2004
+    engine: 2-7l
+    low: "4.3"
+    typical: "5.35"
+    high: "7.5"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed a 2000-2004 Audi A6 with the 2.7L twin-turbo V6, standard shop tools, and no water pump, seal, or drive belt replacement. The estimate includes moving the front lock carrier into service position and refitting existing belts and mounts."
+  - scope: engine
+    make: audi
+    model: a6
+    year_from: 1998
+    year_to: 2001
+    engine: 2-8l
+    low: "4.2"
+    typical: "5.4"
+    high: "7"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 2.8L V6 A6 in ordinary condition with the front lock carrier moved to service position for access; the job excludes water pump, seals, and drive belt replacement."
+  - scope: engine
+    make: audi
+    model: a6
+    year_from: 2002
+    year_to: 2004
+    engine: 3-0l
+    low: "4.8"
+    typical: "6.3"
+    high: "8.5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a 2002-2004 Audi A6 with the 3.0L V6 and factory timing belt setup, requiring front-end service position for access. Estimate covers belt, tensioner and idler only, with no water pump, seals or drive belt replacement."
+  - scope: engine
+    make: toyota
+    model: 4runner
+    year_from: 2003
+    year_to: 2009
+    engine: 4-7l-v8
+    low: "4.3"
+    typical: "5.6"
+    high: "7.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4.7L V8 2UZ-FE 4Runner in ordinary condition with existing drive belts reused and coolant refilled; the estimate excludes water pump, camshaft/crankshaft seals and new drive belts. I did not add engine mount removal because the listed 2UZ-FE procedure only separates accessories in the way."
+  - scope: engine
+    make: audi
+    model: tt
+    year_from: 2008
+    year_to: 2015
+    engine: 2-0l
+    low: "2.6"
+    typical: "3.5"
+    high: "5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "AI estimate assuming the belt-equipped EA113 2.0 TFSI version; later EA888 2.0 TFSI engines use a timing chain and would not have this job. No water pump, seals, or drive belt replacement included."
+  - scope: engine
+    make: hyundai
+    model: accent
+    year_from: 2000
+    year_to: 2002
+    engine: 1-5l
+    low: "1.5"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 2000-2002 Hyundai Accent with the 1.5L engine, assuming ordinary condition and no rust or seized fasteners; the job covers timing belt, tensioner and idler replacement only, not water pump, seals or drive belts."
+  - scope: engine
+    make: hyundai
+    model: accent
+    year_from: 2003
+    year_to: 2005
+    engine: 1-6l
+    low: "2.2"
+    typical: "3"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Transverse 1.6L DOHC Accent with accessory belts and the original engine mount/bracket in place; the job is a timing belt, tensioner and idler replacement only, with no water pump, seals or new drive belts included."
+  - scope: engine
+    make: hyundai
+    model: santa-fe
+    year_from: 2001
+    year_to: 2004
+    engine: 2-4l
+    low: "1.9"
+    typical: "2.6"
+    high: "3.9"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2001-2004 Santa Fe with the 2.4L four-cylinder gasoline engine in ordinary condition, with the timing belt driven by the crankshaft and accessory belts needing removal. Water pump, camshaft/crankshaft seals, and drive belt replacement are not included."
+  - scope: engine
+    make: subaru
+    model: outback
+    year_from: 2005
+    year_to: 2009
+    engine: 2-5l
+    low: "2.2"
+    typical: "2.9"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common non-turbo 2.5L SOHC automatic Outback with no rust or seized fasteners, and no water pump, seals or drive belts included. High allows for the harder turbo/DOHC variant and extra parts in the way."
+  - scope: engine
+    make: kia
+    model: sportage
+    year_from: 2005
+    year_to: 2010
+    engine: 2-0l
+    low: "3"
+    typical: "3.8"
+    high: "5.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2005-2010 Kia Sportage 2.0L gasoline timing belt replacement in ordinary condition with standard tools; the drive belts are removed and refitted but not replaced, and the water pump, seals and other optional parts are not replaced."
+  - scope: engine
+    make: kia
+    model: sportage
+    year_from: 2007
+    year_to: 2010
+    engine: 2-7l-v6
+    low: "2.7"
+    typical: "3.9"
+    high: "5.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.7L V6 is the transverse engine with a belt-driven camshaft system and that the job uses ordinary hand tools; AWD does not materially change the timing belt access. The provided 2.0L procedure was not used directly because the requested engine is the V6."
+  - scope: engine
+    make: dodge
+    model: dart
+    year_from: 2013
+    year_to: 2016
+    engine: 1-4l-turbo
+    low: "2.6"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the 1.4L MultiAir Turbo as fitted to the Dart, which uses a belt-driven single camshaft with a separate internal MultiAir drive belt that is not touched here; work done on a lift with the correct crank-holding and cam-locking tools available."
+  - scope: engine
+    make: chrysler
+    model: pt-cruiser
+    year_from: 2001
+    year_to: 2010
+    engine: 2-4l
+    low: "4"
+    typical: "5.2"
+    high: "7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.4L DOHC FWD PT Cruiser in ordinary condition, replacing the timing belt, tensioner and idler while reusing the accessory belts; no water pump or seal work is included."
+  - scope: engine
+    make: chrysler
+    model: pt-cruiser
+    year_from: 2004
+    year_to: 2008
+    engine: 2-4l-turbo
+    low: "3.3"
+    typical: "4.1"
+    high: "5.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2004-2008 PT Cruiser with the 2.4L turbo FWD engine in ordinary condition, replacing the timing belt, tensioner and idler without water pump, seals or drive belts; this is an AI estimate."
+  - scope: engine
+    make: chrysler
+    model: sebring
+    year_from: 1996
+    year_to: 1999
+    engine: 2-0l
+    low: "1.8"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a transverse front-wheel-drive 2.0L four-cylinder with a timing belt, in ordinary condition with no rust or seized fasteners. Water pump, seals and drive belt replacement are not included."
+  - scope: engine
+    make: chrysler
+    model: sebring
+    year_from: 1996
+    year_to: 2000
+    engine: 2-4l
+    low: "2.3"
+    typical: "3"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1996-2000 Sebring with the 2.4L DOHC four-cylinder, transverse FWD, in ordinary condition; the 2.4L uses a timing belt. The supplied 2.5L V6 procedure was not used; water pump and seal replacement are excluded."
+  - scope: engine
+    make: chrysler
+    model: sebring
+    year_from: 1996
+    year_to: 2000
+    engine: 2-5l-v6
+    low: "3"
+    typical: "3.9"
+    high: "5.5"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a transverse 2.5L V6 FWD Sebring with the timing belt behind the right-side covers and engine mount; assumes no water pump or seal replacement and no rust or seized fasteners in the typical case."
+  - scope: engine
+    make: volvo
+    model: s40
+    year_from: 2005
+    year_to: 2010
+    engine: 2-4l
+    low: "1.7"
+    typical: "2.2"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a clean 2.4L five-cylinder S40 with no rusted or seized fasteners and no water pump or seal work being performed. The accessory drive belt is removed and reinstalled, not replaced."
+  - scope: engine
+    make: volvo
+    model: s40
+    year_from: 2005
+    year_to: 2011
+    engine: 2-5l
+    low: "2.6"
+    typical: "3.4"
+    high: "4.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the transverse 2.5L turbo five-cylinder in a FWD S40 with no added equipment, and that the engine is supported from above via the lifting beam as described, with the water pump and seals left in place."
+  - scope: engine
+    make: volvo
+    model: c70
+    year_from: 1999
+    year_to: 2000
+    engine: 2-3l-turbo
+    low: "2.2"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 2.3L turbo five-cylinder in an ordinary C70 with no rust or seized fasteners, using standard shop tools. The estimate covers timing belt, tensioner and idler replacement but not the water pump, seals or drive belt replacement."
+  - scope: engine
+    make: volvo
+    model: c70
+    year_from: 1999
+    year_to: 2004
+    engine: 2-4l
+    low: "1.5"
+    typical: "2.2"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 2.4L inline-5 Volvo C70 with standard shop tools and no rust; the job includes new tensioner/idler and replacement of torque-to-yield damper bolts if removed, but excludes water pump, seals and drive belt replacement."
+  - scope: engine
+    make: jeep
+    model: wrangler
+    year_from: 2003
+    year_to: 2006
+    engine: 2-4l
+    low: "2.4"
+    typical: "3.4"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed this 2003-2006 Wrangler has the belt-driven 2.4L inline-four and that the accessory drive, fan/shroud and right engine mount bracket must be moved for timing cover access. No water pump, seals or drive belt replacement is included beyond refitting the existing belts."
+  - scope: engine
+    make: subaru
+    model: wrx
+    year_from: 2015
+    year_to: 2021
+    engine: 2-5l-turbo
+    low: "3"
+    typical: "3.8"
+    high: "5.4"
+    confidence: 52
+    inputs: [vehicle, job]
+    notes: "Assumed the 2.5L turbo is the EJ257 timing-belt engine as fitted to the WRX STI variant, not the FA20 chain engine. The job is for the belt, tensioner and idler only, with no water pump, seals or drive belt replacement, and no rust or seized fasteners."
+  - scope: engine
+    make: dodge
+    model: nitro
+    year_from: 2007
+    year_to: 2009
+    engine: 4-0l-v6
+    low: "5"
+    typical: "6.55"
+    high: "9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2009 Dodge Nitro R/T 4WD with 4.0L V6, no rust or seized fasteners, and that the procedure for Nitro does not require removal of air cleaner or front engine mount as per the transverse models. Also assumed standard shop tools including special tools for damper and tensioner."
+  - scope: engine
+    make: audi
+    model: a3
+    year_from: 2006
+    year_to: 2013
+    engine: 2-0l
+    low: "3.2"
+    typical: "4.2"
+    high: "6"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the common transverse 2.0 TDI engine with a belt-driven camshaft, standard hand tools, and no water pump or seal work. If a chain-driven 2.0 TFSI variant is intended, this timing-belt job would not apply."
+  - scope: engine
+    make: audi
+    model: a3
+    year_from: 2010
+    year_to: 2013
+    engine: 2-0l-diesel
+    low: "3.2"
+    typical: "4.1"
+    high: "5.6"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Audi A3 8P with the transverse 2.0L diesel, using standard shop tools and timing locking tools. The job is timing belt only, with no water pump or accessory belt replacement, and the right-side engine mount is removed for access."
+  - scope: engine
+    make: audi
+    model: tt
+    year_from: 2000
+    year_to: 2006
+    engine: 1-8l
+    low: "3.2"
+    typical: "4.1"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 1.8L turbo engine in average condition with no seized fasteners and no added equipment; water pump, seals and drive belt replacement are not included. The estimate is for the 1.8L engine only."
+  - scope: engine
+    make: mitsubishi
+    model: lancer
+    year_from: 2002
+    year_to: 2007
+    engine: 2-0l
+    low: "2.7"
+    typical: "3.7"
+    high: "5.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L SOHC engine with timing and balance shaft belts, A/C and power steering, with no rust or seized fasteners. AI-estimated hours; includes timing belt, tensioner, idler and balance belt, but not water pump, seals or new drive belts."
+  - scope: engine
+    make: mitsubishi
+    model: lancer
+    year_from: 2004
+    year_to: 2006
+    engine: 2-4l
+    low: "2.3"
+    typical: "3.05"
+    high: "4.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L is the transverse 4G69 SOHC engine with a timing belt and a separate balance-shaft belt; ordinary condition with no rust or seized fasteners, and no water pump or seal work included."
+  - scope: engine
+    make: toyota
+    model: celica
+    year_from: 1990
+    year_to: 1992
+    engine: 1-6l
+    low: "2"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 1.6L front-wheel-drive Celica in ordinary condition with normal accessory belts and no rust; it assumes the valve cover and right-side engine mount must be removed for timing cover access, and no water pump or seal work is performed."
+  - scope: engine
+    make: toyota
+    model: celica
+    year_from: 1990
+    year_to: 1993
+    engine: 2-2l
+    low: "2.9"
+    typical: "4"
+    high: "5.6"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1990-1993 Celica with the 2.2L 5S-FE engine, front-wheel drive, non-turbo/non-All-Trac, in ordinary condition with no rust or seized fasteners. Estimated timing belt replacement only, with no water pump, camshaft seal, crankshaft seal, or drive belt replacement."
+  - scope: engine
+    make: lexus
+    model: gs
+    year_from: 1999
+    year_to: 2002
+    engine: 3-0l
+    low: "3"
+    typical: "4"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 1999-2002 Lexus GS300 with the 3.0L inline-six and RWD, standard accessories, reusing the drive belts; water pump and seals are not replaced."
+  - scope: engine
+    make: lexus
+    model: gs
+    year_from: 2004
+    year_to: 2005
+    engine: 3-0l
+    low: "3.2"
+    typical: "4.37"
+    high: "6"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "I assumed a 2JZ-GE inline-6 engine in a rear-wheel-drive GS 300, with no rust or seized fasteners. The job includes removing the cooling fan, drive belts, crankshaft pulley, timing covers, and one engine mount bracket to access the timing belt."
+  - scope: engine
+    make: lexus
+    model: gs
+    year_from: 1998
+    year_to: 2000
+    engine: 4-0l-v8
+    low: "3.2"
+    typical: "4.1"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a 1998-2000 Lexus GS 400 with the 4.0L V8 in ordinary condition and no water pump, seal or drive belt replacement included. The estimate covers timing belt, tensioner and idler service with normal access and no seized fasteners."
+  - scope: engine
+    make: lexus
+    model: gs
+    year_from: 2003
+    year_to: 2005
+    engine: 4-3l-v8
+    low: "4.2"
+    typical: "5.4"
+    high: "7.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 2003-2005 Lexus GS430 4.3L V8 in ordinary rust-free condition with standard shop tools; the water pump, cam/crank seals and drive belts are not replaced, only removed/refitted as needed for access."
+  - scope: engine
+    make: audi
+    model: a8
+    year_from: 1997
+    year_to: 1999
+    engine: 3-7l
+    low: "4.5"
+    typical: "6.1"
+    high: "8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "The vehicle is a 1997-1999 Audi A8 with the 3.7L V8 engine, in ordinary condition with no rust or seized fasteners, and the technician uses standard shop tools. The front end is placed in service position to access the timing belt, as is typical for this engine."
+  - scope: engine
+    make: audi
+    model: a8
+    year_from: 1997
+    year_to: 2003
+    engine: 4-2l
+    low: "5.5"
+    typical: "7.25"
+    high: "10"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "I assumed this is the 4.2L V8 A8 with a timing belt and that the front end must be put into service position for access. I did not include water pump, cam/crank seals or drive belt replacement beyond refitting what comes off."
+  - scope: engine
+    make: chrysler
+    model: concorde
+    year_from: 1998
+    year_to: 2001
+    engine: 3-2l-v6
+    low: "3.1"
+    typical: "4"
+    high: "5.7"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 3.2L V6 Concorde in ordinary condition with no rust or seized fasteners, and that this is timing belt only without water pump or seals. Times are AI estimates."
+  - scope: engine
+    make: chrysler
+    model: concorde
+    year_from: 2002
+    year_to: 2004
+    engine: 3-5l-v6
+    low: "2.9"
+    typical: "4.1"
+    high: "5.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed this is the transverse 3.5L V6 with a timing belt, in ordinary condition with no water pump, seal or drive-belt replacement included. This is an AI estimate, not a published labour time."
+  - scope: engine
+    make: toyota
+    model: supra
+    year_from: 1993
+    year_to: 1996
+    engine: 3-0l
+    low: "3.1"
+    typical: "4"
+    high: "5.5"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 1993-1996 Toyota Supra 3.0L non-turbo with automatic transmission, standard shop tools, and no rust or seized fasteners. The estimate includes the listed radiator removal, cooling system drain, A/T oil cooler line work, and timing belt/tensioner/idler service."
+  - scope: engine
+    make: toyota
+    model: supra
+    year_from: 1993
+    year_to: 1994
+    engine: 3-0l-turbo
+    low: "3.4"
+    typical: "4.2"
+    high: "5.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1993-94 Supra 3.0L Turbo in ordinary condition with no rust, and that radiator/fan removal and coolant drain/refill are included for access. The estimate excludes water pump, cam/crank seals and drive belt replacement; it is an AI labour estimate."
+  - scope: engine
+    make: toyota
+    model: supra
+    year_from: 1996
+    year_to: 1998
+    engine: 3-0l-turbo
+    low: "3.8"
+    typical: "5"
+    high: "6.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 1996-1998 Toyota Supra 3.0L turbo (2JZ-GTE) in average condition with original accessories; includes radiator and cooling fan removal as part of access, but no water pump, seal or drive belt replacement."
+  - scope: engine
+    make: toyota
+    model: t100
+    year_from: 1993
+    year_to: 1994
+    engine: 3-0l-v6
+    low: "3.4"
+    typical: "4.4"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "These are AI-estimated labour hours for a 1993-1994 Toyota T100 3.0L V6 timing belt replacement in ordinary condition, assuming common 4WD/engine-bay access and no water pump, seals or drive belt replacement."
+  - scope: engine
+    make: toyota
+    model: t100
+    year_from: 1995
+    year_to: 1998
+    engine: 3-4l-v6
+    low: "4"
+    typical: "5"
+    high: "6.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate assumes a rust-free 4WD automatic T100 with the 3.4L V6, reusing the accessory drive belts and not replacing the water pump or seals. It includes draining/refilling coolant and setting up and checking timing marks."
+  - scope: engine
+    make: toyota
+    model: mr2
+    year_from: 1991
+    year_to: 1995
+    engine: 2-0l-turbo
+    low: "3.3"
+    typical: "4.3"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1991-1995 MR2 2.0L Turbo in ordinary condition with a timing belt kit including tensioner/idler and no water pump or seal work. Estimated for a professional technician with standard shop tools, allowing for the mid-engine layout and engine-mount removal."
+  - scope: engine
+    make: toyota
+    model: mr2
+    year_from: 1991
+    year_to: 1995
+    engine: 2-2l
+    low: "3.2"
+    typical: "4.18"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "The vehicle is a 1993 Toyota MR2 with the 2.2L engine and mid-engine layout. The job is a standard timing belt replacement including tensioner and idler, without water pump or seal replacement, and assumes the cruise control system is present and no rust or seized fasteners."
+  - scope: engine
+    make: toyota
+    model: camry-solara
+    year_from: 1999
+    year_to: 2001
+    engine: 2-2l
+    low: "1.9"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.2L four-cylinder engine (5S-FE) in a front-wheel-drive Camry Solara with no added accessories complicating access. The job replaces only the timing belt, tensioner and idler; water pump, seals and drive belts are not replaced."
+  - scope: engine
+    make: toyota
+    model: camry-solara
+    year_from: 1999
+    year_to: 2001
+    engine: 3-0l-v6
+    low: "3.5"
+    typical: "4.45"
+    high: "5.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1999-2001 Camry Solara with the 3.0L V6 1MZ-FE, front-wheel drive, in ordinary condition with no added equipment. Estimated only timing belt, tensioner and idler work; water pump, cam/crank seals and drive belt replacement are not included."
+  - scope: engine
+    make: nissan
+    model: frontier
+    year_from: 2000
+    year_to: 2004
+    engine: 3-3l-v6
+    low: "2.75"
+    typical: "3.6"
+    high: "5.25"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 2000-2004 Nissan Frontier 3.3L V6 RWD pickup in ordinary condition, with drive belts reused and no water pump or seal replacement. It assumes no rust or seized fasteners; high allows for those."
+  - scope: engine
+    make: dodge
+    model: intrepid
+    year_from: 1999
+    year_to: 2004
+    engine: 3-5l-v6
+    low: "3"
+    typical: "4"
+    high: "6"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "Assumed a front-wheel-drive Dodge Intrepid with the 3.5L V6 in ordinary condition, reusing the accessory belts and removing/reinstalling the engine mount as needed. No water pump, camshaft/crankshaft seals or replacement drive belts are included."
+  - scope: engine
+    make: lexus
+    model: sc
+    year_from: 1992
+    year_to: 1996
+    engine: 3-0l
+    low: "3.8"
+    typical: "5"
+    high: "6.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 1992-1996 Lexus SC300 with the 3.0L inline-six and rear-wheel drive, in ordinary condition with no rust or seized fasteners. The estimate excludes water pump, camshaft/crankshaft seals, and drive belt replacement."
+  - scope: engine
+    make: lexus
+    model: sc
+    year_from: 1999
+    year_to: 2000
+    engine: 3-0l
+    low: "2.2"
+    typical: "3"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed a stock 1999-2000 Lexus SC300 with the 3.0L inline-six and rear-wheel drive, and that the job covers the timing belt with tensioner and idler only, not the water pump, seals or drive belts; the engine mount/bracket is included only as needed for access."
+  - scope: engine
+    make: lexus
+    model: sc
+    year_from: 1992
+    year_to: 1993
+    engine: 4-0l-v8
+    low: "3"
+    typical: "4.1"
+    high: "5.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "The vehicle is a 1992-1993 Lexus SC with the 4.0L V8 in ordinary condition, and the job is timing belt replacement only, not water pump, seals, or drive belt replacement. Access requires removing the fan/shroud, drive belts, crank pulley, timing covers, and engine mount parts in the way."
+  - scope: engine
+    make: lexus
+    model: sc
+    year_from: 1996
+    year_to: 2000
+    engine: 4-0l-v8
+    low: "3.8"
+    typical: "5.3"
+    high: "7.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 1996-2000 Lexus SC400 with the 4.0L V8 in ordinary condition, with no water pump, camshaft/crankshaft seal, or drive belt replacement included. The estimate covers removing/refitting the engine mount and parts in the way as stated, with high allowing for rust and seized fasteners."
+  - scope: engine
+    make: toyota
+    model: celica
+    year_from: 1995
+    year_to: 1998
+    engine: 1-8l
+    low: "2.8"
+    typical: "3.56"
+    high: "5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1995-1998 Toyota Celica with the 1.8L engine, transverse layout, timing belt driven, no rust or seized fasteners, standard shop tools. Job is for timing belt, tensioner, and idler replacement only, no seals or water pump."
+  - scope: engine
+    make: toyota
+    model: celica
+    year_from: 1994
+    year_to: 1999
+    engine: 2-2l
+    low: "2.6"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.2L transverse engine in ordinary condition with no rust or seized fasteners, and that the alternator/generator must be moved or removed as described for access. Timing belt, tensioner and idler are replaced; water pump and seals are not."
+  - scope: engine
+    make: toyota
+    model: pick-up
+    year_from: 1990
+    year_to: 1995
+    engine: 3-0l-v6
+    low: "2.4"
+    typical: "3.3"
+    high: "4.8"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a 1990-1995 Toyota Pick-Up with the 3.0L V6 in ordinary condition and standard accessory drive, with no water pump or seal replacement included. The estimate includes removing and refitting the engine mount/obstructing parts as stated in the job description."
+  - scope: engine
+    make: kia
+    model: optima
+    year_from: 2006
+    year_to: 2010
+    engine: 2-7l-v6
+    low: "3.8"
+    typical: "5"
+    high: "6.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "I assumed a transverse front-wheel-drive 2.7L V6 sedan in ordinary condition with no rust; the job includes removing the right engine mount and accessory belts for access, but does not include water pump or seal replacement."
+  - scope: engine
+    make: subaru
+    model: impreza
+    year_from: 1993
+    year_to: 1994
+    engine: 1-8l
+    low: "1.9"
+    typical: "2.6"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 1993-1994 Subaru Impreza 1.8L AWD in ordinary condition, assuming no water pump or seal work and no engine mount removal is needed. The rocker cover check from the procedure is included."
+  - scope: engine
+    make: subaru
+    model: impreza
+    year_from: 1995
+    year_to: 2001
+    engine: 2-2l
+    low: "1.6"
+    typical: "2.35"
+    high: "3.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a SOHC 2.2L Impreza with standard accessories and A/C, in ordinary condition with no rusted fasteners or seized crank pulley bolt. No engine mount removal was included because it is not normally required for this timing belt job."
+  - scope: engine
+    make: subaru
+    model: impreza
+    year_from: 1998
+    year_to: 2001
+    engine: 2-5l
+    low: "2.2"
+    typical: "3"
+    high: "4.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical 1998-2001 Impreza 2.5L with the engine in the vehicle, standard accessories, and no rust or seized fasteners. The high estimate covers a harder 2.5L variant and rusted or seized pulley/cover bolts."
+  - scope: engine
+    make: chrysler
+    model: lebaron
+    year_from: 1990
+    year_to: 1994
+    engine: 2-5l
+    low: "2.3"
+    typical: "3.1"
+    high: "4.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 2.5L SOHC non-turbo in a LeBaron convertible with power steering and A/C, engine in ordinary used condition; the A/C compressor is only unbolted and swung aside with lines left connected, no seals, water pump or drive belts replaced."
+  - scope: engine
+    make: chrysler
+    model: lebaron
+    year_from: 1990
+    year_to: 1995
+    engine: 3-0l-v6
+    low: "2.2"
+    typical: "3.15"
+    high: "4.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 3.0L V6 LeBaron with common accessories such as A/C and power steering, in ordinary condition with no seized fasteners. The estimate covers timing belt, tensioner and idler replacement, engine mount/accessory removal, timing alignment and recheck, and does not include water…"
+  - scope: engine
+    make: acura
+    model: mdx
+    year_from: 2022
+    year_to: 2027
+    engine: 3-0l-turbo-v6
+    low: "4.3"
+    typical: "5.5"
+    high: "7.2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.0L turbo V6 uses a timing belt and is in ordinary condition with no rust or seized fasteners. The job covers only the timing belt, tensioner and idler with necessary removal/refit of surrounding parts; water pump, seals and drive belt replacement are not included."
+  - scope: engine
+    make: acura
+    model: mdx
+    year_from: 2022
+    year_to: 2027
+    engine: 3-5l-v6
+    low: "3.8"
+    typical: "5"
+    high: "6.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2022-2027 Acura MDX 3.5L V6 with a timing belt, in ordinary condition. The job is belt/tensioner/idler only; water pump, seals and drive belt replacement are not included, though coolant is drained/refilled as part of access."
+  - scope: engine
+    make: volvo
+    model: xc60
+    year_from: 2018
+    year_to: 2021
+    engine: 2-0l-turbo
+    low: "3.2"
+    typical: "4.4"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a transverse 2.0L Turbo Volvo XC60 AWD with ordinary access, reusing the original accessory drive belt and not replacing the water pump or seals. AWD mainly adds underbody shielding; rust/seized fasteners are covered by the high estimate."
+  - scope: engine
+    make: volvo
+    model: xc60
+    year_from: 2018
+    year_to: 2021
+    engine: 2-0l-turbo-phev
+    low: "3"
+    typical: "3.8"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2018-2021 XC60 T8 2.0L turbo PHEV with a transverse engine and timing belt, in ordinary condition with no rust or seized fasteners. AI estimate; no water pump, seals or high-voltage system work included."
+  - scope: engine
+    make: volvo
+    model: xc90
+    year_from: 2016
+    year_to: 2021
+    engine: 2-0l-turbo
+    low: "3"
+    typical: "4"
+    high: "5.6"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed a 2.0L turbo four-cylinder Volvo with a timing belt and standard access; no water pump, cam seals or drive belt replacement beyond what is needed for access. Estimates are for ordinary condition with no rust or seized fasteners, using a lift and normal shop tools."
+  - scope: engine
+    make: volvo
+    model: xc90
+    year_from: 2016
+    year_to: 2021
+    engine: 2-0l-turbo-phev
+    low: "3.1"
+    typical: "3.9"
+    high: "5.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 2016-2021 Volvo XC90 T8 PHEV with the 2.0L turbo/supercharged four-cylinder timing belt engine, assuming no water pump or seal work and ordinary condition. The hybrid system is not disturbed; extra time in the high figure covers rusted fasteners and tight engine-bay access."
+  - scope: engine
+    make: mazda
+    model: mx-5
+    year_from: 1990
+    year_to: 1993
+    engine: 1-6l
+    low: "2.4"
+    typical: "3.4"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a standard 1.6L MX-5 with no rust or seized fasteners and no water pump or seal work. I did not include engine-mount removal because it is not normally in the way on this longitudinal RWD layout; add time if a mount is actually required for access."
+  - scope: engine
+    make: dodge
+    model: stealth
+    year_from: 1991
+    year_to: 1994
+    engine: 3-0l-turbo-v6
+    low: "4.8"
+    typical: "6.4"
+    high: "8.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.0L Turbo V6 is the twin-turbo DOHC transverse engine, so extra intake/intercooler access is included. The job is a timing belt replacement only, with no water pump, seal, or drive belt replacement included."
+  - scope: engine
+    make: dodge
+    model: stealth
+    year_from: 1991
+    year_to: 1994
+    engine: 3-0l-v6
+    low: "3.2"
+    typical: "4.27"
+    high: "5.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1991-1994 Dodge Stealth with 3.0L V6 SOHC, cruise control equipped, and no rust or seized fasteners for typical time. High includes allowance for rust and seized bolts, especially the engine support bracket reamer bolt."
+  - scope: engine
+    make: acura
+    model: tlx
+    year_from: 2021
+    year_to: 2025
+    engine: 3-0l-turbo-v6
+    low: "4.8"
+    typical: "6"
+    high: "7.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "AI estimate. I assumed the 2021-2025 TLX 3.0L Turbo V6 is a transverse, belt-driven V6 requiring engine mount and crank pulley removal, and that the job does not include water pump, seals or drive belt replacement."
+  - scope: engine
+    make: volvo
+    model: c30
+    year_from: 2008
+    year_to: 2010
+    engine: 2-4l
+    low: "2.2"
+    typical: "3.1"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 2.4L five-cylinder Volvo C30 in ordinary condition with no rust or seized fasteners; timing belt only, reusing the accessory belt and not replacing the water pump, seals or drive belt."
+  - scope: engine
+    make: volvo
+    model: c30
+    year_from: 2008
+    year_to: 2013
+    engine: 2-5l
+    low: "1.6"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.5L turbo five-cylinder FWD C30 with a cold engine and no rust or seized fasteners. The job replaces the timing belt, tensioner and idler only; the accessory belt is removed and reinstalled, while the water pump, seals and accessory belt are not replaced."
