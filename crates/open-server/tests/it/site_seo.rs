@@ -231,3 +231,68 @@ async fn the_pages_sitemap_lists_the_method_page_only_where_labour_is_held() {
     let (_, pages) = page(&app, "/sitemaps/pages.xml").await;
     assert!(!pages.contains("how-estimates-are-made"), "{pages}");
 }
+
+#[tokio::test]
+async fn labor_sitemaps_list_the_vehicle_labour_pages_that_may_be_indexed() {
+    let app = common::labor_ai_app().await;
+    let (_, index) = page(&app, "/sitemap.xml").await;
+    for name in ["labor-2022", "labor-2023"] {
+        assert!(
+            index.contains(&format!(
+                "<loc>https://open.example/sitemaps/{name}.xml</loc>"
+            )),
+            "{name}:\n{index}"
+        );
+    }
+    // 2019 has no model year with a labour page: no sitemap for it.
+    assert!(!index.contains("labor-2019"), "{index}");
+    let (_, xml) = page(&app, "/sitemaps/labor-2023.xml").await;
+    for path in [
+        "/makes/hyundai/kona/2023/labor",
+        "/makes/hyundai/kona/2023/labor/test-job-a",
+        "/makes/hyundai/kona/2023/labor/test-job-c",
+    ] {
+        assert!(
+            xml.contains(&format!("<loc>https://open.example{path}</loc>")),
+            "{path}:\n{xml}"
+        );
+    }
+    assert!(
+        !xml.contains("test-job-b"),
+        "a class figure is not a vehicle's own:\n{xml}"
+    );
+    // Every address listed is a page that is offered to search engines.
+    let mut checked = 0;
+    for entry in xml.split("<loc>https://open.example").skip(1) {
+        let path = entry.split("</loc>").next().unwrap();
+        let response = app.get(path).await;
+        assert_eq!(response.status(), StatusCode::OK, "{path}");
+        assert!(
+            response.headers().get("x-robots-tag").is_none(),
+            "{path} is listed but not indexed"
+        );
+        checked += 1;
+    }
+    assert_eq!(checked, 3);
+
+    // Without estimates there is no labour sitemap at all.
+    let app = common::app_with_shop(common::JOB_DATASETS, &common::job_rows()).await;
+    let (_, index) = page(&app, "/sitemap.xml").await;
+    assert!(!index.contains("labor-"), "{index}");
+    let (status, _) = page(&app, "/sitemaps/labor-2023.xml").await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn a_labor_sitemap_for_an_unknown_year_is_404() {
+    let app = common::labor_ai_app().await;
+    for path in [
+        "/sitemaps/labor-1066.xml",
+        "/sitemaps/labor-x.xml",
+        "/sitemaps/labor-.xml",
+        "/sitemaps/labor-2021.xml",
+    ] {
+        let (status, _) = page(&app, path).await;
+        assert_eq!(status, StatusCode::NOT_FOUND, "{path}");
+    }
+}

@@ -210,10 +210,19 @@ fn labor_text(base: &str, labor: bool) -> (String, String, String) {
     } else {
         String::new()
     };
+    let vehicle_pages = if labor {
+        format!(
+            "- [Every labour time for a model year, such as the 2023 Hyundai Kona]({base}/makes/hyundai/kona/2023/labor.md): `/makes/{{make}}/{{model}}/{{year}}/labor.md`
+- [One job's time on a model year, such as front brake pads]({base}/makes/hyundai/kona/2023/labor/brake-pads-front.md): `/makes/{{make}}/{{model}}/{{year}}/labor/{{job}}.md`
+"
+        )
+    } else {
+        String::new()
+    };
     let pages = format!(
         "- [Repair jobs and labour times]({base}/jobs.md): the list of jobs
 - [One repair job, such as front brake pads]({base}/jobs/brake-pads-front.md): `/jobs/{{job}}.md`
-{made}"
+{vehicle_pages}{made}"
     );
     (prose, api, pages)
 }

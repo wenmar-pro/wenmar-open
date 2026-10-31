@@ -190,8 +190,8 @@ fn url_set(state: &AppState, paths: &[String]) -> Response {
 }
 
 /// The list of sitemaps: one for the fixed pages, one for makes, one for
-/// manufacturer codes, and one per model year, so none comes near the
-/// limit of 50,000 addresses.
+/// manufacturer codes, and one for each kind of page that is split by
+/// model year, so none comes near the limit of 50,000 addresses.
 pub async fn index(State(state): State<AppState>) -> Response {
     let years = state.years(Scope::Light).unwrap_or_default();
     let base = &state.config().base_url;
@@ -212,6 +212,7 @@ pub async fn index(State(state): State<AppState>) -> Response {
             .map(|year| format!("recalls-{year}")),
     );
     names.extend(bulletin_sitemaps(&state, years).await);
+    names.extend(labor_sitemaps(&state, years).await);
     if state.dataset(Dataset::Codes).is_ok() {
         names.push("codes".to_owned());
     }
@@ -366,6 +367,88 @@ fn bulletin_sitemap(name: &str) -> Option<(u16, usize)> {
     }
 }
 
+/// The light catalog vehicles of a model year: model id, make slug and
+/// model slug.
+async fn light_models(state: &AppState, year: u16) -> Result<Vec<(i64, String, String)>, ApiError> {
+    let rows = state
+        .db()
+        .run_slow(move |worker| {
+            worker
+                .source
+                .query(MODEL_IDS_SQL, &[i64::from(year).into()])
+        })
+        .await
+        .map_err(ApiError::from)?
+        .map_err(ApiError::internal)?;
+    Ok(rows
+        .iter()
+        .filter_map(|row| {
+            let make = row.first().and_then(Value::text)?;
+            let model = row.get(1).and_then(Value::text)?;
+            let model_id = row.get(2).and_then(Value::integer)?;
+            (is_slug(make) && is_slug(model)).then(|| (model_id, make.to_owned(), model.to_owned()))
+        })
+        .collect())
+}
+
+/// The labour pages of one model year: the light vehicles with a figure
+/// narrower than class, their list of every time, and each such job's
+/// page. `None` when there are none, or no estimates.
+async fn labor_paths(state: &AppState, year: u16) -> Result<Option<Vec<String>>, ApiError> {
+    let Ok(shop) = state.dataset(Dataset::Labor) else {
+        return Ok(None);
+    };
+    let pages = shop.run(|reader| reader.labor_pages()).await??;
+    if pages.is_empty() {
+        return Ok(None);
+    }
+    let mut found = Vec::new();
+    for (model_id, make, model) in light_models(state, year).await? {
+        let jobs: Vec<&str> = pages
+            .iter()
+            .filter(|page| page.covers(model_id, year))
+            .map(|page| page.job_id.as_str())
+            .collect();
+        if jobs.is_empty() {
+            continue;
+        }
+        found.push(format!("/makes/{make}/{model}/{year}/labor"));
+        for job in jobs {
+            found.push(format!("/makes/{make}/{model}/{year}/labor/{job}"));
+        }
+    }
+    found.sort();
+    found.dedup();
+    Ok((!found.is_empty()).then_some(found))
+}
+
+/// The `labor-{year}` sitemaps: one for each model year with a labour page
+/// to list. None on a server with no estimates.
+async fn labor_sitemaps(state: &AppState, years: &[u16]) -> Vec<String> {
+    let Ok(shop) = state.dataset(Dataset::Labor) else {
+        return Vec::new();
+    };
+    let Ok(Ok(pages)) = shop.run(|reader| reader.labor_pages()).await else {
+        return Vec::new();
+    };
+    if pages.is_empty() {
+        return Vec::new();
+    }
+    let mut names = Vec::new();
+    for year in years {
+        let listed = match light_models(state, *year).await {
+            Ok(models) => models
+                .iter()
+                .any(|(model_id, _, _)| pages.iter().any(|page| page.covers(*model_id, *year))),
+            Err(_) => false,
+        };
+        if listed {
+            names.push(format!("labor-{year}"));
+        }
+    }
+    names
+}
+
 /// The recall pages of one model year: the cars, MPVs and trucks with a
 /// campaign that year. `None` when there are none, or no recall data.
 async fn recall_paths(state: &AppState, year: u16) -> Result<Option<Vec<String>>, ApiError> {
@@ -473,8 +556,9 @@ pub async fn sitemap(
             paths.extend(["/docs", "/data", "/about"].map(str::to_owned));
             Ok(Some(paths))
         }
-        // Every job. The pages of a job on a model year are in no
-        // sitemap: they are reached from a job's page.
+        // Every job. The page of a job on a model year is in the
+        // `labor-{year}` sitemaps, when its figure is narrower than a
+        // class and its address has no query string.
         "jobs" => match state.dataset(Dataset::Jobs) {
             Ok(shop) => shop
                 .run(|reader| reader.jobs())
@@ -540,16 +624,19 @@ pub async fn sitemap(
                 Some(codes)
             }),
         other => match other.strip_prefix("models-").and_then(site::year_in) {
-            None => match other.strip_prefix("recalls-").and_then(site::year_in) {
-                Some(year) => recall_paths(&state, year).await,
-                None => match other
-                    .strip_prefix("model-bulletins-")
-                    .and_then(site::year_in)
-                {
-                    Some(year) => model_bulletin_paths(&state, year).await,
-                    None => match bulletin_sitemap(other) {
-                        Some((year, part)) => bulletin_paths(&state, year, part).await,
-                        None => Ok(None),
+            None => match other.strip_prefix("labor-").and_then(site::year_in) {
+                Some(year) => labor_paths(&state, year).await,
+                None => match other.strip_prefix("recalls-").and_then(site::year_in) {
+                    Some(year) => recall_paths(&state, year).await,
+                    None => match other
+                        .strip_prefix("model-bulletins-")
+                        .and_then(site::year_in)
+                    {
+                        Some(year) => model_bulletin_paths(&state, year).await,
+                        None => match bulletin_sitemap(other) {
+                            Some((year, part)) => bulletin_paths(&state, year, part).await,
+                            None => Ok(None),
+                        },
                     },
                 },
             },

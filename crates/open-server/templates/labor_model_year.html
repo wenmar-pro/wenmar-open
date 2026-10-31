@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>{{ job.name }} on the {{ name }}: labour time</h1>
+{% if let Some(answer) = answer -%}
+<p>{{ answer }}</p>
+{% endif -%}
 {% if let Some(words) = range -%}
 <p><strong>{{ words }}</strong> {{ scope_words }} {{ basis }} <a href="/jobs/how-estimates-are-made">How estimates are made</a>.</p>
 <p class="note">{{ note }}</p>
@@ -9,6 +12,17 @@
 {% endfor -%}
 {% else -%}
 <p>No estimate covers this job on this vehicle yet.</p>
+{% endif -%}
+{% if let Some(ai) = ai -%}
+<h2>What the estimate assumed</h2>
+{% if let Some(assumed) = ai.assumed -%}
+<p>{{ assumed }}</p>
+{% endif -%}
+<p>An AI estimate, not checked by a person: confidence {{ ai.confidence }}%, model {{ ai.model }}, figure last changed on {{ ai.updated }}. <a href="/jobs/how-estimates-are-made">How estimates are made</a>.</p>
+{% endif -%}
+{% if !other_years.is_empty() -%}
+<h2 id="years">The same estimate covers</h2>
+<p>The same estimate covers the {{ years_words }} {{ vehicle }}: {% for (year, href) in other_years %}<a href="{{ href }}">{{ year }}</a>{% if !loop.last %}, {% endif %}{% endfor %}.</p>
 {% endif -%}
 {% if !job.includes.is_empty() -%}
 <h2>What the time covers</h2>
@@ -61,6 +75,7 @@
 <ul class="plain links">
 <li><a href="/jobs/{{ job.id }}">{{ job.name }}: the job and its typical hours</a></li>
 <li><a href="{{ model_year_path }}">The {{ name }}</a></li>
+<li><a href="{{ model_year_path }}/labor">Every labour time for the {{ name }}</a></li>
 <li><a href="{{ suggest }}">Suggest a time for this job</a></li>
 {% if let Some(href) = recalls_href -%}
 <li><a href="{{ href }}">Recalls for the {{ name }}</a></li>

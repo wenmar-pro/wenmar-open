@@ -19,11 +19,14 @@ use wenmar_shopdata::labor::{
     MIN_JOBS, MIN_SHOPS, NOTE,
 };
 use wenmar_vehicles::text::{is_slug, slug, squeeze};
+use wenmar_vehicles::{Source, Value};
 
 pub use crate::api::labor::METHOD_PATH;
-use crate::api::labor::{job_op, jobs_op, labor_of};
+use crate::api::labor::{
+    JobVehiclesQuery, MOST_VEHICLES, job_op, job_vehicles_op, jobs_op, labor_of,
+};
 use crate::api::recalls::model_year;
-use crate::api::types::{JobDetail, JobLink, LaborFigure};
+use crate::api::types::{JobDetail, JobLink, JobVehicles, LaborFigure, VehicleLabor};
 use crate::error::ApiError;
 use crate::site::markdown::{self, Format, escape};
 use crate::site::tools::canada_invoice_tax::rates::{self, Province};
@@ -262,6 +265,18 @@ struct JobsPage {
     dated: String,
 }
 
+/// What the job list is, for the dataset a search engine lists.
+const DATASET_DESCRIPTION: &str = "Wenmar's own estimates of the hours a repair job takes: written by people who do the work, measured from repair orders, or worked out by AI from the repair steps; never copied from a labour guide. An estimate, not a quote.";
+
+/// The newest day any labour figure was changed. `None` without estimates.
+async fn newest_figure(state: &AppState) -> Option<String> {
+    let shop = state.dataset(Dataset::Labor).ok()?;
+    match shop.run(|reader| reader.labor_counts()).await {
+        Ok(Ok(counts)) => counts.newest,
+        _ => None,
+    }
+}
+
 /// `/jobs`: the job list.
 pub async fn index(State(state): State<AppState>) -> Response {
     let list = match jobs_op(&state).await {
@@ -269,6 +284,7 @@ pub async fn index(State(state): State<AppState>) -> Response {
         Err(ApiError::DatasetUnavailable(_)) => return site::not_found(&state),
         Err(error) => return site::failed(&state, &error),
     };
+    let newest = newest_figure(&state).await;
     let page = Page::new(
         &state,
         seo::title("Repair jobs and labour times"),
@@ -276,6 +292,14 @@ pub async fn index(State(state): State<AppState>) -> Response {
     )
     .with_markdown("/jobs.md")
     .with_json("/v1/jobs")
+    .describing(vec![
+        jsonld::dataset(
+            &state.config().base_url,
+            DATASET_DESCRIPTION,
+            newest.as_deref(),
+        ),
+        jsonld::organization(&state.config().base_url),
+    ])
     .indexed(&state, "/jobs");
     site::html(
         StatusCode::OK,
@@ -317,6 +341,29 @@ pub struct PickQuery {
     model: Option<String>,
 }
 
+/// One line of "Vehicles with an estimate": a vehicle that has its own
+/// figure for a job.
+struct JobVehicleRow {
+    /// `Hyundai Kona`.
+    name: String,
+    /// `2021 to 2024`, or `every year` for a model's figure.
+    years: String,
+    /// `13 hours`.
+    typical: String,
+    /// `AI, 45% confidence`, `written` or `measured`.
+    basis: String,
+    /// The vehicle-job page, or the job's own page if there is none.
+    href: String,
+}
+
+/// A link to the Markdown twin of `href`, its query kept if it has one.
+fn markdown_href(href: &str) -> String {
+    match href.split_once('?') {
+        Some((path, query)) => format!("{path}.md?{query}"),
+        None => format!("{href}.md"),
+    }
+}
+
 #[derive(Template)]
 #[template(path = "job.html")]
 struct JobPage {
@@ -324,6 +371,10 @@ struct JobPage {
     job: JobDetail,
     /// Class name and the figure in words.
     classes: Vec<(String, String)>,
+    /// The vehicles that have their own figure for the job.
+    vehicles: Vec<JobVehicleRow>,
+    /// Whether more vehicles have a figure than are listed here.
+    more_vehicles: bool,
     labor_held: bool,
     /// The vehicle asked for, when the catalog does not have it.
     missing: Option<String>,
@@ -334,7 +385,7 @@ struct JobPage {
     report: report::ReportLinks,
 }
 
-fn job_markdown(job: &JobDetail, base: &str) -> String {
+fn job_markdown(job: &JobDetail, vehicles: &[JobVehicleRow], base: &str) -> String {
     let mut text = format!("# {}\n", escape(&job.name));
     for (heading, entries) in [
         ("Includes", &job.includes),
@@ -360,6 +411,19 @@ fn job_markdown(job: &JobDetail, base: &str) -> String {
         text.push_str(&format!("\n{}\n", escape(&job.note)));
         for credit in &job.attribution {
             text.push_str(&format!("\n{}.\n", escape(credit)));
+        }
+    }
+    if !vehicles.is_empty() {
+        text.push_str("\n## Vehicles with an estimate\n\n");
+        for vehicle in vehicles {
+            text.push_str(&format!(
+                "- [{}]({}): {}, {}, {}\n",
+                escape(&vehicle.name),
+                markdown_href(&vehicle.href),
+                vehicle.years,
+                vehicle.typical,
+                escape(&vehicle.basis)
+            ));
         }
     }
     text.push_str(&format!(
@@ -390,11 +454,66 @@ pub async fn job(
         Err(error) => return site::failed(&state, &error),
     };
     let path = format!("/jobs/{}", found.id);
-    if format == Format::Markdown {
-        let canonical = format!("{}{path}", state.config().base_url);
-        return markdown::response(job_markdown(&found, &state.config().base_url), &canonical);
-    }
+    // The vehicles that have a figure of their own for this job. A job with
+    // only class figures has none, and on a server without estimates the
+    // answer is the job's own page, with nothing to list.
     let labor_held = state.dataset(Dataset::Labor).is_ok();
+    let listed = match job_vehicles_op(
+        &state,
+        found.id.clone(),
+        JobVehiclesQuery {
+            limit: Some(MOST_VEHICLES),
+            cursor: None,
+        },
+    )
+    .await
+    {
+        Ok(list) => list,
+        Err(ApiError::NotFound(_) | ApiError::DatasetUnavailable(_)) => JobVehicles {
+            job: JobLink {
+                id: found.id.clone(),
+                name: found.name.clone(),
+                system: found.system.clone(),
+                url: format!("{}{path}", state.config().base_url),
+            },
+            vehicles: Vec::new(),
+            next_cursor: None,
+            note: String::new(),
+            attribution: Vec::new(),
+        },
+        Err(error) => return site::failed(&state, &error),
+    };
+    let base = &state.config().base_url;
+    let vehicles: Vec<JobVehicleRow> = listed
+        .vehicles
+        .iter()
+        .map(|vehicle| JobVehicleRow {
+            name: format!("{} {}", vehicle.make, vehicle.model),
+            years: vehicle.figure.years.as_ref().map_or_else(
+                || "every year".to_owned(),
+                |years| {
+                    if years.from == years.to {
+                        years.from.to_string()
+                    } else {
+                        format!("{} to {}", years.from, years.to)
+                    }
+                },
+            ),
+            typical: format!("{} hours", shown(vehicle.figure.hours.typical)),
+            basis: basis_short(&vehicle.figure),
+            href: vehicle
+                .figure
+                .page_url
+                .as_deref()
+                .and_then(|url| url.strip_prefix(base))
+                .map_or_else(|| path.clone(), str::to_owned),
+        })
+        .collect();
+    let more_vehicles = listed.next_cursor.is_some();
+    if format == Format::Markdown {
+        let canonical = format!("{}{path}", base);
+        return markdown::response(job_markdown(&found, &vehicles, base), &canonical);
+    }
     // A vehicle was asked for: go to its page, or say it is not known.
     let asked = query.ok().map(|Query(query)| query).unwrap_or_default();
     let mut missing = None;
@@ -445,12 +564,24 @@ pub async fn job(
         }
         _ => Vec::new(),
     };
+    let counted = if more_vehicles {
+        format!("more than {MOST_VEHICLES} vehicles")
+    } else {
+        seo::count(vehicles.len(), "vehicle")
+    };
     let description = seo::description(
         &[&[
-            format!(
-                "{}: what the job includes, and how long it typically takes by class of vehicle.",
-                found.name
-            ),
+            if vehicles.is_empty() {
+                format!(
+                    "{}: what the job includes, and how long it typically takes by class of vehicle.",
+                    found.name
+                )
+            } else {
+                format!(
+                    "{}: what the job includes, and how long it takes on {counted} and by class of vehicle.",
+                    found.name
+                )
+            },
             format!("{}: what the job includes.", found.name),
         ]],
         160,
@@ -488,6 +619,8 @@ pub async fn job(
         &JobPage {
             page,
             classes,
+            vehicles,
+            more_vehicles,
             labor_held,
             missing,
             codes,
@@ -496,6 +629,277 @@ pub async fn job(
             report,
         },
     )
+}
+
+// ----- every labour time of one vehicle -----
+
+/// One line of a vehicle's list of labour times.
+pub struct ListRow {
+    pub job: String,
+    pub name: String,
+    /// `88 hours`.
+    pub typical: String,
+    /// `87 to 89 hours`.
+    pub range: String,
+    /// The figure in one line: `87 to 89 hours, typically 88 (…)`.
+    pub words: String,
+    /// What stands behind it: `written`, `measured` or `AI, 45% confidence`.
+    pub basis: String,
+    /// The labour charge at the visitor's rate: low, typical and high.
+    pub charges: Vec<String>,
+    /// The job's page for this vehicle.
+    pub page: String,
+}
+
+/// What a basis is, in the few words a table has room for.
+fn basis_short(figure: &LaborFigure) -> String {
+    match figure.basis.as_str() {
+        "ai" => match figure.confidence_pct {
+            Some(pct) => format!("AI, {pct}% confidence"),
+            None => "AI".to_owned(),
+        },
+        "observed" => "measured".to_owned(),
+        _ => "written".to_owned(),
+    }
+}
+
+#[derive(Template)]
+#[template(path = "labor_model_year_list.html")]
+struct ModelYearListPage {
+    page: Page,
+    /// `2023 Hyundai Kona`.
+    name: String,
+    path: String,
+    model_year_path: String,
+    /// The jobs with a figure narrower than their class.
+    narrow: Vec<ListRow>,
+    /// The jobs whose only figure is typical of the vehicle's class.
+    class: Vec<ListRow>,
+    class_name: String,
+    /// The jobs with no figure at all.
+    missing: Vec<JobLink>,
+    /// The rate as the visitor typed it.
+    rate: String,
+    problem: Option<String>,
+    /// What an estimate is not.
+    note: String,
+    attribution: Vec<String>,
+    suggest: String,
+    report: report::ReportLinks,
+}
+
+/// The Markdown twin of the vehicle's list of labour times.
+fn model_year_list_markdown(
+    name: &str,
+    answer: &VehicleLabor,
+    narrow: &[ListRow],
+    class: &[ListRow],
+    base: &str,
+) -> String {
+    let mut text = format!("# {name} labour times\n\n");
+    text.push_str(&format!(
+        "How long repair jobs take on the {name}, with the range and how each figure was made. [How estimates are made]({base}{METHOD_PATH}).\n"
+    ));
+    let class_heading = match &answer.class {
+        Some(class) => format!("Typical for a {}", class.name),
+        None => "Typical by class of vehicle".to_owned(),
+    };
+    for (heading, rows) in [
+        ("For this vehicle", narrow),
+        (class_heading.as_str(), class),
+    ] {
+        if rows.is_empty() {
+            continue;
+        }
+        text.push_str(&format!("\n## {heading}\n\n"));
+        for row in rows {
+            text.push_str(&format!(
+                "- [{}]({}.md): {}\n",
+                escape(&row.name),
+                row.page,
+                escape(&row.words)
+            ));
+        }
+    }
+    if !answer.missing.is_empty() {
+        text.push_str("\n## No estimate yet\n\n");
+        for job in &answer.missing {
+            text.push_str(&format!("- {}\n", escape(&job.name)));
+        }
+        text.push_str(&format!(
+            "\n[Suggest a time for a job](/feedback/labor?vehicle={})\n",
+            report::encode(name)
+        ));
+    }
+    text.push_str(&format!("\n{}\n", escape(&answer.note)));
+    for credit in &answer.attribution {
+        text.push_str(&format!("\n{}.\n", escape(credit)));
+    }
+    text.push_str(&format!(
+        "\nJSON: [/v1/vehicles/{id}/labor](/v1/vehicles/{id}/labor)\n",
+        id = answer.vehicle.id
+    ));
+    text
+}
+
+/// `/makes/{make}/{model}/{year}/labor` and its Markdown twin: every
+/// labour time of one vehicle, the class figures under their heading, and
+/// the jobs with no figure at all.
+pub async fn model_year_list(
+    State(state): State<AppState>,
+    path: Result<Path<(String, String, String, String)>, PathRejection>,
+    query: Result<Query<PriceQuery>, QueryRejection>,
+    uri: Uri,
+) -> Response {
+    let Ok(Path((make, model, year, segment))) = path else {
+        return site::not_found(&state);
+    };
+    let (_, format) = markdown::split(&segment);
+    let Some(year) = site::year_in(&year) else {
+        return site::not_found(&state);
+    };
+    if !is_slug(&make) || !is_slug(&model) {
+        return site::not_found(&state);
+    }
+    let Ok(shop) = state.dataset(Dataset::Labor) else {
+        return site::not_found(&state);
+    };
+    let id = format!("{year:04}_{make}_{model}");
+    let found = match state.db().run(move |worker| model_year(worker, &id)).await {
+        Ok(Ok(Some(found))) => found,
+        Ok(Ok(None)) => return site::not_found(&state),
+        Ok(Err(error)) => return site::failed(&state, &ApiError::from(error)),
+        Err(error) => return site::failed(&state, &ApiError::from(error)),
+    };
+    let answer = match labor_of(&state, shop, &found, None, None).await {
+        Ok(Some(answer)) => answer,
+        Ok(None) => return site::not_found(&state),
+        Err(error) => return site::failed(&state, &error),
+    };
+    let model_year_path = format!("/makes/{}/{}/{year}", found.make_slug, found.model_slug);
+    let path = format!("{model_year_path}/labor");
+    let name = format!(
+        "{} {} {}",
+        answer.vehicle.year, answer.vehicle.make, answer.vehicle.model
+    );
+    let heading = format!("{name} labour times");
+    let base = &state.config().base_url;
+
+    let asked = query.ok().map(|Query(query)| query).unwrap_or_default();
+    let rate = asked
+        .rate
+        .as_deref()
+        .map(|rate| rate.trim().chars().take(12).collect::<String>())
+        .unwrap_or_default();
+    let charges_at = |figure: &LaborFigure| -> Result<Vec<String>, String> {
+        if rate.is_empty() {
+            return Ok(Vec::new());
+        }
+        prices(figure, &rate, None).map(|rows| rows.into_iter().map(|row| row.charge).collect())
+    };
+    let page_for = |job: &str| format!("{path}/{job}");
+    let mut narrow = Vec::new();
+    let mut class = Vec::new();
+    let mut problem = None;
+    for figure in &answer.estimates {
+        let charges = match charges_at(figure) {
+            Ok(charges) => charges,
+            Err(why) => {
+                problem = Some(why);
+                Vec::new()
+            }
+        };
+        let row = ListRow {
+            job: figure.job.clone(),
+            name: figure.name.clone(),
+            typical: format!("{} hours", shown(figure.hours.typical)),
+            range: format!(
+                "{} to {} hours",
+                shown(figure.hours.low),
+                shown(figure.hours.high)
+            ),
+            words: range_words(figure),
+            basis: basis_short(figure),
+            charges,
+            page: page_for(&figure.job),
+        };
+        if figure.scope == "class" {
+            class.push(row);
+        } else {
+            narrow.push(row);
+        }
+    }
+    let class_name = answer
+        .class
+        .as_ref()
+        .map(|class| class.name.clone())
+        .unwrap_or_default();
+    if format == Format::Markdown {
+        let canonical = format!("{base}{path}");
+        return markdown::response(
+            model_year_list_markdown(&name, &answer, &narrow, &class, base),
+            &canonical,
+        );
+    }
+
+    let description = seo::description(
+        &[&[format!(
+            "How long repair jobs take on the {name}: {} from Wenmar, with the range and how each was made.",
+            seo::count(answer.estimates.len(), "labour time")
+        )]],
+        160,
+    );
+    let page = Page::new(&state, seo::title(&heading), description)
+        .with_markdown(&format!("{path}.md"))
+        .with_json(&format!("/v1/vehicles/{}/labor", answer.vehicle.id))
+        .in_section("makes")
+        .under(vec![
+            ("Makes".to_owned(), "/makes".to_owned()),
+            (
+                answer.vehicle.make.clone(),
+                format!("/makes/{}", found.make_slug),
+            ),
+            (name.clone(), model_year_path.clone()),
+        ]);
+    let trail = page.trail("Labour times");
+    let page = page.describing(vec![trail]);
+    // Offered to search engines when the vehicle has a figure of its own,
+    // is a light vehicle, and the address has no query string.
+    let page = match (!narrow.is_empty() && found.light, uri.query().is_some()) {
+        (true, false) => page.indexed(&state, &path),
+        (true, true) => page.indexed(&state, &path).with_query(),
+        (false, _) => page,
+    };
+    let indexed = page.index;
+    let suggest = format!(
+        "/feedback/labor?vehicle={}&page={}",
+        report::encode(&name),
+        report::encode(&path)
+    );
+    let report = report::links(state.config(), &path, &name);
+    let mut response = site::html(
+        StatusCode::OK,
+        &ModelYearListPage {
+            page,
+            name: name.clone(),
+            path,
+            model_year_path,
+            narrow,
+            class,
+            class_name,
+            missing: answer.missing,
+            rate,
+            problem,
+            note: answer.note,
+            attribution: answer.attribution,
+            suggest,
+            report,
+        },
+    );
+    if !indexed {
+        site::unindexed(&mut response);
+    }
+    response
 }
 
 // ----- a job on a model year -----
@@ -596,6 +1000,79 @@ pub fn scope_words(figure: &LaborFigure, make: &str, model: &str) -> String {
     }
 }
 
+/// The one-sentence answer a vehicle-job page leads with: "Test job C on
+/// a 2023 Hyundai Kona takes about 13 hours (12 to 15 hours)." It is the
+/// page's first paragraph, the start of its description and the first line
+/// of its Markdown twin, so the number is in the first sentence an answer
+/// engine quotes.
+pub fn answer_sentence(job: &str, name: &str, figure: &LaborFigure) -> String {
+    format!(
+        "{job} on a {name} takes about {} hours ({} to {} hours).",
+        shown(figure.hours.typical),
+        shown(figure.hours.low),
+        shown(figure.hours.high)
+    )
+}
+
+/// What an AI figure assumed and how it was made.
+struct Assumed {
+    /// What the model said it assumed, in its own words.
+    assumed: Option<String>,
+    confidence: String,
+    model: String,
+    updated: String,
+}
+
+impl Assumed {
+    fn of(figure: &LaborFigure) -> Assumed {
+        Assumed {
+            assumed: figure.notes.clone(),
+            confidence: figure
+                .confidence_pct
+                .map_or_else(|| "unknown".to_owned(), |pct| pct.to_string()),
+            model: figure.model.clone().unwrap_or_else(|| "unknown".to_owned()),
+            updated: figure.updated.clone(),
+        }
+    }
+}
+
+/// The light model years of a model, newest first, as the model-year page
+/// lists them.
+async fn model_years_of(state: &AppState, make: &str, model: &str) -> Vec<u16> {
+    let (make, model) = (make.to_owned(), model.to_owned());
+    let rows = state
+        .db()
+        .run(move |worker| {
+            worker.source.query(
+                crate::site::catalog::MODEL_YEARS_SQL,
+                &[make.as_str().into(), model.as_str().into()],
+            )
+        })
+        .await;
+    match rows {
+        Ok(Ok(rows)) => rows
+            .iter()
+            .filter_map(|row| {
+                let year = row
+                    .first()
+                    .and_then(Value::integer)
+                    .and_then(|year| u16::try_from(year).ok())?;
+                (row.get(1).and_then(Value::integer) == Some(1)).then_some(year)
+            })
+            .collect(),
+        _ => Vec::new(),
+    }
+}
+
+/// The model years a figure covers, in words: `2021 to 2024`, or `2023`.
+fn years_words(years: &crate::api::types::LaborYears) -> String {
+    if years.from == years.to {
+        years.from.to_string()
+    } else {
+        format!("{} to {}", years.from, years.to)
+    }
+}
+
 /// What stands behind a figure, as a sentence.
 fn basis_sentence(figure: &LaborFigure) -> String {
     let words = basis_words(figure);
@@ -615,6 +1092,8 @@ struct ModelYearLaborPage {
     name: String,
     path: String,
     model_year_path: String,
+    /// The answer, in one sentence, when a figure covers the vehicle.
+    answer: Option<String>,
     /// `87 to 89 hours, typically 88.` when a figure covers the vehicle.
     range: Option<String>,
     scope_words: String,
@@ -633,6 +1112,15 @@ struct ModelYearLaborPage {
     /// Component name and the bulletin list narrowed to it.
     bulletin_links: Vec<(String, String)>,
     codes: Vec<(String, String)>,
+    /// What an AI figure assumed, and how it was made. `None` for a
+    /// figure of any other basis.
+    ai: Option<Assumed>,
+    /// The other catalog years the figure covers, with their pages.
+    other_years: Vec<(u16, String)>,
+    /// `2021 to 2024`.
+    years_words: String,
+    /// `Hyundai Kona`.
+    vehicle: String,
     /// The form that suggests a time, with the job and the vehicle filled in.
     suggest: String,
     report: report::ReportLinks,
@@ -687,6 +1175,7 @@ pub async fn model_year_labor(
         answer.vehicle.year, answer.vehicle.make, answer.vehicle.model
     );
     let heading = format!("{} on the {name}: labour time", job.name);
+    let answer_sentence = figure.map(|figure| answer_sentence(&job.name, &name, figure));
     let range = figure.map(|figure| {
         format!(
             "{} to {} hours, typically {}.",
@@ -699,8 +1188,34 @@ pub async fn model_year_labor(
         .map(|figure| scope_words(figure, &answer.vehicle.make, &answer.vehicle.model))
         .unwrap_or_default();
     let basis = figure.map(basis_sentence).unwrap_or_default();
+    let ai = figure
+        .filter(|figure| figure.basis == "ai")
+        .map(Assumed::of);
+    let vehicle = format!("{} {}", answer.vehicle.make, answer.vehicle.model);
+    let figures_years = figure.and_then(|figure| figure.years.as_ref());
+    let other_years: Vec<(u16, String)> = match figures_years {
+        Some(years) => model_years_of(&state, &found.make_slug, &found.model_slug)
+            .await
+            .into_iter()
+            .filter(|year| *year != answer.vehicle.year && (years.from..=years.to).contains(year))
+            .map(|year| {
+                (
+                    year,
+                    format!(
+                        "/makes/{}/{}/{year}/labor/{}",
+                        found.make_slug, found.model_slug, job.id
+                    ),
+                )
+            })
+            .collect(),
+        None => Vec::new(),
+    };
+    let years_words = figures_years.map(years_words).unwrap_or_default();
     if format == Format::Markdown {
         let mut text = format!("# {}\n", escape(&heading));
+        if let Some(answer) = &answer_sentence {
+            text.push_str(&format!("\n{}\n", escape(answer)));
+        }
         match &range {
             Some(range) => {
                 text.push_str(&format!(
@@ -715,6 +1230,28 @@ pub async fn model_year_labor(
                 }
             }
             None => text.push_str("\nNo estimate covers this job on this vehicle yet.\n"),
+        }
+        if let Some(ai) = &ai {
+            text.push_str("\n## What the estimate assumed\n\n");
+            if let Some(assumed) = &ai.assumed {
+                text.push_str(&format!("{}\n\n", escape(assumed)));
+            }
+            text.push_str(&format!(
+                "An AI estimate, not checked by a person: confidence {}%, model {}, figure last changed on {}.\n",
+                ai.confidence, ai.model, ai.updated
+            ));
+        }
+        if !other_years.is_empty() {
+            text.push_str(&format!(
+                "\n## The same estimate covers\n\nThe same estimate covers the {years_words} {vehicle}: "
+            ));
+            for (index, (year, href)) in other_years.iter().enumerate() {
+                if index > 0 {
+                    text.push_str(", ");
+                }
+                text.push_str(&format!("[{year}]({href}.md)"));
+            }
+            text.push_str(".\n");
         }
         text.push_str(&format!(
             "\n[How estimates are made]({}{METHOD_PATH})\n",
@@ -795,17 +1332,30 @@ pub async fn model_year_labor(
         .is_ok()
         .then(|| format!("{model_year_path}/recalls"));
 
+    // The answer is the description's first sentence: a search result and
+    // an answer engine both quote the first thing they read.
+    let first_sentence = answer_sentence.clone().unwrap_or_else(|| {
+        format!(
+            "How long it takes to do the job \"{}\" on the {name}: Wenmar's estimate in hours, and the labour charge at your own rate.",
+            job.name
+        )
+    });
     let description = seo::description(
-        &[&[
-            format!(
-                "How long it takes to do the job \"{}\" on the {name}: Wenmar's estimate in hours, and the labour charge at your own rate.",
-                job.name
-            ),
-            format!("{} on the {name}: labour time.", job.name),
-        ]],
+        &[
+            &[first_sentence],
+            &[format!("{} on the {name}: labour time.", job.name)],
+        ],
         160,
     );
-    let page = Page::new(&state, seo::title(&heading), description)
+    let title = match figure {
+        Some(figure) => seo::title(&format!(
+            "{name} {}: {} hours",
+            job.name,
+            shown(figure.hours.typical)
+        )),
+        None => seo::title(&heading),
+    };
+    let page = Page::new(&state, title, description)
         .with_markdown(&format!("{path}.md"))
         .with_json(&format!(
             "/v1/vehicles/{}/labor/{}",
@@ -868,6 +1418,11 @@ pub async fn model_year_labor(
             recalls_href,
             bulletin_links,
             codes,
+            answer: answer_sentence,
+            ai,
+            other_years,
+            years_words,
+            vehicle,
             suggest,
             job,
             report,

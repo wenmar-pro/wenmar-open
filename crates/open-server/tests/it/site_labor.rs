@@ -227,7 +227,6 @@ async fn the_page_exists_for_jobs_of_the_list_and_vehicles_of_the_catalog() {
     for path in [
         "/makes/hyundai/kona/2023/labor/test-job-z",
         "/makes/hyundai/kona/2023/labor/Test-Job-A",
-        "/makes/hyundai/kona/2023/labor",
         "/makes/hyundai/nothing/2023/labor/test-job-a",
         "/makes/hyundai/kona/1899/labor/test-job-a",
         "/makes/hyundai/kona/2023/labor/test-job-a/more",
@@ -369,4 +368,294 @@ async fn the_job_list_says_where_the_figures_come_from() {
     let text = common::markdown(&app, "/jobs.md").await;
     assert!(text.contains(sentence), "{text}");
     assert!(!text.contains(old), "{text}");
+}
+
+const KONA_LIST: &str = "/makes/hyundai/kona/2023/labor";
+
+#[tokio::test]
+async fn a_vehicle_has_a_page_of_all_its_labour_times() {
+    let app = common::labor_ai_app().await;
+    let response = app.get(KONA_LIST).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert!(response.headers().get("x-robots-tag").is_none());
+    let (_, html) = page(&app, KONA_LIST).await;
+    common::assert_basics(&html, KONA_LIST);
+    common::assert_head(&html, KONA_LIST);
+    assert!(
+        html.contains("<h1>2023 Hyundai Kona labour times</h1>"),
+        "{html}"
+    );
+    let title = html
+        .split("<title>")
+        .nth(1)
+        .and_then(|rest| rest.split("</title>").next())
+        .unwrap_or_default();
+    assert!(title.contains("2023 Hyundai Kona labour times"), "{title}");
+    // The jobs with a figure of their own, each linked to its page.
+    for job in ["test-job-a", "test-job-c"] {
+        assert!(
+            html.contains(&format!(
+                r#"<a href="/makes/hyundai/kona/2023/labor/{job}">"#
+            )),
+            "{job}:\n{html}"
+        );
+    }
+    assert!(html.contains("88 hours"), "{html}");
+    assert!(html.contains("87 to 89 hours"), "{html}");
+    assert!(html.contains("13 hours"), "{html}");
+    assert!(html.contains("12 to 15 hours"), "{html}");
+    // Job B is only typical of a small SUV, and says so.
+    let narrow = html
+        .find("/makes/hyundai/kona/2023/labor/test-job-a")
+        .unwrap();
+    let class = html
+        .find("Typical for a Small SUV")
+        .expect("a class heading");
+    assert!(narrow < class, "narrow figures come first:\n{html}");
+    assert!(
+        html.contains(r#"<a href="/makes/hyundai/kona/2023/labor/test-job-b">"#),
+        "{html}"
+    );
+    assert!(html.contains("47 to 49 hours"), "{html}");
+    assert!(html.contains("48 hours"), "{html}");
+    // The head names the API answer for the page.
+    assert_eq!(
+        common::json_alternate(&html).as_deref(),
+        Some("/v1/vehicles/2023_hyundai_kona/labor")
+    );
+    let (status, _) = app.json("/v1/vehicles/2023_hyundai_kona/labor").await;
+    assert_eq!(status, StatusCode::OK);
+
+    let text = common::markdown(&app, &format!("{KONA_LIST}.md")).await;
+    assert!(
+        text.starts_with("# 2023 Hyundai Kona labour times\n"),
+        "{text}"
+    );
+    assert!(text.contains("87 to 89 hours, typically 88"), "{text}");
+    assert!(text.contains("Typical for a Small SUV"), "{text}");
+    assert!(
+        text.contains("/makes/hyundai/kona/2023/labor/test-job-a"),
+        "{text}"
+    );
+
+    // A job with no figure at all is listed as such, with a way to
+    // suggest one.
+    let app = common::labor_app().await;
+    let (_, html) = page(&app, KONA_LIST).await;
+    assert!(html.contains("No estimate yet"), "{html}");
+    assert!(html.contains("Test job C"), "{html}");
+    assert!(
+        html.contains(r#"<a href="/feedback/labor?vehicle=2023%20Hyundai%20Kona"#),
+        "{html}"
+    );
+    assert!(html.contains("Suggest a time"), "{html}");
+}
+
+#[tokio::test]
+async fn a_rate_puts_the_charge_beside_every_time_on_the_list() {
+    let app = common::labor_ai_app().await;
+    let response = app.get(&format!("{KONA_LIST}?rate=120")).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(header(&response, "x-robots-tag"), "noindex");
+    let (_, html) = page(&app, &format!("{KONA_LIST}?rate=120")).await;
+    // 87, 88 and 89 hours at $120.00; 47, 48 and 49.
+    for charge in [
+        "$10,440.00",
+        "$10,560.00",
+        "$10,680.00",
+        "$5,640.00",
+        "$5,760.00",
+        "$5,880.00",
+    ] {
+        assert!(html.contains(charge), "{charge}:\n{html}");
+    }
+    assert!(html.contains("value=\"120\""), "{html}");
+    // A page with a query is a view of the page that has none.
+    assert!(
+        html.contains(r#"<meta name="robots" content="noindex">"#),
+        "{html}"
+    );
+    assert!(
+        html.contains(&format!(
+            r#"<link rel="canonical" href="https://open.example{KONA_LIST}">"#
+        )),
+        "{html}"
+    );
+    // A rate that cannot be read: the times, and why no charge.
+    let (status, html) = page(&app, &format!("{KONA_LIST}?rate=abc")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(
+        html.contains("Enter your hourly rate as dollars, such as 150 or 149.50."),
+        "{html}"
+    );
+}
+
+#[tokio::test]
+async fn the_vehicle_list_is_offered_to_search_engines_only_with_a_figure_of_its_own() {
+    let app = common::labor_ai_app().await;
+    let response = app.get(KONA_LIST).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert!(response.headers().get("x-robots-tag").is_none());
+    // The Civic has no labour estimate at all: a page, not indexed.
+    let path = "/makes/honda/civic/2019/labor";
+    let response = app.get(path).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(header(&response, "x-robots-tag"), "noindex");
+    let (_, html) = page(&app, path).await;
+    assert!(
+        html.contains(r#"<meta name="robots" content="noindex">"#),
+        "{html}"
+    );
+    assert!(html.contains("No estimate yet"), "{html}");
+    // The list exists only where the estimates are held.
+    let app = common::app_with_shop(common::JOB_DATASETS, &common::job_rows()).await;
+    let (status, html) = page(&app, KONA_LIST).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    assert!(html.contains("There is no page here"));
+    let (status, _) = page(&app, &format!("{KONA_LIST}.md")).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+const KONA_C: &str = "/makes/hyundai/kona/2023/labor/test-job-c";
+
+#[tokio::test]
+async fn a_vehicle_job_page_answers_in_its_first_sentence_and_says_how() {
+    let app = common::labor_ai_app().await;
+    let (status, html) = page(&app, KONA_C).await;
+    assert_eq!(status, StatusCode::OK);
+    let answer = "Test job C on a 2023 Hyundai Kona takes about 13 hours (12 to 15 hours).";
+    let main = html.split("<main id=\"main\">").nth(1).expect("a main");
+    let first_p = main
+        .split_once("<p>")
+        .and_then(|(_, rest)| rest.split("</p>").next())
+        .expect("a first paragraph");
+    assert_eq!(first_p, answer, "{main}");
+    // The description starts with the same sentence.
+    let description = html
+        .split(r#"<meta name="description" content=""#)
+        .nth(1)
+        .and_then(|rest| rest.split('"').next())
+        .expect("a description");
+    assert!(description.starts_with(answer), "{description}");
+    // What the AI figure assumed, and how it was made.
+    assert!(
+        html.contains("<h2>What the estimate assumed</h2>"),
+        "{html}"
+    );
+    assert!(html.contains("Made-up assumption."), "{html}");
+    assert!(html.contains("confidence 45%"), "{html}");
+    assert!(html.contains("test-model"), "{html}");
+    assert!(html.contains("2026-10-30"), "{html}");
+    assert!(
+        html.contains(r#"href="/jobs/how-estimates-are-made""#),
+        "{html}"
+    );
+    // The other catalog years the generation figure covers.
+    let years = "The same estimate covers the 2021 to 2024 Hyundai Kona";
+    assert!(html.contains(years), "{html}");
+    let after = &html[html.find(years).unwrap()..];
+    assert!(
+        after.contains(r#"<a href="/makes/hyundai/kona/2022/labor/test-job-c">2022</a>"#),
+        "{html}"
+    );
+    assert!(
+        !after.contains(r#"<a href="/makes/hyundai/kona/2023/labor/test-job-c">"#),
+        "the year asked for is not linked as another:\n{html}"
+    );
+    // The title answers the question people search.
+    assert!(
+        html.contains("<title>2023 Hyundai Kona Test job C: 13 hours - Wenmar Open</title>"),
+        "{html}"
+    );
+    // The Markdown twin leads with the same answer.
+    let text = common::markdown(&app, &format!("{KONA_C}.md")).await;
+    // The answer opens the Markdown twin, its brackets escaped as Markdown
+    // punctuation, which reads the same.
+    assert!(
+        text.starts_with(
+            "# Test job C on the 2023 Hyundai Kona: labour time\n\nTest job C on a 2023 Hyundai Kona takes about 13 hours \\(12 to 15 hours\\).\n"
+        ),
+        "{text}"
+    );
+    assert!(text.contains(r"Made\-up assumption."), "{text}");
+    assert!(
+        text.contains("https://open.example/jobs/how-estimates-are-made"),
+        "{text}"
+    );
+    assert!(text.contains(years), "{text}");
+
+    // An expert figure has no assumption to show, and says nothing of a
+    // model or a confidence.
+    let (_, html) = page(&app, "/makes/hyundai/kona/2023/labor/test-job-a").await;
+    assert!(!html.contains("What the estimate assumed"), "{html}");
+    assert!(!html.contains("confidence"), "{html}");
+    assert!(!html.contains("test-model"), "{html}");
+}
+
+#[tokio::test]
+async fn a_job_lists_the_vehicles_it_has_a_figure_for() {
+    let app = common::labor_ai_app().await;
+    let (status, html) = page(&app, "/jobs/test-job-c").await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(
+        html.contains("<h2>Vehicles with an estimate</h2>"),
+        "{html}"
+    );
+    assert!(
+        html.contains(r#"<a href="/makes/hyundai/kona/2023/labor/test-job-c">Hyundai Kona</a>"#),
+        "{html}"
+    );
+    assert!(html.contains("2021 to 2024"), "{html}");
+    assert!(html.contains("13 hours"), "{html}");
+    assert!(html.contains("AI"), "{html}");
+    assert!(
+        !html.contains("No estimate has been written for this job yet."),
+        "a job with a figure is not said to have none:\n{html}"
+    );
+    let text = common::markdown(&app, "/jobs/test-job-c.md").await;
+    assert!(text.contains("## Vehicles with an estimate\n"), "{text}");
+    assert!(
+        text.contains(
+            "- [Hyundai Kona](/makes/hyundai/kona/2023/labor/test-job-c.md): 2021 to 2024, 13 hours, AI, 45% confidence"
+        ),
+        "{text}"
+    );
+
+    // A job with only class figures has no vehicle of its own to list, and
+    // is not said to have no estimate either.
+    let app = common::labor_app().await;
+    let (_, html) = page(&app, "/jobs/test-job-c").await;
+    assert!(!html.contains("Vehicles with an estimate"), "{html}");
+    assert!(
+        !html.contains("No estimate has been written for this job yet."),
+        "its class figure is an estimate:\n{html}"
+    );
+}
+
+#[tokio::test]
+async fn the_job_list_is_a_dataset_a_search_engine_can_list() {
+    let app = common::labor_ai_app().await;
+    let (status, html) = page(&app, "/jobs").await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains(r#""@type":"Dataset""#), "{html}");
+    assert!(
+        html.contains(r#""name":"Wenmar labour estimates""#),
+        "{html}"
+    );
+    assert!(
+        html.contains(r#""license":"https://creativecommons.org/licenses/by/4.0/""#),
+        "{html}"
+    );
+    assert!(html.contains(r#""isAccessibleForFree":true"#), "{html}");
+    assert!(
+        html.contains(r#""contentUrl":"https://open.example/v1/jobs""#),
+        "{html}"
+    );
+    assert!(
+        html.contains(r#""contentUrl":"https://open.example/jobs.md""#),
+        "{html}"
+    );
+    // The newest figure, not the day the job list was built.
+    assert!(html.contains(r#""dateModified":"2026-10-30""#), "{html}");
+    assert!(html.contains(r#""@type":"Organization""#), "{html}");
 }

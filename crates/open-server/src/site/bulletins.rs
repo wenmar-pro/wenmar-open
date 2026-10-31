@@ -275,14 +275,19 @@ pub async fn model_year_section(
     path: Result<Path<(String, String, String, String)>, PathRejection>,
     recall_query: Result<Query<ComponentQuery>, QueryRejection>,
     bulletin_query: Result<Query<BulletinFilter>, QueryRejection>,
+    labor_query: Result<Query<crate::site::labor::PriceQuery>, QueryRejection>,
     uri: Uri,
 ) -> Response {
     let section = path
         .as_ref()
         .ok()
         .map(|Path((_, _, _, segment))| markdown::split(segment).0.to_owned());
-    if section.as_deref() != Some("bulletins") {
-        return recalls::model_year_section(State(state), path, recall_query, uri).await;
+    match section.as_deref() {
+        Some("bulletins") => {}
+        Some("labor") => {
+            return crate::site::labor::model_year_list(State(state), path, labor_query, uri).await;
+        }
+        _ => return recalls::model_year_section(State(state), path, recall_query, uri).await,
     }
     let Ok(Path((make, model, year, segment))) = path else {
         return site::not_found(&state);

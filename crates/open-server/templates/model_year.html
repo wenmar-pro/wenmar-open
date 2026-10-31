@@ -26,6 +26,24 @@
 {% endif -%}
 </tbody>
 </table>
+{% if !labor.is_empty() -%}
+<h2 id="labour">Labour times</h2>
+<table class="prose">
+<caption>How long each job takes on the {{ name }}</caption>
+<thead>
+<tr><th scope="col">Job</th><th scope="col">Typical</th><th scope="col">Range</th><th scope="col">Basis</th></tr>
+</thead>
+<tbody>
+{% for row in labor -%}
+<tr><th scope="row"><a href="{{ row.page }}">{{ row.name }}</a></th><td>{{ row.typical }}</td><td>{{ row.range }}</td><td>{{ row.basis }}{% if let Some(pct) = row.confidence %}, {{ pct }}% confidence{% endif %}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+<p class="note">An estimate, not a quote. <a href="/jobs/how-estimates-are-made">How estimates are made</a>.</p>
+<ul class="plain links">
+<li><a href="/makes/{{ view.make_slug }}/{{ view.model_slug }}/{{ view.entry.year }}/labor">Every labour time for the {{ name }}</a></li>
+</ul>
+{% endif -%}
 {% if !siblings.is_empty() -%}
 <h2 id="siblings">Shares campaigns and bulletins with</h2>
 <ul class="plain links">

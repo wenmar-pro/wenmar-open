@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ name }} labour times</h1>
+<p>How long repair jobs take on the {{ name }}, with the range and how each figure was made. <a href="/jobs/how-estimates-are-made">How estimates are made</a>.</p>
+{% if !narrow.is_empty() -%}
+<table class="prose">
+<caption>Labour times for the {{ name }}</caption>
+<thead>
+<tr><th scope="col">Job</th><th scope="col">Typical</th><th scope="col">Range</th><th scope="col">Basis</th>{% if rate.len() > 0 %}<th scope="col">Labour charge at ${{ rate }} an hour</th>{% endif %}</tr>
+</thead>
+<tbody>
+{% for row in narrow -%}
+<tr><th scope="row"><a href="{{ row.page }}">{{ row.name }}</a></th><td>{{ row.typical }}</td><td>{{ row.range }}</td><td>{{ row.basis }}</td>{% if !row.charges.is_empty() %}<td>{% for charge in row.charges %}{% if !loop.first %}, {% endif %}{{ charge }}{% endfor %}</td>{% else if rate.len() > 0 %}<td></td>{% endif %}</tr>
+{% endfor -%}
+</tbody>
+</table>
+{% endif -%}
+{% if !class.is_empty() -%}
+<h2 id="class">Typical for a {{ class_name }}</h2>
+<p>These figures are typical for vehicles of that class. They were not worked out on this vehicle.</p>
+<table class="prose">
+<caption>Typical for a {{ class_name }}</caption>
+<thead>
+<tr><th scope="col">Job</th><th scope="col">Typical</th><th scope="col">Range</th><th scope="col">Basis</th>{% if rate.len() > 0 %}<th scope="col">Labour charge at ${{ rate }} an hour</th>{% endif %}</tr>
+</thead>
+<tbody>
+{% for row in class -%}
+<tr><th scope="row"><a href="{{ row.page }}">{{ row.name }}</a></th><td>{{ row.typical }}</td><td>{{ row.range }}</td><td>{{ row.basis }}</td>{% if !row.charges.is_empty() %}<td>{% for charge in row.charges %}{% if !loop.first %}, {% endif %}{{ charge }}{% endfor %}</td>{% else if rate.len() > 0 %}<td></td>{% endif %}</tr>
+{% endfor -%}
+</tbody>
+</table>
+{% endif -%}
+<p class="note">{{ note }}{% for credit in attribution %} {{ credit }}.{% endfor %}</p>
+{% if !narrow.is_empty() || !class.is_empty() -%}
+<h2 id="price">The labour charge at your rate</h2>
+<form class="calc" action="{{ path }}#price" method="get">
+<label for="rate">Your shop's hourly labour rate, in dollars</label>
+<input id="rate" name="rate" type="text" inputmode="decimal" maxlength="12" value="{{ rate }}" required>
+<div class="screen"><button class="primary" type="submit">Work it out</button></div>
+</form>
+{% if let Some(problem) = problem -%}
+<p class="warning">{{ problem }}</p>
+{% endif -%}
+<p class="note">Labour only: parts, shop supplies and fees are not in these figures, and no tax is added.</p>
+{% endif -%}
+{% if !missing.is_empty() -%}
+<h2 id="missing">No estimate yet</h2>
+<p>No Wenmar estimate covers these jobs on the {{ name }} yet.</p>
+<ul>
+{% for job in missing -%}
+<li>{{ job.name }}</li>
+{% endfor -%}
+</ul>
+{% endif -%}
+<ul class="plain links">
+<li><a href="{{ suggest }}">Suggest a time for a job</a></li>
+<li><a href="{{ model_year_path }}">The {{ name }}</a></li>
+<li><a href="/jobs">Every job</a></li>
+<li><a href="/jobs/how-estimates-are-made">How estimates are made</a></li>
+<li><a href="{% if let Some(form) = report.form %}{{ form }}{% else %}{{ report.issue }}{% endif %}">Report an error on this page</a></li>
+{% if let Some(mail) = report.mail -%}
+<li><a href="{{ mail }}">Report an error by email</a></li>
+{% endif -%}
+</ul>
+{% endblock %}

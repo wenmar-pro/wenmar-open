@@ -40,7 +40,7 @@ const MAKE_CODES_SQL: &str = "SELECT wm.wmi FROM wmi_make wm WHERE wm.make_id = 
 /// Every model year of one model, newest first, with whether it is a light
 /// vehicle: a car, an MPV or a truck. `?1` and `?2` are the id forms of the
 /// make and the model.
-const MODEL_YEARS_SQL: &str = "
+pub(crate) const MODEL_YEARS_SQL: &str = "
 SELECT v.year, v.light
 FROM catalog_make mk
 JOIN catalog_model md ON md.make_id = mk.id
@@ -599,6 +599,75 @@ fn load_model_year(
     }))
 }
 
+/// Most labour rows a model year's page lists: the rest are behind its
+/// link to the per-vehicle list of every time.
+const MOST_LABOR: usize = 30;
+
+/// One line of a model year's labour section: a job with a figure
+/// narrower than its class, which is the vehicle's own.
+pub struct LaborRow {
+    pub job: String,
+    pub name: String,
+    /// `88 hours`.
+    pub typical: String,
+    /// `87 to 89 hours`.
+    pub range: String,
+    /// `written`, `measured` or `AI`.
+    pub basis: String,
+    /// The model's confidence in an `ai` figure, in percent.
+    pub confidence: Option<i64>,
+    /// The job's labour page for this vehicle.
+    pub page: String,
+}
+
+/// The labour times a model year's page shows: every job with a figure
+/// narrower than its class. Empty on a server that holds no estimates, and
+/// for a vehicle that has no figure of its own.
+async fn labor_section(
+    state: &AppState,
+    vehicle_id: &str,
+    make_slug: &str,
+    model_slug: &str,
+    year: u16,
+) -> Vec<LaborRow> {
+    use crate::site::labor::shown;
+    if state.dataset(wenmar_shopdata::Dataset::Labor).is_err() {
+        return Vec::new();
+    }
+    let Ok(answer) = crate::api::labor::vehicle_labor_op(state, vehicle_id.to_owned(), None).await
+    else {
+        return Vec::new();
+    };
+    answer
+        .estimates
+        .iter()
+        .filter(|figure| figure.scope != "class")
+        .take(MOST_LABOR)
+        .map(|figure| LaborRow {
+            job: figure.job.clone(),
+            name: figure.name.clone(),
+            typical: format!("{} hours", shown(figure.hours.typical)),
+            range: format!(
+                "{} to {} hours",
+                shown(figure.hours.low),
+                shown(figure.hours.high)
+            ),
+            basis: match figure.basis.as_str() {
+                "ai" => "AI".to_owned(),
+                "observed" => "measured".to_owned(),
+                _ => "written".to_owned(),
+            },
+            confidence: (figure.basis == "ai")
+                .then_some(figure.confidence_pct)
+                .flatten(),
+            page: format!(
+                "/makes/{make_slug}/{model_slug}/{year}/labor/{}",
+                figure.job
+            ),
+        })
+        .collect()
+}
+
 /// A model that shares recall campaigns and bulletins with this model year.
 pub struct SiblingLine {
     /// `2019 GMC Sierra`.
@@ -819,9 +888,16 @@ struct ModelYearPage {
     /// What owners reported to NHTSA. `None` on a server that holds no
     /// complaints, and for a model year with fewer than five.
     owners: Option<OwnersReport>,
+    /// The jobs with a figure narrower than their class. Empty when there
+    /// is none, and on a server with no labour estimates.
+    labor: Vec<LaborRow>,
 }
 
-fn model_year_markdown(view: &ModelYearView, report: &report::ReportLinks) -> String {
+fn model_year_markdown(
+    view: &ModelYearView,
+    report: &report::ReportLinks,
+    labor: &[LaborRow],
+) -> String {
     let entry = &view.entry;
     let mut text = format!(
         "# {} {} {}\n\n",
@@ -899,6 +975,31 @@ fn model_year_markdown(view: &ModelYearView, report: &report::ReportLinks) -> St
             )
         })
         .collect();
+    if !labor.is_empty() {
+        text.push_str("\n## Labour times\n\n");
+        for row in labor {
+            text.push_str(&format!(
+                "- [{}]({}.md): {}, {}, {}",
+                escape(&row.name),
+                row.page,
+                row.typical,
+                row.range,
+                row.basis
+            ));
+            if let Some(pct) = row.confidence {
+                text.push_str(&format!(", {pct}% confidence"));
+            }
+            text.push('\n');
+        }
+        text.push_str(&format!(
+            "\n[Every labour time for the {year} {make} {model}](/makes/{}/{}/{year}/labor.md)\n",
+            view.make_slug,
+            view.model_slug,
+            year = view.entry.year,
+            make = escape(&view.entry.make),
+            model = escape(&view.entry.model)
+        ));
+    }
     if !others.is_empty() {
         text.push_str("\n## Other years\n\n");
         text.push_str(&others.join(" "));
@@ -1068,9 +1169,17 @@ pub async fn model_year(
     let investigations = site::investigations::open_for(&state, &view.entry.id).await;
     let siblings = sibling_lines(&state, &view.entry.id).await;
     let owners = owners_report(&state, &view.entry.id).await;
+    let labor = labor_section(
+        &state,
+        &view.entry.id,
+        &view.make_slug,
+        &view.model_slug,
+        view.entry.year,
+    )
+    .await;
     if format == Format::Markdown {
         let canonical = format!("{}{path}", state.config().base_url);
-        let mut text = model_year_markdown(&view, &report);
+        let mut text = model_year_markdown(&view, &report, &labor);
         if let Some(section) = &safety {
             text.push_str(&site::safety::markdown(section));
         }
@@ -1166,6 +1275,9 @@ pub async fn model_year(
     if recalls.is_some() {
         shown.push("recalls");
     }
+    if !labor.is_empty() {
+        shown.push("labour times");
+    }
     if bulletins.is_some() {
         shown.push("service bulletins");
     }
@@ -1240,6 +1352,7 @@ pub async fn model_year(
             maintenance_url,
             maintenance_note: site::bulletins::MAINTENANCE_NOTE,
             owners,
+            labor,
         },
     )
 }

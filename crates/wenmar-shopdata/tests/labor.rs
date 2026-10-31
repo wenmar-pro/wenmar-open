@@ -1,5 +1,5 @@
 use rusqlite::Connection;
-use wenmar_shopdata::labor::{CLASSES, class_name, class_of_epa};
+use wenmar_shopdata::labor::{CLASSES, LaborPage, class_name, class_of_epa};
 use wenmar_shopdata::schema::{COMPONENTS, JOBS, LABOR, META, SCHEMA_VERSION};
 use wenmar_shopdata::sqlite::ShopSource;
 use wenmar_shopdata::{Dataset, ShopData, ShopError};
@@ -400,4 +400,35 @@ fn the_method_counts_say_what_the_file_holds() {
     assert_eq!(old.ai_with_steps, 0);
     assert!(old.ai_answered_by.is_empty());
     assert!(old.ai_methods.is_empty());
+}
+
+#[test]
+fn the_pages_a_sitemap_lists_are_the_figures_narrower_than_class() {
+    let shop = shop(ENTRIES);
+    // Job A's model and generation figures; not its engine figure, whose
+    // page is a query, and no class figure at all.
+    assert_eq!(
+        shop.labor_pages().unwrap(),
+        [
+            LaborPage {
+                job_id: "test-job-a".to_owned(),
+                model_id: 7001,
+                year_from: None,
+                year_to: None,
+            },
+            LaborPage {
+                job_id: "test-job-a".to_owned(),
+                model_id: 7001,
+                year_from: Some(2001),
+                year_to: Some(2001),
+            },
+        ]
+    );
+    let pages = shop.labor_pages().unwrap();
+    assert!(pages[0].covers(7001, 2003));
+    assert!(!pages[0].covers(7002, 2003));
+    assert!(pages[1].covers(7001, 2001));
+    assert!(!pages[1].covers(7001, 2002));
+    // A file without estimates has no pages to list.
+    assert!(self::shop("").labor_pages().is_err());
 }

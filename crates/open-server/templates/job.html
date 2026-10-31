@@ -30,8 +30,25 @@
 {% for credit in job.attribution -%}
 <p class="note">{{ credit }}.</p>
 {% endfor -%}
-{% else if labor_held -%}
+{% else if labor_held && vehicles.is_empty() -%}
 <p>No estimate has been written for this job yet.</p>
+{% endif -%}
+{% if !vehicles.is_empty() -%}
+<h2>Vehicles with an estimate</h2>
+<table class="prose">
+<caption>Vehicles with their own time for this job</caption>
+<thead>
+<tr><th scope="col">Vehicle</th><th scope="col">Years</th><th scope="col">Typical</th><th scope="col">Basis</th></tr>
+</thead>
+<tbody>
+{% for vehicle in vehicles -%}
+<tr><th scope="row"><a href="{{ vehicle.href }}">{{ vehicle.name }}</a></th><td>{{ vehicle.years }}</td><td>{{ vehicle.typical }}</td><td>{{ vehicle.basis }}</td></tr>
+{% endfor -%}
+</tbody>
+</table>
+{% if more_vehicles -%}
+<p class="note">Only the first {{ vehicles.len() }} are listed. <a href="/v1/jobs/{{ job.id }}/vehicles">The rest are in the JSON</a>.</p>
+{% endif -%}
 {% endif -%}
 {% if labor_held -%}
 <h2 id="vehicle">For one vehicle</h2>

@@ -619,3 +619,70 @@ async fn a_makers_links_are_shown_exactly_where_some_are_recorded() {
         }
     }
 }
+
+#[tokio::test]
+async fn a_model_year_lists_its_labour_times() {
+    let app = common::labor_ai_app().await;
+    let path = "/makes/hyundai/kona/2023";
+    let (status, html) = page(&app, path).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_basics(&html, path);
+    assert!(
+        html.contains(r#"<h2 id="labour">Labour times</h2>"#),
+        "{html}"
+    );
+    assert!(
+        html.contains(r#"<a href="/makes/hyundai/kona/2023/labor/test-job-a">Test job A</a>"#),
+        "{html}"
+    );
+    assert!(html.contains("88 hours"), "{html}");
+    assert!(html.contains("87 to 89 hours"), "{html}");
+    assert!(
+        html.contains(
+            r#"<a href="/makes/hyundai/kona/2023/labor">Every labour time for the 2023 Hyundai Kona</a>"#
+        ),
+        "{html}"
+    );
+    // Job C's AI figure is narrow too; job B has a class figure only.
+    assert!(
+        html.contains(r#"href="/makes/hyundai/kona/2023/labor/test-job-c""#),
+        "{html}"
+    );
+    assert!(
+        !html.contains("test-job-b"),
+        "a class figure is not a vehicle's own:\n{html}"
+    );
+    // The description says the page shows labour times.
+    let description = html
+        .split(r#"<meta name="description" content=""#)
+        .nth(1)
+        .and_then(|rest| rest.split('"').next())
+        .unwrap_or_else(|| panic!("no description:\n{html}"));
+    assert!(description.contains("labour times"), "{description}");
+
+    let text = common::markdown(&app, &format!("{path}.md")).await;
+    assert!(text.contains("## Labour times\n"), "{text}");
+    assert!(
+        text.contains(
+            "- [Test job A](/makes/hyundai/kona/2023/labor/test-job-a.md): 88 hours, 87 to 89 hours, written"
+        ),
+        "{text}"
+    );
+    assert!(
+        text.contains("Every labour time for the 2023 Hyundai Kona"),
+        "{text}"
+    );
+}
+
+#[tokio::test]
+async fn a_model_year_without_narrow_figures_has_no_labour_section() {
+    let app = common::labor_ai_app().await;
+    // Neither the Civic nor the F-150 has a labour figure on file.
+    for path in ["/makes/honda/civic/2019", "/makes/ford/f-150/2019"] {
+        let (status, html) = page(&app, path).await;
+        assert_eq!(status, StatusCode::OK, "{path}");
+        assert!(!html.contains("Labour times"), "{path}:\n{html}");
+        let text = common::markdown(&app, &format!("{path}.md")).await;
+        assert!(!text.contains("Labour times"), "{path}.md:\n{text}");
+    }
+}

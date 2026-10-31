@@ -844,6 +844,27 @@ async fn a_server_with_codes_or_labour_says_so_where_a_model_looks() {
     ] {
         assert!(text.contains(needle), "{needle}: {text}");
     }
+    // The two vehicle labour page patterns, and their Markdown twins.
+    for (address, pattern) in [
+        (
+            "/makes/hyundai/kona/2023/labor.md",
+            "`/makes/{make}/{model}/{year}/labor.md`",
+        ),
+        (
+            "/makes/hyundai/kona/2023/labor/brake-pads-front.md",
+            "`/makes/{make}/{model}/{year}/labor/{job}.md`",
+        ),
+    ] {
+        assert!(
+            text.contains(&format!("](https://open.example{address}): {pattern}")),
+            "{address}: {text}"
+        );
+    }
+    // The list of every time for a model year is a page on this server.
+    assert_eq!(
+        app.get("/makes/hyundai/kona/2023/labor.md").await.status(),
+        StatusCode::OK
+    );
     assert!(!text.contains("/v1/codes"), "{text}");
 
     // Every tool is named whatever is held, and nothing else is said of

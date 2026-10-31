@@ -144,6 +144,38 @@ pub fn article(base: &str, path: &str, headline: &str, description: &str) -> Val
     })
 }
 
+/// The labour estimates as a dataset a search engine can list, for
+/// Google Dataset Search. `date` is the newest day a figure was changed.
+/// The data is free to read and to reuse under CC BY 4.0, with the credit
+/// the dataset's attribution names.
+pub fn dataset(base: &str, description: &str, date: Option<&str>) -> Value {
+    let mut dataset = json!({
+        "@type": "Dataset",
+        "name": "Wenmar labour estimates",
+        "description": description,
+        "url": format!("{base}/jobs"),
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": { "@id": ORGANIZATION_ID },
+        "isAccessibleForFree": true,
+        "distribution": [
+            {
+                "@type": "DataDownload",
+                "encodingFormat": "application/json",
+                "contentUrl": format!("{base}/v1/jobs")
+            },
+            {
+                "@type": "DataDownload",
+                "encodingFormat": "text/markdown",
+                "contentUrl": format!("{base}/jobs.md")
+            }
+        ]
+    });
+    if let Some(date) = date {
+        dataset["dateModified"] = json!(date);
+    }
+    dataset
+}
+
 /// A recall campaign: an article whose subject is the vehicles the
 /// campaign lists, with the day it was reported when that is known.
 pub fn recall(

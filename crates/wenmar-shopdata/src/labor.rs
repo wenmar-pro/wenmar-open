@@ -156,6 +156,28 @@ pub struct LaborEstimate {
     pub inputs: Vec<String>,
 }
 
+/// A job on a vehicle that a sitemap can list: the years a figure
+/// narrower than class covers, and the job. An engine's figure is left
+/// out, because its page carries the engine in a query string, and a page
+/// with a query string is not offered to a search engine.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct LaborPage {
+    pub job_id: String,
+    pub model_id: i64,
+    /// `None` for a model-scope figure, which covers every model year.
+    pub year_from: Option<u16>,
+    pub year_to: Option<u16>,
+}
+
+impl LaborPage {
+    /// Whether this figure covers `year` of `model`.
+    pub fn covers(&self, model_id: i64, year: u16) -> bool {
+        self.model_id == model_id
+            && self.year_from.is_none_or(|from| year >= from)
+            && self.year_to.is_none_or(|to| year <= to)
+    }
+}
+
 /// What a shop file holds about its labour estimates: the counts the
 /// method page shows. Every field is counted from the file.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -392,6 +414,30 @@ impl<S: Source> ShopData<S> {
             ai_methods,
             newest,
         })
+    }
+
+    /// Every figure narrower than class whose page is the vehicle's own:
+    /// the model's and the generation's. In model and year order. A
+    /// sitemap lists each at the model years the catalog holds.
+    pub fn labor_pages(&self) -> Result<Vec<LaborPage>, ShopError> {
+        self.require(Dataset::Labor)?;
+        let rows = self.query(
+            "SELECT job_id, model_id, year_from, year_to
+             FROM labor_estimate
+             WHERE scope IN ('model', 'generation') AND model_id IS NOT NULL
+             ORDER BY model_id, year_from, job_id",
+            &[],
+        )?;
+        rows.iter()
+            .map(|row| {
+                Ok(LaborPage {
+                    job_id: text(row, 0)?,
+                    model_id: integer(row, 1)?,
+                    year_from: year(row, 2),
+                    year_to: year(row, 3),
+                })
+            })
+            .collect()
     }
 
     /// The class of one model year and where it came from: `epa`, or
