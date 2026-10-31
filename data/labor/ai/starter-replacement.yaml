@@ -15944,3 +15944,1431 @@ estimates:
     confidence: 35
     inputs: [vehicle, job, procedure]
     notes: "Estimated for a 2015-2019 Lincoln MKC 2.3L EcoBoost with the starter reached from below, assuming similar underbody/intake plumbing access to the 2.0L layout and no rust or seized fasteners. Includes underbody shield and possible start/stop coolant pump repositioning."
+  - scope: engine
+    make: ford
+    model: e-350
+    year_from: 1997
+    year_to: 2021
+    engine: 6-8l-v10
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 4x2 E-350 with the 6.8L V10, no rust or seized fasteners, starter accessible from below without removing the wheel; no added equipment."
+  - scope: engine
+    make: ford
+    model: f-150
+    year_from: 1997
+    year_to: 2003
+    engine: 4-6l-v8
+    low: "0.75"
+    typical: "1.1"
+    high: "1.65"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 1997-2003 F-150 with the 4.6L V8, with the starter reached from underneath using standard hand tools. 4WD skid plates or front axle components can add time, reflected in the high estimate."
+  - scope: engine
+    make: ford
+    model: f-150
+    year_from: 1997
+    year_to: 2003
+    engine: 5-4l-v8
+    low: "0.7"
+    typical: "1.1"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed this is a 1997-2003 F-150 with the 5.4L V8, reached from below, in ordinary condition without heavy rust. A 4x4 with skid plates or rusted fasteners would trend toward the high estimate."
+  - scope: engine
+    make: ford
+    model: f-350
+    year_from: 2003
+    year_to: 2007
+    engine: 6-0l-v8-diesel
+    low: "0.8"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the 6.0L diesel starter is reached from below with stock shields in place and no rust or seized fasteners. High allows for seized mounting bolts, damaged shields, or extra access work."
+  - scope: engine
+    make: ford
+    model: f-350
+    year_from: 1999
+    year_to: 2007
+    engine: 6-8l-v10
+    low: "0.8"
+    typical: "1.2"
+    high: "1.9"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "I assumed a Ford F-350 with the 6.8L V10, unknown 2WD/4WD, accessed from below with standard hand tools and no rust or seized fasteners. High allows for a 4WD truck with rusted fasteners or extra shielding."
+  - scope: engine
+    make: ford
+    model: f-350
+    year_from: 1999
+    year_to: 2003
+    engine: 7-3l-turbo-v8-diesel
+    low: "0.8"
+    typical: "1.25"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 1999-2003 Ford F-350 7.3L diesel with dual batteries, starter reached from below, and no rust; high allows for seized bolts and extra bracket/harness interference. Assumed the right wheel may need to be moved for access."
+  - scope: engine
+    make: ford
+    model: f-250
+    year_from: 1999
+    year_to: 2007
+    engine: 5-4l-v8
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 1999-2007 F-250 with the 5.4L V8 in ordinary condition, with the starter reached from below and no major aftermarket obstructions. No flywheel or flexplate repair is included."
+  - scope: engine
+    make: ford
+    model: f-250
+    year_from: 2003
+    year_to: 2007
+    engine: 6-0l-v8-diesel
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 2003-2007 Ford F-250 with the 6.0L diesel in ordinary condition, with the starter reached from below and only minor underbody shielding to remove. No battery replacement or flywheel/flexplate repair is included."
+  - scope: engine
+    make: ford
+    model: f-250
+    year_from: 1999
+    year_to: 2007
+    engine: 6-8l-v10
+    low: "0.7"
+    typical: "1.05"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a 1999-2007 Ford F-250 with the 6.8L V10, starter reached from below, in ordinary rust-free condition with no added equipment or seized fasteners."
+  - scope: engine
+    make: ford
+    model: transit
+    year_from: 2020
+    year_to: 2023
+    engine: 3-5l-turbo-v6
+    low: "1.1"
+    typical: "1.65"
+    high: "2.4"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "AI estimate assumes a 2020-2023 Ford Transit 3.5L Turbo V6 with the starter reached from below after removing underbody shields, in ordinary condition with no added equipment. High allows for rusted or seized fasteners and extra time for corroded cables."
+  - scope: engine
+    make: ford
+    model: transit
+    year_from: 2025
+    year_to: 2026
+    engine: 3-5l-turbo-v6
+    low: "0.9"
+    typical: "1.35"
+    high: "2.1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the 3.5L EcoBoost V6 rear-drive Transit van with the starter reached from below on the right side of the bellhousing, with only shields and cables in the way and no seized fasteners or rusted heat shield hardware."
+  - scope: engine
+    make: ford
+    model: transit
+    year_from: 2020
+    year_to: 2027
+    engine: 3-5l-v6
+    low: "1.1"
+    typical: "1.65"
+    high: "2.4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a rear-wheel-drive 3.5L V6 Transit with the starter reached from below and an underbody access panel/heat shield that must come off; typical condition means no rust or seized fasteners."
+  - scope: engine
+    make: ford
+    model: transit
+    year_from: 2015
+    year_to: 2019
+    engine: 3-7l-v6
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 2015-2019 Ford Transit 3.7L V6 with the starter reached from below after removing underbody shields; the battery is accessible and no wheel/arch liner removal is assumed. Conditions are ordinary, with the high figure allowing for rust or seized fasteners."
+  - scope: engine
+    make: dodge
+    model: dakota
+    year_from: 1997
+    year_to: 2003
+    engine: 3-9l-v6
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 3.9L V6 Dakota with the starter reached from below, no rust or seized fasteners, and no major additional equipment in the way; this is an AI estimate."
+  - scope: engine
+    make: dodge
+    model: dakota
+    year_from: 2000
+    year_to: 2004
+    engine: 4-7l-v8
+    low: "0.95"
+    typical: "1.5"
+    high: "2.4"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed a 4.7L V8 Dakota with starter access from below, two mounting bolts, and no rust or seized fasteners; 4WD skid plating may add minor time. High allows for rust, tight access, and heat shield complications."
+  - scope: engine
+    make: ford
+    model: ranger
+    year_from: 2001
+    year_to: 2011
+    engine: 2-3l
+    low: "0.75"
+    typical: "1"
+    high: "1.55"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.3L gasoline rear-wheel-drive Ranger pickup with the starter reached from below and no unusual skid plate or added equipment; ordinary condition with no rust or seized fasteners."
+  - scope: engine
+    make: ford
+    model: ranger
+    year_from: 1998
+    year_to: 2008
+    engine: 3-0l-v6
+    low: "0.7"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.0L V6 Ranger pickup with the starter reached from below, no added equipment or shields, and ordinary condition. Times are an AI estimate for a professional technician with standard hand tools."
+  - scope: engine
+    make: ford
+    model: ranger
+    year_from: 1998
+    year_to: 2011
+    engine: 4-0l-v6
+    low: "0.7"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 1998-2011 Ford Ranger with the 4.0L V6, normal underbody access, and no major shields or seized fasteners; high covers rust or exhaust/shield complications."
+  - scope: engine
+    make: honda
+    model: accord
+    year_from: 1998
+    year_to: 2002
+    engine: 2-3l
+    low: "0.8"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a 2.3L four-cylinder Accord in ordinary condition with the starter reached from below and no rust or seized fasteners; removing the air intake and splash shield is included for access."
+  - scope: engine
+    make: honda
+    model: accord
+    year_from: 1998
+    year_to: 2002
+    engine: 3-0l-v6
+    low: "1"
+    typical: "1.4"
+    high: "2.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 3.0L V6 Accord with the starter reached from underneath after removing the lower splash shield, with no rust or seized mounting bolts and no added accessories in the way."
+  - scope: engine
+    make: dodge
+    model: ram
+    year_from: 1994
+    year_to: 2001
+    engine: 3-9l-v6
+    low: "0.55"
+    typical: "0.85"
+    high: "1.35"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 1994-2001 Dodge Ram with the 3.9L V6, starter reached from below with no major skid plate or added equipment, and ordinary fasteners. High allows for rust or seized starter bolts and tight access."
+  - scope: engine
+    make: dodge
+    model: ram
+    year_from: 1994
+    year_to: 2001
+    engine: 5-2l-v8
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed a 1994-2001 Dodge Ram with the 5.2L V8, starter accessed from below with standard hand tools and no added equipment. The high figure allows for rust or seized mounting bolts and cable fasteners."
+  - scope: engine
+    make: ford
+    model: f-150
+    year_from: 1992
+    year_to: 1996
+    engine: 4-9l
+    low: "0.5"
+    typical: "0.75"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a typical 1992-1996 F-150 with the 4.9L inline-six and normal rust-free condition, with the starter reached mainly from below and no major parts removed; the high figure allows for rusted fasteners or extra obstruction on a 4WD or corroded example."
+  - scope: engine
+    make: ford
+    model: f-150
+    year_from: 1992
+    year_to: 1996
+    engine: 5-0l-v8
+    low: "0.4"
+    typical: "0.62"
+    high: "1"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "I assumed a 1992-1996 Ford F-150 with the 5.0L V8 in ordinary condition, with the starter reached from below and no exhaust or flywheel work. Drive type was not specified, so the estimate covers the common 2WD/4WD access without major extra disassembly."
+  - scope: engine
+    make: ford
+    model: f-150
+    year_from: 1992
+    year_to: 1996
+    engine: 5-8l-v8
+    low: "0.85"
+    typical: "1.3"
+    high: "2"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "I assumed a stock 1992-1996 F-150 with the 5.8L V8, most likely 2WD, with no rust or seized fasteners; high covers rust, skid plates, or 4WD access."
+  - scope: engine
+    make: dodge
+    model: journey
+    year_from: 2009
+    year_to: 2020
+    engine: 2-4l
+    low: "1.3"
+    typical: "2"
+    high: "3"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.4L Dodge Journey in ordinary condition with the starter reached from below and throttle body removal needed for access. High allows for corroded or seized starter bolts, tight intake access, and brittle plastic connectors."
+  - scope: engine
+    make: dodge
+    model: journey
+    year_from: 2017
+    year_to: 2020
+    engine: 3-6l-v6
+    low: "1.6"
+    typical: "2.25"
+    high: "3.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2017-2020 Dodge Journey with the 3.6L V6, ordinary corrosion, and that the catalytic converter and front engine mount bracket must be removed to reach the starter as shown in the 3.6L procedure."
+  - scope: engine
+    make: ford
+    model: explorer
+    year_from: 1995
+    year_to: 2001
+    engine: 4-0l-v6
+    low: "0.75"
+    typical: "1.1"
+    high: "1.65"
+    confidence: 48
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4.0L V6 Explorer in ordinary condition with the starter reached from below and no extra skid plates or seized fasteners; estimate is for the common 4.0L configuration, not the 5.0L."
+  - scope: engine
+    make: ford
+    model: explorer
+    year_from: 1996
+    year_to: 2001
+    engine: 5-0l-v8
+    low: "0.6"
+    typical: "0.85"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1996-2001 Explorer with the 5.0L V8, likely AWD/4WD, with the starter reached from below and no rust or seized fasteners. No exhaust or major accessory removal was assumed."
+  - scope: engine
+    make: ford
+    model: f-250
+    year_from: 2011
+    year_to: 2016
+    engine: 6-2l-v8
+    low: "1.3"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 2011-2016 Ford F-250 with the 6.2L V8, likely 4WD but similar for 2WD, in average condition with no rust or seized fasteners; starter is accessed from below with minor underbody and heat shields."
+  - scope: engine
+    make: ford
+    model: f-250
+    year_from: 2008
+    year_to: 2010
+    engine: 6-4l-v8-diesel
+    low: "1"
+    typical: "1.6"
+    high: "2.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 2008-2010 Ford F-250 with the 6.4L diesel, dual batteries, and starter access from below with ordinary rust-free fasteners; the estimate covers shields and cable access but not battery or flywheel work."
+  - scope: engine
+    make: ford
+    model: f-250
+    year_from: 2011
+    year_to: 2016
+    engine: 6-7l-v8-diesel
+    low: "0.8"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 2011-2016 F-250 with the 6.7L diesel V8, dual batteries, and starter access from below after removing a shield or plate. Times assume ordinary condition with no rust or seized fasteners; the high estimate allows for rust and difficult access."
+  - scope: engine
+    make: dodge
+    model: dakota
+    year_from: 2005
+    year_to: 2009
+    engine: 3-7l-v6
+    low: "0.8"
+    typical: "1"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a standard 2005-2009 Dakota with the 3.7L V6, ordinary condition and no major aftermarket skid plates; the starter is reached from below and no flywheel or battery work is included."
+  - scope: engine
+    make: dodge
+    model: dakota
+    year_from: 2005
+    year_to: 2009
+    engine: 4-7l-v8
+    low: "0.8"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 2005-2009 Dodge Dakota with the 4.7L V8 in average condition, with the starter reached from below without major disassembly. This is an AI estimate; high allows for rust, seized fasteners, or a fitted skid plate."
+  - scope: engine
+    make: ford
+    model: f-350
+    year_from: 2011
+    year_to: 2016
+    engine: 6-2l-v8
+    low: "0.8"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "2011-2016 Ford F-350 Super Duty with the 6.2L V8 gasoline engine, in ordinary condition with no rust or seized fasteners. Starter is accessed from below, and a small heat shield may need removal."
+  - scope: engine
+    make: ford
+    model: f-350
+    year_from: 2008
+    year_to: 2010
+    engine: 6-4l-v8-diesel
+    low: "0.7"
+    typical: "1.1"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a stock 2008-2010 F-350 with the 6.4L diesel, dual batteries, and starter access from below. Typical time assumes no rust, seized fasteners, or added equipment."
+  - scope: engine
+    make: ford
+    model: f-350
+    year_from: 2011
+    year_to: 2016
+    engine: 6-7l-v8-diesel
+    low: "1.25"
+    typical: "1.85"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 4x4 Super Duty with the 6.7L diesel and dual batteries, with the starter reached from below and no rust or seized fasteners. No exhaust, flywheel, or flexplate work was included."
+  - scope: engine
+    make: ford
+    model: transit-connect
+    year_from: 2019
+    year_to: 2023
+    engine: 2-0l
+    low: "0.7"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L gasoline front-wheel-drive Transit Connect with the starter reached from below after removing the underbody shield and bracket, in ordinary condition with no rust or seized fasteners. Estimated for a professional technician using standard shop tools."
+  - scope: engine
+    make: ford
+    model: transit-connect
+    year_from: 2014
+    year_to: 2018
+    engine: 2-5l
+    low: "1"
+    typical: "1.45"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the transverse 2.5L petrol engine with the starter reached from below after removing the underbody shield and a small bracket, with no rust or seized fasteners on a standard van."
+  - scope: engine
+    make: nissan
+    model: altima
+    year_from: 2002
+    year_to: 2006
+    engine: 2-5l
+    low: "0.8"
+    typical: "1.17"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2002-2006 Nissan Altima 2.5L with automatic transmission, starter reached from below in ordinary condition with no rust or seized fasteners; includes the automatic-transmission intake duct removal."
+  - scope: engine
+    make: nissan
+    model: altima
+    year_from: 2002
+    year_to: 2006
+    engine: 3-5l-v6
+    low: "0.85"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.5L V6 automatic Altima in ordinary condition, with the air cleaner duct removal applying as shown for A/T models. Access may be from above and below depending on fastener reach, with no rust or seized hardware."
+  - scope: engine
+    make: volkswagen
+    model: jetta
+    year_from: 2000
+    year_to: 2005
+    engine: 1-8l
+    low: "0.9"
+    typical: "1.35"
+    high: "1.9"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assuming the common 1.8L turbo gasoline engine with automatic transmission in a sedan, starter reached from below after removing the splash shield and some intake/battery tray pieces; no rust or seized fasteners."
+  - scope: engine
+    make: volkswagen
+    model: jetta
+    year_from: 1999
+    year_to: 2005
+    engine: 2-0l
+    low: "0.8"
+    typical: "1.3"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 1999-2005 Jetta 2.0L sedan with standard tools and no rust or seized fasteners; starter is reached mainly from below after removing lower covers and any easy intake/airbox access parts."
+  - scope: engine
+    make: honda
+    model: accord
+    year_from: 2003
+    year_to: 2007
+    engine: 2-4l
+    low: "1.9"
+    typical: "2.45"
+    high: "3.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2003-2007 Honda Accord 2.4L four-cylinder automatic in ordinary condition, with the starter accessed after intake manifold removal as listed. No rust or seized fasteners, and radio/navigation anti-theft codes are known."
+  - scope: engine
+    make: honda
+    model: accord
+    year_from: 2003
+    year_to: 2007
+    engine: 3-0l-v6
+    low: "1.2"
+    typical: "1.7"
+    high: "2.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "The starter on the 3.0L V6 is accessed from below after removing the left front wheel and splash shield; no intake manifold removal is required. Standard tools and ordinary condition (no rust or seized fasteners) are assumed."
+  - scope: engine
+    make: dodge
+    model: caravan
+    year_from: 1991
+    year_to: 1995
+    engine: 2-5l
+    low: "0.8"
+    typical: "1.3"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 2.5L four-cylinder minivan with the starter reached from below and only a lower splash shield possibly in the way. These hours are an AI estimate, not a manual or warranty time."
+  - scope: engine
+    make: dodge
+    model: caravan
+    year_from: 1991
+    year_to: 1995
+    engine: 3-0l-v6
+    low: "0.9"
+    typical: "1.4"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assume a 1991-1995 Dodge Caravan with the 3.0L V6 in average condition with no rust or seized fasteners. The starter is accessed from below and above; battery and air cleaner removal are needed for clearance."
+  - scope: engine
+    make: dodge
+    model: caravan
+    year_from: 1991
+    year_to: 1995
+    engine: 3-3l-v6
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 1991-1995 Dodge Caravan with the 3.3L V6 and automatic transaxle, with the starter reached from below and no unusual rust or seized fasteners. I assumed ordinary hand tools and no extra equipment or major exhaust removal."
+  - scope: engine
+    make: chevrolet
+    model: malibu
+    year_from: 2000
+    year_to: 2003
+    engine: 2-2l
+    low: "1"
+    typical: "1.5"
+    high: "2"
+    confidence: 30
+    inputs: [vehicle, job, procedure]
+    notes: "The 2.2L engine is an inline-4 with transverse layout, and the starter is accessed similarly to the 2.4L procedure, requiring removal of the air inlet duct and lower closeout panel. No rust or seized fasteners."
+  - scope: engine
+    make: chevrolet
+    model: malibu
+    year_from: 1997
+    year_to: 1999
+    engine: 2-4l
+    low: "1.1"
+    typical: "1.5"
+    high: "2.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1997-1999 Malibu with the 2.4L four-cylinder in ordinary condition, with the starter reached from below and one top bolt removed from the engine bay. No rust, seized fasteners, shims, or added equipment are included."
+  - scope: engine
+    make: chevrolet
+    model: malibu
+    year_from: 1997
+    year_to: 2003
+    engine: 3-1l-v6
+    low: "0.75"
+    typical: "1.15"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1997-2003 Chevrolet Malibu with the 3.1L V6, front-wheel drive, and starter accessed from below after removing the lower closeout panel; shims are used only if originally fitted. Typical assumes ordinary condition, while high allows for rust and seized fasteners."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 4-3l-v6
+    low: "0.65"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed an ordinary rust-free 1999-2006 Silverado with the 4.3L V6 and starter access from below, with no extra skid plate or shielding removal beyond the listed fasteners."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 4-8l-v8
+    low: "0.7"
+    typical: "0.94"
+    high: "1.6"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1999-2006 Chevrolet Silverado with 4.8L V8, either 2WD or 4WD, in ordinary condition with no rust or seized fasteners. The starter is reached from below, and the right transmission cover and oil level sensor are present as described in the repair steps."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 5-3l-v8
+    low: "0.9"
+    typical: "1.35"
+    high: "2.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical 1999-2006 Silverado with the 5.3L V8, reached from below, with the transmission cover and oil level sensor noted in the procedure. No rust or seized fasteners; battery is only disconnected, not replaced."
+  - scope: engine
+    make: honda
+    model: accord
+    year_from: 1995
+    year_to: 1996
+    engine: 2-7l-v6
+    low: "0.9"
+    typical: "1.4"
+    high: "2.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse front-wheel-drive 2.7L V6 Accord with the starter reached mainly from below and only ordinary intake/splash-shield parts in the way. This is an AI estimate for a professional technician using standard shop tools; high allows for rust and seized fasteners."
+  - scope: engine
+    make: bmw
+    model: x5
+    year_from: 2001
+    year_to: 2002
+    engine: 3-0l
+    low: "1.4"
+    typical: "2.15"
+    high: "3.2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2001-2002 X5 3.0i with the M54 inline-six and automatic transmission, with the starter reached from below after removing only underbody shields/access covers. No major intake, exhaust, or transmission work is needed."
+  - scope: engine
+    make: bmw
+    model: x5
+    year_from: 2004
+    year_to: 2006
+    engine: 3-0l
+    low: "1.4"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2004-2006 BMW X5 3.0L with the M54 engine and automatic transmission, with the starter reached from below. Assumed no added equipment, no significant rust, and that the job includes battery disconnect, underbody panel removal, starter replacement, and a start test."
+  - scope: engine
+    make: bmw
+    model: x5
+    year_from: 2000
+    year_to: 2002
+    engine: 4-4l
+    low: "1.3"
+    typical: "1.9"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "The vehicle is a 2000-2002 BMW X5 with the 4.4L V8 engine, starter accessed from below after removing underbody panels; no major components like intake or exhaust need removal. Standard tools and no rust."
+  - scope: engine
+    make: bmw
+    model: x5
+    year_from: 2004
+    year_to: 2006
+    engine: 4-4l
+    low: "4"
+    typical: "4.9"
+    high: "7"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2004-2006 X5 4.4i with the N62 V8 and automatic AWD, where the starter is reached after removing the intake manifold rather than from below as on the inline-six. Estimated for ordinary condition with no rust or seized fasteners."
+  - scope: engine
+    make: ford
+    model: focus
+    year_from: 2000
+    year_to: 2007
+    engine: 2-0l
+    low: "0.8"
+    typical: "1.3"
+    high: "2"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate assumes the 2.0L SPI engine in ordinary condition with no rust or seized fasteners; high allows for rust and access issues. The job is reached partly from above and partly from below."
+  - scope: engine
+    make: ford
+    model: focus
+    year_from: 2003
+    year_to: 2007
+    engine: 2-3l
+    low: "0.8"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "The vehicle is a 2003-2007 Ford Focus with the 2.3L engine in ordinary condition (no rust or seized fasteners). The job is performed from below with the vehicle on a hoist, following the factory procedure including detaching the power steering pressure line brackets."
+  - scope: engine
+    make: volkswagen
+    model: golf
+    year_from: 2000
+    year_to: 2005
+    engine: 1-8l
+    low: "0.8"
+    typical: "1.15"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2000-2005 Golf 1.8L gasoline hatchback with the starter reached from below, battery in the engine bay, and no rust or seized fasteners. Standard hand tools and normal shop access were assumed."
+  - scope: engine
+    make: volkswagen
+    model: golf
+    year_from: 1999
+    year_to: 2006
+    engine: 1-9l-diesel
+    low: "1"
+    typical: "1.4"
+    high: "2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assume a 1.9L TDI diesel in a Mk4 Golf with starter accessed from below after removing the lower engine cover and air intake ducting; no rust or seized fasteners."
+  - scope: engine
+    make: volkswagen
+    model: golf
+    year_from: 1999
+    year_to: 2006
+    engine: 2-0l
+    low: "0.9"
+    typical: "1.55"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 2.0L Golf with automatic transmission in ordinary condition, with the starter reached from below after removing the undertray and minor intake parts. High allows for rust or seized fasteners."
+  - scope: engine
+    make: ford
+    model: escape
+    year_from: 2001
+    year_to: 2004
+    engine: 2-0l
+    low: "0.9"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the 2.0L Escape with the starter reached from below and the halfshaft support bracket moved aside, in ordinary condition with no rust or seized fasteners."
+  - scope: engine
+    make: ford
+    model: escape
+    year_from: 2005
+    year_to: 2007
+    engine: 2-3l
+    low: "1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2005-2007 Ford Escape with the 2.3L I4, front-wheel drive or AWD, and starter access from below with the halfshaft support bracket moved aside. No rust or seized fasteners, and no extra equipment obstructing access."
+  - scope: engine
+    make: jeep
+    model: grand-cherokee
+    year_from: 1999
+    year_to: 2004
+    engine: 4-7l-v8
+    low: "0.8"
+    typical: "1.2"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "4.7L V8 4WD Grand Cherokee on a lift with standard hand tools and no rust or seized fasteners; starter reached entirely from below with no significant parts needing removal."
+  - scope: engine
+    make: jeep
+    model: cherokee
+    year_from: 1990
+    year_to: 2000
+    engine: 2-5l
+    low: "0.9"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.5L Jeep Cherokee with the listed exhaust clamp and transmission brace/bracket hardware, either manual or automatic as fitted. Typical time assumes ordinary condition; high allows for rusted or seized exhaust/brace fasteners and difficult access."
+  - scope: engine
+    make: nissan
+    model: sentra
+    year_from: 2002
+    year_to: 2006
+    engine: 1-8l
+    low: "0.75"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 1.8L Sentra sedan with the starter mounted on the transmission and reached from below, with an underbody shield and no rust or seized fasteners."
+  - scope: engine
+    make: nissan
+    model: sentra
+    year_from: 2002
+    year_to: 2006
+    engine: 2-5l
+    low: "0.9"
+    typical: "1.3"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "The vehicle is a 2002-2006 Nissan Sentra with the 2.5L engine and front-wheel drive, with the starter reached from below after removing the underbody splash shield. No rust or seized fasteners assumed for typical; high allows for such issues."
+  - scope: engine
+    make: nissan
+    model: pathfinder
+    year_from: 1996
+    year_to: 1997
+    engine: 3-3l-v6
+    low: "0.7"
+    typical: "1"
+    high: "1.7"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 1996-1997 Pathfinder 3.3L V6, likely 4WD, with the starter reached from below and a typical underbody shield; no rust or seized fasteners on the low/typical estimate."
+  - scope: engine
+    make: nissan
+    model: pathfinder
+    year_from: 2002
+    year_to: 2004
+    engine: 3-5l-v6
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4WD 3.5L V6 Pathfinder with the starter reached from below after removing the underbody shield, with no rusted or seized fasteners and no additional equipment."
+  - scope: engine
+    make: nissan
+    model: altima
+    year_from: 2007
+    year_to: 2012
+    engine: 2-5l
+    low: "0.9"
+    typical: "1.15"
+    high: "1.6"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2007-2012 Nissan Altima 2.5L QR25DE sedan, assumed CVT and starter access from above after battery and tray removal. No rust, seized fasteners, or added equipment."
+  - scope: engine
+    make: nissan
+    model: altima
+    year_from: 2007
+    year_to: 2009
+    engine: 3-5l-v6
+    low: "1.1"
+    typical: "1.6"
+    high: "2.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2007-2009 Altima 3.5L V6 sedan with FWD, starter reached after battery/tray removal and lower splash access; no exhaust or intake removal, no rust or seized fasteners. The catalog procedure shown is for the QR25DE, so this V6 estimate is an AI estimate."
+  - scope: engine
+    make: mercedes-benz
+    model: sprinter
+    year_from: 2017
+    year_to: 2018
+    engine: 3-0l-v6-diesel
+    low: "1.5"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a 2017-2018 Sprinter with the 3.0L V6 diesel, starter reached from below after removing lower covers; no rust, seized fasteners or added equipment."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 1997
+    year_to: 2001
+    engine: 2-2l
+    low: "0.8"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 1997-2001 Camry 2.2L with the starter reached from below, using standard tools and assuming no rust or seized fasteners; only the under cover and intake air cleaner parts are assumed to need removal."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 1997
+    year_to: 2001
+    engine: 3-0l-v6
+    low: "1"
+    typical: "1.6"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 1997-2001 Camry with the 3.0L V6, with the starter reached from below after removing the air cleaner and battery tray; no intake manifold removal or rust/seized fasteners."
+  - scope: engine
+    make: volkswagen
+    model: jetta
+    year_from: 2009
+    year_to: 2010
+    engine: 2-0l-turbo
+    low: "0.95"
+    typical: "1.35"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2009-2010 Jetta 2.0T sedan in ordinary condition; the starter is reached from below after removing the airbox/cover and lower noise insulation. No rust or seized fasteners assumed for typical, with high allowing for them."
+  - scope: engine
+    make: volkswagen
+    model: jetta
+    year_from: 2006
+    year_to: 2010
+    engine: 2-5l
+    low: "1"
+    typical: "1.45"
+    high: "2.25"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a typical 2006-2010 Jetta 2.5L sedan with the starter reached partly from below after removing the air filter housing and noise insulation. Assumed ordinary condition with no added equipment and no rust or seized fasteners for the typical figure."
+  - scope: engine
+    make: ford
+    model: edge
+    year_from: 2017
+    year_to: 2024
+    engine: 2-0l-turbo
+    low: "1.5"
+    typical: "2.1"
+    high: "3.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2017-2024 Ford Edge 2.0L Turbo AWD in ordinary condition, with the starter reached from below after removing the underbody shield and moving a coolant hose. The estimate includes cooling system drain/refill and underbody shield work, but not battery replacement or flexplate repair."
+  - scope: engine
+    make: ford
+    model: edge
+    year_from: 2017
+    year_to: 2023
+    engine: 2-7l-turbo-v6
+    low: "1"
+    typical: "1.5"
+    high: "2.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "The starter is accessed from below after removing the underbody shield; no coolant draining or major component removal is required. The vehicle is in normal condition with no rust or seized fasteners."
+  - scope: engine
+    make: ford
+    model: edge
+    year_from: 2015
+    year_to: 2018
+    engine: 3-5l-v6
+    low: "1"
+    typical: "1.4"
+    high: "2.2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate assumes a 2015-2018 Ford Edge with the 3.5L V6, FWD or AWD, with the starter reached from below after removing the undertray, and no rust or seized fasteners. It includes battery disconnect, starter R&R, refitting covers, and a start test."
+  - scope: engine
+    make: toyota
+    model: sienna
+    year_from: 2004
+    year_to: 2006
+    engine: 3-3l-v6
+    low: "1.1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a FWD 2004-2006 Toyota Sienna with the 3.3L V6, standard hand tools, and starter access from the top after removing the battery and air cleaner assembly. No rust or seized fasteners; high allows for corrosion and tight access."
+  - scope: engine
+    make: toyota
+    model: sienna
+    year_from: 2007
+    year_to: 2010
+    engine: 3-5l-v6
+    low: "1.2"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the 3.5L V6 Sienna, assuming the starter is reached after removing the battery and air cleaner assembly and that fasteners are not rusted or seized. High allows for rust, tight access, and extra time to refit parts."
+  - scope: engine
+    make: jeep
+    model: grand-cherokee
+    year_from: 1993
+    year_to: 1994
+    engine: 4-0l
+    low: "0.65"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 4.0L 4WD automatic Grand Cherokee in ordinary condition with starter reached from below and no extra parts needing removal. Estimated for a professional technician using standard hand tools."
+  - scope: engine
+    make: jeep
+    model: grand-cherokee
+    year_from: 1993
+    year_to: 1998
+    engine: 5-2l-v8
+    low: "0.7"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 5.2L V8 4WD Grand Cherokee with automatic transmission and no unusual underbody accessories; starter is reached from below. High allows for rusted fasteners or tight exhaust/heat-shield access."
+  - scope: engine
+    make: volvo
+    model: s70
+    year_from: 1999
+    year_to: 2000
+    engine: 2-3l-turbo
+    low: "1"
+    typical: "1.45"
+    high: "2.2"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1999-2000 Volvo S70 2.3L turbo with the starter reached partly from below and the air filter housing removed for access, using standard hand tools. Estimated for ordinary condition with no rust or seized fasteners; high allows for rust and tight access."
+  - scope: engine
+    make: volvo
+    model: s70
+    year_from: 1998
+    year_to: 2000
+    engine: 2-4l
+    low: "0.75"
+    typical: "1"
+    high: "1.55"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1999 Volvo S70 2.4L five-cylinder with the starter reached from below after removing the air filter housing, in ordinary condition with no rust or seized fasteners. Standard hand tools were assumed."
+  - scope: engine
+    make: acura
+    model: tl
+    year_from: 2004
+    year_to: 2008
+    engine: 3-2l-v6
+    low: "0.8"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.2L V6 sedan with the battery and tray removed for top-side access to the starter, as in the catalog procedure, with no corrosion on the battery terminals or starter bolts. Extra time in the high figure covers a seized tray bolt or starter bolt and anti-theft code re-entry delays."
+  - scope: engine
+    make: acura
+    model: tl
+    year_from: 2007
+    year_to: 2008
+    engine: 3-5l-v6
+    low: "0.8"
+    typical: "1.15"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "2007-2008 Acura TL 3.5L V6 sedan in ordinary condition, with the starter reached from the top after battery and tray removal and anti-theft codes known; no rust or seized fasteners."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 1992
+    year_to: 1993
+    engine: 2-2l
+    low: "0.7"
+    typical: "1.2"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 2.2L four-cylinder front-wheel-drive Camry with the starter reached from below and no rust or seized fasteners in the typical case; the estimate includes removing simple shields or brackets in the way."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 1995
+    year_to: 1996
+    engine: 2-2l
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "The vehicle is a 1995-1996 Toyota Camry with the 2.2L 5S-FE engine, front-wheel drive, in average condition with no rust or seized fasteners. The starter is accessible from below with standard tools;"
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 1992
+    year_to: 1993
+    engine: 3-0l-v6
+    low: "0.9"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed an ordinary 1992-1993 Camry with the 3.0L V6 and front-wheel drive, with the starter reached from below after removing minor shields and the left front wheel; no exhaust or major component removal was assumed."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 1995
+    year_to: 1996
+    engine: 3-0l-v6
+    low: "1.1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 3.0L V6 Camry with the starter mounted on the transaxle and reached mainly from below, with the air intake and undercovers giving access and the exhaust/steering in the way. High allows for rusted fasteners and cramped access on a 30-year-old car."
+  - scope: engine
+    make: nissan
+    model: maxima
+    year_from: 2000
+    year_to: 2001
+    engine: 3-0l-v6
+    low: "0.85"
+    typical: "1.25"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2000-2001 Maxima 3.0L V6 sedan with the starter reached from below and the air duct/harness removed for access. Estimated for an ordinary, rust-free vehicle with standard hand tools."
+  - scope: engine
+    make: nissan
+    model: maxima
+    year_from: 2002
+    year_to: 2003
+    engine: 3-5l-v6
+    low: "0.85"
+    typical: "1.3"
+    high: "1.95"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2002-2003 Nissan Maxima with the 3.5L V6 and a starter reached from below as described, with no rust, seized fasteners, or extra equipment. No wheel or splash shield removal was assumed beyond raising the vehicle."
+  - scope: engine
+    make: toyota
+    model: venza
+    year_from: 2012
+    year_to: 2016
+    engine: 2-7l
+    low: "1.1"
+    typical: "1.55"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2012-2016 Toyota Venza with the 2.7L 1AR-FE AWD engine and a starter reached from the engine bay after removing the battery and air cleaner assembly. Normal condition with no rust or seized fasteners, and initialization after battery reconnect is required."
+  - scope: engine
+    make: toyota
+    model: venza
+    year_from: 2009
+    year_to: 2016
+    engine: 3-5l-v6
+    low: "2.4"
+    typical: "3.3"
+    high: "4.9"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.5L V6 Venza with the starter mounted under the intake manifold, requiring intake removal; no rust or seized fasteners. Estimate includes removing and reinstalling the intake manifold and throttle body."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 2002
+    year_to: 2006
+    engine: 2-4l
+    low: "1"
+    typical: "1.45"
+    high: "2.2"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the 2.4L four-cylinder Camry with automatic transmission in ordinary condition, using the listed battery and air cleaner removal path; high allows for rust or seized fasteners."
+  - scope: engine
+    make: toyota
+    model: camry
+    year_from: 2002
+    year_to: 2003
+    engine: 3-0l-v6
+    low: "2"
+    typical: "2.7"
+    high: "3.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Vehicle is a 2002-2003 Toyota Camry with the 3.0L V6 engine in ordinary condition with no rust or seized fasteners. The starter is reached from below after raising the vehicle, and the job includes removing the battery, battery tray, and air cleaner assembly as outlined in the V6 procedure."
+  - scope: engine
+    make: bmw
+    model: x5
+    year_from: 2007
+    year_to: 2013
+    engine: 3-0l
+    low: "2.3"
+    typical: "3.2"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2010 BMW X5 xDrive30i with the N52 3.0L inline-six and AWD, where the starter is reached after removing the intake air manifold and some underbody shielding. Times assume standard tools and no rust or seized fasteners."
+  - scope: engine
+    make: bmw
+    model: x5
+    year_from: 2009
+    year_to: 2013
+    engine: 3-0l-diesel
+    low: "1.5"
+    typical: "2.15"
+    high: "3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2010 BMW X5 xDrive30d with 3.0L diesel (M57N2), AWD, and that the starter is accessed from below after removing underbody panels and left front wheel arch liner. No rust or seized fasteners for typical; aluminum bolts replaced as required."
+  - scope: engine
+    make: bmw
+    model: x5
+    year_from: 2007
+    year_to: 2010
+    engine: 4-8l
+    low: "4"
+    typical: "5.5"
+    high: "8"
+    confidence: 30
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 4.8L V8 (N62) X5 has the starter under the intake manifold, so intake-manifold removal is required; the supplied N52 procedure was not used for this engine. Estimated with standard hand tools and no rust or seized fasteners."
+  - scope: engine
+    make: lexus
+    model: rx
+    year_from: 2010
+    year_to: 2015
+    engine: 3-5l-v6
+    low: "0.8"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 2010-2015 Lexus RX350 with the 3.5L V6 and starter access from below without intake manifold removal; FWD or AWD does not materially change access. The estimate is for an ordinary, rust-free vehicle with standard shop tools."
+  - scope: engine
+    make: ford
+    model: fusion
+    year_from: 2006
+    year_to: 2009
+    engine: 2-3l
+    low: "0.75"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2006-2009 Ford Fusion 2.3L sedan with the starter reached from below and no battery tray removal required. The 3.0L AWD procedure shown was not used as the basis for this 2.3L estimate."
+  - scope: engine
+    make: ford
+    model: fusion
+    year_from: 2010
+    year_to: 2012
+    engine: 2-5l
+    low: "0.9"
+    typical: "1.3"
+    high: "1.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "The vehicle is a front-wheel-drive 2010-2012 Ford Fusion with the 2.5L engine. The starter is accessed from below with removal of underbody shields and minor brackets; no rust or seized fasteners. Battery is disconnected first."
+  - scope: engine
+    make: ford
+    model: fusion
+    year_from: 2006
+    year_to: 2012
+    engine: 3-0l-v6
+    low: "0.9"
+    typical: "1.4"
+    high: "2.1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.0L V6 Fusion sedan in ordinary condition with the starter reached from below after removing the battery tray; AWD or rusted fasteners would push the job toward the high estimate."
+  - scope: engine
+    make: gmc
+    model: envoy
+    year_from: 2002
+    year_to: 2009
+    engine: 4-2l
+    low: "0.9"
+    typical: "1.3"
+    high: "2.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 4.2L I6 Envoy with the starter reached from below and no skid plate or major obstructions; no rust or seized fasteners. Times are AI estimates for a professional technician with standard hand tools."
+  - scope: engine
+    make: gmc
+    model: envoy
+    year_from: 2003
+    year_to: 2009
+    engine: 5-3l-v8
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2003-2009 GMC Envoy with the 5.3L V8, likely 4WD, with starter access from below and a heat shield present. No major components like the driveshaft or wheel require removal, and fasteners are not seized."
+  - scope: engine
+    make: ford
+    model: f-250
+    year_from: 2017
+    year_to: 2022
+    engine: 6-2l-v8
+    low: "0.95"
+    typical: "1.45"
+    high: "2.25"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 6.2L V8 Super Duty pickup in ordinary condition with the starter reached from below and typical underbody/heat shields present. Estimated for a professional technician with standard hand tools; high allows for rusted or seized fasteners and tight access."
+  - scope: engine
+    make: ford
+    model: f-250
+    year_from: 2017
+    year_to: 2022
+    engine: 6-7l-v8-diesel
+    low: "1.2"
+    typical: "1.9"
+    high: "3.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a typical 4x4 F-250 with dual batteries and factory underbody/heat shields, accessed from below without removing a wheel. The estimate is for a rust-free vehicle with standard hand tools."
+  - scope: engine
+    make: ford
+    model: f-250
+    year_from: 2020
+    year_to: 2022
+    engine: 7-3l-v8
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a 2020-2022 Ford F-250 with the 7.3L V8 gasoline engine, likely 4WD, in ordinary used condition with no rust or seized fasteners. The starter is reached from below with standard hand tools and no major components need removal."
+  - scope: engine
+    make: ford
+    model: flex
+    year_from: 2017
+    year_to: 2019
+    engine: 3-5l-turbo-v6
+    low: "0.9"
+    typical: "1.3"
+    high: "2.2"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2017-2019 Ford Flex 3.5L Turbo V6 with the starter reached from below after air cleaner and splash shield removal. Assumed ordinary condition with no rust or seized fasteners."
+  - scope: engine
+    make: ford
+    model: flex
+    year_from: 2009
+    year_to: 2019
+    engine: 3-5l-v6
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common naturally aspirated 3.5L V6 Flex with starter access from below after removing the air cleaner assembly; typical is without rust or seized fasteners, and high allows for AWD/EcoBoost-style access difficulty and corrosion."
+  - scope: engine
+    make: ford
+    model: mustang
+    year_from: 1994
+    year_to: 2004
+    engine: 3-8l-v6
+    low: "0.55"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.8L V6 RWD Mustang on a hoist with the starter reached from below and no rust or seized fasteners; no extra equipment or skid plates are fitted."
+  - scope: engine
+    make: ford
+    model: mustang
+    year_from: 1996
+    year_to: 2004
+    engine: 4-6l-v8
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1996-2004 Mustang with the 4.6L V8, rear-wheel drive, and a starter reached from below with no major exhaust or suspension parts needing removal. Estimated for ordinary condition, with high allowing for rust or seized starter bolts."
+  - scope: engine
+    make: gmc
+    model: yukon
+    year_from: 2000
+    year_to: 2006
+    engine: 4-8l-v8
+    low: "0.5"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4.8L V8 Yukon with typical 4WD/SUV underbody access; the starter is reached from below and no wheel or fender liner removal is needed. The estimate allows for ordinary hand tools and typical rust/seizure risk in the high figure."
+  - scope: engine
+    make: chrysler
+    model: 300
+    year_from: 2016
+    year_to: 2023
+    engine: 3-6l-v6
+    low: "1.3"
+    typical: "2"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a rear-wheel-drive 3.6L V6 Chrysler 300 sedan in ordinary condition with the starter reached from below and the listed steering intermediate shaft removal required. AWD or rust/seized fasteners would push the job toward the high estimate."
+  - scope: engine
+    make: chrysler
+    model: 300
+    year_from: 2016
+    year_to: 2023
+    engine: 5-7l-v8
+    low: "0.7"
+    typical: "0.9"
+    high: "1.8"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2016-2023 Chrysler 300 5.7L V8 sedan with typical RWD access from below and no AWD-specific steering shaft removal. High allows for rust, seized fasteners, and limited underbody access."

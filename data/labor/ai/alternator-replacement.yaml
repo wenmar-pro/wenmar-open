@@ -17036,3 +17036,315 @@ estimates:
     confidence: 40
     inputs: [vehicle, job]
     notes: "Assumed a 2.0L turbo RWD Lexus RC with factory accessories and no rust or seized fasteners; the alternator is accessed from below after removing the undercover and drive belt, with no extra parts removed."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 4-3l-v6
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1999-2006 Chevrolet Silverado with the 4.3L V6, stock alternator, no rust or seized fasteners, and standard hand tools. The alternator is accessible from the top after removing the drive belt and possibly an intake duct."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 4-8l-v8
+    low: "0.9"
+    typical: "1.3"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assume a 1999-2006 Chevrolet Silverado 1500 with the 4.8L V8, 2WD or 4WD, in average condition without rust or seized fasteners. The alternator is top-mounted on the passenger side; the job includes removing and reinstalling the serpentine belt but not replacing it."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 5-3l-v8
+    low: "0.7"
+    typical: "1.2"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1999-2006 Silverado with the 5.3L V8, standard accessories, top-side alternator access, and a replacement alternator with pulley already fitted. No major intake, fan shroud, or underbody work was assumed; high time allows for corrosion or difficult belt/bolt access."
+  - scope: engine
+    make: chrysler
+    model: 300
+    year_from: 2016
+    year_to: 2023
+    engine: 3-6l-v6
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a Chrysler 300 3.6L V6 with the factory alternator, reusing the drive belt and belly pan, with no major corrosion in the low/typical case. The high estimate allows for rusted or seized fasteners and extra maneuvering."
+  - scope: engine
+    make: chrysler
+    model: 300
+    year_from: 2016
+    year_to: 2023
+    engine: 5-7l-v8
+    low: "0.8"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2016-2023 Chrysler 300 with the 5.7L V8, standard shop tools, and no rust or seized fasteners. The alternator is accessed after removing the belly pan, drive belt, support bracket, and lower/upper mounting bolts."
+  - scope: engine
+    make: mercedes-benz
+    model: e-class
+    year_from: 2003
+    year_to: 2005
+    engine: 3-2l-v6
+    low: "1.4"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed the 3.2L V6 E320 with rear-wheel drive in ordinary condition, no rust or seized fasteners, and a replacement alternator that already has the correct pulley. Access is taken as typical for this engine bay with hand tools and no extra equipment."
+  - scope: engine
+    make: mercedes-benz
+    model: e-class
+    year_from: 2006
+    year_to: 2009
+    engine: 3-5l-v6
+    low: "1.2"
+    typical: "1.8"
+    high: "2.7"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "I assumed a rear-wheel-drive E350 with the 3.5L V6 in ordinary condition, with the alternator accessible from the top after removing the covers, intake duct and serpentine belt. No cooling fan, A/C, belt or tensioner replacement is included."
+  - scope: engine
+    make: mercedes-benz
+    model: e-class
+    year_from: 2003
+    year_to: 2006
+    engine: 5-0l-v8
+    low: "1.8"
+    typical: "2.55"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 2003-2006 E-Class with the 5.0L V8, assuming the alternator is reached after removing intake and fan shroud and that no fasteners are seized. It assumes the replacement alternator does not include the pulley and the original pulley must be transferred."
+  - scope: engine
+    make: mazda
+    model: mazda3
+    year_from: 2019
+    year_to: 2022
+    engine: 2-0l
+    low: "1.2"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 36
+    inputs: [vehicle, job]
+    notes: "Assumed a 2019-2022 Mazda3 with the 2.0L Skyactiv-G engine, front-wheel drive, in ordinary condition with no rust or seized fasteners. Estimated access through the engine bay and lower right splash shield after drive belt removal, using standard shop tools."
+  - scope: engine
+    make: mazda
+    model: mazda3
+    year_from: 2019
+    year_to: 2027
+    engine: 2-5l
+    low: "1.2"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a naturally aspirated 2.5L Mazda3 with typical FWD layout, no added accessories, and normal condition; access through the engine bay and lower splash shield is enough without removing the wheel or major cooling components."
+  - scope: engine
+    make: mazda
+    model: mazda3
+    year_from: 2021
+    year_to: 2027
+    engine: 2-5l-turbo
+    low: "1.2"
+    typical: "1.6"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed a 2.5L Turbo Mazda3 in ordinary condition with top-side access after removing the engine cover and intake duct; no extra turbo plumbing or underbody shield work was included beyond normal belt access."
+  - scope: engine
+    make: mazda
+    model: mazda3
+    year_from: 2010
+    year_to: 2013
+    engine: 2-0l
+    low: "0.9"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a 2010-2013 Mazda3 2.0L four-cylinder with normal condition and no rust or seized fasteners; the alternator is accessed with intake and lower splash-shield removal, without major component removal."
+  - scope: engine
+    make: mazda
+    model: mazda3
+    year_from: 2010
+    year_to: 2013
+    engine: 2-5l
+    low: "0.8"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 2.5L Mazda3 in ordinary condition with the alternator accessible after minor intake/cover removal and drive belt release. No rusted or seized fasteners, and the original drive belt is reused."
+  - scope: engine
+    make: mazda
+    model: mx-5
+    year_from: 1990
+    year_to: 1993
+    engine: 1-6l
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a stock 1.6L MX-5 with ordinary condition, no rust or seized fasteners, and reuse of the existing alternator/water-pump belt."
+  - scope: engine
+    make: dodge
+    model: stealth
+    year_from: 1991
+    year_to: 1994
+    engine: 3-0l-v6
+    low: "1.2"
+    typical: "1.65"
+    high: "2.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the most common base SOHC 3.0L V6 with A/C in ordinary condition; assumes top-side access after moving the belt and A/C suction hose, with no rust or seized fasteners."
+  - scope: engine
+    make: lexus
+    model: rc
+    year_from: 2015
+    year_to: 2025
+    engine: 3-5l-v6
+    low: "1.2"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a Lexus RC 3.5L V6 in ordinary condition with a reused drive belt; the alternator is accessed from below after removing undercovers and some intake trim. High allows for seized or rusty fasteners and tight access."
+  - scope: engine
+    make: lexus
+    model: gs
+    year_from: 2016
+    year_to: 2019
+    engine: 2-0l
+    low: "1.4"
+    typical: "2.1"
+    high: "3"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 2016-2019 Lexus GS 2.0L turbo RWD sedan in ordinary condition. Assumes standard hand tools, possible intake/underbody cover removal, and no rust or seized fasteners."
+  - scope: engine
+    make: lexus
+    model: gs
+    year_from: 2013
+    year_to: 2020
+    engine: 3-5l-v6
+    low: "1.15"
+    typical: "1.55"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a rear-wheel-drive GS 350 with the 3.5L V6 and the alternator reached from below after removing the front undercover; no extra accessories or seized fasteners. High allows for rusted undercover bolts and a tight lower mounting bolt."
+  - scope: engine
+    make: buick
+    model: regal
+    year_from: 2011
+    year_to: 2017
+    engine: 2-0l-turbo
+    low: "1.25"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L Turbo LTG engine in ordinary condition with no rust or seized fasteners, using standard shop tools; the existing drive belt is reused and the alternator is accessed from the top and underneath as needed."
+  - scope: engine
+    make: buick
+    model: regal
+    year_from: 2011
+    year_to: 2013
+    engine: 2-4l
+    low: "1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "2011-2013 Buick Regal with the 2.4L transverse engine, front-wheel drive, no added equipment or rust; the alternator is accessible after removing the air cleaner outlet duct and drive belt. Times are AI estimates and include a charging output check."
+  - scope: engine
+    make: acura
+    model: tlx
+    year_from: 2021
+    year_to: 2025
+    engine: 2-0l-turbo
+    low: "1.5"
+    typical: "2.05"
+    high: "2.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 2021-2025 Acura TLX 2.0L Turbo sedan in ordinary condition, assuming the alternator is reached after removing basic intake trim and right-side splash shield access; no belt, tensioner, or battery replacement is included."
+  - scope: engine
+    make: acura
+    model: tlx
+    year_from: 2021
+    year_to: 2025
+    engine: 3-0l-turbo-v6
+    low: "1.9"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 30
+    inputs: [vehicle, job]
+    notes: "Assumed a 2021-2025 TLX 3.0L Turbo V6 with transverse engine packaging, standard tools, and no rust or seized fasteners. Alternator access is estimated through a combination of underbody and underhood component removal, with the original drive belt reused."
+  - scope: engine
+    make: volvo
+    model: c30
+    year_from: 2008
+    year_to: 2010
+    engine: 2-4l
+    low: "1.2"
+    typical: "1.7"
+    high: "2.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.4L five-cylinder with transverse front-wheel drive, access through the right wheel well and a healthy tensioner, with no seized alternator bolts or B+ nut."
+  - scope: engine
+    make: volvo
+    model: c30
+    year_from: 2008
+    year_to: 2013
+    engine: 2-5l
+    low: "1.4"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2011 Volvo C30 2.5L five-cylinder FWD with standard accessory layout, reusing the drive belt and tensioner, and no rust or seized fasteners. The estimate includes normal underhood and lower access for the alternator."
+  - scope: engine
+    make: lincoln
+    model: mkc
+    year_from: 2015
+    year_to: 2019
+    engine: 2-0l
+    low: "1.7"
+    typical: "2.4"
+    high: "3.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "The 2.0L EcoBoost alternator is accessed after removing the air intake and right-side splash/shield area, and the A/C compressor must be unbolted and moved aside without discharging the refrigerant circuit. Typical condition assumes no rust or seized fasteners."
+  - scope: engine
+    make: lincoln
+    model: mkc
+    year_from: 2015
+    year_to: 2019
+    engine: 2-3l
+    low: "1.4"
+    typical: "2"
+    high: "3"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the 2.3L transverse EcoBoost in a Lincoln MKC, assuming the A/C compressor can be unbolted and moved aside without opening the refrigerant circuit. No rust or seized fasteners; drive belt is reused, not replaced."

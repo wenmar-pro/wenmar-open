@@ -8475,18 +8475,6 @@ estimates:
     inputs: [vehicle, job, procedure]
     notes: "AI estimate assuming the common 2.5L LCV four-cylinder shown by the procedure; high allows for harder engine variants, tight access, and rusted/seized fasteners."
     llm: "deepseek-flash"
-  - scope: generation
-    make: ford
-    model: expedition
-    year_from: 2007
-    year_to: 2017
-    low: "1.5"
-    typical: "2.1"
-    high: "9.5"
-    confidence: 40
-    inputs: [vehicle, job, procedure]
-    notes: "I based typical on the most common engine, the 5.4L 3V V8 (2007–2014). On that engine the water pump is outside the engine and driven by the drive belt, and it seals with an O-ring, which matches the steps given."
-    llm: "claude-opus-5-5"
   - scope: engine
     make: ford
     model: e-350
@@ -17139,3 +17127,63 @@ estimates:
     confidence: 40
     inputs: [vehicle, job, procedure]
     notes: "Assumed the 2.3L EcoBoost MKC with an externally mounted, accessory-belt-driven coolant pump as on the related 2.0L, in ordinary condition with no seized fasteners or rust; high allows for corroded bolts, damaged belts and stubborn hose connections."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 4-3l-v6
+    low: "1.2"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard 1999-2006 Chevrolet Silverado with the 4.3L V6, mechanical cooling fan, and serpentine accessory belt; the water pump is externally driven and accessible from the front/top without removing timing components. Estimated for ordinary condition with no rust or seized fasteners."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 4-8l-v8
+    low: "1.4"
+    typical: "2"
+    high: "3"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 1999-2006 Silverado with the 4.8L V8, conventional mechanical fan and accessory belt, in ordinary condition with no rust or seized fasteners. Coolant drain, refill, and bleed are included; thermostat and radiator work are not."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 5-3l-v8
+    low: "1.5"
+    typical: "2.2"
+    high: "3.6"
+    confidence: 48
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2003 Silverado 1500 with the 5.3L V8 and 4WD, with ordinary access and no added cooling-system equipment. The estimate covers the pump and gaskets only, not thermostat or radiator work."
+  - scope: engine
+    make: chrysler
+    model: 300
+    year_from: 2016
+    year_to: 2023
+    engine: 3-6l-v6
+    low: "2"
+    typical: "2.8"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a Chrysler 300 with the 3.6L V6 and the standard accessory-belt-driven water pump, not a timing-chain-driven pump; no timing cover or timing components are removed. Ordinary condition with normal coolant drain and refill/bleed."
+  - scope: engine
+    make: chrysler
+    model: 300
+    year_from: 2016
+    year_to: 2023
+    engine: 5-7l-v8
+    low: "2.2"
+    typical: "3"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a standard 5.7L V8 Chrysler 300 in ordinary condition with a belt-driven water pump, no added equipment, and no seized fasteners. The job includes coolant drain/refill and bleeding but excludes thermostat, radiator, and timing component work."

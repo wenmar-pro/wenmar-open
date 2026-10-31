@@ -17307,3 +17307,159 @@ estimates:
     confidence: 45
     inputs: [vehicle, job, procedure]
     notes: "Assumed a transverse 2.3L turbo four-cylinder MKC in ordinary condition, with coil-on-plug ignition and no intake manifold removal required; plugs are accessed under the engine cover. High allows for brittle coil connectors or seized plugs in an aluminum head."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 4-3l-v6
+    low: "0.5"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assuming the 4.3L V6 uses distributor/plug-wire ignition and the plugs are accessible from the top without removing major intake parts. High allows for stuck plug boots, dirty threads or a seized plug."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 4-8l-v8
+    low: "1.2"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1999-2006 Silverado with the 4.8L V8, coil-near-plug ignition, and no rust or seized plugs. Engine cover and intake parts are removed only if they obstruct access; ignition coils are not replaced."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 5-3l-v8
+    low: "0.85"
+    typical: "1.3"
+    high: "2"
+    confidence: 48
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1999-2006 Silverado with the 5.3L V8 and coil-near-plug ignition where the coils do not normally need removal for plug access; engine cover and intake duct are moved aside. Spark plug job is applicable to this gasoline engine."
+  - scope: engine
+    make: chrysler
+    model: 300
+    year_from: 2016
+    year_to: 2023
+    engine: 3-6l-v6
+    low: "0.8"
+    typical: "1.25"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a stock 2016-2023 Chrysler 300 with the 3.6L V6, no rust or seized plugs, and normal access from the top; AWD does not change the spark plug job. The job is a standard six-plug replacement with coils removed and refitted."
+  - scope: engine
+    make: chrysler
+    model: 300
+    year_from: 2016
+    year_to: 2023
+    engine: 5-7l-v8
+    low: "1.9"
+    typical: "2.6"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2016-2023 Chrysler 300 with the 5.7L HEMI V8 using 16 spark plugs (two per cylinder), with only the engine cover and coils needing removal and no intake manifold removal. Ordinary condition with no seized spark plugs or fasteners."
+  - scope: engine
+    make: lincoln
+    model: mkx
+    year_from: 2016
+    year_to: 2018
+    engine: 2-7l-turbo-v6
+    low: "0.8"
+    typical: "1.1"
+    high: "1.5"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a stock 2016-2018 Lincoln MKX with the transverse 2.7L EcoBoost V6, where the spark plugs are reachable after removing the beauty cover and coils without removing the intake manifold. Rear-bank access is tight but manageable with standard hand tools;"
+  - scope: engine
+    make: lincoln
+    model: mkx
+    year_from: 2017
+    year_to: 2018
+    engine: 3-7l-v6
+    low: "1.8"
+    typical: "2.6"
+    high: "3.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 3.7L V6 MKX where the rear bank requires upper intake manifold removal for spark plug access. Estimated for a warm engine with no seized plugs or damaged intake fasteners."
+  - scope: engine
+    make: lincoln
+    model: mkz
+    year_from: 2013
+    year_to: 2020
+    engine: 2-0l-hybrid
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "The 2013-2020 Lincoln MKZ Hybrid with the 2.0L engine has spark plugs accessible after removing the plastic engine cover and ignition coils, with no intake manifold removal required. The engine is at ambient temperature and fasteners are not seized."
+  - scope: engine
+    make: lincoln
+    model: mkz
+    year_from: 2017
+    year_to: 2020
+    engine: 2-0l-turbo
+    low: "0.75"
+    typical: "1.05"
+    high: "1.55"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L turbo four-cylinder MKZ with coil-on-plug ignition and no intake removal beyond the engine cover. Estimated for a warm engine and ordinary condition; high allows for stuck coils or seized plugs."
+  - scope: engine
+    make: genesis
+    model: gv70
+    year_from: 2022
+    year_to: 2027
+    engine: 2-5l-turbo
+    low: "0.65"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2024 GV70 2.5T inline-four turbo with the coils accessible on top under a plastic engine cover and no major intake removal needed. The high estimate allows for seized spark plugs or tight coil boots."
+  - scope: engine
+    make: genesis
+    model: gv70
+    year_from: 2022
+    year_to: 2027
+    engine: 3-5l-turbo
+    low: "1.6"
+    typical: "2.2"
+    high: "3.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "We assume the vehicle is a 2022-2027 Genesis GV70 with the 3.5L Turbo V6 engine, AWD, in ordinary condition with no rust or seized fasteners. We assume spark plugs are accessible from the top after removing engine covers and some intake piping, but without removing the intake manifold."
+  - scope: engine
+    make: pontiac
+    model: vibe
+    year_from: 2009
+    year_to: 2010
+    engine: 1-8l
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1.8L four-cylinder engine with coil-on-plug ignition and only an engine cover in the way, with no intake removal needed. Times are for an ordinary vehicle with no rust or seized fasteners."
+  - scope: engine
+    make: pontiac
+    model: vibe
+    year_from: 2009
+    year_to: 2010
+    engine: 2-4l
+    low: "0.4"
+    typical: "0.55"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.4L transverse engine with coils on top and no intake manifold removal needed; plugs are accessible from above in ordinary condition without rust or seized fasteners."

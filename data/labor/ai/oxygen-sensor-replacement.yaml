@@ -8427,30 +8427,6 @@ estimates:
     inputs: [vehicle, job]
     notes: "AI estimate for one heated oxygen sensor on the common 1.6L petrol R60, reached from below with normal hand tools and no exhaust repair. Assumes the sensor is not badly rusted and any underbody shield comes off without seized fasteners."
     llm: "deepseek-flash"
-  - scope: generation
-    make: cadillac
-    model: srx
-    year_from: 2010
-    year_to: 2016
-    low: "0.5"
-    typical: "1"
-    high: "4"
-    confidence: 35
-    inputs: [vehicle, job, procedure]
-    notes: "This is an AI estimate for the common 3.6L LFX FWD SRX, replacing the hard-to-reach Bank 1 Sensor 1 sensor on the rear bank from below. Downstream sensors are quicker. The high figure covers AWD models, where the procedure says to lower the front suspension frame, and it also covers seized sensors."
-    llm: "claude-opus-5-5"
-  - scope: generation
-    make: cadillac
-    model: xts
-    year_from: 2013
-    year_to: 2019
-    low: "0.5"
-    typical: "0.95"
-    high: "5.5"
-    confidence: 35
-    inputs: [vehicle, job, procedure]
-    notes: "This AI estimate is for one oxygen sensor on the common naturally aspirated 3.6L LFX V6 (FWD or AWD), where the sensor can be reached from below or from the engine bay without removing major parts."
-    llm: "claude-opus-5-5"
   - scope: engine
     make: ford
     model: e-350
@@ -17031,3 +17007,63 @@ estimates:
     confidence: 38
     inputs: [vehicle, job, procedure]
     notes: "Assumed replacing one heated oxygen sensor on the 2.3L EcoBoost Lincoln MKC, with typical top access after removing the cover and air cleaner outlet pipe and possible underside access for the sensor. Assumed no badly rusted or seized exhaust threads."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 4-3l-v6
+    low: "0.3"
+    typical: "0.5"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single upstream or downstream oxygen sensor on a 4.3L V6 Silverado reached from underneath, with no front driveshaft removal needed and the exhaust pipe threads in normal condition; the high figure covers a seized, rusted sensor that needs heat or a breaker bar."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 4-8l-v8
+    low: "0.35"
+    typical: "0.55"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed one oxygen sensor on a 4.8L V8 Silverado reached from below, with normal access and no exhaust repair. The high estimate allows for rusted/seized threads and possible front driveshaft unbolting for an upstream sensor on a 4WD truck."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 5-3l-v8
+    low: "0.35"
+    typical: "0.65"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one accessible oxygen sensor on a 5.3L V8 Silverado, probably an upstream sensor, with normal condition and no exhaust repair. The conditional front propeller shaft step is included only if needed for a 4WD front sensor."
+  - scope: engine
+    make: chrysler
+    model: 300
+    year_from: 2016
+    year_to: 2023
+    engine: 3-6l-v6
+    low: "0.35"
+    typical: "0.6"
+    high: "1.1"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes replacement of one oxygen sensor on the 3.6L V6, reached from below with standard hand tools and a scan tool, with no rust or seized threads. The vehicle is treated as the common sedan configuration; high allows for access or thread-seizure difficulties."
+  - scope: engine
+    make: chrysler
+    model: 300
+    year_from: 2016
+    year_to: 2023
+    engine: 5-7l-v8
+    low: "0.5"
+    typical: "0.75"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a single downstream oxygen sensor on the 5.7L V8, accessed from below, with no rust or seized fasteners, using standard shop tools including an O2 sensor socket and scan tool."

@@ -16577,3 +16577,63 @@ estimates:
     confidence: 38
     inputs: [vehicle, job]
     notes: "Assumed a transverse 2.3L EcoBoost MKC with a single accessory belt, compressor accessible from the right front lower area after removing the wheel/splash shield, and a serviceable receiver/drier/accumulator; no orifice tube is fitted (expansion valve)."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 4-3l-v6
+    low: "2"
+    typical: "2.9"
+    high: "4.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Worked on the 4.3L V6 Silverado 1500 with the separate A/C belt, on an ordinary truck with intact fittings and no added equipment; accumulator and orifice tube are included as part of the job."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 4-8l-v8
+    low: "2"
+    typical: "2.65"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1999-2006 Chevrolet Silverado with 4.8L V8, average condition, no rust, and standard tools. Included recovery, accumulator and orifice tube replacement, evacuation, recharge, and leak test."
+  - scope: engine
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    engine: 5-3l-v8
+    low: "2.3"
+    typical: "3"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4WD 5.3L pickup in ordinary condition with the separate A/C belt and accumulator-style system; the orifice tube and accumulator are replaced along with the compressor."
+  - scope: engine
+    make: chrysler
+    model: 300
+    year_from: 2016
+    year_to: 2023
+    engine: 3-6l-v6
+    low: "2.4"
+    typical: "3.2"
+    high: "4.5"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common rear-wheel-drive 3.6L V6 Chrysler 300 in ordinary condition with no seized fasteners, and that the receiver/drier is replaced as part of the job. The estimate includes refrigerant recovery, evacuation, recharge, and performance check."
+  - scope: engine
+    make: chrysler
+    model: 300
+    year_from: 2016
+    year_to: 2023
+    engine: 5-7l-v8
+    low: "4.3"
+    typical: "5.5"
+    high: "7.3"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 2016-2023 Chrysler 300 with the 5.7L V8, including receiver/drier replacement and refrigerant recovery/recharge; no orifice tube is assumed because this system uses a TXV. No condenser replacement, system flush, or unrelated leak repair is included."
