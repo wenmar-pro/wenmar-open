@@ -3368,3 +3368,4436 @@ estimates:
     confidence: 35
     inputs: [vehicle, job]
     notes: "AI estimate for a 2000-2002 Audi B5 S4 with the common 2.7L biturbo V6 and quattro manual drivetrain; radiator access assumes the front bumper/lock carrier is moved to service position and the A/C condenser is unbolted but not discharged."
+  - scope: generation
+    make: toyota
+    model: 4runner
+    year_from: 2010
+    year_to: 2024
+    low: "2.4"
+    typical: "3.1"
+    high: "4.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the most common 4.0 V6 4WD 4Runner without intuitive parking assist; high allows for the V8 variant, parking-assist intake ducts, rust, and seized fasteners."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2007
+    year_to: 2010
+    low: "1.3"
+    typical: "1.8"
+    high: "2.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2009 Elantra GLS with the 2.0 engine and automatic transmission, with the A/C condenser repositioned but not opened. No rust or seized fasteners are assumed."
+  - scope: generation
+    make: hyundai
+    model: sonata
+    year_from: 1999
+    year_to: 2005
+    low: "1.2"
+    typical: "1.7"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 2.4L four-cylinder automatic-transaxle Sonata in ordinary condition, with the original fan assembly reused and ATF cooler lines disconnected. Estimated radiator replacement only, not hoses, thermostat, or A/C condenser work."
+  - scope: generation
+    make: volkswagen
+    model: passat
+    year_from: 2012
+    year_to: 2022
+    low: "2.4"
+    typical: "3.5"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the common transverse 1.8T/2.0T Passat NMS with the radiator removed upward after fan shroud removal, not replacing the condenser, thermostat or hoses. High allows for VR6/more complex engine bays and rust or seized fasteners."
+  - scope: generation
+    make: volkswagen
+    model: golf
+    year_from: 2010
+    year_to: 2014
+    low: "2.8"
+    typical: "3.9"
+    high: "5.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2.5L Mk6 Golf with A/C, no rust or seized fasteners, and that the A/C refrigerant system is not opened; only line brackets and condenser mounting bolts are disturbed. High allows for rusted or seized fasteners and extra bleeding time."
+  - scope: generation
+    make: bmw
+    model: x5
+    year_from: 2014
+    year_to: 2018
+    low: "1.6"
+    typical: "2.3"
+    high: "3.6"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a common N55 3.0L turbo xDrive F15 with the electric fan and an automatic transmission cooler built into the radiator; no rust or seized fasteners and no front-end damage. High allows for stuck hoses, broken plastic clips and stubborn cooler line fittings."
+  - scope: generation
+    make: chrysler
+    model: 300c
+    year_from: 2005
+    year_to: 2010
+    low: "1.2"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed a RWD 5.7L Hemi as the most common 300C, with the high estimate covering harder V6/AWD variants and possible rust or seized fasteners. The job is a complete radiator replacement with coolant refill and bleed, without thermostat, hose, or A/C condenser replacement."
+  - scope: generation
+    make: acura
+    model: tlx
+    year_from: 2015
+    year_to: 2020
+    low: "1.8"
+    typical: "2.4"
+    high: "3.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 3.5L V6 TLX with automatic transmission cooler lines and a radiator-mounted fan/shroud; the 2.4L layout is similar but may be slightly easier. High allows for V6/AWD access differences, rust, and seized fasteners."
+  - scope: generation
+    make: bmw
+    model: 328i
+    year_from: 2007
+    year_to: 2011
+    low: "1.9"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a typical E90 328i with the N52 engine, rear-wheel drive and automatic transmission; the radiator is replaced without removing the A/C condenser or thermostat. High covers automatic cooler lines, xDrive variations or stuck fasteners."
+  - scope: generation
+    make: buick
+    model: encore
+    year_from: 2013
+    year_to: 2022
+    low: "3.2"
+    typical: "4.1"
+    high: "6.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the common 1.4L turbo Encore, with the AWD/auxiliary-cooler layout covered by the high figure. I assumed the A/C condenser and charge air cooler must be unbolted/moved for access and refrigerant recovered/recharged, but no condenser replacement."
+  - scope: generation
+    make: toyota
+    model: 4runner
+    year_from: 1990
+    year_to: 1995
+    low: "1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "A 1990-1995 4Runner with the 22R-E four-cylinder or 3VZ-E V6, longitudinal engine and rear-wheel or four-wheel drive, with the original mechanical fan, shroud and an automatic transmission cooler in the radiator; no rust or seized fasteners assumed for the typical figure."
+  - scope: generation
+    make: cadillac
+    model: xt6
+    year_from: 2020
+    year_to: 2025
+    low: "1.5"
+    typical: "2"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2023 Cadillac XT6 with the 2.0L LSY turbo engine and AWD, in average condition with no rust or seized fasteners. The job includes draining and refilling coolant, removing the fan module and radiator, and bleeding the cooling system."
+  - scope: generation
+    make: cadillac
+    model: escalade
+    year_from: 2002
+    year_to: 2006
+    low: "2"
+    typical: "2.7"
+    high: "3.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2004 Escalade with the 6.0L V8, automatic transmission and AWD, with transmission cooler lines and possibly engine oil cooler lines; no rust or seized fasteners. Times exclude thermostat and hose replacement."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 1990
+    year_to: 1991
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common 2.0L four-cylinder front-wheel-drive Camry with automatic transmission; the V6 and rusted or seized fasteners/hoses would push the job toward the high estimate."
+  - scope: generation
+    make: ford
+    model: bronco
+    year_from: 1992
+    year_to: 1996
+    low: "0.9"
+    typical: "1.4"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common 1992-1996 Bronco V8 with automatic transmission, so transmission cooler lines are included; a manual would skip those. Estimated for a rust-free vehicle with ordinary hand tools and no seized fasteners."
+  - scope: generation
+    make: ford
+    model: mustang
+    year_from: 1990
+    year_to: 1993
+    low: "1"
+    typical: "1.4"
+    high: "2"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "This is an AI estimate assuming the most common 5.0 V8 with automatic transmission and mechanical engine fan; high allows for rust/seized fasteners or the other engine offered. The job is a straightforward radiator R&R and does not include thermostat, hose replacement, or condenser work."
+  - scope: generation
+    make: chevrolet
+    model: corvette
+    year_from: 1997
+    year_to: 2004
+    low: "1.8"
+    typical: "2.5"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a typical C5 Corvette with the LS1/LS6 and automatic transmission, so transmission cooler lines are included; a manual car would be slightly quicker. Ordinary condition with no rust or seized fasteners, and no thermostat, hose, or A/C condenser replacement."
+  - scope: generation
+    make: honda
+    model: ridgeline
+    year_from: 2006
+    year_to: 2014
+    low: "1.4"
+    typical: "2"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 1st-generation Honda Ridgeline with the 3.5L V6 and automatic transmission, including an integral transmission fluid cooler in the radiator, in ordinary rust-free condition. This is an AI estimate for radiator replacement only, not thermostat, hose, or A/C condenser replacement."
+  - scope: generation
+    make: nissan
+    model: pathfinder
+    year_from: 2005
+    year_to: 2012
+    low: "2.2"
+    typical: "3.05"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2009 Pathfinder LE with the 4.0 V6 and 4WD in ordinary condition, replacing only the radiator and reusing the existing hoses, thermostat, and A/C condenser. The A/C system is not opened; the condenser is only supported during radiator removal."
+  - scope: generation
+    make: subaru
+    model: impreza
+    year_from: 2002
+    year_to: 2007
+    low: "1.3"
+    typical: "1.95"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated on a GD Impreza with the common 2.0L boxer (turbo or non-turbo), assuming an automatic with the ATF warmer hoses present; a manual would be slightly quicker. Extra time allowed for coolant bleeding and rusted hose clamps and bracket bolts."
+  - scope: generation
+    make: dodge
+    model: durango
+    year_from: 2004
+    year_to: 2009
+    low: "1.8"
+    typical: "2.5"
+    high: "3.7"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI-estimated labour hours for a 2004-2009 Dodge Durango with the common 4.7 V8 and 4WD; typical is for that engine, and high allows for the harder engine bay layout and rust/seized fasteners."
+  - scope: generation
+    make: dodge
+    model: neon
+    year_from: 2000
+    year_to: 2005
+    low: "1.1"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 2.0L Neon with A/C and automatic transaxle in ordinary condition, with no thermostat or hose replacement included. The high estimate allows for cooler-line corrosion or seized fasteners; engine layout differences are minor for this radiator job."
+  - scope: generation
+    make: audi
+    model: a5
+    year_from: 2008
+    year_to: 2017
+    low: "3.8"
+    typical: "4.8"
+    high: "6.3"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.0 TFSI with automatic transmission and that the condenser can be moved aside without recovering refrigerant; high covers harder engines and rust/seized fasteners."
+  - scope: generation
+    make: chrysler
+    model: pacifica
+    year_from: 2017
+    year_to: 2027
+    low: "2.9"
+    typical: "3.9"
+    high: "5.6"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.6L V6 Pacifica (FWD/AWD) where the radiator drops out from below and the A/C condenser and transmission cooler are unbolted and set aside rather than recovered; front lamps come off for access and the job finishes with a full drain, refill and bleed."
+  - scope: generation
+    make: chrysler
+    model: pacifica
+    year_from: 2004
+    year_to: 2008
+    low: "3.8"
+    typical: "4.9"
+    high: "6.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2006 Chrysler Pacifica with the 3.8 L V6, automatic transmission and A/C, where radiator removal requires front fascia removal, A/C recovery/recharge to move the condenser, and cooling system refill/bleed. The high figure allows for rusted or seized fasteners and A/C line fittings."
+  - scope: generation
+    make: buick
+    model: verano
+    year_from: 2012
+    year_to: 2017
+    low: "2"
+    typical: "2.8"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the common 2.4L LEA front-wheel-drive Verano; high allows for the turbo engine’s extra plumbing and for rust or seized fasteners. I treated the A/C condenser as moved/removed for access only, not replaced, and assumed its refrigerant circuit does not need to be opened."
+  - scope: generation
+    make: nissan
+    model: nv200
+    year_from: 2013
+    year_to: 2021
+    low: "1.9"
+    typical: "2.65"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common HR16DE 1.6 petrol front-wheel-drive van with a CVT cooler, where the radiator is dropped out from below after removing the lower radiator core support. Petrol and diesel variants share this layout, with the diesel adding a little extra hose and cooler work."
+  - scope: generation
+    make: hyundai
+    model: venue
+    year_from: 2020
+    year_to: 2027
+    low: "1.7"
+    typical: "2.4"
+    high: "3.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 1.6L four-cylinder FWD Venue with the factory electric fan and an A/C condenser that can be unbolted and swung aside without opening the refrigerant circuit. Times cover draining and refilling/bleeding the cooling system on an unrusted, unmodified vehicle."
+  - scope: generation
+    make: kia
+    model: rio
+    year_from: 2006
+    year_to: 2011
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2009 Kia Rio with the common 1.6L G4ED engine and automatic transaxle, so the radiator has ATF cooler hoses. Estimated for an ordinary vehicle with standard hand tools and no rust or seized fasteners."
+  - scope: generation
+    make: jeep
+    model: compass
+    year_from: 2017
+    year_to: 2027
+    low: "4.2"
+    typical: "5.2"
+    high: "7.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common 2.4L MultiAir 4WD Compass without front tow hooks and with A/C refrigerant recovery/recharge required because the condenser is moved aside. Times are for an unrusted vehicle with standard tools; high allows for seized fasteners/line fittings and extra bleed time."
+  - scope: generation
+    make: land-rover
+    model: range-rover
+    year_from: 2013
+    year_to: 2021
+    low: "3.6"
+    typical: "4.6"
+    high: "6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common engine is the 3.0L V6 diesel (TDV6), and that A/C refrigerant recovery and recharge is required as per the repair steps. Estimated for a professional technician with standard tools, no rust or seized fasteners."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 1995
+    year_to: 2004
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "Assumed a 2.7L I4 4x2 automatic (common configuration) in average condition; high allows for V6 4x4 with rust and seized fasteners. Job excludes thermostat and hose replacement."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2006
+    year_to: 2010
+    low: "1.5"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2008 Ford Explorer 4.0L SOHC 4WD in ordinary condition, with radiator replacement only and no thermostat, hose, or A/C condenser replacement. These are AI-estimated labour hours including cooling system refill and bleed."
+  - scope: generation
+    make: chevrolet
+    model: trax
+    year_from: 2013
+    year_to: 2022
+    low: "4.3"
+    typical: "5.8"
+    high: "7.8"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2018 Trax LS AWD uses the LE2 1.4L turbo and that the condenser, charge air cooler, and auxiliary cooler are removed/refitted for access, not replaced. Times are AI estimates for a rust-free vehicle with standard shop tools."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 1995
+    year_to: 2002
+    low: "1.2"
+    typical: "1.8"
+    high: "2.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 2.0L 4-cylinder 4WD Sportage with automatic transmission and ordinary condition; this is an AI estimate for radiator replacement only, excluding thermostat, hose replacement and A/C condenser work."
+  - scope: generation
+    make: subaru
+    model: forester
+    year_from: 2003
+    year_to: 2008
+    low: "1.2"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.5L non-turbo Forester with automatic transmission as the typical case, including ATF cooler lines and fan/shroud transfer. Turbo or rusted/seized fasteners are covered by the high figure."
+  - scope: generation
+    make: volkswagen
+    model: golf
+    year_from: 2015
+    year_to: 2021
+    low: "2"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a common 1.8/2.0 TSI EA888 Golf Mk7 with no A/C condenser work and no rust or seized fasteners for the typical time; the high figure allows for a harder common engine layout and corrosion."
+  - scope: generation
+    make: volkswagen
+    model: passat
+    year_from: 2006
+    year_to: 2010
+    low: "1.7"
+    typical: "2.45"
+    high: "3.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a typical 2.0T BPY Passat B6 in ordinary condition with no rust or seized fasteners; the high figure allows for harder engine-bay access and rusted or stuck fasteners/hoses."
+  - scope: generation
+    make: dodge
+    model: durango
+    year_from: 2011
+    year_to: 2027
+    low: "2.7"
+    typical: "3.6"
+    high: "4.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed typical is the most common 3.6L V6, with AWD adding little radiator access difference; high covers the 5.7L/6.4L and seized fasteners. The procedure requires removing and refitting the A/C condenser, so A/C recovery/recharge is included."
+  - scope: generation
+    make: chevrolet
+    model: sonic
+    year_from: 2012
+    year_to: 2020
+    low: "3.5"
+    typical: "4.6"
+    high: "6.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 2016 Sonic 1.8L automatic with A/C, supporting the condenser without opening the refrigerant circuit and with no rust or seized fasteners. Manual-transmission cars omit the cooler-line work; the high estimate allows for rust and front-end fastener issues."
+  - scope: generation
+    make: chevrolet
+    model: suburban
+    year_from: 2000
+    year_to: 2006
+    low: "1.6"
+    typical: "2.4"
+    high: "3.8"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a common 5.3L V8 Suburban with automatic transmission and available engine/transmission oil coolers, doing a direct radiator R&R with no thermostat or condenser work. High allows for rusted or seized cooler-line fittings and the more cramped 8.1L/2500 variant."
+  - scope: generation
+    make: hyundai
+    model: genesis
+    year_from: 2009
+    year_to: 2014
+    low: "1.5"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2012 Genesis 3.8 V6 RWD automatic with an electric cooling fan and ATF cooler hoses at the radiator, in ordinary condition. Typical is for the 3.8; high covers the V8 and rust or seized fittings."
+  - scope: generation
+    make: kia
+    model: rio
+    year_from: 2018
+    year_to: 2023
+    low: "1.4"
+    typical: "2.05"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2021 Kia Rio LX with the common 1.6L four-cylinder FWD powertrain; the condenser is separated and supported but not replaced, and the cooling system is bled using the specified ITM fill/bleed procedure."
+  - scope: generation
+    make: kia
+    model: sedona
+    year_from: 2002
+    year_to: 2005
+    low: "1.4"
+    typical: "2.1"
+    high: "3"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.5L V6 front-wheel-drive Sedona with the factory cooling fan and shroud setup; radiator replacement is a normal service item. Times allow for draining and bleeding coolant but not thermostat or hose replacement."
+  - scope: generation
+    make: bmw
+    model: 323i
+    year_from: 1999
+    year_to: 2000
+    low: "1.3"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate; assumed a 1999-2000 E46 323i with the M52TU 2.5L inline-six, automatic transmission with cooler lines, and no rust or seized fasteners. If manual, omit the cooler-line steps."
+  - scope: generation
+    make: mercedes-benz
+    model: metris
+    year_from: 2016
+    year_to: 2023
+    low: "3"
+    typical: "4.2"
+    high: "5.8"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a US-market Metris with the 2.0L turbo gasoline I4, RWD and automatic transmission, without rear climate control. The estimate covers radiator replacement only; the A/C condenser may be supported or moved but is not opened or replaced."
+  - scope: generation
+    make: lexus
+    model: lx
+    year_from: 1998
+    year_to: 2007
+    low: "1.5"
+    typical: "2.15"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 4.7L 2UZ-FE V8 LX470 with automatic transmission and 4WD, factory radiator with integrated transmission cooler, in rust-free ordinary condition. The estimate covers radiator replacement only, with no thermostat, hose or A/C condenser replacement."
+  - scope: generation
+    make: lexus
+    model: es
+    year_from: 1992
+    year_to: 1996
+    low: "1.2"
+    typical: "1.7"
+    high: "2.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 1992-1996 Lexus ES300 with the 3.0 L V6 and automatic transaxle, electric cooling fans, and the A/C condenser left in place; no rust or seized fasteners."
+  - scope: generation
+    make: audi
+    model: a3
+    year_from: 2015
+    year_to: 2020
+    low: "2.2"
+    typical: "3"
+    high: "4.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate; assumed a common Audi A3 8V petrol model with standard cooling and charge-air cooler arrangement, no rust or seized fasteners. High allows for harder engine variants with extra intercooler/coolant plumbing and rusted fasteners."
+  - scope: generation
+    make: chrysler
+    model: sebring
+    year_from: 2007
+    year_to: 2010
+    low: "2.8"
+    typical: "3.8"
+    high: "5.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 2.4L four-cylinder Sebring with automatic transmission and A/C; the estimate includes A/C refrigerant recovery and recharge because the condenser must be separated from the radiator. High allows for V6 variations, rust, and seized fasteners."
+  - scope: generation
+    make: acura
+    model: tsx
+    year_from: 2009
+    year_to: 2014
+    low: "1.4"
+    typical: "2"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 2.4L four-cylinder TSX with automatic transmission, FWD, and no rust or seized fasteners. Includes drain/refill and bleeding but not thermostat, hose, or A/C condenser replacement."
+  - scope: generation
+    make: lincoln
+    model: navigator
+    year_from: 2003
+    year_to: 2006
+    low: "2"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2005 Navigator 4WD with the common 5.4L V8, no rust or seized fasteners, and standard shop tools. Estimate is an AI labour estimate for radiator replacement only, with coolant refill/bleed but no thermostat, hose, or A/C condenser replacement."
+  - scope: generation
+    make: jaguar
+    model: xf
+    year_from: 2009
+    year_to: 2015
+    low: "2.3"
+    typical: "3.3"
+    high: "4.8"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical X250 with the most common diesel engine in ordinary condition, with no A/C condenser replacement and no seized fasteners. High allows for the extra intake removal on V8/S/C cars and rust or seized fixings."
+  - scope: generation
+    make: nissan
+    model: sentra
+    year_from: 2013
+    year_to: 2019
+    low: "1.4"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2016 Sentra B17 with the common 1.8L engine and CVT, so the radiator has transmission cooler lines; a manual without cooler lines would be shorter. I assumed no rust or seized fasteners for typical, with high allowing for those."
+  - scope: generation
+    make: nissan
+    model: xterra
+    year_from: 2005
+    year_to: 2015
+    low: "1.9"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4.0L V6 Xterra with automatic transmission and A/T fluid cooler in the radiator tank, in average condition with no corrosion. The condenser stays charged and is only lifted aside; no thermostat or hose replacement included."
+  - scope: generation
+    make: nissan
+    model: titan
+    year_from: 2004
+    year_to: 2015
+    low: "1.8"
+    typical: "2.5"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the 5.6L V8 4WD Titan with the factory A/T fluid cooler and A/C condenser mounted to the radiator; work done from above with a brief underside drain. High allows for corroded hose fittings, seized mount bolts and stubborn blind-plug fittings."
+  - scope: generation
+    make: hyundai
+    model: santa-fe-sport
+    year_from: 2013
+    year_to: 2018
+    low: "2"
+    typical: "2.7"
+    high: "3.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2016 Santa Fe Sport 2.0T AWD in ordinary condition with the A/C condenser supported but not disconnected. The estimate includes coolant drain/refill and bleeding, bumper cover removal, and no thermostat, hose, or condenser replacement."
+  - scope: generation
+    make: volkswagen
+    model: tiguan
+    year_from: 2009
+    year_to: 2017
+    low: "2"
+    typical: "2.8"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common 2.0L turbo petrol transverse engine in a 4Motion Tiguan, with automatic-transmission cooler lines if fitted and no front bumper removal required. Included fan shroud, charge-air hose/bracket, radiator hoses, refill/bleed and leak check."
+  - scope: generation
+    make: mercedes-benz
+    model: 300
+    year_from: 1990
+    year_to: 1993
+    low: "1.7"
+    typical: "2.4"
+    high: "3.6"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a W124 300E with the M103 3.0 inline-six, automatic transmission and RWD, in ordinary condition with A/C; typical is for this common gasoline car. High covers the OM603 diesel/turbo layout and rusted or seized hose and cooler fittings."
+  - scope: generation
+    make: lexus
+    model: is
+    year_from: 2014
+    year_to: 2027
+    low: "1.4"
+    typical: "2.2"
+    high: "3.6"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a common Lexus IS XE30 with a longitudinal front-engine RWD/AWD layout and standard tools, no rust or seized fasteners; high allows for hybrid/AWD/turbo extra access and rust. This is an AI estimate."
+  - scope: generation
+    make: audi
+    model: a6
+    year_from: 1998
+    year_to: 2004
+    low: "3.1"
+    typical: "4.2"
+    high: "5.9"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a C5 A6 with the 2.7T V6 and automatic quattro, using the front lock-carrier service position needed to access the radiator. The estimate covers radiator replacement and coolant refill/bleed only, not hoses, thermostat or A/C condenser."
+  - scope: generation
+    make: infiniti
+    model: q50
+    year_from: 2014
+    year_to: 2024
+    low: "2.2"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "AI estimate for a common V6 Infiniti Q50 with automatic transmission and RWD or AWD; the high figure allows for rust, seized fasteners and the more crowded engine variants."
+  - scope: generation
+    make: lincoln
+    model: navigator
+    year_from: 1998
+    year_to: 2002
+    low: "1.8"
+    typical: "2.4"
+    high: "3.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2000 Navigator with the 5.4L V8, 4WD and automatic transmission, with the original radiator-integrated transmission cooler and no rust or seized fasteners; coolant is drained and refilled with bleeding."
+  - scope: generation
+    make: porsche
+    model: macan
+    year_from: 2015
+    year_to: 2027
+    low: "2.9"
+    typical: "4"
+    high: "5.5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a standard all-wheel-drive Macan with the most common engine (2.0 turbo four or 3.0 V6), no extra radiators or tow package, and a clean, unrusted front end."
+  - scope: generation
+    make: toyota
+    model: 4runner
+    year_from: 2003
+    year_to: 2009
+    low: "1.4"
+    typical: "2.1"
+    high: "3.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assuming a 4.0L V6 automatic 4WD 4Runner in ordinary condition, as the most common configuration; the V8 is tighter and is covered by the high estimate. No added coolers, rear A/C or rust-seized fasteners are assumed."
+  - scope: generation
+    make: toyota
+    model: previa
+    year_from: 1991
+    year_to: 1997
+    low: "2"
+    typical: "2.8"
+    high: "3.8"
+    confidence: 30
+    inputs: [vehicle, job]
+    notes: "Assumed a 2.4L petrol automatic Previa in ordinary condition, with the front-mounted radiator accessible after removing the upper cover and fan assembly; no A/C condenser or bumper removal was included beyond necessary access."
+  - scope: generation
+    make: ford
+    model: fiesta
+    year_from: 2011
+    year_to: 2019
+    low: "1.3"
+    typical: "2"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 1.6L Duratec Ti-VCT Fiesta with the standard cooling fan shroud and A/C condenser left in place, using a vacuum fill or bleed screw for the refill. High covers the 1.0L EcoBoost layout and rusted or seized bracket and clamp hardware."
+  - scope: generation
+    make: chevrolet
+    model: tahoe
+    year_from: 1995
+    year_to: 1999
+    low: "1.5"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common 5.7L V8 gasoline GMT400 Tahoe with automatic transmission cooler lines in the radiator, mechanical fan, and no rust or seized fasteners. Diesel or extra cooler variations would push the job toward the high estimate."
+  - scope: generation
+    make: honda
+    model: fit
+    year_from: 2007
+    year_to: 2008
+    low: "1.2"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 2007-2008 Honda Fit with the common 1.5L four-cylinder and front-wheel drive, in ordinary condition with no rust or seized fasteners. Assumes the A/C condenser is not disconnected and the cooling system is refilled and bled."
+  - scope: generation
+    make: kia
+    model: sorento
+    year_from: 2011
+    year_to: 2015
+    low: "2.2"
+    typical: "2.95"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the common 2.4L four-cylinder automatic Sorento with A/C and an automatic-transmission cooler, and that the front bumper is removed as shown in the procedure. The high figure allows for the harder V6/diesel layout and rust or seized fasteners."
+  - scope: generation
+    make: kia
+    model: optima
+    year_from: 2011
+    year_to: 2015
+    low: "1.6"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical automatic 2011-2015 Optima with the most common engine; the high estimate allows for the 2.0L turbo intercooler plumbing and rust/seized fasteners. The job is radiator replacement only, not thermostat, hose, or condenser replacement."
+  - scope: generation
+    make: mazda
+    model: cx-9
+    year_from: 2007
+    year_to: 2015
+    low: "2.1"
+    typical: "2.8"
+    high: "4.2"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.7 V6 AWD CX-9 with the radiator removed from above without opening the A/C refrigerant circuit and with no rust or seized fasteners. The cooling system refill includes a normal bleed and leak check."
+  - scope: generation
+    make: audi
+    model: tt
+    year_from: 2008
+    year_to: 2015
+    low: "1.1"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate assumed the common transverse 2.0 TFSI TT 8J and top-access radiator removal after draining coolant and removing the fan shroud. High allows for other offered engines, seized fasteners, and extra bleeding/leak-check time."
+  - scope: generation
+    make: volvo
+    model: s40
+    year_from: 2000
+    year_to: 2004
+    low: "1.4"
+    typical: "2"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed a common 1.8/2.0 petrol FWD S40 with automatic transmission, because the job mentions cooler lines; the A/C condenser is left in place. The high estimate allows for turbo/diesel plumbing, extra clearance work and rusted or seized fasteners."
+  - scope: generation
+    make: infiniti
+    model: qx80
+    year_from: 2014
+    year_to: 2024
+    low: "3.8"
+    typical: "5.2"
+    high: "7.2"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the common 5.6L V8 QX80 (Y62), RWD/AWD, with automatic transmission. Includes recovering/recharging A/C because the procedure disconnects condenser piping; assumes normal condition with no seized fasteners or added accessories."
+  - scope: generation
+    make: ford
+    model: f-350
+    year_from: 2017
+    year_to: 2022
+    low: "2.6"
+    typical: "3.8"
+    high: "5.6"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed a 6.7L Power Stroke diesel 4x4 F-350, the most common heavy-duty configuration, with automatic transmission; the estimate includes moving but not replacing the condenser/intercooler and does not cover thermostat or hose replacement. Times are AI estimates, not a manual book time."
+  - scope: generation
+    make: ford
+    model: expedition
+    year_from: 1997
+    year_to: 2002
+    low: "1.5"
+    typical: "2"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2000 Ford Expedition with the 4.6L V8 and 4WD in average condition, with no rust or seized fasteners. The job is a standard radiator replacement including draining and refilling coolant, removing the fan and shroud, and disconnecting the transmission cooler lines."
+  - scope: generation
+    make: hyundai
+    model: sonata
+    year_from: 2015
+    year_to: 2019
+    low: "1.6"
+    typical: "2.25"
+    high: "3.1"
+    confidence: 55
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the most common 2.4L automatic non-hybrid Sonata with an ATF-cooled radiator; the condenser is detached but not evacuated or replaced. The high figure allows for rust, seized fasteners, and the harder engine/transmission variants."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 1990
+    year_to: 1995
+    low: "1"
+    typical: "1.35"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common 4.0L inline-six YJ with automatic cooler lines and A/C condenser left in place, in ordinary no-rust condition; high covers the 2.5L layout or rusted/seized fasteners."
+  - scope: generation
+    make: mazda
+    model: cx-3
+    year_from: 2016
+    year_to: 2022
+    low: "1.6"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 2.0L gasoline CX-3 with automatic transmission, using the AWD example but the radiator procedure is similar across drivetrains. Estimated for a rust-free vehicle with the radiator removed from above after unbolting and moving the condenser;"
+  - scope: generation
+    make: lexus
+    model: nx
+    year_from: 2015
+    year_to: 2021
+    low: "2.4"
+    typical: "3.2"
+    high: "4.6"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "AI estimate for the most common 2.0L turbo NX 200t/300 automatic; the hybrid variant and rusted or seized fasteners would likely push the job toward the high figure."
+  - scope: generation
+    make: audi
+    model: s4
+    year_from: 2010
+    year_to: 2016
+    low: "3.3"
+    typical: "4.4"
+    high: "5.9"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.0L supercharged V6 Audi S4 B8 with 0B5 S tronic transmission, and that the A/C condenser is set aside without opening the refrigerant circuit. The estimate covers the charge-air radiator and impact member removal required for access, but not thermostat, hose, or condenser replacement."
+  - scope: generation
+    make: jaguar
+    model: f-pace
+    year_from: 2017
+    year_to: 2027
+    low: "2.3"
+    typical: "3.1"
+    high: "4.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the representative 2.0L Ingenium petrol engine with a standard cooling system and no A/C condenser, thermostat or hose replacement; high allows for harder engine layouts and rust/seized fasteners."
+  - scope: generation
+    make: ford
+    model: f-250
+    year_from: 2023
+    year_to: 2027
+    low: "3.2"
+    typical: "5"
+    high: "7"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a common 6.7L Power Stroke diesel 4x4 F-250 with integrated cooler lines and a fan shroud requiring removal. AI estimate; high allows for seized fasteners and extra cooling-stack access on diesel trucks."
+  - scope: generation
+    make: chevrolet
+    model: colorado
+    year_from: 2015
+    year_to: 2022
+    low: "1.7"
+    typical: "2.25"
+    high: "3.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common gasoline Colorado with automatic transmission, A/C and transmission cooler; the high estimate covers the diesel engine, 4WD hardware and rust or seized fasteners. The radiator replacement uses the original condenser and does not include thermostat or hose replacement."
+  - scope: generation
+    make: chevrolet
+    model: suburban
+    year_from: 2007
+    year_to: 2014
+    low: "2"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2010 Suburban C1500 with the common 5.3L V8 gasoline engine, automatic transmission and RWD, no rust or seized fasteners. The generator control module coolant radiator step is included as if equipped but is not present on most non-hybrid vehicles."
+  - scope: generation
+    make: honda
+    model: hr-v
+    year_from: 2016
+    year_to: 2022
+    low: "0.8"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 1.8L I4 engine and AWD. Job performed in ordinary condition with no rust or seized fasteners, including engine undercover and both fan shroud assemblies as shown in the procedure."
+  - scope: generation
+    make: hyundai
+    model: accent
+    year_from: 2000
+    year_to: 2005
+    low: "1"
+    typical: "1.4"
+    high: "2"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse four-cylinder Accent in ordinary condition, typically automatic so transmission cooler lines are included; manual cars skip those steps. Estimated radiator replacement only, with no thermostat, hose or A/C condenser work."
+  - scope: generation
+    make: acura
+    model: rdx
+    year_from: 2019
+    year_to: 2027
+    low: "2"
+    typical: "2.85"
+    high: "4"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 2019-2027 Acura RDX with the 2.0L turbo four and automatic transaxle, FWD or AWD, with no rust or seized fasteners. The A/C refrigerant circuit is not opened, and coolant refill/bleed is included."
+  - scope: generation
+    make: toyota
+    model: c-hr
+    year_from: 2018
+    year_to: 2022
+    low: "3.6"
+    typical: "4.8"
+    high: "6.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the most common 2.0L M20A-FKS engine and the full procedure as written, including A/C refrigerant recovery/recharge and front bumper/headlight/upper-radiator-support removal."
+  - scope: generation
+    make: toyota
+    model: celica
+    year_from: 2000
+    year_to: 2005
+    low: "1.5"
+    typical: "2.1"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common Celica GT automatic with the 1.8L engine, A/T cooler lines and cruise control fitted, in ordinary condition with no rust or seized fasteners."
+  - scope: generation
+    make: ford
+    model: expedition
+    year_from: 2003
+    year_to: 2006
+    low: "2"
+    typical: "2.9"
+    high: "4.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2005 Ford Expedition 4WD with the common 5.4L V8, assuming a mechanical fan and standard transmission cooler lines at the radiator. The estimate includes drain, refill and bleed but not thermostat, hose or A/C condenser replacement."
+  - scope: generation
+    make: nissan
+    model: sentra
+    year_from: 2020
+    year_to: 2027
+    low: "2"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2020-2027 Nissan Sentra B18 with the common 2.0L gasoline I4, CVT and FWD, with a radiator that may have integrated CVT cooler lines. The job is a radiator replacement only, with no condenser, thermostat or hose replacement, and high allows for corroded fasteners or stubborn clips."
+  - scope: generation
+    make: hyundai
+    model: accent
+    year_from: 2006
+    year_to: 2011
+    low: "0.95"
+    typical: "1.3"
+    high: "1.95"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2009 Hyundai Accent 1.6 G4ED automatic in ordinary rust-free condition, with the A/C condenser left in place and an automatic-transmission radiator cooler. Actual time may vary with coolant drain/bleed time and access to the lower hose and cooler lines."
+  - scope: generation
+    make: hyundai
+    model: santa-fe
+    year_from: 2001
+    year_to: 2006
+    low: "1.3"
+    typical: "1.95"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2004 Santa Fe 2.7L V6 with automatic transaxle and AWD, in ordinary condition with no rust or seized fasteners. Estimated a top-side radiator replacement with the fan assembly removed with the radiator and the cooling system bled; no thermostat or hose replacement."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2005
+    year_to: 2009
+    low: "1.6"
+    typical: "2.4"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common 2.5L non-turbo Outback with automatic transmission and ATF cooler lines; high allows for the harder H6/turbo layouts and rust or seized fasteners."
+  - scope: generation
+    make: bmw
+    model: 430i
+    year_from: 2017
+    year_to: 2020
+    low: "2.9"
+    typical: "3.75"
+    high: "5.4"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a 430i F32 with the common B46/B48 2.0L turbo four-cylinder, automatic transmission and RWD; xDrive or auxiliary cooler plumbing could add time. The estimate excludes A/C condenser, thermostat and hose replacement, and high allows for seized fasteners or extra bleeding time."
+  - scope: generation
+    make: bmw
+    model: 750i
+    year_from: 2009
+    year_to: 2015
+    low: "2.7"
+    typical: "3.9"
+    high: "5.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common F01 750i with the N63 4.4L twin-turbo V8 and rear-wheel drive, doing a radiator-only replacement with no seized fasteners. Times are an AI estimate for a professional technician with standard shop tools."
+  - scope: generation
+    make: mercedes-benz
+    model: 500
+    year_from: 1990
+    year_to: 1992
+    low: "2.5"
+    typical: "3.5"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 1990-1992 W126 Mercedes-Benz 500 with the 5.0 L V8 and rear-wheel drive in ordinary condition; the A/C condenser is only shifted/supported if needed, not replaced."
+  - scope: generation
+    make: lexus
+    model: ls
+    year_from: 1995
+    year_to: 2000
+    low: "1.6"
+    typical: "2.3"
+    high: "3.6"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 1UZ-FE V8 LS400 with the hydraulic engine-driven cooling fan in ordinary condition, with the original radiator, hoses and cooler lines still fitted. High allows for seized hose clamps, corroded cooler line fittings and stubborn radiator mounts."
+  - scope: generation
+    make: audi
+    model: q7
+    year_from: 2017
+    year_to: 2027
+    low: "3.6"
+    typical: "4.8"
+    high: "6.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2.0L turbo four-cylinder Q7 as shown in the repair steps, with standard shop tools and ordinary front-end condition. The high estimate allows for the harder V6/TDI or plug-in hybrid variants with extra charge-air/HV cooling hardware and for rusted or seized fasteners."
+  - scope: generation
+    make: buick
+    model: lesabre
+    year_from: 2000
+    year_to: 2005
+    low: "1.5"
+    typical: "2.2"
+    high: "3.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.8L V6 front-wheel-drive LeSabre in ordinary condition with the A/C system left sealed and the condenser supported aside. The estimate is an AI labour estimate for drain, replace, refill, bleed, and leak check."
+  - scope: generation
+    make: acura
+    model: ilx
+    year_from: 2013
+    year_to: 2022
+    low: "2.8"
+    typical: "4"
+    high: "5.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid 2.4L ILX in ordinary condition with the listed front-end and cooling system removal sequence; the A/C condenser and thermostat are not replaced. High allows for rusted or seized fasteners and extra bleeding time."
+  - scope: generation
+    make: ford
+    model: taurus
+    year_from: 2010
+    year_to: 2019
+    low: "2.8"
+    typical: "3.8"
+    high: "5.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a typical 2015 Taurus with the common 3.5L V6 and front-wheel drive, where the front bumper cover must be removed as part of the job. High time allows for rust, seized fasteners, and the harder EcoBoost/AWD layout with a PTU cooler hose."
+  - scope: generation
+    make: nissan
+    model: murano
+    year_from: 2009
+    year_to: 2014
+    low: "2"
+    typical: "2.8"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2009-2014 Murano with the common 3.5 V6 and CVT, with the condenser moved aside without discharging the A/C system; no rust or seized fasteners on the low/typical estimate."
+  - scope: generation
+    make: hyundai
+    model: santa-fe
+    year_from: 2019
+    year_to: 2023
+    low: "2.2"
+    typical: "2.95"
+    high: "4.2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 2.5T AWD Santa Fe with an automatic transmission cooler in the radiator, assuming the radiator can be lifted out without full front bumper removal. High time allows for stuck condenser/bracket hardware and more involved ITM bleeding."
+  - scope: generation
+    make: hyundai
+    model: kona
+    year_from: 2018
+    year_to: 2023
+    low: "2.4"
+    typical: "3.3"
+    high: "4.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 1.6L turbo AWD Kona configuration shown, which includes intercooler and condenser disconnection; a 2.0L non-turbo would be somewhat lower. Kona Electric does not use a conventional radiator for this job."
+  - scope: generation
+    make: hyundai
+    model: sonata
+    year_from: 2006
+    year_to: 2010
+    low: "1.5"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common 2.4L four-cylinder automatic front-wheel-drive Sonata with an automatic transmission cooler in the radiator; the V6 or seized fasteners can push the job toward the high estimate. No condenser, thermostat, or hose replacement was included."
+  - scope: generation
+    make: kia
+    model: forte
+    year_from: 2014
+    year_to: 2018
+    low: "2.2"
+    typical: "3.05"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "2016 Kia Forte EX with 2.0L engine and automatic transmission, in average condition without rust or seized fasteners. A/C condenser is separated and supported, not discharged; cooling system bled per procedure."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2005
+    year_to: 2010
+    low: "1.8"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2005-2010 Kia Sportage 2.0L automatic AWD in ordinary condition; typical is for the 2.0L, high allows for rust/seized fasteners and the harder V6 engine bay if applicable."
+  - scope: generation
+    make: ram
+    model: 2500
+    year_from: 2019
+    year_to: 2027
+    low: "2.6"
+    typical: "3.8"
+    high: "5.5"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a 2019-2027 Ram 2500 with the 6.7L Cummins diesel, automatic transmission and 4x4, with a mechanical fan and an air-to-air cooler/condenser that must be moved aside but not opened. Times assume ordinary condition with no rust or seized fasteners."
+  - scope: generation
+    make: gmc
+    model: canyon
+    year_from: 2004
+    year_to: 2012
+    low: "1.8"
+    typical: "2.5"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.9L/3.7L inline engine with 4WD automatic, A/C condenser separated but not discharged, and no rust or seized fasteners. High covers harder engine/4WD access and rusted or stuck fittings."
+  - scope: generation
+    make: subaru
+    model: impreza
+    year_from: 2012
+    year_to: 2016
+    low: "1.35"
+    typical: "1.95"
+    high: "2.75"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 2.0L gasoline AWD 2012-2016 Impreza in ordinary condition, with the cooling fan assembly needing transfer to the new radiator. The estimate includes drain/refill/bleed and excludes thermostat, hose replacement, and A/C condenser work."
+  - scope: generation
+    make: subaru
+    model: forester
+    year_from: 1998
+    year_to: 2002
+    low: "1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Estimated for a typical SF Forester with a 2.0L or 2.5L boxer engine and automatic transmission, since the job includes disconnecting cooler lines. A manual-transmission car would be slightly quicker because it has no cooler lines; rusted fittings or hose clamps account for the high figure."
+  - scope: generation
+    make: mazda
+    model: cx-30
+    year_from: 2020
+    year_to: 2027
+    low: "2.5"
+    typical: "3.5"
+    high: "5.2"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common CX-30 is a 2.5L petrol automatic with a lift and standard shop tools; the A/C condenser is not replaced. High allows for turbo/diesel extra plumbing and rusted or seized fasteners."
+  - scope: generation
+    make: dodge
+    model: dart
+    year_from: 2013
+    year_to: 2016
+    low: "3"
+    typical: "4"
+    high: "5.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate assumed the most common 2.0L I4 FWD automatic Dart; high covers the 1.4L turbo with front fascia/charge-air cooler removal plus rust or seized fasteners. The A/C system is evacuated and recharged because the condenser must be separated to remove the radiator on this layout."
+  - scope: generation
+    make: chrysler
+    model: pt-cruiser
+    year_from: 2001
+    year_to: 2010
+    low: "1.2"
+    typical: "1.8"
+    high: "2.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common 2.4L non-turbo automatic PT Cruiser; the high figure allows for the 2.4L turbo layout with charge-air-cooler and power-steering hose work plus rust or seized fasteners. A/C is not discharged, and thermostat/hose/condenser replacement is not included."
+  - scope: generation
+    make: cadillac
+    model: escalade
+    year_from: 2015
+    year_to: 2020
+    low: "2.8"
+    typical: "3.92"
+    high: "5.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 6.2L V8 4WD Escalade in ordinary condition; the A/C condenser is moved aside and refrigerant is recovered/recharged because the procedure lists A/C line disconnection. Does not include thermostat, hose replacement, or condenser replacement."
+  - scope: generation
+    make: cadillac
+    model: cts
+    year_from: 2008
+    year_to: 2013
+    low: "3.6"
+    typical: "4.6"
+    high: "6.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 3.6L V6 AWD CTS with the heavy-duty cooling layout and front fascia removal required, in ordinary condition with no rust or seized fasteners. High allows for the harder CTS-V/heavy-duty cooling variant and fastener issues."
+  - scope: generation
+    make: volvo
+    model: s40
+    year_from: 2005
+    year_to: 2011
+    low: "1.5"
+    typical: "2.2"
+    high: "3.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 2.4i naturally aspirated automatic S40 without charge-air-cooler removal; the high figure allows for the harder turbo/intercooler layout and rust or seized fasteners. The A/C condenser is not replaced, though the compressor bracket may need to be unbolted for radiator removal."
+  - scope: generation
+    make: volvo
+    model: c70
+    year_from: 1998
+    year_to: 2004
+    low: "2.5"
+    typical: "3.5"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common turbocharged five-cylinder C70 with automatic transmission, FWD, and A/C, and that the A/C system must be recovered/recharged because condenser lines are disconnected in the provided procedure. No rust or seized fasteners is assumed for the typical figure."
+  - scope: generation
+    make: land-rover
+    model: discovery
+    year_from: 1999
+    year_to: 2004
+    low: "1.8"
+    typical: "2.5"
+    high: "4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a common 4.0L V8 petrol engine with automatic transmission and A/C; typical time for no rust or seized fasteners. High covers the Td5 diesel with intercooler removal and possible rust complications."
+  - scope: generation
+    make: honda
+    model: fit
+    year_from: 2009
+    year_to: 2014
+    low: "1.2"
+    typical: "1.8"
+    high: "2.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2012 Honda Fit 1.5L FWD automatic with A/C, in ordinary condition with no rust or seized fasteners. Job is radiator replacement only, with coolant refill/bleed and no thermostat, hose, or condenser replacement."
+  - scope: generation
+    make: nissan
+    model: murano
+    year_from: 2015
+    year_to: 2024
+    low: "3.3"
+    typical: "4.5"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 2020 Murano S 3.5L V6 4WD; includes removing/repositioning the front bumper and A/C condenser but assumes the A/C refrigerant circuit is not opened, so no recovery/recharge is included. Coolant refill/bleed and CVT fluid level check are included."
+  - scope: generation
+    make: nissan
+    model: juke
+    year_from: 2011
+    year_to: 2017
+    low: "2"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2014 Juke S 4WD with the common 1.6L engine, assuming a cold engine, factory cooling system, and no rust or seized fasteners. I included front bumper and radiator core support upper removal plus a normal coolant bleed and leak check."
+  - scope: generation
+    make: nissan
+    model: maxima
+    year_from: 2009
+    year_to: 2014
+    low: "2.4"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2009-2014 Maxima with the common 3.5 V6 and CVT, in ordinary rust-free condition. The A/C condenser is assumed to be unbolted and set aside without opening the refrigerant circuit; A/C recovery/recharge is not included."
+  - scope: generation
+    make: kia
+    model: carnival
+    year_from: 2022
+    year_to: 2027
+    low: "2.4"
+    typical: "3.4"
+    high: "4.8"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 2024 Carnival EX gasoline V6 with no rust or seized fasteners and standard shop tools. The estimate includes front bumper, headlamp and bumper beam removal for radiator access, plus coolant refill and bleeding; it excludes thermostat, hose and A/C condenser replacement."
+  - scope: generation
+    make: gmc
+    model: yukon-xl
+    year_from: 2000
+    year_to: 2006
+    low: "1.4"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the most common 5.3L V8 with automatic transmission and both engine and transmission oil cooler lines, in ordinary condition; high allows for seized quick-connect cooler fittings and rust."
+  - scope: generation
+    make: volkswagen
+    model: touareg
+    year_from: 2004
+    year_to: 2010
+    low: "2.8"
+    typical: "4"
+    high: "6"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2004-2010 Touareg 7L radiator replacement, largely following the 4.2 V8 AXQ-style front-end procedure with bumper and fan/shroud removal; no A/C condenser or thermostat work. High allows for a tighter V10/W12 engine bay or rusted/seized fasteners."
+  - scope: generation
+    make: bmw
+    model: 330i
+    year_from: 2001
+    year_to: 2006
+    low: "1.5"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 330i with the M54B30 inline-six, RWD and automatic transmission, so automatic cooler lines are included; a manual car would be slightly quicker. Assumed ordinary condition with no rust or seized fasteners, and that the A/C condenser stays in place."
+  - scope: generation
+    make: bmw
+    model: z3
+    year_from: 1996
+    year_to: 2002
+    low: "1.2"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Typical estimate assumes a common Z3 with standard cooling fan and shroud and no severe corrosion; a step is included for transmission cooler lines if an automatic is fitted. High allows for a harder six-cylinder layout and rusted or seized fasteners."
+  - scope: generation
+    make: mercedes-benz
+    model: 420
+    year_from: 1990
+    year_to: 1991
+    low: "1.6"
+    typical: "2.4"
+    high: "3.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 1990-1991 W126 420 with the 4.2L V8 and automatic transmission, including an integrated transmission cooler in the radiator. Times are AI estimates for a rust-free vehicle with no A/C condenser, thermostat or hose replacement."
+  - scope: generation
+    make: dodge
+    model: ram-van
+    year_from: 1990
+    year_to: 2003
+    low: "1.6"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common V8 automatic Dodge Ram Van with A/C in ordinary condition; the condenser is normally left in place but may be unbolted for clearance. These are AI estimates for a professional technician with standard shop tools."
+  - scope: generation
+    make: lexus
+    model: gs
+    year_from: 2006
+    year_to: 2011
+    low: "2.2"
+    typical: "3.2"
+    high: "4.6"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a common V6 GS350-style car with automatic transmission and an electric fan assembly; high allows for the harder V8/hybrid layout and seized fasteners. Radiator replacement only, with no thermostat, hose or A/C condenser work."
+  - scope: generation
+    make: audi
+    model: a6
+    year_from: 2012
+    year_to: 2018
+    low: "3.3"
+    typical: "4.5"
+    high: "6.2"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical C7 A6 with the 2.0 TFSI and automatic/quattro, with the condenser supported and A/C system left closed. High allows for V6/TDI extra coolers, tight access and corroded fasteners."
+  - scope: generation
+    make: mitsubishi
+    model: outlander
+    year_from: 2014
+    year_to: 2021
+    low: "1.9"
+    typical: "2.5"
+    high: "4.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Estimated for a common 2.4-litre four-cylinder Outlander with automatic/CVT; the high figure allows for the V6/PHEV layout and rusted or seized fasteners. The A/C condenser is only moved aside, not replaced."
+  - scope: generation
+    make: mitsubishi
+    model: outlander
+    year_from: 2007
+    year_to: 2013
+    low: "1.2"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed the most common 2.4L automatic Outlander in ordinary condition with no rust or seized fasteners. The high figure allows for the V6/AWD layout and rusted or seized hardware."
+  - scope: generation
+    make: toyota
+    model: sequoia
+    year_from: 2001
+    year_to: 2007
+    low: "1.35"
+    typical: "1.85"
+    high: "2.6"
+    confidence: 43
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2004 Sequoia SR5 4WD with the common 4.7L V8 and automatic transmission, in ordinary condition with no rust or seized fasteners. This AI estimate includes draining/refilling and bleeding the cooling system, but excludes thermostat, hose, or A/C condenser replacement."
+  - scope: generation
+    make: ford
+    model: taurus
+    year_from: 2008
+    year_to: 2009
+    low: "2.4"
+    typical: "3.4"
+    high: "4.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2009 Ford Taurus SE with the common 3.5L V6 and FWD in ordinary condition. The estimate covers radiator replacement including front bumper cover R&I and cooling system bleed, but not thermostat, hose, or A/C condenser replacement."
+  - scope: generation
+    make: chevrolet
+    model: traverse
+    year_from: 2009
+    year_to: 2017
+    low: "1.9"
+    typical: "2.7"
+    high: "4"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2013 Traverse with the common 3.6L V6 and AWD, in ordinary rust-free condition with standard hand tools and a vacuum or static coolant fill. The estimate covers radiator replacement only, not replacement of the thermostat, hoses, or A/C condenser."
+  - scope: generation
+    make: nissan
+    model: sentra
+    year_from: 1995
+    year_to: 1999
+    low: "1.5"
+    typical: "2"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "The vehicle is a 1995-1999 Nissan Sentra with the most common 1.6L GA16DE engine and automatic transmission, in average condition with no rust or seized fasteners."
+  - scope: generation
+    make: kia
+    model: sorento
+    year_from: 2016
+    year_to: 2020
+    low: "3.2"
+    typical: "4.4"
+    high: "5.6"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.3L V6 4WD Sorento shown in the procedure and that the A/C condenser can be unbolted and supported aside without opening refrigerant lines; if the A/C circuit must be opened, refrigerant recovery/recharge is additional. Coolant bleed is assumed to be by normal fill/bleed or vacuum fill."
+  - scope: generation
+    make: jeep
+    model: commander
+    year_from: 2006
+    year_to: 2010
+    low: "2.6"
+    typical: "3.6"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 2008 Jeep Commander with the 4.7L V8, 4WD and automatic transmission, including the hydraulic fan drive and power steering cooler/filter lines shown in the procedure. Assumes ordinary condition with no rusted or seized fittings."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 1997
+    year_to: 2006
+    low: "1.3"
+    typical: "2"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a typical 4.0L Jeep Wrangler TJ; high allows for rusted or seized mounting bolts and cooler-line fittings. Automatic-equipped models add transmission cooler line work."
+  - scope: generation
+    make: subaru
+    model: wrx
+    year_from: 2015
+    year_to: 2021
+    low: "1.6"
+    typical: "2.2"
+    high: "3.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed 2015-2021 Subaru WRX with FA20DIT 2.0L turbo engine, AWD, in ordinary condition with no rust or seized fasteners. Radiator replacement only, including transferring cooling fans to new radiator and bleeding coolant."
+  - scope: generation
+    make: bmw
+    model: 330i
+    year_from: 2019
+    year_to: 2026
+    low: "3.3"
+    typical: "4.6"
+    high: "6"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumes a B48 2.0L turbo four 330i, likely RWD automatic, with the radiator reached after removing front upper panels, fan shroud, hoses and cooler lines; condenser and thermostat are not replaced. High allows for seized fasteners and extra bleeding time."
+  - scope: generation
+    make: bmw
+    model: 328i
+    year_from: 2012
+    year_to: 2016
+    low: "3"
+    typical: "3.8"
+    high: "5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 2012-2016 BMW 328i with N20 2.0L turbo engine and rear-wheel drive, in average condition without rust or seized fasteners. The job requires removing the front bumper and unbolting the intercooler and A/C condenser to access the radiator, but A/C lines are not disconnected."
+  - scope: generation
+    make: bmw
+    model: 328xi
+    year_from: 2007
+    year_to: 2008
+    low: "1.7"
+    typical: "2.4"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "E90 328xi with the N52 inline-six and automatic transmission; I assumed the radiator has transmission cooler lines and that the A/C condenser remains in place."
+  - scope: generation
+    make: bmw
+    model: 650i
+    year_from: 2006
+    year_to: 2010
+    low: "2.2"
+    typical: "3.15"
+    high: "4.5"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a 650i E63 with the N62 4.8L V8, automatic transmission and rear-wheel drive, and that the front bumper does not need to be removed for radiator access. Low is a clean quick job; high allows for seized fasteners and corroded cooler-line fittings."
+  - scope: generation
+    make: mercedes-benz
+    model: 190
+    year_from: 1990
+    year_to: 1993
+    low: "1.6"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a typical W201 190E with the most common gasoline engine and automatic transmission, so the radiator has transmission cooler lines. Assumed the A/C condenser and thermostat are not being replaced and that the vehicle is not badly rusted or seized."
+  - scope: generation
+    make: mazda
+    model: mazda5
+    year_from: 2006
+    year_to: 2010
+    low: "1.3"
+    typical: "1.8"
+    high: "2.7"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a common 2006-2010 Mazda5 2.3L FWD automatic with an in-tank transmission cooler; manual-transmission cars skip the cooler-line steps. Assumes no rust or seized fasteners, with high allowing for rust/access differences."
+  - scope: generation
+    make: lexus
+    model: ls
+    year_from: 2001
+    year_to: 2006
+    low: "2.3"
+    typical: "3.1"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 2001-2006 Lexus LS430 with the common 4.3L V8, rear-wheel drive and automatic transmission, using the factory cooling fan and radiator with integral transmission cooler. No rust or seized fasteners were assumed for the typical estimate."
+  - scope: generation
+    make: chrysler
+    model: 200
+    year_from: 2011
+    year_to: 2014
+    low: "3.6"
+    typical: "5"
+    high: "6.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.4L engine and that the radiator is serviced with the condenser attached, so A/C recovery and recharge are required. Refill includes cooling system bleed and leak check."
+  - scope: generation
+    make: porsche
+    model: cayenne
+    year_from: 2011
+    year_to: 2018
+    low: "2.9"
+    typical: "3.9"
+    high: "5.8"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the most common 3.6 V6 automatic Cayenne 958 with a standard front cooling module and no rust; high covers harder V8/turbo/hybrid variants with extra coolers and more front-end disassembly."
+  - scope: generation
+    make: toyota
+    model: fj-cruiser
+    year_from: 2007
+    year_to: 2014
+    low: "1.3"
+    typical: "1.9"
+    high: "2.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 4.0L V6 1GR-FE with automatic 4WD, original cooling system, no rust or seized fasteners, and no A/C condenser work. This AI estimate includes coolant refill/bleed and leak check."
+  - scope: generation
+    make: chevrolet
+    model: cruze
+    year_from: 2016
+    year_to: 2019
+    low: "2.4"
+    typical: "3.5"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2016-2019 Cruze with the common 1.4L LE2 turbo gasoline engine and automatic transmission; the job covers radiator replacement only, with the A/C condenser hung aside and no refrigerant recovery. High allows for the harder diesel/external-cooler variants and rusted fasteners."
+  - scope: generation
+    make: chevrolet
+    model: corvette
+    year_from: 2005
+    year_to: 2013
+    low: "4.8"
+    typical: "5.9"
+    high: "8.2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a common C6 automatic with transmission oil cooler and that the A/C condenser must be removed and refitted for radiator access but is not replaced."
+  - scope: generation
+    make: chevrolet
+    model: camaro
+    year_from: 1993
+    year_to: 2002
+    low: "1.6"
+    typical: "2.4"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a typical automatic 3.8 V6 4th-gen Camaro in ordinary condition with A/C; the high estimate covers the more cramped V8 engines and rusted or seized fasteners/cooler line fittings."
+  - scope: generation
+    make: honda
+    model: odyssey
+    year_from: 2018
+    year_to: 2027
+    low: "1.5"
+    typical: "2.2"
+    high: "3.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.5L V6 front-wheel-drive 2022 Odyssey EX with an automatic transmission and an integrated transmission cooler in the radiator, in ordinary condition with no rust or seized fasteners. Times are for a professional technician using a lift and standard shop tools."
+  - scope: generation
+    make: hyundai
+    model: accent
+    year_from: 2018
+    year_to: 2022
+    low: "2.1"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 1.6L gasoline four-cylinder Accent with FWD and automatic CVT, in rust-free condition. Included disconnecting CVT cooler lines if the radiator is equipped with an integrated cooler."
+  - scope: generation
+    make: kia
+    model: forte
+    year_from: 2019
+    year_to: 2024
+    low: "2.4"
+    typical: "3.3"
+    high: "4.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common 2.0L engine with CVT, replacing only the radiator while separating and supporting the condenser without A/C refrigerant service. Hoses, thermostat and condenser are not replaced; coolant is refilled and bled."
+  - scope: generation
+    make: bmw
+    model: 545i
+    year_from: 2004
+    year_to: 2005
+    low: "2.2"
+    typical: "3.1"
+    high: "4.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 2004-2005 BMW 545i E60 with the N62 V8, rear-wheel drive and automatic transmission cooler lines at the radiator, in ordinary condition. The estimate covers radiator replacement only, not thermostat, hose or A/C condenser replacement."
+  - scope: generation
+    make: bmw
+    model: 745i
+    year_from: 2002
+    year_to: 2005
+    low: "2.3"
+    typical: "3.2"
+    high: "4.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2004 BMW 745i E65 with the N62 4.4L V8 and automatic transmission, with the radiator accessed from above after fan cowl removal and no front-end carrier or bumper removal."
+  - scope: generation
+    make: dodge
+    model: nitro
+    year_from: 2007
+    year_to: 2011
+    low: "2"
+    typical: "2.7"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 3.7L V6 4WD Nitro in ordinary condition, with the 4.0L being similar for this job. AI estimate for radiator replacement including drain/refill, fan/shroud and accessory removal, and cooling system bleed."
+  - scope: generation
+    make: lexus
+    model: gx
+    year_from: 2003
+    year_to: 2009
+    low: "1.5"
+    typical: "2.2"
+    high: "3.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Estimated for a 2003-2009 Lexus GX470 with the 4.7L V8 and automatic 4WD, using a radiator with an integrated transmission cooler. Assumes no A/C condenser work and no severely corroded fittings."
+  - scope: generation
+    make: tesla
+    model: model-y
+    year_from: 2020
+    year_to: 2027
+    low: "2.5"
+    typical: "3.55"
+    high: "5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2023 Model Y Long Range dual-motor in ordinary condition, with the radiator accessed through front fascia/active grille shutter removal and coolant serviced by vacuum refill. This is an AI estimate and does not include thermostat, hose replacement, or A/C condenser work."
+  - scope: generation
+    make: audi
+    model: a3
+    year_from: 2006
+    year_to: 2013
+    low: "2.6"
+    typical: "3.5"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate: I assumed a transverse-engine Audi A3 8P, most likely a 2.0 TDI, with the original radiator and no A/C condenser replacement; the high figure allows for corroded fasteners or extra hoses/coolers on the hardest offered engine."
+  - scope: generation
+    make: audi
+    model: tt
+    year_from: 2000
+    year_to: 2006
+    low: "2.8"
+    typical: "3.8"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 1.8T Audi TT 8N with air conditioning, front bumper cover removal, condenser unbolted but refrigerant circuit left closed, and standard hand tools. Low is a clean quick job; high allows for seized bumper/radiator/condenser fasteners and stubborn cooling-system bleeding."
+  - scope: generation
+    make: cadillac
+    model: cts
+    year_from: 2014
+    year_to: 2019
+    low: "1.8"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2017 CTS 2.0L LTG AWD; A/C condenser is only moved aside or left in place, not discharged/replaced, and no rust or seized fasteners. If the condenser must be fully removed with refrigerant recovery, add time."
+  - scope: generation
+    make: mitsubishi
+    model: lancer
+    year_from: 2002
+    year_to: 2007
+    low: "1.3"
+    typical: "1.9"
+    high: "2.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 2.0L Lancer with automatic transmission, factory radiator and electric fan, no A/C condenser replacement, and no rust or seized fasteners; high estimate covers the 2.4L and corroded cooler fittings."
+  - scope: generation
+    make: lincoln
+    model: mkz
+    year_from: 2007
+    year_to: 2012
+    low: "1.7"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.5L V6 AWD MKZ with factory cooling fan, A/C condenser and transmission cooler lines as described, with no rust or seized fasteners. The estimate includes drain, refill and bleed but not thermostat or hose replacement."
+  - scope: generation
+    make: lincoln
+    model: navigator
+    year_from: 2007
+    year_to: 2017
+    low: "2.5"
+    typical: "3.4"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed 5.4L V8 and 4WD; job done with standard tools, no rust or seized fasteners, A/C system not opened, coolant drained and refilled, transmission fluid checked."
+  - scope: generation
+    make: porsche
+    model: cayenne
+    year_from: 2019
+    year_to: 2027
+    low: "4"
+    typical: "5"
+    high: "7.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Estimated for the most common 3.0L V6 turbo AWD Cayenne, replacing only the main engine radiator. Assumes no rust or seized fasteners; high allows for the more complex V8/hybrid cooling systems and rust."
+  - scope: generation
+    make: toyota
+    model: celica
+    year_from: 1990
+    year_to: 1993
+    low: "0.9"
+    typical: "1.35"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse four-cylinder Celica (common 4A-FE or 5S-FE) with electric fans and automatic cooler lines only if equipped; the A/C condenser stays in place. High allows for rust, seized fasteners, or the harder 3S-GTE layout."
+  - scope: generation
+    make: chevrolet
+    model: camaro
+    year_from: 2010
+    year_to: 2015
+    low: "2"
+    typical: "2.7"
+    high: "4.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a typical 2010-2015 Camaro with the most common V6/V8 drivetrain; high covers the supercharged LSA and auxiliary cooler variants. Assumes no A/C lines are opened and no significant rust or seized fasteners on the low/typical case."
+  - scope: generation
+    make: nissan
+    model: xterra
+    year_from: 2000
+    year_to: 2004
+    low: "2"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2002 Xterra SE with the 3.3 V6, 4WD and automatic transmission, so the A/T cooler lines and factory fan shroud are included. Assumed ordinary condition with no rust or seized fasteners."
+  - scope: generation
+    make: volkswagen
+    model: atlas
+    year_from: 2018
+    year_to: 2027
+    low: "4.2"
+    typical: "5.5"
+    high: "7.5"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2018-2027 Volkswagen Atlas with the 3.6L V6 and AWD in ordinary condition, assuming no rust or seized fasteners and no added accessories. The condenser is secured without opening the A/C refrigerant circuit."
+  - scope: generation
+    make: bmw
+    model: x1
+    year_from: 2016
+    year_to: 2022
+    low: "3.8"
+    typical: "5"
+    high: "7"
+    confidence: 30
+    inputs: [vehicle, job]
+    notes: "Assumed the most common transverse 2.0-litre turbo petrol (B48) with automatic transmission whose radiator carries the transmission cooler lines; the A/C circuit is left closed and only the condenser is unbolted and set aside. Front bumper removal is assumed necessary for radiator access;"
+  - scope: generation
+    make: bmw
+    model: 320i
+    year_from: 2013
+    year_to: 2018
+    low: "1.8"
+    typical: "2.9"
+    high: "4.3"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 2013-2018 F30 BMW 320i with the common N20 2.0L turbo four, automatic/RWD, and no extra coolers or damage. Assumed the radiator comes out from above after removing the fan and hoses, without condenser or front bumper work."
+  - scope: generation
+    make: bmw
+    model: 745li
+    year_from: 2002
+    year_to: 2005
+    low: "2"
+    typical: "2.8"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2004 BMW 745Li with the N62 V8 and automatic transmission, no rust or seized fasteners, and the factory transmission heat exchanger. Includes coolant drain/refill and BMW bleed procedure, but not thermostat, hose replacement, or A/C condenser work."
+  - scope: generation
+    make: bmw
+    model: m3
+    year_from: 2001
+    year_to: 2006
+    low: "1.9"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed an E46 M3 with the S54 3.2L inline-six and ordinary condition, no rust or seized fasteners. The job covers drain/refill and bleed plus radiator replacement only, not thermostat, hose replacement or A/C condenser work."
+  - scope: generation
+    make: bmw
+    model: 740il
+    year_from: 1995
+    year_to: 2001
+    low: "1.5"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 740iL with the common M62 4.4 V8 and automatic transmission, in ordinary rust-free condition, with an integrated transmission cooler in the radiator. This is an AI estimate for a professional technician using standard shop tools."
+  - scope: generation
+    make: bmw
+    model: 318i
+    year_from: 1992
+    year_to: 1998
+    low: "1.2"
+    typical: "1.85"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a four-cylinder E36 318i in average condition with a mechanical cooling fan and no seized fasteners; the estimate includes conditional automatic-transmission cooler lines, so a manual car should be slightly quicker. Thermostat, hose replacement and A/C condenser work are not included."
+  - scope: generation
+    make: mercedes-benz
+    model: sprinter
+    year_from: 2019
+    year_to: 2027
+    low: "3.6"
+    typical: "5"
+    high: "7"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "AI estimate for a common 2019-2027 Sprinter 907 with the 2.0L diesel, rear-wheel drive and automatic transmission; the A/C condenser is repositioned but not opened, and no rust or seized fasteners are assumed. High allows for the V6 diesel layout and rust/seized hardware."
+  - scope: generation
+    make: mazda
+    model: mazda3
+    year_from: 2004
+    year_to: 2009
+    low: "1.8"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common 2.0/2.3L transverse four-cylinder Mazda3, front-wheel drive, most likely automatic with cooler lines in the radiator, in ordinary condition. High covers rusted or seized fasteners and the harder engine-bay layout."
+  - scope: generation
+    make: dodge
+    model: viper
+    year_from: 1992
+    year_to: 2002
+    low: "1.8"
+    typical: "2.4"
+    high: "3.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a stock 1997 Viper GTS V10 with the factory air box, mechanical fan/shroud and no front-end damage or added coolers; the radiator is lifted out the top with the shroud after removing the air cleaner."
+  - scope: generation
+    make: lexus
+    model: gs
+    year_from: 1998
+    year_to: 2005
+    low: "1.3"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common GS300 inline-six automatic RWD in ordinary condition; the high estimate allows for V8/hydraulic-fan variation and rust or seized fasteners. Coolant refill and bleed are included, but thermostat, hoses and A/C condenser work are not."
+  - scope: generation
+    make: audi
+    model: q3
+    year_from: 2019
+    year_to: 2027
+    low: "1.8"
+    typical: "2.45"
+    high: "3.3"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common 2.0L TFSI engine in a transverse Audi Q3 F3, with no rust or seized fasteners and no A/C condenser work; vacuum fill is available for refilling and bleeding the cooling system."
+  - scope: generation
+    make: audi
+    model: s5
+    year_from: 2018
+    year_to: 2027
+    low: "2.8"
+    typical: "3.8"
+    high: "5.2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a typical Audi S5 F5 with the common 3.0 TFSI V6 quattro in ordinary condition; the 2.9L layout is treated as similar. Assumes the A/C system is not discharged and no thermostat or hose replacement is included."
+  - scope: generation
+    make: audi
+    model: a8
+    year_from: 2011
+    year_to: 2017
+    low: "4.2"
+    typical: "5.6"
+    high: "7.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 2011-2017 Audi A8 D4 with the most common 3.0T/4.0T engines, where the front bumper is moved to service position and the condenser is tipped forward; the high figure covers the W12 and dynamic-steering variants with more parts to remove and rust/seized fasteners."
+  - scope: generation
+    make: chrysler
+    model: concorde
+    year_from: 1998
+    year_to: 2004
+    low: "1.75"
+    typical: "2.35"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.7L V6 Concorde in ordinary condition with no engine oil cooler lines; if equipped, add a small allowance. Labor is an AI estimate, not a manual or warranty time."
+  - scope: generation
+    make: cadillac
+    model: xts
+    year_from: 2013
+    year_to: 2019
+    low: "2.1"
+    typical: "2.8"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a common 3.6L LFX V6 front-wheel-drive XTS for the typical time; high covers the harder LF3 twin-turbo with charge-air cooler and possible rust or seized fasteners. The job is a radiator replacement only, without thermostat, hose, or A/C condenser replacement."
+  - scope: generation
+    make: mitsubishi
+    model: eclipse-cross
+    year_from: 2018
+    year_to: 2026
+    low: "1.5"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the most common 1.5 turbo transverse-engine Eclipse Cross with CVT, with the A/C condenser left connected and no front bumper removal needed. High allows for rust, seized fasteners or extra work on other engine/drivetrain variants."
+  - scope: generation
+    make: mitsubishi
+    model: outlander
+    year_from: 2003
+    year_to: 2006
+    low: "1.3"
+    typical: "2"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for the common 2.4L four-cylinder automatic Outlander, with the A/C condenser left in place and no major rust; high allows for the V6 engine bay and seized fasteners."
+  - scope: generation
+    make: infiniti
+    model: qx50
+    year_from: 2014
+    year_to: 2017
+    low: "2.3"
+    typical: "3.2"
+    high: "4.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "2016 Infiniti QX50 3.7L V6 AWD with the radiator replaced from the front after removing upper access parts. Assumes the A/C condenser can be unbolted and supported aside without recovering refrigerant; if the A/C circuit must be opened, add recovery/recharge time."
+  - scope: generation
+    make: lincoln
+    model: aviator
+    year_from: 2003
+    year_to: 2005
+    low: "1.6"
+    typical: "2.3"
+    high: "3.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the common 4.6L V8 Aviator with RWD or AWD and a mechanical cooling fan, with transmission cooler lines at the radiator; no rust or seized fasteners. This is an AI estimate for a radiator replacement only, not thermostat, hose, or A/C condenser work."
+  - scope: generation
+    make: toyota
+    model: prius
+    year_from: 2010
+    year_to: 2015
+    low: "2.2"
+    typical: "2.9"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Typical vehicle without optional dynamic radar cruise control or fog lights. Assumes no rust or seized fasteners. Coolant bleeding done with standard procedure."
+  - scope: generation
+    make: toyota
+    model: avalon
+    year_from: 2000
+    year_to: 2004
+    low: "1.25"
+    typical: "1.75"
+    high: "2.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2000-2004 Toyota Avalon with the common 1MZ-FE V6 and automatic transaxle, in ordinary rust-free condition. The radiator is replaced as an assembly with the original fans and ECT switch transferred over, then the cooling system is refilled and bled."
+  - scope: generation
+    make: toyota
+    model: supra
+    year_from: 1993
+    year_to: 1998
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a rear-wheel-drive A80 Supra with a 2JZ engine and mechanical fan; typical includes automatic cooler lines, while high allows for twin-turbo/intercooler plumbing and rusted or seized fasteners."
+  - scope: generation
+    make: toyota
+    model: t100
+    year_from: 1993
+    year_to: 1998
+    low: "1.3"
+    typical: "2.05"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the most common T100 configuration with a 3.4L V6 and automatic transmission in ordinary condition; high covers rusted or seized fasteners and cooler-line fittings. The job is a complete radiator replacement with coolant refill and bleed, without thermostat or hose replacement."
+  - scope: generation
+    make: toyota
+    model: mr2
+    year_from: 1991
+    year_to: 1995
+    low: "1.8"
+    typical: "2.6"
+    high: "4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a typical 1991-1995 MR2 with the common 2.0L or 2.2L engine and front-mounted radiator; the A/C system is not opened, but the condenser may need to be moved aside. No rust or seized fasteners are assumed, with extra time allowed in the high estimate."
+  - scope: generation
+    make: ford
+    model: ranger
+    year_from: 2019
+    year_to: 2023
+    low: "2.8"
+    typical: "4.1"
+    high: "5.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "This AI estimate assumes the common 2.3L EcoBoost 4WD Ranger with A/C, where the condenser must be separated from the radiator and the A/C system opened, so refrigerant recovery and recharge are included. High allows for rust, seized fasteners, and the hardest engine/drivetrain variant offered."
+  - scope: generation
+    make: ford
+    model: expedition
+    year_from: 2007
+    year_to: 2017
+    low: "1.6"
+    typical: "2.3"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2012 Expedition 4WD with the common 5.4L V8, ordinary condition, no rust or seized fasteners, and that the condenser is repositioned but not discharged or replaced."
+  - scope: generation
+    make: chevrolet
+    model: colorado
+    year_from: 2023
+    year_to: 2027
+    low: "5.5"
+    typical: "7.05"
+    high: "9.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "This AI estimate assumes the common 2.7L turbo I4 Colorado, likely 4WD, with the radiator replaced as described; A/C recovery and recharge are included because the condenser hoses must be disconnected, but no condenser, thermostat, or hose replacement is included."
+  - scope: generation
+    make: chevrolet
+    model: tahoe
+    year_from: 2021
+    year_to: 2027
+    low: "5.8"
+    typical: "7.8"
+    high: "10"
+    confidence: 30
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the 3.0L LM2 diesel 4WD Tahoe High Country shown in the procedure, including removing the charge-air-cooler/condenser/fan/radiator assembly and A/C recovery/recharge; the gas V8 would be lower. No seized fasteners assumed."
+  - scope: generation
+    make: chevrolet
+    model: malibu
+    year_from: 2016
+    year_to: 2025
+    low: "5.6"
+    typical: "7.4"
+    high: "10.4"
+    confidence: 32
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2021 Malibu L with the 1.5L LFV turbo and MRG automatic, the layout shown in the procedure; the job was treated per the given steps, which require removing the front fascia, the intercooler and the A/C condenser (so refrigerant recovery and recharge are included) even though condenser…"
+  - scope: generation
+    make: honda
+    model: pilot
+    year_from: 2016
+    year_to: 2022
+    low: "1.9"
+    typical: "2.8"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the common 3.5L V6 AWD Pilot with automatic transmission, a radiator equipped with transmission cooler lines, and no rust or seized fasteners. The A/C condenser is supported aside and reused, not replaced."
+  - scope: generation
+    make: nissan
+    model: altima
+    year_from: 2019
+    year_to: 2027
+    low: "3.2"
+    typical: "4.5"
+    high: "6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.5L PR25DD Altima AWD with CVT cooler hoses and that the original A/C condenser must be removed and refitted for access, including refrigerant recovery/recharge, but not replaced."
+  - scope: generation
+    make: kia
+    model: rio
+    year_from: 2012
+    year_to: 2017
+    low: "1.9"
+    typical: "2.8"
+    high: "4.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1.6L Gamma engine Rio UB, typically automatic, in clean condition with the A/C system left charged and the condenser only unbolted and tied aside. Typical time covers an experienced technician;"
+  - scope: generation
+    make: jeep
+    model: gladiator
+    year_from: 2020
+    year_to: 2027
+    low: "1.8"
+    typical: "2.5"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed 3.6L V6 gasoline engine with automatic transmission, the most common configuration, and that the A/C condenser can be moved aside without disconnecting refrigerant lines. High estimate covers the EcoDiesel engine and possible rust or seized fasteners."
+  - scope: generation
+    make: ram
+    model: 3500
+    year_from: 2019
+    year_to: 2027
+    low: "2.2"
+    typical: "3.2"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 6.7L Cummins diesel Ram 3500 with automatic transmission and a factory cooling system. The estimate assumes no rust or seized fasteners and that the A/C condenser/intercooler can be supported without opening the refrigerant circuit."
+  - scope: generation
+    make: gmc
+    model: canyon
+    year_from: 2015
+    year_to: 2022
+    low: "1.35"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common 3.6L V6 Canyon/Canyon with 2WD or 4WD, A/C condenser left connected and tilted forward, and no rust or seized fasteners. High covers the harder diesel/4WD layout and rust-related delays."
+  - scope: generation
+    make: gmc
+    model: yukon-xl
+    year_from: 2015
+    year_to: 2020
+    low: "2.5"
+    typical: "3.25"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 5.3L V8 4WD Yukon XL in ordinary condition. The estimate includes A/C refrigerant recovery and recharge because the procedure disconnects A/C evaporator and condenser lines."
+  - scope: generation
+    make: subaru
+    model: crosstrek
+    year_from: 2018
+    year_to: 2023
+    low: "2.4"
+    typical: "3.45"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.0L AWD CVT Crosstrek, with the condenser separated but the A/C system left closed, and ordinary rust-free fasteners. The high estimate covers 2.5L variations and rusted or seized exhaust and bumper hardware."
+  - scope: generation
+    make: subaru
+    model: legacy
+    year_from: 2005
+    year_to: 2009
+    low: "1.2"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2005-2009 Legacy 2.5L non-turbo with automatic transmission on a lift, radiator R&R only; no thermostat, hose or condenser replacement. High covers turbo/H6 engines and rust or seized fasteners."
+  - scope: generation
+    make: bmw
+    model: x5
+    year_from: 2019
+    year_to: 2026
+    low: "2.8"
+    typical: "3.9"
+    high: "5.8"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a common G05 X5 xDrive40i with the B58 inline-six and automatic transmission in ordinary condition, with the main engine radiator being replaced. The high estimate allows for seized fasteners, extra cooling module access, and the more crowded V8 engine bay."
+  - scope: generation
+    make: bmw
+    model: x6
+    year_from: 2015
+    year_to: 2019
+    low: "2.7"
+    typical: "3.8"
+    high: "5.4"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the most common X6 xDrive35i-style turbo six-cylinder drivetrain with automatic transmission and that the A/C circuit is not opened; high allows for the V8/diesel variants with extra coolers and for seized or corroded fasteners."
+  - scope: generation
+    make: bmw
+    model: 335i
+    year_from: 2012
+    year_to: 2016
+    low: "2.2"
+    typical: "3"
+    high: "4.5"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed an F30 335i with the N55 turbo I6, automatic transmission and RWD, in ordinary condition. xDrive, rust or seized fasteners would push toward the high estimate; this is an AI labour estimate, not a book time."
+  - scope: generation
+    make: bmw
+    model: 535i
+    year_from: 2011
+    year_to: 2017
+    low: "2.6"
+    typical: "3.6"
+    high: "5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assuming a RWD 535i with the N55 turbocharged inline-six and automatic transmission; typical is for RWD, high allows for xDrive, rust and seized fasteners. Cooling system is refilled and bled with a vacuum fill or bleed procedure."
+  - scope: generation
+    make: bmw
+    model: 530xi
+    year_from: 2006
+    year_to: 2007
+    low: "1.9"
+    typical: "2.6"
+    high: "3.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 530xi with the common N52 3.0L inline-six and automatic transmission, in ordinary condition. Assumed the radiator can be removed from the top without opening the A/C circuit or removing the condenser."
+  - scope: generation
+    make: bmw
+    model: 328i
+    year_from: 1996
+    year_to: 1999
+    low: "1.5"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed an E36 328i with the M52 inline-six and mechanical fan; an automatic transmission cooler adds a small amount of work. Coolant is drained and bled through the radiator and expansion tank bleed points."
+  - scope: generation
+    make: bmw
+    model: 328ic
+    year_from: 1996
+    year_to: 1999
+    low: "1"
+    typical: "1.4"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed an E36 328iC with the M52 inline-six and automatic transmission, so the radiator cooler lines are included; a manual car would be slightly quicker. Ordinary condition with no rust or seized fasteners."
+  - scope: generation
+    make: mercedes-benz
+    model: s-class
+    year_from: 2000
+    year_to: 2006
+    low: "2.6"
+    typical: "3.6"
+    high: "5"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a common V8 rear-wheel-drive W220 in ordinary condition for the typical time; V12, 4MATIC and seized fasteners are allowed for in the high figure. A/C system is not opened and condenser is only moved aside."
+  - scope: generation
+    make: audi
+    model: a4
+    year_from: 2017
+    year_to: 2025
+    low: "3.5"
+    typical: "4.5"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 2.0 TFSI A4 B9 with the condenser tied aside and no A/C refrigerant discharge; the high figure allows for the harder TDI layout and rusted/seized fasteners. Front bumper cover removal was included as needed to access the impact member."
+  - scope: generation
+    make: audi
+    model: s5
+    year_from: 2008
+    year_to: 2017
+    low: "4.5"
+    typical: "5.9"
+    high: "7.8"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a common 3.0 TFSI V6 S5 with quattro and S tronic, including moving/removing the condenser and disconnecting ATF cooler lines as needed. High covers harder engine/refrigerant versions, A/C recovery/recharge, and rust or seized fasteners."
+  - scope: generation
+    make: audi
+    model: 200
+    year_from: 1990
+    year_to: 1991
+    low: "2"
+    typical: "3.1"
+    high: "4.5"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed the most common Audi 200 C3 with the 2.2L turbo inline-five and automatic transmission cooler lines; a manual-transmission car would be somewhat quicker. Estimated for an unrusted vehicle with standard hand tools, with high allowing for seized cooler-line fittings and aged plastic."
+  - scope: generation
+    make: chrysler
+    model: 300
+    year_from: 1999
+    year_to: 2004
+    low: "1.35"
+    typical: "2"
+    high: "2.9"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed a 1999-2004 Chrysler 300M with the common 3.5L V6, front-wheel drive, automatic transmission and factory radiator with integral transmission cooler. Assumed ordinary condition with no rust or seized fasteners, and the A/C condenser remains in place."
+  - scope: generation
+    make: chrysler
+    model: cirrus
+    year_from: 1995
+    year_to: 2000
+    low: "1.8"
+    typical: "2.4"
+    high: "3.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse four-cylinder Cirrus (2.0L/2.4L) with automatic transmission, A/C and a single or dual fan module in ordinary condition. The high figure allows for the tighter 2.5L V6, seized hose clamps and rusted isolator/battery tray fasteners."
+  - scope: generation
+    make: buick
+    model: lucerne
+    year_from: 2006
+    year_to: 2011
+    low: "2.3"
+    typical: "3"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common Lucerne powertrain, a 3.9L V6 front-wheel-drive model with automatic transmission and a radiator-mounted condenser; the A/C system is not opened, only the condenser is unbolted and moved aside. High allows for rust/seized fasteners and transmission cooler line complications."
+  - scope: generation
+    make: infiniti
+    model: qx60
+    year_from: 2014
+    year_to: 2020
+    low: "1.6"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the common 3.5 V6 AWD non-hybrid QX60 Base without Around View Monitor; high allows for rust/seized fasteners and a harder engine/trim variation. Hybrid or Around View equipped vehicles may need extra steps/calibration."
+  - scope: generation
+    make: saturn
+    model: vue
+    year_from: 2008
+    year_to: 2010
+    low: "3.2"
+    typical: "4"
+    high: "5.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the common 2.4L non-hybrid Vue, with front fascia and bumper impact bar removal needed to reposition the condenser; the condenser is moved aside but not replaced. The high figure allows for hybrid battery disconnect procedure, V6 crowding, rust and seized fasteners."
+  - scope: generation
+    make: maserati
+    model: ghibli
+    year_from: 2014
+    year_to: 2024
+    low: "3"
+    typical: "4.05"
+    high: "5.5"
+    confidence: 30
+    inputs: [vehicle, job]
+    notes: "Assumed a 3.0L V6 petrol RWD Ghibli (most common) in ordinary condition with no rust or seized fasteners; access may require moving the front bumper and A/C condenser aside. High allows for rust, seized fasteners, and AWD/diesel variations."
+  - scope: generation
+    make: toyota
+    model: tundra
+    year_from: 2022
+    year_to: 2027
+    low: "2.8"
+    typical: "3.8"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "The vehicle has the 3.4L V6 twin-turbo engine with an air-to-water intercooler, so replacing the radiator requires removing the front bumper and both intercooler radiator assemblies to access the main radiator."
+  - scope: generation
+    make: toyota
+    model: corolla-cross
+    year_from: 2022
+    year_to: 2027
+    low: "1.8"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "We assumed the vehicle is a 2024 Corolla Cross L AWD with the M20A-FKS engine, in ordinary condition without rust or seized fasteners, and that the cooling system is bled using standard procedures. We included removal of the engine under cover for access."
+  - scope: generation
+    make: toyota
+    model: camry-solara
+    year_from: 1999
+    year_to: 2003
+    low: "1.1"
+    typical: "1.4"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.0L V6 1MZ-FE FWD automatic Camry Solara as in the shown procedure, with A/T cooler lines and the A/C condenser left in place. Typical is for that engine; high allows for rusted fasteners, stubborn hoses, and extra bleeding."
+  - scope: generation
+    make: toyota
+    model: avalon
+    year_from: 1995
+    year_to: 1999
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 48
+    inputs: [vehicle, job]
+    notes: "Assumes a 1995-1999 Toyota Avalon with the transverse 3.0 V6 and automatic transmission, in ordinary condition with no rust or seized fasteners. This is an AI estimate for radiator replacement only, excluding thermostat, hose replacement, and A/C condenser work."
+  - scope: generation
+    make: chevrolet
+    model: traverse
+    year_from: 2018
+    year_to: 2023
+    low: "2"
+    typical: "2.95"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the vehicle is a 2021 Chevrolet Traverse High Country with the 3.6L V6 engine and 4WD, the most common configuration, and no V08 heavy-duty cooling option. Assumed the A/C condenser can be unbolted and moved aside without discharging refrigerant;"
+  - scope: generation
+    make: nissan
+    model: titan
+    year_from: 2016
+    year_to: 2024
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the common 5.6L V8 gasoline Titan; high covers XD diesel variants and rust/seized fasteners. Includes drain/refill and bleed but not thermostat, hose, or A/C condenser replacement."
+  - scope: generation
+    make: nissan
+    model: frontier
+    year_from: 1998
+    year_to: 2004
+    low: "1.1"
+    typical: "1.64"
+    high: "2.3"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2.4L four-cylinder automatic Frontier with A/T cooler lines, no A/C condenser removal, and ordinary condition. The estimate includes draining, refilling/bleeding, and a leak check."
+  - scope: generation
+    make: kia
+    model: soul
+    year_from: 2014
+    year_to: 2019
+    low: "2.6"
+    typical: "3.6"
+    high: "4.8"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a front-wheel-drive Kia Soul with the common 1.6L/2.0L engine; assumes no A/C refrigerant work, cooler lines only if equipped, and no rust or seized fasteners. High covers the turbo/hardest engine and rust."
+  - scope: generation
+    make: gmc
+    model: yukon
+    year_from: 2015
+    year_to: 2020
+    low: "2.8"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2015-2020 GMC Yukon with the common 5.3L V8 and 4WD; high covers the 6.2L and rust/seized fasteners. Assumes the radiator procedure requires A/C refrigerant recovery/recharge to move the condenser aside and that the cooling system is refilled and bled with a vacuum or static fill."
+  - scope: generation
+    make: subaru
+    model: crosstrek
+    year_from: 2024
+    year_to: 2027
+    low: "3"
+    typical: "4"
+    high: "5.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the common 2.0L flat-four CVT Base model without the optional air-cooled CVTF cooler, with the condenser left connected and no A/C refrigerant recovery. The high estimate allows for the CVTF cooler version and corroded exhaust/bumper fasteners."
+  - scope: generation
+    make: subaru
+    model: ascent
+    year_from: 2019
+    year_to: 2027
+    low: "1.9"
+    typical: "2.6"
+    high: "3.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the Ascent has the common 2.4L turbo flat-four and AWD, with the condenser left in place and tied up rather than removed. The estimate includes coolant drain/refill and bleeding, but not thermostat, hose, or condenser replacement or unexpected rust/seized fasteners."
+  - scope: generation
+    make: subaru
+    model: impreza
+    year_from: 2017
+    year_to: 2023
+    low: "2.8"
+    typical: "3.8"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 2017-2023 Impreza with the common 2.0L flat-four, AWD and CVT, doing radiator replacement only without A/C condenser removal or thermostat/hose replacement. Includes front bumper and front exhaust pipe removal as shown in the procedure; high allows for rust and seized fasteners."
+  - scope: generation
+    make: volkswagen
+    model: gti
+    year_from: 2010
+    year_to: 2014
+    low: "2.3"
+    typical: "3.05"
+    high: "4.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 2.0T EA888 GTI with FWD, A/C condenser left in place, and standard cooling system bleeding. DSG cooler lines, if fitted, are included in the disconnect/reconnect steps; rust and seized fasteners are covered by the high estimate."
+  - scope: generation
+    make: volkswagen
+    model: gti
+    year_from: 2006
+    year_to: 2009
+    low: "1.2"
+    typical: "1.8"
+    high: "2.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2008 GTI with the 2.0T CBFA engine and DSG, with no extra transmission cooler lines at the radiator and no A/C condenser removal. Coolant is drained and bled per VW procedure; high time allows for rust or seized fasteners."
+  - scope: generation
+    make: bmw
+    model: 528i
+    year_from: 2011
+    year_to: 2016
+    low: "2"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the most common F10 528i with a 2.0L turbo four-cylinder and rear-wheel drive, in ordinary condition with no rust or seized fasteners; the A/C condenser stays in place. High allows for the six-cylinder or xDrive variants and extra time for corroded fittings."
+  - scope: generation
+    make: bmw
+    model: 750li
+    year_from: 2009
+    year_to: 2015
+    low: "3.1"
+    typical: "4.3"
+    high: "5.9"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 750Li with the common N63 4.4L twin-turbo V8 and rear-wheel drive in ordinary condition. High covers xDrive/auxiliary-cooling variations and seized fasteners; the condenser, thermostat and hoses are not being replaced."
+  - scope: generation
+    make: bmw
+    model: m3
+    year_from: 2008
+    year_to: 2013
+    low: "2.2"
+    typical: "3.2"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the common S65 4.0 V8 rear-wheel-drive E90/E92 M3 with no rust or added equipment; the radiator is replaced without replacing hoses, thermostat or A/C condenser, and coolant is refilled and bled with standard shop equipment."
+  - scope: generation
+    make: bmw
+    model: m5
+    year_from: 2006
+    year_to: 2010
+    low: "2.3"
+    typical: "3.2"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the S85 5.0 V10 with electric cooling fan and auxiliary cooler lines, and that the radiator can be removed from above without removing the front bumper. Times are for an ordinary E60 M5 with no rust or seized fasteners."
+  - scope: generation
+    make: bmw
+    model: 750li
+    year_from: 2006
+    year_to: 2008
+    low: "3.4"
+    typical: "4.8"
+    high: "6.3"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a BMW E65 750Li with the N62 V8 and rear-wheel drive, in ordinary condition. The estimate covers radiator replacement with coolant drain/refill and bleed, but not thermostat, hose or A/C condenser replacement."
+  - scope: generation
+    make: bmw
+    model: 530i
+    year_from: 2004
+    year_to: 2007
+    low: "2"
+    typical: "2.8"
+    high: "4"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed an automatic-transmission E60 530i with the common inline-six and electric fan, so transmission cooler lines and an expansion tank are in the way. The estimate covers radiator replacement only, not thermostat, hose replacement or A/C condenser work."
+  - scope: generation
+    make: bmw
+    model: 645ci
+    year_from: 2004
+    year_to: 2005
+    low: "2.7"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the common N62 4.4L V8 rear-wheel-drive 645Ci with automatic transmission and no A/C condenser or thermostat/hose replacement. The radiator is assumed removable from above after fan/shroud and hose removal, without front bumper or carrier removal."
+  - scope: generation
+    make: mercedes-benz
+    model: c-class
+    year_from: 2008
+    year_to: 2014
+    low: "1.9"
+    typical: "2.7"
+    high: "4"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Estimated for the most common W204 C-Class with a 1.8L turbo four-cylinder and automatic transmission, with transmission cooler lines integrated into the radiator. High allows for V6 models, rust, seized fasteners and coolant bleed difficulties."
+  - scope: generation
+    make: mercedes-benz
+    model: s-class
+    year_from: 2007
+    year_to: 2013
+    low: "2.8"
+    typical: "4.4"
+    high: "6.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Estimated for the most common W221 V8 petrol model with automatic transmission, leaving the A/C condenser in place and assuming no rust or seized fasteners. High allowance covers tighter V12/AMG engine bays and some corrosion."
+  - scope: generation
+    make: mazda
+    model: cx-9
+    year_from: 2016
+    year_to: 2023
+    low: "1.6"
+    typical: "2.4"
+    high: "3.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2.5L turbo Skyactiv-G CX-9 with automatic transmission and AWD, and that the A/C condenser stays charged and is unbolted/moved aside without opening the refrigerant circuit. The estimate assumes no rust or seized fasteners and includes normal coolant refill and bleeding."
+  - scope: generation
+    make: mazda
+    model: mazda3
+    year_from: 2014
+    year_to: 2018
+    low: "1.5"
+    typical: "2"
+    high: "2.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a 2.0L or 2.5L petrol engine with automatic transmission and FWD. The A/C condenser can be unbolted and moved aside without disconnecting refrigerant lines, and the cooling system is bled following the manufacturer's procedure."
+  - scope: generation
+    make: dodge
+    model: intrepid
+    year_from: 1998
+    year_to: 2004
+    low: "1.6"
+    typical: "2.4"
+    high: "3.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.7L V6 automatic Intrepid in ordinary condition, with oil cooler lines only if equipped. Times cover draining, refilling and bleeding the cooling system but not thermostat or hose replacement."
+  - scope: generation
+    make: lexus
+    model: is
+    year_from: 2001
+    year_to: 2005
+    low: "1.8"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a typical IS300/IS200 automatic with the common inline-six, mechanical fan, and radiator-mounted transmission cooler, in ordinary condition. High covers harder access, seized fasteners, and stubborn bleeding; manual cars without cooler lines may be quicker."
+  - scope: generation
+    make: lexus
+    model: sc
+    year_from: 1992
+    year_to: 2000
+    low: "1.4"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed an automatic RWD SC with a belt-driven fan and transmission cooler lines in the radiator; typical is for the 2JZ-GE SC300, with high covering the 1UZ-FE SC400 and rust/seized fasteners."
+  - scope: generation
+    make: audi
+    model: q8
+    year_from: 2019
+    year_to: 2027
+    low: "4.4"
+    typical: "5.8"
+    high: "7.6"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the common 3.0 V6 Q8 in normal condition; assumes the A/C condenser is tied aside rather than opened and no thermostat or hose replacement. High covers hardest engine variants, bumper/crash-bar access issues, and seized fasteners."
+  - scope: generation
+    make: audi
+    model: a5
+    year_from: 2018
+    year_to: 2027
+    low: "4.3"
+    typical: "5.8"
+    high: "8"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a common 2.0 TFSI A5 in ordinary condition with no rust or seized fasteners; high covers harder engines or corroded front-end hardware. The radiator is accessed via front bumper removal and lock-carrier service position, without replacing the condenser, thermostat or hoses."
+  - scope: generation
+    make: chrysler
+    model: 200
+    year_from: 2015
+    year_to: 2017
+    low: "2.9"
+    typical: "3.8"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common 2.4L I4 FWD automatic with A/C, where the repair procedure requires A/C recovery and recharge because the condenser jumper line is opened. The high estimate covers the harder 3.6L V6 layout and possible rust or seized fasteners."
+  - scope: generation
+    make: chrysler
+    model: aspen
+    year_from: 2007
+    year_to: 2009
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 2008 Chrysler Aspen with the 4.7L V8 and 4WD, using the listed radiator removal/installation sequence and allowing for cooler line transfer if needed. Assumes ordinary condition with no significant rust or seized fasteners;"
+  - scope: generation
+    make: cadillac
+    model: ats
+    year_from: 2013
+    year_to: 2018
+    low: "2.6"
+    typical: "3.55"
+    high: "6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the most common 2.0L turbo ATS; high covers the harder ATS-V LF4 with A/C refrigerant recovery and charge-air cooler/condenser access. No rust or seized fasteners assumed for typical."
+  - scope: generation
+    make: infiniti
+    model: qx60
+    year_from: 2022
+    year_to: 2027
+    low: "4.2"
+    typical: "5.6"
+    high: "7.8"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.5L V6 AWD QX60 with the without-tow-package A/T cooler hose setup; the with-tow-package variant is similar. Included A/C recovery and recharge because the listed procedure removes the condenser."
+  - scope: generation
+    make: land-rover
+    model: discovery
+    year_from: 2017
+    year_to: 2024
+    low: "4.5"
+    typical: "5.8"
+    high: "8.5"
+    confidence: 28
+    inputs: [vehicle, job, procedure]
+    notes: "Worked on the supercharged 3.0L V6 petrol Discovery with the standard cooling pack, where the condenser and fan are unbolted from the radiator and the front bumper and A/C circuit have to be disturbed; times assume no seized fasteners and no extra body or accessory equipment."
+  - scope: generation
+    make: porsche
+    model: panamera
+    year_from: 2010
+    year_to: 2016
+    low: "3.8"
+    typical: "5.2"
+    high: "8"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a common 970 Panamera with the front-mounted main radiator and no A/C condenser replacement; the high estimate allows for V8/turbo models with extra cooling hardware and for seized or corroded fasteners."
+  - scope: generation
+    make: jaguar
+    model: xf
+    year_from: 2016
+    year_to: 2024
+    low: "1.9"
+    typical: "2.8"
+    high: "4.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2016-2024 Jaguar XF X260 with the common 2.0 Ingenium engine, assuming no rust or seized fasteners and standard shop tools. High allows for harder V6 or diesel variants with extra coolers, charge pipes or tighter access."
+  - scope: generation
+    make: toyota
+    model: venza
+    year_from: 2021
+    year_to: 2024
+    low: "4.8"
+    typical: "6.8"
+    high: "9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2021-2024 Toyota Venza hybrid with the 2.5L engine and separate engine/inverter cooling systems, in ordinary condition with no rust or seized fasteners. Front bumper cover removal is included because it is needed to access the radiator shutter and bumper reinforcement."
+  - scope: generation
+    make: toyota
+    model: 86
+    year_from: 2017
+    year_to: 2020
+    low: "2"
+    typical: "2.6"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2019 Toyota 86 with the 2.0L flat-four and automatic transmission, with no A/C refrigerant work and no rust or seized fasteners. The radiator is replaced as an assembly with coolant refill and bleed."
+  - scope: generation
+    make: toyota
+    model: celica
+    year_from: 1994
+    year_to: 1999
+    low: "1.5"
+    typical: "2"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common transverse four-cylinder Celica with an automatic transmission, so transmission cooler lines are included; a manual car would be slightly quicker. The A/C condenser and thermostat are left in place."
+  - scope: generation
+    make: toyota
+    model: pick-up
+    year_from: 1990
+    year_to: 1995
+    low: "0.95"
+    typical: "1.45"
+    high: "2.25"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "Assumed a 22R-E 2.4L I4 with automatic transmission and 4WD; the radiator has a mechanical fan and two transmission cooler lines. Thermostat, hose replacement and A/C condenser work are not included, and high allows for rust or seized fasteners."
+  - scope: generation
+    make: toyota
+    model: tercel
+    year_from: 1990
+    year_to: 1990
+    low: "0.8"
+    typical: "1.25"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 1990 Toyota Tercel with the common 1.5L transverse four-cylinder and front-wheel drive, assuming an electric cooling fan and no major A/C condenser removal. Rust, seized fasteners, or hose clamps in poor condition are covered by the high figure."
+  - scope: generation
+    make: ford
+    model: bronco
+    year_from: 2021
+    year_to: 2027
+    low: "1.5"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2023 Bronco Badlands 2.3L automatic; assumes ordinary condition, no added cooling/off-road accessories, and that the A/C condenser is not discharged. Includes drain, fan/shroud removal, radiator R&I, vacuum fill/bleed, and leak check;"
+  - scope: generation
+    make: ford
+    model: mustang
+    year_from: 2015
+    year_to: 2023
+    low: "1.4"
+    typical: "2.1"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a common 2015-2023 S550 Mustang 5.0L V8 with automatic transmission/trans cooler in ordinary condition. I assumed the front bumper does not need removal and the A/C system is not opened or replaced."
+  - scope: generation
+    make: chevrolet
+    model: suburban
+    year_from: 1992
+    year_to: 1999
+    low: "1.3"
+    typical: "1.9"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a typical 5.7L V8 automatic Suburban with A/C and transmission cooler lines, using the original-style radiator and no seized fasteners. The high figure covers rusted cooler fittings and the harder diesel or 7.4L engine layouts."
+  - scope: generation
+    make: honda
+    model: hr-v
+    year_from: 2023
+    year_to: 2027
+    low: "1.8"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Typical 2.0L gasoline engine with FWD or AWD; radiator has integrated CVT cooler lines. No rust or seized fasteners; includes coolant drain/refill and bleed, but not A/C condenser replacement."
+  - scope: generation
+    make: nissan
+    model: versa-note
+    year_from: 2014
+    year_to: 2019
+    low: "1.3"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 1.6L HR16DE FWD Versa Note with CVT cooler hoses, cold engine, no A/C condenser replacement and no rust or seized fasteners. High allows for corroded clamps, stubborn hoses and fasteners."
+  - scope: generation
+    make: hyundai
+    model: sonata
+    year_from: 2020
+    year_to: 2027
+    low: "3.3"
+    typical: "4.5"
+    high: "6.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2.5L gasoline Sonata SE in ordinary condition, with the A/C system not opened and the specified ITM coolant fill/bleed procedure. High allows for seized fasteners, damaged trim clips and extra engine-bay clutter on other trims."
+  - scope: generation
+    make: hyundai
+    model: veloster
+    year_from: 2012
+    year_to: 2017
+    low: "2.3"
+    typical: "3.1"
+    high: "4.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 1.6L GDI engine with automatic DCT and front-wheel drive, in ordinary condition. Per the procedure the front bumper must come off to separate the condenser and pull the radiator, which is the bulk of the labour alongside bleeding the cooling system."
+  - scope: generation
+    make: kia
+    model: seltos
+    year_from: 2021
+    year_to: 2027
+    low: "1.8"
+    typical: "2.5"
+    high: "3.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for the common 2.0L automatic/CVT Seltos, assuming no rust, no added equipment, and the front bumper removal included in the procedure; A/C refrigerant is not opened, only the condenser is separated."
+  - scope: generation
+    make: kia
+    model: niro
+    year_from: 2017
+    year_to: 2022
+    low: "1.6"
+    typical: "2.3"
+    high: "3.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2017-2022 Kia Niro 1.6 GDI hybrid with the engine radiator being replaced, not the A/C condenser. Times are for a lift-equipped shop with standard tools and no rust or seized fasteners; high allows for corrosion and difficult hose/pipe access."
+  - scope: generation
+    make: kia
+    model: optima
+    year_from: 2016
+    year_to: 2020
+    low: "2.3"
+    typical: "3.25"
+    high: "4.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.4L non-hybrid Optima in ordinary condition with no rust or seized fasteners; the estimate covers draining/refilling coolant and bleeding the system, with high allowing for rust and a harder engine bay."
+  - scope: generation
+    make: kia
+    model: optima
+    year_from: 2006
+    year_to: 2010
+    low: "1.5"
+    typical: "2.1"
+    high: "3.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 2006-2010 Kia Optima with the most common 2.4L four-cylinder and automatic transmission, with an integrated radiator transmission cooler. High allows for the V6 engine, rust and seized fasteners; the A/C condenser is not replaced but may need to be moved aside."
+  - scope: generation
+    make: kia
+    model: sedona
+    year_from: 2006
+    year_to: 2014
+    low: "1.6"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common 3.8L V6 front-wheel-drive Sedona in ordinary condition, with the condenser separated and supported as needed. The estimate includes coolant drain/refill and bleed but not thermostat or hose replacement."
+  - scope: generation
+    make: jeep
+    model: liberty
+    year_from: 2008
+    year_to: 2012
+    low: "2.2"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2010 Jeep Liberty KK with the common 3.7L V6 gasoline engine and automatic transmission; the job is a straightforward radiator replacement including coolant drain/refill and bleed, without thermostat, hose, or A/C condenser replacement."
+  - scope: generation
+    make: gmc
+    model: yukon
+    year_from: 2021
+    year_to: 2027
+    low: "2.4"
+    typical: "3.3"
+    high: "6.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2021-2027 GMC Yukon T1XX, assuming the common 5.3L V8 4WD for the typical time; the high figure covers the harder 3.0L diesel LM2/LZ0 where the charge-air cooler, condenser, fan and radiator are handled as an assembly. Ordinary condition with no rust or seized fasteners."
+  - scope: generation
+    make: subaru
+    model: legacy
+    year_from: 2000
+    year_to: 2004
+    low: "1.35"
+    typical: "1.9"
+    high: "2.55"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a common 2.5L non-turbo automatic AWD Legacy with ATF cooler hoses and no rust or seized fasteners. A manual-transmission car would be slightly quicker, while rusted or seized fittings could push the job toward the high estimate."
+  - scope: generation
+    make: subaru
+    model: impreza
+    year_from: 1993
+    year_to: 2001
+    low: "1.2"
+    typical: "1.7"
+    high: "2.6"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "I assumed a 2.0L engine with automatic transmission (so cooler lines are included) and that the A/C condenser can be unbolted and moved aside without discharging the system. Typical time is for a vehicle without rust or seized fasteners, using standard hand tools."
+  - scope: generation
+    make: volkswagen
+    model: beetle
+    year_from: 2012
+    year_to: 2019
+    low: "2.8"
+    typical: "4"
+    high: "5.5"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a common 1.8T or 2.5L front-wheel-drive Beetle with automatic transmission and A/C; the condenser is moved aside without discharging refrigerant. High time allows for rust, seized fasteners, and the harder 2.0 TDI engine layout."
+  - scope: generation
+    make: bmw
+    model: x6
+    year_from: 2020
+    year_to: 2027
+    low: "2"
+    typical: "2.9"
+    high: "4.3"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Estimated for a G06 BMW X6, with typical time based on the common xDrive40i 3.0 turbo six and high allowing for the tighter V8/M models, seized fasteners and extra bleeding time. Assumes ordinary condition with no rust or added equipment."
+  - scope: generation
+    make: bmw
+    model: x3
+    year_from: 2018
+    year_to: 2024
+    low: "2.8"
+    typical: "3.9"
+    high: "5.4"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed the most common B48 2.0L xDrive30i model, with the A/C condenser left connected and supported aside. High allows for the B58/PHEV variants, extra coolers, and stubborn fasteners or brittle plastic clips."
+  - scope: generation
+    make: bmw
+    model: m550i
+    year_from: 2018
+    year_to: 2023
+    low: "2.9"
+    typical: "3.95"
+    high: "5.9"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "AI estimate for a G30 M550i with the common 4.4L V8 and xDrive, replacing the main engine radiator only; the A/C condenser and auxiliary radiators are not replaced. Assumes no rust or seized fasteners and normal bleed procedure."
+  - scope: generation
+    make: bmw
+    model: 330i
+    year_from: 2017
+    year_to: 2018
+    low: "2.3"
+    typical: "3.2"
+    high: "4.7"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "AI estimate for a 2017-2018 BMW 330i F30 with the common B48 2.0L turbo four-cylinder, generally RWD and in ordinary condition. Assumes the A/C system is not discharged and the condenser is only moved aside if needed."
+  - scope: generation
+    make: bmw
+    model: 535d
+    year_from: 2014
+    year_to: 2016
+    low: "2.8"
+    typical: "4"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 535d F10 with the common N57 3.0 diesel, automatic transmission and RWD; xDrive or extra auxiliary coolers may add time. The job is a complete radiator replacement with coolant drain, refill and bleed."
+  - scope: generation
+    make: bmw
+    model: m6
+    year_from: 2012
+    year_to: 2017
+    low: "3.3"
+    typical: "4.5"
+    high: "6.3"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed an F12/F13 M6 with the S63TU 4.4L twin-turbo V8 and RWD in ordinary condition. The estimate covers radiator removal and replacement with coolant drain/refill and bleed, without thermostat, hose replacement, or A/C condenser work."
+  - scope: generation
+    make: bmw
+    model: 550i
+    year_from: 2011
+    year_to: 2016
+    low: "2.6"
+    typical: "3.8"
+    high: "5.3"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "AI estimate for the common N63/N63TU 550i with automatic transmission; assumed RWD and xDrive layouts are similar for radiator access, with no thermostat, hose, or A/C condenser replacement included."
+  - scope: generation
+    make: bmw
+    model: 750i
+    year_from: 2006
+    year_to: 2008
+    low: "2.5"
+    typical: "3.4"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the common N62 4.8L V8 with automatic transmission and electric cooling fan; radiator can be removed from the top after fan/shroud removal without bumper or condenser removal. No rust or seized fasteners."
+  - scope: generation
+    make: bmw
+    model: 525i
+    year_from: 2004
+    year_to: 2007
+    low: "2"
+    typical: "3.05"
+    high: "4.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a common 525i E60 with an inline-six and automatic transmission with radiator cooler lines; high covers engine variation, seized fasteners, and difficult cooler line fittings. No thermostat, hose, or A/C condenser replacement is included."
+  - scope: generation
+    make: bmw
+    model: z4
+    year_from: 2003
+    year_to: 2008
+    low: "2"
+    typical: "2.9"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common M54/N52 inline-six rear-wheel-drive Z4 with electric fan and no rust; automatic cooler lines or N52 intake/cover differences may add time. Estimate is for radiator replacement only, not thermostat, hoses, or A/C condenser."
+  - scope: generation
+    make: bmw
+    model: 530i
+    year_from: 2001
+    year_to: 2003
+    low: "1.4"
+    typical: "2"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 530i with the M54 inline-six, rear-wheel drive and automatic transmission, so the radiator has transmission cooler lines and a mechanical fan. Manual-transmission cars lack cooler lines and may be slightly quicker."
+  - scope: generation
+    make: bmw
+    model: 525i
+    year_from: 1990
+    year_to: 1995
+    low: "1.15"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a later 525i with the M50B25 inline-six, rear-wheel drive, and automatic transmission, so transmission cooler lines are included. High allows for the earlier M20 engine, corroded fittings, or stubborn bleeding."
+  - scope: generation
+    make: mercedes-benz
+    model: c-class
+    year_from: 2015
+    year_to: 2021
+    low: "2.1"
+    typical: "2.9"
+    high: "4.5"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed a common W205 C-Class with the 2.0L turbo four-cylinder in ordinary condition; high covers harder engines such as V6/V8 and rust or seized fasteners."
+  - scope: generation
+    make: mazda
+    model: cx-50
+    year_from: 2023
+    year_to: 2027
+    low: "2.3"
+    typical: "3"
+    high: "4.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.5L non-turbo petrol engine with automatic transmission and no hybrid-specific extra cooling circuits; the high figure allows for turbo/hybrid plumbing, rust or seized fasteners. Thermostat, hose and A/C condenser replacement are not included."
+  - scope: generation
+    make: mazda
+    model: mazda6
+    year_from: 2003
+    year_to: 2008
+    low: "1.1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed the most common 2.3L four-cylinder front-wheel-drive Mazda6 with an automatic transmission and intact cooling system; the V6 or AWD variants may take longer. No rust, seized fasteners or added equipment was assumed."
+  - scope: generation
+    make: dodge
+    model: challenger
+    year_from: 2008
+    year_to: 2023
+    low: "2.4"
+    typical: "3.2"
+    high: "5.5"
+    confidence: 36
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.6L V6 Challenger, automatic RWD, in ordinary condition; high covers the harder 6.2L Hellcat layout plus rust/seized fasteners. The job is radiator replacement only, not thermostat, hose replacement, or A/C condenser replacement."
+  - scope: generation
+    make: lexus
+    model: es
+    year_from: 2013
+    year_to: 2018
+    low: "1.8"
+    typical: "2.4"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate: typical is for the most common ES350 V6; high allows for the harder ES300h hybrid layout and rust/seized fasteners. The A/C condenser stays in place and is only shifted for clearance if needed."
+  - scope: generation
+    make: tesla
+    model: model-x
+    year_from: 2016
+    year_to: 2026
+    low: "2.4"
+    typical: "3.2"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a Tesla Model X with standard cooling system, no added equipment, and that radiator access requires front bumper removal. Technician has vacuum coolant refill tool. No rust or seized fasteners in typical case."
+  - scope: generation
+    make: audi
+    model: s4
+    year_from: 2006
+    year_to: 2008
+    low: "2.4"
+    typical: "3"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2007 Audi S4 B7 with the 4.2L V8 BHF engine, automatic Quattro, in ordinary condition with no rust or seized fasteners. Assumed front bumper removal is required and the A/C condenser is swiveled aside without opening the refrigerant circuit."
+  - scope: generation
+    make: audi
+    model: s4
+    year_from: 2004
+    year_to: 2005
+    low: "2.8"
+    typical: "3.8"
+    high: "5.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a B6 Audi S4 Avant Quattro with the 4.2L BHF V8 and automatic transmission, no auxiliary heater, and no rust or seized fasteners. The A/C circuit is not opened; the condenser is only swiveled aside."
+  - scope: generation
+    make: audi
+    model: a8
+    year_from: 2004
+    year_to: 2010
+    low: "2.75"
+    typical: "3.75"
+    high: "5.25"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4.2 V8 Quattro A8 D3 in ordinary condition with no A/C circuit opening, using standard shop tools. This is an AI estimate; high allows for rusted or seized front-end fasteners and optional distance-regulation wiring."
+  - scope: generation
+    make: audi
+    model: s8
+    year_from: 2001
+    year_to: 2003
+    low: "2.8"
+    typical: "3.8"
+    high: "5.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed a 2001-2003 Audi S8 D2 with the 4.2 V8 and automatic quattro drivetrain, including a radiator with integrated transmission cooler and no rust or seized fasteners. The A/C system is not opened and the condenser is only moved aside if needed."
+  - scope: generation
+    make: audi
+    model: a6
+    year_from: 1995
+    year_to: 1997
+    low: "1.6"
+    typical: "2.3"
+    high: "3.5"
+    confidence: 37
+    inputs: [vehicle, job]
+    notes: "Assumed a common C4 A6 with the 2.8 V6 petrol engine, automatic transmission and A/C, in ordinary condition with no rust or seized fasteners. The estimate does not put the front lock carrier into service position;"
+  - scope: generation
+    make: chrysler
+    model: lebaron
+    year_from: 1990
+    year_to: 1995
+    low: "2"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed the common 2.5L four-cylinder with automatic transmission and factory radiator/fan setup; the high estimate covers V6 or turbo plumbing and rusted/seized fasteners. The A/C condenser is left in place and thermostat/hoses are not replaced."
+  - scope: generation
+    make: acura
+    model: mdx
+    year_from: 2022
+    year_to: 2027
+    low: "2.3"
+    typical: "3.4"
+    high: "5.2"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "AI estimate for the common 3.5L V6 MDX, assuming the radiator can be removed from above after fan shroud removal without opening the A/C system or removing the bumper. High covers the Type S 3.0L turbo/tighter packaging and possible seized fasteners."
+  - scope: generation
+    make: volvo
+    model: xc60
+    year_from: 2018
+    year_to: 2027
+    low: "3.6"
+    typical: "4.6"
+    high: "6.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common B4204T non-hybrid XC60 and that the A/C condenser can be moved aside without opening the refrigerant circuit; high accounts for T8/other variants requiring refrigerant recovery and for rusted or seized fasteners."
+  - scope: generation
+    make: volvo
+    model: xc90
+    year_from: 2016
+    year_to: 2027
+    low: "2.4"
+    typical: "3.3"
+    high: "4.8"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumes a transverse 2.0L T5/T6 XC90 with the condenser left in place and no bumper removal; the T8 hybrid's extra coolant circuits and components could push the job toward the high estimate."
+  - scope: generation
+    make: volvo
+    model: xc70
+    year_from: 2008
+    year_to: 2016
+    low: "1.8"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 36
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2012 XC70 3.2L AWD in ordinary condition, assuming front bumper cover and headlight removal are needed as shown in the procedure. High allows for rust, seized fasteners, and extra charge-air pipe work if fitted."
+  - scope: generation
+    make: mitsubishi
+    model: mirage
+    year_from: 2014
+    year_to: 2024
+    low: "1.4"
+    typical: "2"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a common 1.2L FWD Mirage, likely CVT with radiator cooler lines, in ordinary condition with no rust or seized fasteners. The condenser and thermostat are left undisturbed."
+  - scope: generation
+    make: infiniti
+    model: q60
+    year_from: 2017
+    year_to: 2022
+    low: "3.6"
+    typical: "4.8"
+    high: "6.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2020 Q60 3.0t V6 AWD and followed the procedure including A/C refrigerant recovery/recharge because the condenser pipe must be disconnected and the condenser moved."
+  - scope: generation
+    make: lincoln
+    model: navigator
+    year_from: 2018
+    year_to: 2027
+    low: "2.6"
+    typical: "3.5"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2022 Navigator with the 3.5L EcoBoost and 4WD, in ordinary condition with no rust or seized fasteners, and that the A/C system is not opened; the condenser is only moved aside. The estimate includes draining, vacuum filling/bleeding, and a leak check."
+  - scope: generation
+    make: lincoln
+    model: mkx
+    year_from: 2016
+    year_to: 2018
+    low: "2.7"
+    typical: "3.6"
+    high: "5.1"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.7L EcoBoost AWD MKX with the cooling module removed for access and the A/C system left closed, with the condenser/CAC moved aside. Times include front fascia access and vacuum bleeding but exclude thermostat, hose, or condenser replacement."
+  - scope: generation
+    make: lincoln
+    model: mkz
+    year_from: 2013
+    year_to: 2020
+    low: "3.6"
+    typical: "4.6"
+    high: "6.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2017 Lincoln MKZ 2.0L EcoBoost AWD non-hybrid with radiator replacement including active grille shutter/front bumper access, fan shroud removal, condenser and transmission cooler repositioning, and coolant bleed. Assumes ordinary condition;"
+  - scope: generation
+    make: genesis
+    model: gv70
+    year_from: 2022
+    year_to: 2027
+    low: "2"
+    typical: "2.95"
+    high: "4.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the most common 2.5T engine with the water-cooled intercooler circuit included; high allows for the harder 3.5T packaging and rust/seized fasteners. Assumes no A/C condenser or thermostat work and ordinary vehicle condition."
+  - scope: generation
+    make: pontiac
+    model: vibe
+    year_from: 2009
+    year_to: 2010
+    low: "2.2"
+    typical: "2.8"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2010 Pontiac Vibe 2.4L AWD in ordinary condition, including front bumper removal and oil cooler line work. Assumes no rusted or seized fasteners and that the cooling system is refilled and bled per normal shop practice."
+  - scope: generation
+    make: toyota
+    model: prius
+    year_from: 2016
+    year_to: 2022
+    low: "3"
+    typical: "4"
+    high: "5.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2019 Prius L Eco 1.8L hybrid FWD in ordinary condition, with both engine and inverter cooling circuits drained/refilled. The condenser is separated but not replaced."
+  - scope: generation
+    make: toyota
+    model: yaris
+    year_from: 2012
+    year_to: 2019
+    low: "1.4"
+    typical: "2.1"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 1.5L automatic hatchback with A/T cooler lines, no rust or seized fasteners, and the headlight/upper-support access shown. High covers stuck fasteners and extra coolant bleeding time."
+  - scope: generation
+    make: toyota
+    model: sequoia
+    year_from: 2008
+    year_to: 2022
+    low: "2.8"
+    typical: "3.8"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2015 Toyota Sequoia SR5 with the 5.7L V8 in ordinary condition, with no added coolers or modifications and the standard cooling system. The estimate includes front bumper cover and fan shroud removal as required by the procedure."
+  - scope: generation
+    make: toyota
+    model: prius
+    year_from: 2004
+    year_to: 2009
+    low: "2.3"
+    typical: "3.1"
+    high: "4.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2004-2009 Prius 1NZ-FXE with the engine radiator being replaced, not the inverter radiator; the A/C condenser and thermostat/hoses are left in place. Times assume ordinary condition; high allows for corroded or seized fasteners."
+  - scope: generation
+    make: toyota
+    model: prius
+    year_from: 2001
+    year_to: 2003
+    low: "1.5"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "AI estimate. Assumed the engine radiator on a 1.5L hybrid with automatic transaxle; the separate inverter cooling circuit is not opened and no A/C condenser work is needed. Estimate covers undercover, fan/shroud, hoses, refill/bleed and leak check."
+  - scope: generation
+    make: toyota
+    model: land-cruiser
+    year_from: 1990
+    year_to: 1990
+    low: "1.4"
+    typical: "2.1"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common 4.0L 3F petrol inline-six J60 four-wheel-drive with automatic transmission and radiator-mounted cooler lines; a manual gearbox would be slightly quicker. High allows for diesel/turbo variants, rust, and seized fasteners."
+  - scope: generation
+    make: ford
+    model: mustang
+    year_from: 2024
+    year_to: 2027
+    low: "2"
+    typical: "3.1"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a typical 2024-2027 Mustang with the most common engine and RWD, using standard shop tools. The estimate covers radiator replacement only, with no thermostat, hose, or A/C condenser replacement."
+  - scope: generation
+    make: ford
+    model: maverick
+    year_from: 2022
+    year_to: 2027
+    low: "4"
+    typical: "5.05"
+    high: "6.8"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L EcoBoost Maverick with AWD and transmission cooler/CAC, with the A/C system opened, recovered and recharged; the radiator is removed from below with the condenser/cooler/CAC attached. Excludes thermostat, hose or condenser replacement."
+  - scope: generation
+    make: ford
+    model: bronco-sport
+    year_from: 2021
+    year_to: 2027
+    low: "4"
+    typical: "5.2"
+    high: "6.6"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical 1.5L EcoBoost AWD Bronco Sport, with the radiator removed from below together with the condenser/CAC/transmission cooler as shown in the 2.0L procedure, so A/C lines are opened and recharged. The 2.0L Badlands variant is covered by the high estimate."
+  - scope: generation
+    make: ford
+    model: expedition
+    year_from: 2018
+    year_to: 2027
+    low: "2"
+    typical: "2.5"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "The vehicle is a 2018-2027 Ford Expedition with the 3.5L EcoBoost V6 and 4WD, in ordinary condition without rust or seized fasteners. The job is replacing the radiator only, not including thermostat, hoses, or A/C condenser replacement."
+  - scope: generation
+    make: chevrolet
+    model: corvette
+    year_from: 2020
+    year_to: 2027
+    low: "2.6"
+    typical: "3.8"
+    high: "5.2"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a C8 Stingray with the common LT2 V8 and replacement of the left-side radiator only, including coolant drain/refill and bleeding. Other C8 variants or additional radiators could require more time."
+  - scope: generation
+    make: chevrolet
+    model: volt
+    year_from: 2016
+    year_to: 2019
+    low: "2"
+    typical: "2.8"
+    high: "4.2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2016-2019 Chevrolet Volt with the range-extender engine and battery coolant loop, no A/C condenser work, and no rust or seized fasteners. The estimate covers draining/refilling coolant, removing and reinstalling the radiator with fan shroud, hoses, cooler lines, battery coolant pump…"
+  - scope: generation
+    make: chevrolet
+    model: tahoe
+    year_from: 2015
+    year_to: 2020
+    low: "2.8"
+    typical: "3.6"
+    high: "5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 2015-2020 Tahoe with the common 5.3L V8, 4WD, automatic transmission, and factory engine/transmission coolers. The estimate includes A/C refrigerant recovery and recharge because the procedure disconnects the condenser lines, and assumes no rust or seized fasteners."
+  - scope: generation
+    make: chevrolet
+    model: suburban
+    year_from: 2015
+    year_to: 2020
+    low: "2.8"
+    typical: "3.75"
+    high: "4.8"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4WD Suburban with the L96/6.0L engine and automatic transmission, with the A/C lines opened because the procedure lists them; if the condenser can be set aside without opening the A/C system, subtract the recover/recharge time."
+  - scope: generation
+    make: chevrolet
+    model: malibu
+    year_from: 2013
+    year_to: 2015
+    low: "2.2"
+    typical: "3.05"
+    high: "4.3"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.5L non-turbo Malibu and that the A/C condenser can be unbolted and supported aside without opening the refrigerant circuit; high covers the harder 2.0L turbo LTG with charge-air cooler and possible rust/seized fasteners."
+  - scope: generation
+    make: chevrolet
+    model: volt
+    year_from: 2011
+    year_to: 2015
+    low: "2.5"
+    typical: "4.3"
+    high: "6"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2013 Volt with the 1.4L range-extender engine and its hybrid cooling circuits, ordinary condition, no seized fasteners; estimate covers front-end access and bleeding of both engine and battery coolant loops as needed."
+  - scope: generation
+    make: nissan
+    model: kicks
+    year_from: 2018
+    year_to: 2024
+    low: "1.7"
+    typical: "2.5"
+    high: "4"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common 1.6L gasoline FWD Nissan Kicks in ordinary condition with no added equipment; radiator is separated from the condenser rather than removing the A/C system."
+  - scope: generation
+    make: nissan
+    model: leaf
+    year_from: 2018
+    year_to: 2025
+    low: "2.1"
+    typical: "2.7"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a ZE1 Leaf with the common electric drivetrain and standard cooling system; the typical figure is for a no-heat-pump S trim, and the high figure allows for heat-pump condenser fasteners and rust/seized hardware."
+  - scope: generation
+    make: nissan
+    model: maxima
+    year_from: 2016
+    year_to: 2023
+    low: "1.8"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Vehicle is a 2020 Nissan Maxima S with 3.5L V6 FWD. Radiator replacement includes removing front bumper fascia and unbolting A/C condenser to move aside without disconnecting refrigerant lines. No rust or seized fasteners. Cooling system refilled and bled."
+  - scope: generation
+    make: hyundai
+    model: kona
+    year_from: 2024
+    year_to: 2027
+    low: "2.7"
+    typical: "3.6"
+    high: "4.8"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the 2.0L gasoline Kona SX2; FWD versus AWD is assumed not to materially change radiator access. The estimate includes front bumper beam removal/refit, coolant fill/bleed, and leak check, but not thermostat, hose, or A/C condenser replacement."
+  - scope: generation
+    make: hyundai
+    model: ioniq-5
+    year_from: 2022
+    year_to: 2027
+    low: "2.6"
+    typical: "3.65"
+    high: "5.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed this is the EV-only IONIQ 5 and that the motor radiator is being replaced after separating it from the high-voltage battery radiator, requiring both coolant loops to be drained, refilled and bled. No A/C condenser or thermostat work is included."
+  - scope: generation
+    make: hyundai
+    model: ioniq
+    year_from: 2017
+    year_to: 2022
+    low: "2.2"
+    typical: "3.3"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the Ioniq Electric variant and its EV motor/high-voltage cooling radiator as shown, with front bumper and cooling fan removal and scan-tool bleeding. High allows for rust, seized fasteners and difficult coolant bleeding; the A/C condenser is separated but not opened or replaced."
+  - scope: generation
+    make: kia
+    model: stinger
+    year_from: 2018
+    year_to: 2023
+    low: "2.4"
+    typical: "3.2"
+    high: "4.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2021 Kia Stinger GT1 3.3L AWD with ordinary condition and no seized fasteners; it includes front bumper removal and supporting the A/C condenser without opening the refrigerant circuit. It does not include thermostat, hose or condenser replacement."
+  - scope: generation
+    make: gmc
+    model: acadia
+    year_from: 2017
+    year_to: 2023
+    low: "2"
+    typical: "2.8"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "We assumed a 2020 GMC Acadia SLE with the 3.6L V6 (LCV) and 4WD in ordinary condition, with an integrated transmission cooler and an A/C condenser that must be unbolted but not disconnected. Typical time assumes no rust or seized fasteners; high allows for rust and seized fasteners."
+  - scope: generation
+    make: bmw
+    model: m3
+    year_from: 2021
+    year_to: 2027
+    low: "4"
+    typical: "5.4"
+    high: "7.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a G80 M3 with the S58 3.0L inline-six and replacement of the main radiator only, without A/C condenser or thermostat replacement. Access may require moving front cooling-module components aside but not opening the A/C circuit."
+  - scope: generation
+    make: bmw
+    model: x7
+    year_from: 2019
+    year_to: 2027
+    low: "2.8"
+    typical: "3.9"
+    high: "5.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the most common X7 xDrive40i with the B58 3.0L gasoline engine and automatic transmission; the A/C condenser stays connected and only the main radiator is replaced. High allows for the more crowded V8 cooling module and for rust or seized fasteners."
+  - scope: generation
+    make: bmw
+    model: x4
+    year_from: 2019
+    year_to: 2025
+    low: "2.2"
+    typical: "2.8"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Estimated for the most common G02 X4 xDrive30i with B46 2.0L turbo four; high allows for the B58 M40i with additional coolers and seized fasteners. Assumes radiator is removed from the engine bay after moving the condenser aside, without opening the A/C circuit."
+  - scope: generation
+    make: bmw
+    model: 530i
+    year_from: 2017
+    year_to: 2027
+    low: "2"
+    typical: "2.75"
+    high: "4"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "AI estimate for a G30 530i with the B48 2.0L turbo four-cylinder, RWD or xDrive, automatic, in ordinary condition with no rust or seized fasteners. Assumes the radiator is accessed from the top after removing the fan/shroud and hoses, without bumper or A/C condenser removal."
+  - scope: generation
+    make: bmw
+    model: 650i
+    year_from: 2012
+    year_to: 2019
+    low: "2.6"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 650i with the common N63 twin-turbo V8 and automatic transmission, with no A/C condenser work and no rust or seized fasteners. The estimate is for the main radiator only; auxiliary radiators and hoses are not replaced."
+  - scope: generation
+    make: bmw
+    model: 335is
+    year_from: 2011
+    year_to: 2013
+    low: "1.9"
+    typical: "2.75"
+    high: "4"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 335is with the N54 twin-turbo inline-6 and RWD, likely DCT/automatic with transmission cooler lines; if manual, the cooler-line steps are shorter. Work done with standard hand tools, no rust or seized fasteners, and no A/C condenser removal."
+  - scope: generation
+    make: bmw
+    model: 740li
+    year_from: 2011
+    year_to: 2015
+    low: "2.6"
+    typical: "3.8"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2013 BMW 740Li with the N55 inline-six and rear-wheel drive in ordinary condition; the radiator is removed from above after fan cowl removal, then coolant is refilled and bled. No thermostat, hose, or A/C condenser replacement is included."
+  - scope: generation
+    make: bmw
+    model: z4
+    year_from: 2009
+    year_to: 2016
+    low: "2.2"
+    typical: "3.3"
+    high: "4.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "2013 BMW Z4 28i with N20 turbocharged engine and automatic transmission, engine cold, no rust or seized fasteners. Job includes disconnecting transmission cooler lines and removing the charge air cooler; excludes thermostat, hose, and A/C condenser replacement."
+  - scope: generation
+    make: bmw
+    model: 528i
+    year_from: 2008
+    year_to: 2010
+    low: "2.75"
+    typical: "3.75"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 2008-2010 BMW 528i E60 with the N52 3.0L inline-6, automatic transmission, and rear-wheel drive. The job involves draining and refilling coolant, removing the electric fan and shroud, disconnecting hoses and transmission cooler lines, and bleeding the cooling system;"
+  - scope: generation
+    make: bmw
+    model: 128i
+    year_from: 2008
+    year_to: 2013
+    low: "2.6"
+    typical: "3.7"
+    high: "5.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 128i with the N52 inline-six and automatic transmission, so radiator has integrated transmission cooler lines; manual transmission would take slightly less time. Assumed no rust or seized fasteners and standard shop tools with a lift."
+  - scope: generation
+    make: bmw
+    model: 135i
+    year_from: 2008
+    year_to: 2013
+    low: "2"
+    typical: "2.8"
+    high: "4.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "I assumed a typical N54/N55 turbocharged 135i with automatic transmission and cooler lines, in ordinary condition with no rust or seized fasteners. The job is only radiator replacement with coolant refill/bleed, not thermostat, hose, or A/C condenser replacement."
+  - scope: generation
+    make: bmw
+    model: 535xi
+    year_from: 2008
+    year_to: 2008
+    low: "2.6"
+    typical: "3.8"
+    high: "5.3"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 2008 535xi with the common N54 3.0L turbo inline-six, automatic transmission, and factory cooling fan/shroud and undertrays. Typical time assumes ordinary condition; high allows for corroded fasteners and stubborn cooler/hose fittings."
+  - scope: generation
+    make: bmw
+    model: 525xi
+    year_from: 2006
+    year_to: 2007
+    low: "2"
+    typical: "2.85"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed an E60 525xi with the N52 inline-six, automatic transmission and an integrated radiator transmission cooler; AWD does not require major subframe removal for this job. Coolant bleeding was assumed to use the BMW electric water pump procedure."
+  - scope: generation
+    make: bmw
+    model: 760li
+    year_from: 2003
+    year_to: 2008
+    low: "2.6"
+    typical: "3.4"
+    high: "4.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for a 2006 BMW 760Li E65 with the 6.0L V12 and automatic transmission, in rust-free ordinary condition with the factory cooling system. No thermostat, hose replacement or A/C condenser work is included."
+  - scope: generation
+    make: bmw
+    model: m5
+    year_from: 2000
+    year_to: 2003
+    low: "1.4"
+    typical: "2.25"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a stock E39 M5 with the S62 V8, manual gearbox and original cooling layout, with no seized fasteners. The high estimate allows for corroded hose connections and awkward oil-cooler or auxiliary-fan hardware."
+  - scope: generation
+    make: bmw
+    model: 328ci
+    year_from: 1999
+    year_to: 2000
+    low: "1.6"
+    typical: "2.35"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 1999-2000 E46 328Ci with the M52TU inline-six and automatic transmission with radiator-mounted cooler lines, in ordinary condition. The high estimate allows for rust, seized fasteners and extra bleeding time."
+  - scope: generation
+    make: bmw
+    model: 328is
+    year_from: 1996
+    year_to: 1999
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "1996-1999 E36 328iS with the M52 inline-six and rear-wheel drive; typical time assumes a manual-transmission car, with automatic cooler lines and rust/seized fasteners covered by the high estimate."
+  - scope: generation
+    make: bmw
+    model: 535i
+    year_from: 1991
+    year_to: 1993
+    low: "1.2"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "AI estimate for an E34 535i with the M30 inline-six, assuming an automatic with cooler lines and no rust or seized fasteners. Manual-transmission cars omit the cooler-line work; the high figure allows for corrosion and difficult fan/clutch removal."
+  - scope: generation
+    make: bmw
+    model: 735i
+    year_from: 1990
+    year_to: 1992
+    low: "1.4"
+    typical: "2"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed an E32 735i with the common M30B35 inline-six and automatic transmission, factory cooling system, and no rust or seized fasteners. This is an AI estimate for a professional technician using a lift and standard shop tools."
+  - scope: generation
+    make: mercedes-benz
+    model: m-class
+    year_from: 2006
+    year_to: 2011
+    low: "2"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed a common gasoline V6 W164 M-Class with 4MATIC, where the radiator can be removed from above after taking off the fan and shroud without removing the front bumper. The high estimate covers V8 or diesel engines with extra intake/intercooler plumbing."
+  - scope: generation
+    make: mercedes-benz
+    model: e-class
+    year_from: 2003
+    year_to: 2009
+    low: "2.2"
+    typical: "3.1"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common W211 V6 automatic (E320/E350) in ordinary condition with no rust or seized fasteners; high covers harder V8/diesel layouts and rusted hardware. The A/C condenser is only unbolted and supported, not replaced or discharged."
+  - scope: generation
+    make: mercedes-benz
+    model: 560
+    year_from: 1990
+    year_to: 1991
+    low: "2.4"
+    typical: "3.4"
+    high: "4.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 1990-1991 W126 560 with the 5.6L V8 and automatic transmission in ordinary condition, with no rust or seized fasteners and no A/C condenser or thermostat work."
+  - scope: generation
+    make: mazda
+    model: mazda3
+    year_from: 2019
+    year_to: 2027
+    low: "1.8"
+    typical: "2.5"
+    high: "4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common 2.0/2.5 SkyActiv-G FWD automatic Mazda3 with the original A/C condenser left in place and no rust or seized fasteners. High covers harder engine/drivetrain variants, cooler-line corrosion and difficult bleeding."
+  - scope: generation
+    make: mazda
+    model: mazda3
+    year_from: 2010
+    year_to: 2013
+    low: "1.5"
+    typical: "2.3"
+    high: "3.2"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed a common 2.0L/2.5L gasoline FWD Mazda3 with automatic transmission and no A/C condenser removal; this is an AI estimate for an ordinary, rust-free car."
+  - scope: generation
+    make: mazda
+    model: mx-5
+    year_from: 1990
+    year_to: 1997
+    low: "1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 48
+    inputs: [vehicle, job]
+    notes: "Assumed a manual-transmission NA MX-5 with the common 1.6/1.8 engine and base cooling-fan setup, with no A/C condenser work. High allows for an automatic's cooler lines, an A/C fan, and rusted fasteners; these are AI-estimated labour hours, not a published book time."
+  - scope: generation
+    make: dodge
+    model: stealth
+    year_from: 1991
+    year_to: 1996
+    low: "1.5"
+    typical: "2.2"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 3.0L V6 non-turbo model, likely automatic with transmission cooler lines, in ordinary condition; high allows for twin-turbo/AWD extra plumbing and rust or seized fasteners."
+  - scope: generation
+    make: lexus
+    model: gs
+    year_from: 2013
+    year_to: 2020
+    low: "1.3"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the most common GS350 with 3.5L V6 and RWD; high allows for the tighter GS F V8 or hybrid variant and for rust/seized fasteners."
+  - scope: generation
+    make: lexus
+    model: gx
+    year_from: 2010
+    year_to: 2023
+    low: "2.2"
+    typical: "3"
+    high: "4.5"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed a GX 460 with the common 4.6L V8, automatic transmission and 4WD; the radiator replacement job exists on this vehicle. Other engine variants should be similar, with the high figure allowing for rust and seized fasteners."
+  - scope: generation
+    make: lexus
+    model: ls
+    year_from: 2007
+    year_to: 2017
+    low: "2.6"
+    typical: "3.5"
+    high: "5"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed the most common LS460 4.6 V8 RWD layout with electric cooling fans and transmission cooler lines in the radiator; high allows for the harder LS600h hybrid cooling layout and rust/seized fasteners."
+  - scope: generation
+    make: lexus
+    model: sc
+    year_from: 2002
+    year_to: 2010
+    low: "2.2"
+    typical: "3"
+    high: "4.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a Lexus SC430 with the 4.3L V8 and automatic transmission, in average condition with no rust. Radiator replacement includes draining and refilling coolant, removing and reinstalling electric fans and shroud, disconnecting and reconnecting transmission cooler lines, and partially moving the…"
+  - scope: generation
+    make: lexus
+    model: lx
+    year_from: 1996
+    year_to: 1997
+    low: "1.3"
+    typical: "2"
+    high: "3"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the common 1996-1997 Lexus LX450 with the 4.5L inline-six, automatic transmission, and integrated transmission cooler in the radiator. Assumed no rust, seized fasteners, or added equipment."
+  - scope: generation
+    make: lexus
+    model: ls
+    year_from: 1990
+    year_to: 1994
+    low: "1.8"
+    typical: "2.5"
+    high: "3.4"
+    confidence: 43
+    inputs: [vehicle, job]
+    notes: "Assumed a 1990-1994 Lexus LS400 with the common 4.0 V8 and automatic transmission, in ordinary condition with no rust or seized fasteners; the A/C condenser is left in place and only hoses/lines needed for radiator access are disturbed."
+  - scope: generation
+    make: tesla
+    model: model-s
+    year_from: 2012
+    year_to: 2026
+    low: "2.6"
+    typical: "3.4"
+    high: "4.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2019 Model S 100D in ordinary condition with no front-end damage, using standard shop tools and Toolbox coolant purge. This is an AI estimate for the radiator replacement including front fascia and ducting access, not a published labour time."
+  - scope: generation
+    make: audi
+    model: sq7
+    year_from: 2020
+    year_to: 2027
+    low: "6"
+    typical: "8"
+    high: "11"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the 4.0L V8 EA825 SQ7 with front-end access requiring bumper, headlamp and impact-member removal; an auxiliary transmission cooler is included as a conditional step. This is an AI estimate assuming ordinary condition and no A/C refrigerant circuit opening."
+  - scope: generation
+    make: audi
+    model: sq5
+    year_from: 2018
+    year_to: 2027
+    low: "3.4"
+    typical: "4.5"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2022 Audi SQ5 with the common 3.0 TFSI V6 and quattro, assuming only the radiator is replaced and the A/C condenser is tied aside rather than opened. High allows for front-end fastener corrosion, charge-air-cooler/condenser alignment trouble and extra bleeding time."
+  - scope: generation
+    make: audi
+    model: s7
+    year_from: 2013
+    year_to: 2018
+    low: "6.5"
+    typical: "8.4"
+    high: "10.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate for a 2013-2018 Audi S7 with the 4.0L TFSI V8 and quattro, in ordinary condition with no added front-end equipment. Assumes the A/C condenser is supported/tilted without opening the refrigerant circuit and the charge-air cooling radiator is removed for access as part of the job."
+  - scope: generation
+    make: audi
+    model: rs-5
+    year_from: 2013
+    year_to: 2015
+    low: "3.2"
+    typical: "5"
+    high: "6.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2014 Audi RS5 with the 4.2 V8 CFSA and S tronic, in ordinary condition, with the condenser tipped forward rather than opened and with ATF lines disconnected as shown. Coolant refill/bleed and ATF level check are included; A/C evacuation and thermostat/hose replacement are not."
+  - scope: generation
+    make: audi
+    model: tts
+    year_from: 2009
+    year_to: 2015
+    low: "1.4"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L turbo CDMA engine in an Audi TTS 8J with standard cooling system and no A/C condenser replacement. The estimate covers draining, removing the fan shroud and hoses, replacing the radiator, refilling/bleeding, and leak checking in ordinary condition."
+  - scope: generation
+    make: audi
+    model: rs-4
+    year_from: 2007
+    year_to: 2008
+    low: "3.3"
+    typical: "4.4"
+    high: "6.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a B7 RS 4 with the 4.2L BNS V8 on a lift in average condition, with the A/C circuit left closed and the front bumper cover removed as described; coolant refill/bleed included but no thermostat, hose or condenser replacement."
+  - scope: generation
+    make: audi
+    model: s6
+    year_from: 2007
+    year_to: 2011
+    low: "3.8"
+    typical: "4.9"
+    high: "6.5"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2009 Audi S6 with the 5.2L V10 BXA and quattro, with no rust or seized fasteners for the typical time and the A/C circuit left closed. The estimate covers radiator replacement only, not thermostat, hose replacement or condenser replacement."
+  - scope: generation
+    make: chrysler
+    model: crossfire
+    year_from: 2004
+    year_to: 2008
+    low: "1.5"
+    typical: "2.2"
+    high: "3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.2L V6 Crossfire with automatic transmission, since transmission cooler lines are included in the procedure, and a vehicle with no rust or seized fasteners. A manual-transmission car would be somewhat lower because the cooler lines are absent."
+  - scope: generation
+    make: chrysler
+    model: lhs
+    year_from: 1999
+    year_to: 2001
+    low: "1.8"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the common 3.5L V6 automatic front-wheel-drive LHS with A/C and no severe rust; oil cooler lines are allowed as a small if-equipped item. Includes coolant drain/refill, bleeding and leak check."
+  - scope: generation
+    make: buick
+    model: envista
+    year_from: 2024
+    year_to: 2027
+    low: "1.6"
+    typical: "2.3"
+    high: "3.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a typical 1.2L turbocharged three-cylinder front-wheel-drive Envista and that the radiator can be removed from the top without removing the A/C condenser or front bumper cover. High allows for rust, seized fasteners or extra access work."
+  - scope: generation
+    make: buick
+    model: regal
+    year_from: 2011
+    year_to: 2017
+    low: "2.4"
+    typical: "3.4"
+    high: "5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the 2.0L turbo AWD LTG configuration shown in the procedure and that the A/C condenser is supported aside without opening refrigerant lines. The 2.4L FWD version would be somewhat lower; rust and seized fasteners drive the high figure."
+  - scope: generation
+    make: acura
+    model: tlx
+    year_from: 2021
+    year_to: 2025
+    low: "2.25"
+    typical: "3.15"
+    high: "4.4"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed the common 2.0L turbo I4 TLX with automatic transmission; FWD/SH-AWD is not expected to change radiator access much. High time allows for front-end trim/extra plumbing access and corrosion or seized fasteners on higher-mileage vehicles."
+  - scope: generation
+    make: volvo
+    model: s60
+    year_from: 2011
+    year_to: 2018
+    low: "3"
+    typical: "4.2"
+    high: "5.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.0L turbo four-cylinder (B4204T11) front-wheel-drive S60, where the factory procedure takes the front bumper cover and fan shroud off; the high figure covers AWD and six-cylinder cars where the condenser must be moved aside and the refrigerant recovered."
+  - scope: generation
+    make: volvo
+    model: xc60
+    year_from: 2010
+    year_to: 2017
+    low: "2.2"
+    typical: "3"
+    high: "4.3"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a P3-platform XC60 with the common 3.2L I6 or a turbo five, FWD/AWD, with a combined radiator/transmission cooler; the higher figure covers a T6 with extra plumbing and rusted fasteners. Estimated from the listed operations (bumper cover, fan, headlight, hoses, cooler lines, bleed)."
+  - scope: generation
+    make: volvo
+    model: c30
+    year_from: 2008
+    year_to: 2013
+    low: "3"
+    typical: "4"
+    high: "5.5"
+    confidence: 30
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a turbo 5-cylinder B5254T7 automatic C30 where the charge air cooler and pipes sit in front of the radiator and must be moved for access, with the radiator dropping out from below. Estimated for an undamaged, unrusted car with standard tools;"
+  - scope: generation
+    make: infiniti
+    model: q60
+    year_from: 2014
+    year_to: 2015
+    low: "3.5"
+    typical: "4.3"
+    high: "6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2014-2015 Infiniti Q60 with the common 3.7L V6 and RWD automatic, in ordinary condition. The radiator and A/C condenser are removed as an assembly, requiring A/C refrigerant recovery and recharge; high allows for rust and seized fasteners."
+  - scope: generation
+    make: infiniti
+    model: qx56
+    year_from: 2011
+    year_to: 2013
+    low: "2.1"
+    typical: "2.8"
+    high: "4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 5.6L V8 AWD QX56 with a cold engine, shop lift and standard tools; the condenser is unbolted and moved aside without opening the A/C refrigerant circuit, and coolant is refilled and bled normally."
+  - scope: generation
+    make: lincoln
+    model: mkc
+    year_from: 2015
+    year_to: 2019
+    low: "4.8"
+    typical: "6.3"
+    high: "8.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L EcoBoost AWD MKC, the most common configuration; the high figure allows for the 2.3L engine and seized fasteners. The estimate includes A/C refrigerant recovery/recharge because the condenser must be separated from the cooling module during radiator replacement."
+  - scope: generation
+    make: land-rover
+    model: discovery-sport
+    year_from: 2015
+    year_to: 2027
+    low: "3.8"
+    typical: "4.9"
+    high: "6.5"
+    confidence: 32
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common 2.0 Ingenium engine and that the A/C condenser can be unbolted and moved aside without opening the refrigerant circuit. High allows for early 2.2 diesel differences, corroded fasteners or extra hose/cooler-line work."
+  - scope: generation
+    make: mini
+    model: countryman
+    year_from: 2011
+    year_to: 2016
+    low: "2.3"
+    typical: "3.1"
+    high: "4.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a typical transverse 1.6 petrol Countryman with automatic transmission cooler lines and no front-end damage; the radiator is removed from above after the fan/shroud and hoses are cleared. High allows for seized lower mounts, corroded cooler lines and extra plumbing on harder engine variants."

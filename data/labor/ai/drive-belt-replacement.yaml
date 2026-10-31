@@ -8122,3 +8122,14 @@ estimates:
     confidence: 45
     inputs: [vehicle, job]
     notes: "Assumed a transverse 1.6 petrol MINI Countryman R60 with typical FWD/AWD layout and top-side belt access; high allows for extra intake plumbing or tighter turbo/diesel variants and rusted fasteners."
+  - scope: generation
+    make: chrysler
+    model: 200
+    year_from: 2011
+    year_to: 2014
+    low: "0.35"
+    typical: "0.5"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Typical is for the most common 2.4L I4 engine; high allows for the harder 3.6L V6 procedure with battery disconnect, right front wheel and splash shield removal, plus rust or seized fasteners. The job is belt replacement only, with no tensioner, idler or alternator replacement."

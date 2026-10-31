@@ -2456,3 +2456,14 @@ estimates:
     confidence: 40
     inputs: [vehicle, job]
     notes: "AI estimate for the common transverse 2.0 Ingenium diesel, which uses a timing belt in its usual form; petrol Ingenium engines with a chain are not covered. Assumes standard access with no rust or seized fasteners."
+  - scope: generation
+    make: jaguar
+    model: f-pace
+    year_from: 2017
+    year_to: 2027
+    low: "13"
+    typical: "16.9"
+    high: "24"
+    confidence: 24
+    inputs: [vehicle, job]
+    notes: "Estimate is for the early 3.0 V6 diesel F-Pace, the only common variant with a timing belt; its belt is rear-mounted and requires gearbox removal. Other F-Pace engines are chain-driven and not covered by this job."

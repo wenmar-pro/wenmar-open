@@ -7779,3 +7779,69 @@ estimates:
     confidence: 38
     inputs: [vehicle, job]
     notes: "Assumed a common 1.6L petrol R60 with a belt-driven water pump, FWD or ALL4 with similar access, and no rust or seized fasteners; diesel or harder-access variants may take longer."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2003
+    year_to: 2007
+    low: "1.5"
+    typical: "2.2"
+    high: "4.5"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the typical case is the common 2.4L four-cylinder Accord with an externally driven water pump. The high estimate covers the V6 timing-belt-driven pump and possible rust or seized fasteners."
+  - scope: generation
+    make: chevrolet
+    model: malibu
+    year_from: 1997
+    year_to: 2003
+    low: "1"
+    typical: "1.5"
+    high: "3.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Estimated for the common 3.1L V6 with an external belt-driven water pump; the high figure allows for harder 2.4L engine access/timing parts in the way and for rusted or seized fasteners."
+  - scope: generation
+    make: lexus
+    model: rx
+    year_from: 2004
+    year_to: 2009
+    low: "1.8"
+    typical: "2.55"
+    high: "4.8"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "AI estimate: typical is for the more common RX350 2GR-FE V6, where the water pump is externally belt-driven; high covers the harder 3MZ-FE/hybrid layout with timing-belt removal for pump access and allows for seized fasteners."
+  - scope: generation
+    make: dodge
+    model: avenger
+    year_from: 2008
+    year_to: 2014
+    low: "1.5"
+    typical: "2.1"
+    high: "4.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "I assumed the most common 2.4L four-cylinder front-wheel-drive Avenger with an externally mounted, accessory-belt-driven water pump. The high figure allows for V6 variants and rust or seized fasteners;"
+  - scope: generation
+    make: chrysler
+    model: 300c
+    year_from: 2005
+    year_to: 2010
+    low: "1.8"
+    typical: "2.6"
+    high: "6.5"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the most common 300C engine, the 5.7L HEMI V8 with RWD, where the water pump is accessory-belt driven; the high figure allows for the harder V6 versions where timing components must be removed for pump access."
+  - scope: generation
+    make: chevrolet
+    model: colorado
+    year_from: 2015
+    year_to: 2022
+    low: "2.2"
+    typical: "3.1"
+    high: "4.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "AI estimate assuming the common 2.5L LCV four-cylinder shown by the procedure; high allows for harder engine variants, tight access, and rusted/seized fasteners."
