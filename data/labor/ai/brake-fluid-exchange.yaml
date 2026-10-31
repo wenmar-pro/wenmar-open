@@ -1,0 +1,777 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: brake-fluid-exchange
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "0.8"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard four-wheel disc system with hydraulic ABS, pressure-bled on a hoist with reservoir suction-out and refill, bleeding all four wheels in sequence. No HCU replacement, so the scan-tool ABS service bleed is normally not needed;"
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional four-wheel disc hydraulic system with ABS, flushed by pressure bleeding at each wheel in sequence after draining the reservoir. Wheels may need to come off for bleeder access, and a scan-tool ABS bleed is run only if air is suspected in the HCU;"
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "0.8"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 14th-generation F-150 with four-wheel disc brakes and an electronically controlled brake booster/ABS module that needs the scan-tool-guided bleed routine."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "1"
+    typical: "1.4"
+    high: "2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional four-wheel disc brake truck with ABS hydraulic unit, done on a lift with a pressure or two-person bleeder: reservoir evacuation and refill, a full bleed at all four wheels, the scan-tool ABS bleed cycle, a second base bleed, then top-up, pedal check and road test."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 5th-gen Ram 1500 with four-wheel disc brakes and conventional bleeders, serviced on a lift with wheels left on where the bleeders are reachable."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a GMT900 Silverado with four-wheel ABS and disc brakes, bled at the calipers with the truck on a lift so the wheels can stay on. The fluid is flushed RR-LR-RF-LF until clean, and no scan-tool ABS bleed is needed because the modulator is never opened to air;"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional hydraulic brake system with a four-corner bleed done manually or with a pressure bleeder, wheels off or accessed under a lifted truck, and the ABS automated bleed run with a scan tool only if the pedal stays spongy."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a T1XX Silverado with the electro-hydraulic brake boost system. The job covers boost deactivation by scan tool, a pressure-bleeder base bleed of all four corners with the truck on a lift and the wheels left on, the automated scan-tool bleed with a battery charger connected, a second full…"
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a GMT900 Sierra 1500 with four-wheel disc brakes and the standard ABS, flushed by draining the reservoir and bleeding all four wheels in RR-LR-RF-LF order without removing the wheels, since the bleeders are reachable on a lifted truck."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a full-size 4WD Sierra 1500 with four-wheel disc brakes and a conventional master cylinder, flushed by pressure or two-person manual bleeding at all four wheels on a lift, wheels left on. The scan-tool ABS automated bleed is run only if the pedal is spongy;"
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a Sierra 1500 with the electro-hydraulic brake boost system, which needs a pressure-bleeder base bleed at all four corners, a scan-tool automated bleed, a second full base bleed and the scan-tool hydraulic test, with the truck on a lift and the wheels left on."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a conventional hydraulic brake system with ABS/VSC actuator, where old fluid is extracted from the reservoir and all four wheels are flushed with a two-person or pressure bleeder after removing the cowl bracket."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional (non-hybrid) RAV4 with a standard hydraulic brake system bled manually at all four wheels with a two-person or pressure bleeder method. Includes removing the cowl bracket for reservoir access, extracting old fluid, and a road test;"
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gas RAV4 with conventional vacuum booster, where the fluid is replaced by a two-person or pressure bleed at all four wheels after removing the center cowl louver for reservoir access, with no ABS scan-tool routine required."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "0.6"
+    typical: "0.9"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional four-wheel disc system on a 2WD or AWD CR-V, bled manually or with a pressure bleeder, with the vehicle lifted. Bleeding goes in the specified sequence after the old fluid is drawn from the reservoir, with no scan-tool ABS routine needed for a fluid exchange;"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional four-wheel hydraulic brake system with VSA, bled manually at each caliper in sequence with the wheels removed or reachable on a lift, with no scan-tool ABS routine needed for a plain fluid exchange. The high figure allows for seized or rounded bleed screws and extra flushing."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a standard hydraulic brake system with DOT 3 fluid on either the 2.4 or 1.5 turbo engine, FWD or AWD, with all four wheels bled using a pressure or two-person method; ABS modulator bleeding by scan tool is normally not needed for a simple fluid exchange."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 6th-gen CR-V (1.5T or hybrid) with a conventional hydraulic brake system bled at all four wheels via pressure or two-person bleeding, with wheels removed or accessed on a lift. The hybrid's electric brake booster/ABS modulator may need a scan-tool routine, which is included."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional (non-hybrid) Civic with standard ABS that needs no scan-tool bleed routine. The job is a two-person or pressure-bleeder flush of all four wheels in the specified sequence (front disc and rear drum or disc), with the reservoir emptied, refilled and topped up, plus a road test;"
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "0.6"
+    typical: "0.9"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 9th-gen Civic with a conventional hydraulic system and ABS that needs no scan-tool bleed routine for a fluid exchange without air entering the modulator."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a conventional hydraulic brake system with four-wheel bleeding (two-person or pressure bleeder), vehicle on a lift, wheels removed or accessed as needed, and no scan-tool ABS routine normally required for a simple fluid exchange."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-Type-R Civic with four-wheel disc brakes and electric parking brake calipers, flushed by the two-person pedal method in the specified order, including the extra rear bleed after cycling the parking brake."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional two-person or pressure-bleeder flush of all four wheels on a non-hybrid Corolla with standard ABS, which needs no scan-tool bleed routine for a fluid exchange."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard 11th-generation Corolla with a conventional ABS system that needs no scan-tool bleed routine, bled manually by two people or a pressure bleeder at all four wheels (rear discs or drums)."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional two-person pedal bleed at all four wheels with the car on a lift, wheels removed or accessed as needed, plus removing the center cowl louver for reservoir access."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Non-hybrid XV40 Camry with four-wheel disc brakes and ABS. The reservoir is suctioned and refilled, then each wheel is bled in sequence on a lift by pedal or pressure bleeder. The Techstream actuator bleed is done only if pedal feel calls for it, so typical assumes a brief scan-tool step at most."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid Camry with a conventional ABS unit that needs no scan-tool bleed routine. The job is a two-person or pressure/vacuum bleed at all four wheels, starting with the farthest wheel, plus lifting the car, wheel access as needed, leak check and road test."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid Camry with a conventional master cylinder and ABS, so the fluid can be exchanged by manual pedal bleeding at all four wheels with no scan-tool ABS routine, and the vehicle is on a lift with the wheels removed or the bleeders reachable."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2025
+    year_to: 2027
+    low: "0.9"
+    typical: "1.2"
+    high: "1.7"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the XV80 Camry's hybrid electronically controlled brake system, so all four wheels come off and either the scan-tool bleed routine or ECB Deactivate Mode is used."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "0.7"
+    typical: "1"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a conventional gas Escape (2.5L or 3.0L, FWD or AWD) with rear drums or discs, using a pressure bleeder after the old fluid is drawn out of the reservoir. Each wheel is bled RR, LR, RF, LF, followed by a top-up, pedal check and road test;"
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "0.8"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a conventional four-wheel disc hydraulic system with ABS, flushed with a pressure bleeder after the old fluid is drawn out of the reservoir, and bleeding each wheel in sequence."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard hydraulic brake system with an integrated ABS/stability module whose bleed procedure is driven by a diagnostic scan tool. The job covers pressure bleeding all four wheels with the vehicle on a lift and wheels removed or accessible, extracting reservoir fluid, running the…"
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a conventional four-wheel disc brake hydraulic system with ABS, bled manually or with a pressure bleeder after the ABS connector or battery is disconnected, with no scan-tool ABS routine normally required."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a standard Rogue with conventional hydraulic brakes and ABS. Fluid is exchanged with the two-person pedal method or a pressure bleeder at all four wheels in the specified order, wheels removed or accessed on a lift, and the battery or ABS connector is disconnected;"
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional hydraulic brake system with four-wheel discs, flushed manually by two-person or pressure bleeding at each bleeder, with no scan-tool ABS routine needed for a fluid exchange."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a conventional hydraulic brake system with ABS on any engine or drivetrain. The work covers extracting the old fluid from the reservoir and flushing all four wheel circuits in the RR, LR, RF, LF order with a vehicle lift and an assistant or pressure bleeder, plus a short road test."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "0.9"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional hydraulic brake system with ABS/ESC modulator on all Equinox engines and drivetrains, flushed with a pressure bleeder after the old fluid is drawn from the reservoir."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional hydraulic brake system with ESC/ABS on any 2nd-gen Tucson engine or drivetrain. The job covers draining and refilling the reservoir, bleeding all four wheels in sequence with a helper or pressure bleeder, running the ABS/HCU bleed routine with a scan tool including its motor…"
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional hydraulic brake system with four wheel bleeder screws and ESC, wheels accessible on a lift (wheel removal not strictly needed), and a GDS-type scan tool used for the HCU air-bleed mode."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a conventional DOT4 hydraulic system with ESC on a non-hybrid Tucson, with the vehicle on a lift and wheels left on or removed only where needed for bleeder access."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional hydraulic system with four bleed screws (rear discs or drums) bled manually or by pressure bleeder in the specified sequence, with no ABS scan-tool routine needed for a plain fluid exchange."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional hydraulic brake system with ESC/ABS hydraulic unit, rear disc or drum brakes, and a full fluid flush done with a two-person or pressure bleeder at all four wheels, plus the scan-tool HCU bleed routine."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional (non-hybrid) Elantra with four-wheel disc or rear brakes accessible on a lift, wheels removed or bleeders reachable. The job covers extracting the old reservoir fluid, a two-person or pressure bleed at all four wheels in the specified sequence, a scan-tool ESC bleed routine…"
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional four-wheel disc hydraulic system with ABS, exchanged by suctioning the reservoir, refilling, and pressure or two-person bleeding at all four corners with the wheels removed or reached on a lift."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional four-wheel bleed on the 2nd-gen Tacoma: drain the reservoir, refill with DOT3, two-person or pressure bleed of all four wheels (rear drums or discs), plus extra time for the Techstream actuator bleed on VSC-equipped trucks."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "0.8"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a conventional vacuum-boosted hydraulic system with front calipers and rear drum wheel cylinders. The truck is on a lift, the reservoir is suctioned and refilled, and each wheel is bled in order with a pressure or two-person bleeder."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a lift, a pressure or two-person bleeder, and a Toyota-capable scan tool for the electronic brake air-bleeding routine. The old fluid is drawn from the reservoir, and all four wheels are bled with the wheels left on where the bleeders can be reached."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional four-wheel hydraulic system with ABS, using manual two-person or equivalent bleeding at all four calipers. The reservoir is drawn off and refilled, and no scan-tool ABS routine is needed, since the HCU and master cylinder are untouched."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "0.9"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a WL Grand Cherokee with an integrated electronic brake booster/ABS unit, where a scan-tool guided bleed routine and a pressure bleeder are used to flush all four corners. Wheels come off or are reached on a lift, and the job finishes with a pedal check and a short road test;"
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional hydraulic brake system with four bleeder screws, pressure-bleeding equipment and a hoist, with the old fluid extracted from the reservoir first. The ABS scan-tool bleed is only needed when the HCU is replaced, so it is treated as an occasional extra;"
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional hydraulic brake system with ABS/ESC module. The job covers draining and refilling the reservoir, pressure bleeding all four wheels in sequence on a lift, and running the scan-tool-guided ABS bleed routine, followed by a pedal check and road test."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a conventional hydraulic brake system with a vacuum booster and ABS/VSC actuator, flushed by two-person or pressure bleeding at all four wheels."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional (non-hybrid) Highlander with four-wheel disc brakes and standard ABS. The fluid is exchanged by draining the reservoir and then bleeding each wheel in turn by the pedal or pressure method, with the vehicle on a lift and wheels left on or removed as needed for access."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gas or hybrid Highlander with four-wheel disc brakes. The job uses a two-person or pressure/vacuum bleed at all four corners, in the scan-tool air-bleed routine or ECB deactivate mode for hybrids, and includes reservoir extraction, refill, DTC clearing, leak check and a short road test."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed a conventional hydraulic brake system with ABS/DSC, bled at four wheels (plus the clutch if it is a manual) using pressure or two-person bleeding, with the wheels on or removed as needed for access."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a conventional hydraulic brake system with four bleed screws and the vehicle on a lift, with fluid exchanged by pressure or two-person bleeding in the standard wheel sequence; the 2nd-gen CX-5 normally needs no scan-tool ABS bleed for a simple flush."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional four-wheel disc system with ABS/ESC on either FWD or AWD. The fluid is exchanged by drawing down the reservoir and then using a two-person or pressure bleed at all four wheels in the specified sequence, starting right rear."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional hydraulic system with ESP/HCU and a rear electric parking brake caliper; the reservoir is extracted and refilled, then all four wheels are bled in sequence by two-person or pressure method, including running the HCU bleed mode on a scan tool."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a conventional hydraulic brake system with four wheel bleeders and a DOT 4 fluid reservoir, and that the job is a pressure or two-person bleed done with the wheels removed or reachable on a lift."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "0.6"
+    typical: "0.9"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional hydraulic system with four bleed screws where the fluid is flushed by manual pedal or pressure bleeding in Honda's set order, with no scan-tool ABS bleed routine needed unless air has entered the modulator."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a conventional hydraulic brake system with four wheel bleeder screws, bled with the vehicle on a lift using a pressure or two-person method, and the wheels removed for access as needed."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 10th-gen Accord with the 1.5T, 2.0T or hybrid powertrain and four-wheel disc brakes, with the fluid exchanged by pressure or two-person bleeding at all four corners after the reservoir is emptied and refilled."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid Accord with electric parking brake calipers. The job is a conventional two-person pedal bleed in the specified sequence, plus the extra rear-caliper bleed after cycling the parking brake. No scan-tool ABS routine is needed for a simple fluid exchange."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard 4th-gen Outback with four-wheel disc brakes and conventional ABS/VDC. The job is a manual or pressure-bleeder flush: draw down the reservoir, refill, bleed all four wheels in sequence until clean fluid appears, and use no special ABS routine unless air reaches the hydraulic unit."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "0.8"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional hydraulic system with four calipers, bled manually with two people (or a pressure bleeder) and the wheels removed as the procedure calls for. No scan-tool ABS routine is normally needed on this car. The high figure allows for seized or rounded bleeder screws."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "0.8"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a conventional hydraulic brake system with ABS/VDC where no scan-tool ABS bleed is normally needed for a simple fluid exchange. The job covers lifting the car, removing all four wheels, emptying and refilling the reservoir, and two-person pedal bleeding at all four calipers."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "0.9"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a JK Wrangler with four-wheel discs and ABS, flushed with a pressure bleeder and a scan tool for the ABS bleed routine, which means two base-system bleeds around the ABS function cycle."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "1"
+    typical: "1.4"
+    high: "2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a JL Wrangler with four-wheel disc brakes and ABS, bled with a pressure bleeder and wheels left on, with the scan-tool ABS bleed routine done between two base bleed passes. The high figure allows for seized or rounded bleeder screws and extra flushing to get clean fluid at every wheel."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional hydraulic brake system with ABS/ESC, flushed by pressure bleeder at all four wheels, with the vehicle on a lift and wheels removed or reachable for bleeder access. Assumed no ABS module bleed routine is needed for a routine flush;"
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a front-wheel-drive Jetta with the 1.4T or 1.5T engine, front calipers and either rear discs or rear drums, bled with a pressure bleeder (pre-bleed followed by a standard bleed at all four corners). It also assumes a scan-tool ABS routine is not normally needed for a plain fluid exchange;"

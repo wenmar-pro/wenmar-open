@@ -1,0 +1,777 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: shocks-rear
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "0.6"
+    typical: "0.9"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the standard leaf-spring solid rear axle, where each shock is held by one upper bolt to a frame bracket and one lower bolt to the axle bracket. With the axle supported, the shocks are reached from underneath, normally without removing the wheels or any trim."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard leaf-spring solid rear axle with conventional shocks, held by one upper and one lower through-bolt each, with no trim to remove. Both shocks are replaced on a hoist with the axle supported on stands, new bolts and nuts are fitted, the bolts are torqued, and the truck gets a short…"
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a leaf-spring solid rear axle with conventional bolt-through upper and lower shock mounts. Both shocks are replaced on a hoist with the axle supported, there is no trim to remove, and new bolts are torqued at ride height."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common coil-spring rear axle without air suspension, so no scan-tool deflate/fill or air mass routines are needed. Both shocks are unbolted top and bottom through their brackets with the axle supported, the wheelhouse splash shields are removed and refitted for access, and the fasteners…"
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a common non-TRX 5th-gen Ram 1500 with coil or air rear springs and conventional rear shocks: support the axle on a lift, remove the wheelhouse splash shields, unbolt the upper stud nut and lower through-bolt on both sides, then torque the lower bolts at ride height and road test."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a GMT900 Silverado 1500 with the leaf-spring solid rear axle, where each shock is held by a through-bolt and nut at the frame bracket and at the axle bracket, with no trim to remove. The job covers both sides with the axle supported on stands, plus a short road test;"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a K2XX Silverado 1500 with a conventional leaf-spring solid rear axle, where each shock is held by one upper and one lower through-bolt and nothing has to be removed to reach the upper mounts. Both sides are done in one lift with the axle supported;"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a leaf-sprung solid rear axle with shocks held by an upper and a lower bolt, accessible from underneath with no trim removal. Where fitted (such as Z45 or adaptive dampers), the shock electrical connector is unplugged and reconnected;"
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a GMT900 Sierra 1500 with a leaf-spring solid rear axle, where each shock is held by a through-bolt and nut at the frame and axle with no trim in the way, and the wheels can stay on. Both shocks are replaced with the axle supported, then the vehicle is lowered and road tested."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a K2XX Sierra 1500 with a solid rear axle and leaf springs, where each shock uses a single upper bolt to the frame and a lower bolt and nut to the axle bracket, with no trim to remove."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a Sierra 1500 with a leaf-sprung solid rear axle where both shocks bolt in at the top and bottom and are reached from under the truck on a lift without removing the wheels."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "1"
+    typical: "1.4"
+    high: "2.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 3rd-generation RAV4's double-wishbone rear suspension, where the shock bolts to the suspension member underneath with no interior trim removal. The job covers both sides: removing the wheel, supporting the arm, loosening the No."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 4th-generation RAV4 (FWD or AWD) whose rear shocks bolt through at the top to the suspension member and at the bottom via a bracket to the axle carrier, all reached from underneath with no interior trim removal."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "1.5"
+    typical: "2"
+    high: "3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 5th-generation RAV4 with conventional rear shocks (no adaptive dampers) bolted at the top through two wheel-well bolts, so no interior trim needs removal."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "1.6"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 3rd-gen CR-V rear uses a combined damper/spring unit that must come out through the trailing arm (top nuts, lower bolt, stabilizer link, brake hose and parking brake cable brackets, trailing arm mounting bolts), with each spring compressed and transferred onto the new shock on the bench."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "1.5"
+    typical: "2"
+    high: "2.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 4th-generation CR-V rear damper and coil spring come out as one assembly, accessed through the cargo-area maintenance covers, after freeing the stabilizer link, brake hose bracket, parking brake cable and trailing arm front bolts."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2017-2022 CR-V (non-hybrid, FWD or AWD) whose rear damper is separate from the coil spring and held by one lower bolt and two upper flange bolts reached from under the car, so no interior trim needs to come off."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "1"
+    typical: "1.4"
+    high: "2.1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the multi-link rear with the coil spring separate from the shock, so each shock comes out after removing the wheel, supporting the lower arm, and undoing the lower bolt and the upper mount bolts from the wheel well, with no interior trim removal and no spring compressor."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid 8th-generation Civic, where the rear damper is separate from the coil spring, so no spring compressor is needed. Each side involves removing the wheel, the lower flange bolt and the trunk side trim, then reaching the upper self-locking nut;"
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "I assumed the sedan or coupe multi-link rear suspension, where the shock is separate from the coil spring, so no spring compressor is needed. The job covers raising the car, pulling the trunk side trim to reach the upper mount bolts, removing the lower knuckle bolt, moving the upper mount and bump…"
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed the multi-link rear with a coil spring separate from the damper. Each damper comes out after removing the wheel, the lower knuckle bolt and the upper mount bolts, with possible trunk or wheel-arch trim removal."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "1.1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the 11th-gen Civic's multi-link rear with the coil spring separate from the shock. Each damper comes out by removing the lower knuckle bolt and the upper body-mount bolts, with little or no trim removal."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 10th-generation Corolla with a torsion-beam rear axle and coil-over rear shock assemblies, removed from below after taking out the trunk trim to reach the upper nuts."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "1.5"
+    typical: "2.1"
+    high: "2.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the usual torsion-beam rear with coil-over style shock assemblies, so both sides need trunk trim removal for access to the upper mounts and a spring transfer to the new shocks with a spring compressor. The lower nuts are torqued with the axle jacked to the specified loaded length;"
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "1.4"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 12th-generation Corolla with the multi-link rear, where each separate rear shock is held by two upper bolts and a lower nut on the axle carrier pin."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "1.7"
+    typical: "2.3"
+    high: "3.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid XV40 sedan with rear MacPherson-type struts reached by removing the rear seat cushion and seat back to get at the upper mount nuts. Both strut assemblies are removed, the springs are compressed and transferred to the new shocks, and everything is torqued at ride height."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "1.8"
+    typical: "2.4"
+    high: "3.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a non-hybrid XV50 Camry, whose rear shocks are strut assemblies with coil springs. Each side needs the rear side seatback removed for the upper nuts, the strut removed, the spring compressed and moved to the new damper with the mount, then refitted and torqued. Both sides are included;"
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "1.4"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid XV70 with the double-wishbone rear, where the coil spring is separate from the shock. Each side requires removing the wheel, under cover and stabilizer link, supporting the lower arm, freeing the upper control arm, unbolting the two upper body bolts and the lower carrier-pin…"
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2025
+    year_to: 2027
+    low: "1.2"
+    typical: "1.7"
+    high: "2.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the XV80 multilink rear, where each shock bolts to the body with two bolts from below and to the axle carrier pin at the bottom, with no interior trim removal."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "1"
+    typical: "1.4"
+    high: "2.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2008-2012 Escape (FWD or AWD) with conventional rear shocks that are separate from the coil springs. The upper nuts are reached from inside the cargo area after removing the rear quarter trim panels, and both sides are done in one visit with the suspension supported on stands."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "0.9"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the conventional passive twin-tube rear shocks mounted separately from the coil springs on the multi-link rear. Each shock comes out after the wheel is removed and the knuckle is supported, using one lower bolt and an upper nut reached from the wheel well with no interior trim removal."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 4th-gen Escape's independent multi-link rear with separate coil springs, where each shock is held by one lower bolt and two upper bolts reached from the wheel well, with no interior trim removal."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the first-generation Rogue (FWD or AWD) uses separate rear coil springs with a standalone shock, held by upper bolts reached from the wheel well and a lower bolt with a rubber bushing."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the standard 2nd-gen Rogue multi-link rear with the shock separate from the coil spring, fixed by a lower bolt to the suspension arm and an upper bolt and nut to the body, so no interior trim or spring compression is needed on either side."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3rd-gen Rogue's multi-link rear with separate coil springs and shocks, where the shock's upper bolts are reached from under the wheel well, so no interior trim needs removing."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "0.9"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the standard 2nd-generation Equinox rear multi-link suspension with separate shock absorbers, each held by one upper and one lower bolt, on FWD or AWD models. Both rear shocks are replaced;"
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "1.3"
+    typical: "1.7"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3rd-gen Equinox on a lift with the multi-link rear, where each shock mounts to the body with three bolts accessed by removing the rear wheelhouse liner, and to the lower control arm with a single-use torque-to-yield bolt."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "0.8"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the standard multi-link rear with separate coil springs, where each shock is held by one lower through-bolt and two upper mount bolts reached from under the car."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "0.9"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the multi-link rear suspension on 2WD or AWD models, where the shock is held by two upper bolts to the body (reachable from under the wheel arch, no interior trim removal) and one lower bolt to the lower arm. A jack supports the arm, and the lower bolt is tightened at ride height."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "0.9"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common multi-link rear with separate coil springs and shocks: the shocks come out with the wheels off, the lower arm supported, two upper body bolts and one lower bolt removed per side."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the usual torsion-beam rear with separate coil springs and shocks held by one upper bolt to the body and one lower bolt and nut to the beam, so no interior trim needs removing."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common torsion-beam rear axle, where each shock is held by body-side upper bolts reached from the wheel well and one lower through-bolt, so no trunk trim removal is needed."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 2.0L torsion-beam rear axle, where each shock is held by body bolts reached from the wheel well and one lower through-bolt at the beam, with no interior trim removal."
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the standard twin-tube rear shocks on the twist-beam axle, each held by a through-bolt at the lower axle bracket and another at the body bracket, with no interior trim removal needed."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a leaf-spring rear axle with a conventional stem-top upper mount reached from under the bed and a lower eye bolt at the axle or spring seat, with the wheels removed per the procedure."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a leaf-sprung solid rear axle with the top shock stud reached from under the frame rail with no trim removal. Both rear shocks are replaced, the lower bolts are given a final torque at ride height, and the job ends with a short road test;"
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 4th-generation Tacoma with conventional rear shocks (leaf-spring trims, or coil-spring trims where the lateral control rod must be separated), with both rear wheels removed and the axle supported on a jack."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "1"
+    typical: "1.4"
+    high: "2.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a WK2 with independent rear suspension, either coil springs or air springs, where each shock is a separate unit held by two upper bolts and one lower through-bolt."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the independent rear suspension with coil springs and separate shocks, where each shock bolts to the lower arm or knuckle and to a body mount reached from the wheel well or underside without removing interior trim."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "1"
+    typical: "1.4"
+    high: "2.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 5th-gen Explorer's independent rear suspension with separate coil springs and conventional shocks, reached from the cargo area by lifting the mat and access covers to the upper nuts. Each side needs the wheel off, the stabilizer link disconnected and the lower bolt removed;"
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 6th-gen Explorer with conventional separate rear coil-over-style shocks accessed from underneath via the wheel well (upper bolts to body, lower taper-pin nut), done as a pair. Each shock needs its top mount, dust shield and jounce bumper transferred, followed by a road test."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "2.3"
+    typical: "3"
+    high: "4.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "The rear uses MacPherson-type strut assemblies, so each side needs the cargo-area deck side trim removed to reach the three upper nuts. The brake hose, speed sensor and stabilizer link must be detached, the strut unbolted from the knuckle, and the spring and upper support moved to the new shock on…"
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the standard non-hybrid 3rd-gen Highlander, where the rear shocks are separate from the coil springs and mount with one bolt at each end, so no interior trim needs removing."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "0.9"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a conventional separate rear shock on the multi-link rear suspension, mounted by bolts and a nut accessible from under the vehicle. No interior trim removal is needed;"
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "1"
+    typical: "1.4"
+    high: "2.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the first-generation CX-5 multi-link rear, where the shock is separate from the coil spring, so each shock comes out by removing the wheel, the lower bolt and the upper mount nuts."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the multi-link rear with the shock separate from the coil spring, so no spring compression is needed. The upper mount nuts are reached from inside the cargo area after removing the side trim, and the job covers both sides, including checking or re-gluing the upper gasket and final torque of…"
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the multi-link rear suspension, where each shock is held by one lower bolt and nut plus two upper mounting bolts reachable from under the wheel well with the wheels off and the suspension supported. No interior trim removal is needed;"
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the multilink rear suspension, where each shock is held by upper bolts reached from the wheel well and a single lower bolt at the lower arm, so no interior trim needs to come out."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the conventional multilink rear suspension, where each shock is separate from the spring and held by one lower through-bolt and two upper bolts reachable from under the wheel arch, so no interior trim needs removing."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "1.4"
+    typical: "1.9"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 8th-generation Accord's rear damper/spring coilover unit is removed through the trunk-side access lid, and the existing spring and upper mount are moved onto the new damper with a spring compressor on both sides. Final torque is done with the suspension jacked to ride height;"
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "1.5"
+    typical: "2"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the non-hybrid 9th-gen Accord, where the rear damper and spring come out together as one coilover unit through the trunk access panels, and each spring is moved onto the new damper with a spring compressor. Final torque is done at ride height, and the alignment check is excluded."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "1"
+    typical: "1.4"
+    high: "2.1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed the 10th-generation multi-link rear, where the spring sits separately from the shock, so the shock can come out without a spring compressor once the lower arm or knuckle is supported. Both sides are done with wheels off;"
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumes the 11th-gen Accord's rear multi-link suspension, where the damper is separate from the coil spring. Each shock comes out by unbolting its lower mount at the knuckle and its upper mount bolts while the suspension is supported, with little or no trunk trim removal."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "1.2"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the 4th-generation Outback rear double-wishbone layout, where the coil spring sits on the lower lateral link separately from the shock, so the link is lowered to relieve spring load and the upper mount nuts are reached from the cargo area under the floor mat."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "1.5"
+    typical: "2"
+    high: "3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 5th-gen Outback double-wishbone rear with coil-over shock assemblies, removed from below with the upper mount nuts reached after lifting the rear cargo floor mat and spacer."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "1.5"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the Outback wagon's rear coil-over shock assemblies are replaced on both sides, transferring the existing springs and top mounts to the new shocks with a spring compressor."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a stock JK with conventional rear shocks, held by two bolts at the upper frame mount and a through-bolt at the axle bracket, with no trim to remove. The vehicle is lifted, the axle supported, and the lower bolts torqued at ride height."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a solid rear axle with the shocks mounted by a single through-bolt at each end, reachable from under the vehicle once it is raised and the axle supported, so no interior trim needs removing."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "1"
+    typical: "1.4"
+    high: "2.1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the rear shocks are separate from the coil springs on both the torsion-beam and multi-link rear axles. Each shock comes out by supporting the axle or arm with a jack, removing the lower bolt and the upper mount bolts in the wheel arch, and moving the top mount, bump stop and boot to the new…"
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "0.9"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the usual torsion-beam rear axle, or the multilink rear on the GLI, with the shock mounted separately from the coil spring. The upper mount bolts are reached from the wheel housing, and the axle is jacked to ride height before the lower bolt is torqued."

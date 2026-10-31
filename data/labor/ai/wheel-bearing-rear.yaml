@@ -1,0 +1,777 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: wheel-bearing-rear
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "1.5"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes one side on the semi-floating solid rear axle (8.8 or 9.75 inch, C-clip retained), where the bearing sits in the axle tube rather than in a bolt-on hub."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "1.5"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side of a semi-floating, C-clip-retained rear axle (8.8 or 9.75 inch). The job covers removing the wheel, caliper and rotor (including the parking-brake drum-in-hat), and draining and removing the differential cover to pull the pinion shaft and C-clip."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "1.2"
+    typical: "1.7"
+    high: "2.7"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side of a common gas or diesel F-150 with the solid semi-floating rear axle. The job means removing the caliper and rotor, draining and opening the differential cover, pulling the pinion shaft and C-clip to remove the axle shaft, then replacing the bearing and seal with a slide hammer…"
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "1.4"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed one side of the semi-floating, C-clip-retained solid rear axle. The rear bearing is pressed into the axle tube, not a bolt-on hub, so the job means draining the differential, removing the cover and pinion shaft, pulling the axle shaft, then pulling and driving in the new bearing and seal…"
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "1.6"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes one side on the solid semi-floating rear axle, where the bearing is serviced by pulling the axle shaft. This covers draining and refilling the axle lube, removing the shaft, pressing or pulling the old bearing and seal, fitting the new ones, and reinstalling with the speed sensor and brakes."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "1.3"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes one side on a half-ton semi-floating rear axle, where the bearing sits in the axle tube: drain the gear oil, pull the cover, remove the cross-shaft and C-clip, pull the axle, drive out the old bearing and seal, fit new ones, then reseal the cover and refill."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "1.5"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a half-ton Silverado with a semi-floating C-clip rear axle (8.6/9.76 inch), one side only. The job covers removing the wheel, caliper and rotor, draining the diff and removing its cover, removing the cross pin and C-clip, pulling the axle, slide-hammering out the seal and bearing…"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "This assumes a 1500 with a semi-floating C-clip rear axle (9.5 or 9.76 inch) and covers one side only. The axle bearing is pulled from the housing with a slide hammer and a new bearing and seal are driven in;"
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "1.3"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a half-ton Sierra with a semi-floating rear axle (8.6 or 9.5 in). One side is done by draining the axle, removing the diff cover, cross pin and C-clip, then pulling the shaft and replacing the pressed-in bearing and seal. Refilling the gear oil and resealing the cover are included;"
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a half-ton Sierra 1500 with a semi-floating C-clip rear axle, where the bearing is pressed into the axle tube. The estimate covers one side: removing the caliper, rotor and diff cover, pulling the shaft, slide-hammering out the seal, bearing and reluctor ring, driving in new parts, then…"
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "1.6"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side of a semi-floating C-clip rear axle (9.5 inch type) with the bearing pressed into the axle tube. The job covers removing the diff cover and draining the oil, pulling the axle, and replacing the bearing and seal with a slide hammer and installer, then refilling."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "1.2"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one rear side on a 3rd-gen RAV4 with the bolt-on hub and bearing unit held by four bolts. On AWD models the axle nut is unstaked and removed and the No. 1 arm and shock are disconnected so the hub can come out, then the suspension bolts are final-tightened at ride height;"
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "1.1"
+    typical: "1.6"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one rear side, with a bolt-on hub and bearing unit held by 4 bolts; AWD models also need the staked axle nut removed and a new nut fitted and staked. The rotor carries the drum-in-hat parking brake, so a parking brake adjustment is included, while alignment is excluded;"
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one rear side on an AWD or hybrid model with a bolt-on hub and bearing unit held by four bolts, so no bearing pressing is needed. Time covers the axle nut, separating the hub from the drive shaft spline, the caliper and bracket, rotor, speed sensor and electric parking brake connector, the…"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "0.9"
+    typical: "1.3"
+    high: "2.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side, with the bolt-on rear hub bearing unit removed from the knuckle after taking off the wheel, caliper, bracket, rotor and wheel speed sensor; on 4WD models the spindle nut is also removed and a new one staked. The knuckle itself stays on the car, and alignment is excluded."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "0.9"
+    typical: "1.3"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one rear wheel on a 2.4L CR-V, where the rear hub is a bolt-on unit held to the knuckle by four bolts with the encoder built into the bearing, so no pressing is needed. AWD versions also need the staked spindle nut removed and replaced and the driveshaft tapped free."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "0.8"
+    typical: "1.2"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one rear side on a 5th-generation CR-V with the bolt-on hub bearing unit, which is unbolted from the knuckle with no pressing needed. AWD models also need the spindle nut removed and the halfshaft freed from the hub, so they sit at the upper end of the range;"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "0.9"
+    typical: "1.3"
+    high: "2.1"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes one side, a bolt-on rear hub/bearing unit secured to the knuckle by four bolts with rear disc brakes. AWD versions add axle nut removal and driveshaft separation from the hub; hybrid and non-hybrid are treated the same."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one rear side on a disc-brake Civic, where the hub is a bolt-on unit held to the knuckle by four bolts with the wheel speed sensor built in, so no pressing is needed. Drum-brake versions take about the same time, and the high figure allows for a rotor stuck to the hub and corroded hub bolts."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one rear side on a non-hybrid Civic with a bolt-on rear hub bearing unit held by four bolts to the knuckle. The caliper is hung aside and the disc (or drum on base models) is removed, with no pressing required; wheel alignment is excluded."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 10th-gen Civic uses a bolt-on rear hub bearing unit held by four bolts to the knuckle, so the job is wheel, brake hose bracket, caliper assembly and rotor off, then unbolt and swap the hub with new bolts, with no knuckle removal or pressing. Time is for one side;"
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "0.7"
+    typical: "1"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side of the rear disc-brake multi-link suspension, where the bearing comes as a bolt-on hub unit held to the knuckle by four bolts with the wheel speed sensor built in or plugged in nearby, so no pressing is needed."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "0.8"
+    typical: "1.2"
+    high: "2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side and a bolt-on rear hub-and-bearing unit with integrated speed sensor, held by four bolts on the torsion-beam axle, so no pressing is needed. Typical is weighted toward the common rear-drum cars;"
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "0.8"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "One side of a torsion-beam rear axle with a bolt-on hub and bearing unit held by four bolts, with the speed sensor connector on the hub. This is mainly the drum-brake version: drum off, backing plate supported, shoe clearance adjusted after."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a FWD Corolla with torsion beam rear suspension, rear discs and an electric parking brake, with a bolt-on hub-and-bearing unit held by four bolts, so no pressing is needed. One side only;"
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid XV40 with rear discs and a bolt-on hub/bearing unit held by four bolts from behind the knuckle, with an integrated or plug-in ABS sensor, so no pressing is required."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "1"
+    typical: "1.4"
+    high: "2.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side on a non-hybrid XV50 with a bolt-on rear hub and bearing unit held by four bolts. The caliper is hung aside rather than disconnected, so no bleeding is needed."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side on a Camry with a bolt-on rear hub and bearing unit secured by four bolts. The caliper with its electric parking brake is hung aside rather than disconnected from hydraulics, so no bleeding is needed."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2025
+    year_to: 2027
+    low: "1"
+    typical: "1.4"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2WD Camry with a bolt-on rear hub and bearing unit (four bolts) and an integrated wheel speed sensor and connector, plus an electric parking brake that must be put in service mode with a scan tool."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "1.8"
+    typical: "2.6"
+    high: "4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side on an AWD model with a pressed-in bearing, rear drum brakes and a knuckle that must come off the vehicle. That means the halfshaft nut, suspension links, drum and parking brake are disconnected before the hub and bearing are pressed out and the new ones pressed in."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "0.9"
+    typical: "1.3"
+    high: "2.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side on an AWD model with a bolt-on rear hub and bearing unit, which means removing the spindle nut, caliper, bracket and rotor, pushing the halfshaft out of the hub, then unbolting and replacing the hub; FWD versions take slightly less time because there is no halfshaft."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "0.9"
+    typical: "1.4"
+    high: "2.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side only on an AWD Escape, where the bolt-on hub unit is replaced after removing the axle nut and pushing the halfshaft back. Front-drive cars skip the axle nut and halfshaft steps and run somewhat quicker."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "0.9"
+    typical: "1.4"
+    high: "2.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side, with a bolt-on rear hub and bearing unit held by four bolts, so no pressing is needed. The rotor may need the drum-in-hat parking brake backed off to come off, and AWD models add removing and refitting the axle nut and pushing the driveshaft out of the hub."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "1"
+    typical: "1.5"
+    high: "2.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side on a bolt-on rear hub and bearing unit. On AWD models the axle nut is loosened and the driveshaft is pushed out of the hub. The hub bolts are reached from behind the knuckle, and the drum-in-hat parking brake backing plate is wired aside rather than disassembled;"
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "0.9"
+    typical: "1.3"
+    high: "2.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the bolt-on rear hub and bearing unit, replaced as an assembly. The axle housing, links and coil spring stay on the car; the steps for removing those apply only to housing replacement."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "0.9"
+    typical: "1.3"
+    high: "2.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side only, with the bolt-on rear hub and bearing unit held by four bolts, including removing and refitting the axle nut on AWD models and transferring the wheel speed sensor. The high figure allows for a hub corroded into the knuckle and seized bolts."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "1"
+    typical: "1.5"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side, a bolt-on rear hub and bearing unit held by three bolts, with caliper, bracket and rotor removed and the speed sensor disconnected. On AWD models the drive shaft is separated from the hub, which adds a little time; a hub seized in the knuckle bore is covered in the high figure."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "0.9"
+    typical: "1.4"
+    high: "2.3"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes one side, with a rear disc brake and a bolt-on hub/bearing unit held by four bolts from the back of the knuckle, so no pressing is needed. AWD models add removal and refitting of the drive shaft hub nut. The high figure allows for a hub corroded into the knuckle and seized bolts."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "0.9"
+    typical: "1.3"
+    high: "2.3"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed one rear side on a Tucson with multi-link rear suspension and a bolt-on hub-bearing unit held by four bolts from the back of the knuckle, so no pressing is needed."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "1"
+    typical: "1.4"
+    high: "2.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes one side and the bolt-on rear hub-and-bearing unit used on the 4th-generation Tucson's multi-link rear suspension, unbolted from the back of the knuckle with no pressing."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "0.8"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one rear side on the torsion-beam rear axle, where the hub and bearing come as a bolt-on unit held by four bolts from behind, with rear drums or discs depending on trim. No pressing is needed; the high figure allows for a hub rusted into the axle carrier and seized bolts."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "0.8"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side on a front-drive car, with the rear hub a bolt-on unit (bearing integrated) held by four bolts to the torsion-beam spindle or multi-link knuckle, so no pressing is needed. Rear discs or drums are treated alike, with only disconnection and refit of the speed sensor."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed one side only, on a car with rear disc brakes and a bolt-on hub-and-bearing unit held by four bolts to the torsion-beam axle or multi-link knuckle, so no bearing pressing is needed. The caliper hangs aside without opening the hydraulics, so no brake bleeding is required."
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a FWD Grand Caravan with a twist-beam rear axle and a bolt-on rear hub/bearing unit with an integral wheel speed sensor, replaced on one side. The time covers routing the sensor harness and, on the right side, removing the heat shield;"
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "1.9"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side of a semi-floating rear axle with drum brakes: strip the shoes, disconnect the brake line, parking brake cable and speed sensor, pull the axle shaft with its backing plate, then press off the old bearing and retainer and press on new ones."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "1.9"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side on a 3rd-gen Tacoma with a semi-floating rear axle and drum brakes, where the bearing is pressed on the axle shaft rather than a bolt-on hub."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumes one side of the semi-floating solid rear axle on a 4th-gen Tacoma. The axle shaft has to be unbolted from the axle housing and pulled. The old bearing and retainer collar are then pressed off and new ones pressed on, with the parking brake and speed sensor disconnected and the differential…"
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one rear side on an AWD or 4x4 WK2 with the press-in cartridge bearing, so the knuckle must come off: axle nut, caliper, rotor and speed sensor are removed, the control links are disconnected, and the hub and bearing are pressed out and in on a bench press."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "1.2"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the WL's independent rear suspension with a bolt-in rear hub and bearing unit held to the knuckle by rear-mounted bolts, plus an axle-shaft hub nut on 4x4 models, so no bearing pressing is needed. Covers one side only;"
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "1.2"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side on an AWD Explorer with a bolt-on hub-and-bearing unit retained by four bolts, so no pressing is needed. The job covers removing the caliper, bracket and rotor, the hub nut, separating the halfshaft from the hub and fitting a new nut;"
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "1.2"
+    typical: "1.7"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side of an AWD/4WD Explorer with a bolt-on rear hub and bearing unit held by four bolts. The job includes removing the axle nut, pushing the halfshaft out with a puller, removing the caliper, bracket and rotor, and removing the lower arm vertical link for clearance."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "1"
+    typical: "1.5"
+    high: "2.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one rear side on a typical V6 FWD or AWD Highlander, using a bolt-on hub-and-bearing unit held by four bolts, without removing the axle carrier. On AWD models the axle nut is removed and the driveshaft pushed back."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "1.1"
+    typical: "1.6"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side on a 3.5L AWD Highlander with a bolt-on hub held by four bolts. The job includes unstaking and removing the axle nut, removing the caliper, rotor and drum-in-hat parking brake access, separating the hub from the drive shaft, and refitting with a new staked nut."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side on a bolt-on rear hub unit held by four bolts, with the wheel speed sensor built into the hub and an electric parking brake caliper. AWD versions add the axle nut and pushing the driveshaft out of the hub."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "1"
+    typical: "1.5"
+    high: "2.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one rear side of a first-generation CX-5, which uses a bolt-on hub and bearing unit held to the knuckle by four bolts, so no pressing is needed. On AWD models the axle nut must also be released and the drive shaft splines freed from the hub; FWD models are slightly quicker."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "0.9"
+    typical: "1.3"
+    high: "2.2"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed one side only. The 2nd-gen CX-5 rear uses a bolt-on hub-and-bearing unit held to the knuckle by four bolts, so no pressing is needed; on AWD models the axle nut is removed and the driveshaft is slid back from the hub."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "0.9"
+    typical: "1.3"
+    high: "2.1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "I assumed one side of the multi-link rear suspension, with rear disc brakes and a bolt-on hub/bearing unit held by four bolts from behind the knuckle. On AWD models the drive shaft nut must also be removed and the shaft pushed out of the hub."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "0.9"
+    typical: "1.3"
+    high: "2.2"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes one rear side on the multi-link rear suspension, where the bearing is a bolt-on hub unit held by four bolts from the back of the knuckle, so no pressing is needed."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side of an AWD model, where the rear wheel bearing comes as a bolt-on hub unit held by four bolts to the knuckle. The job covers removing the caliper and rotor and the speed sensor, unstaking and removing the axle nut, and pushing the driveshaft out of the hub;"
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "0.8"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side and the bolt-on rear hub bearing unit used on the 8th-generation Accord. The hub is unbolted from the knuckle after removing the wheel, caliper, bracket and rotor and pulling the speed sensor, so the knuckle stays on the car and no pressing is needed."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "1.1"
+    typical: "1.6"
+    high: "2.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one rear side on a non-hybrid 9th-gen Accord with rear discs and a cable parking brake, where the rear hub is a bolt-on unit. The time follows the procedure given: remove caliper, bracket and rotor, then take the knuckle off to swap the hub, refit, torque the suspension bolts under load and…"
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "0.8"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one rear corner on a non-hybrid 10th-gen Accord, which uses a bolt-on hub bearing unit held by bolts through the knuckle, so no pressing is needed."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes one rear side on a car with rear disc brakes and a bolt-on hub bearing unit held by four bolts to the knuckle, with the wheel speed sensor built into or plugged near the hub. The electric parking brake caliper is hung aside rather than disconnected, and no pressing is needed."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "1.3"
+    typical: "1.8"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes one side of an AWD 2010-2014 Outback with a bolt-on rear hub unit: remove the axle nut and the drum-in-hat parking brake rotor, then unbolt the hub from the knuckle and push the axle out, without pressing a bearing."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "1.1"
+    typical: "1.6"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes one side of a symmetrical AWD Outback, with a bolt-on rear hub and bearing unit held to the knuckle by bolts. The job covers removing the axle nut, the caliper (with its electronic parking brake motor) and bracket, the rotor and the speed sensor, then unbolting the hub and sliding it off…"
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "1.1"
+    typical: "1.6"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes one side of a 6th-generation Outback with standard AWD and a bolt-on rear hub unit on a splined drive axle. The job covers the axle nut, caliper and bracket, rotor, wheel speed sensor and hub bolts, and accounts for the electronic parking brake needing to be put into service mode before the…"
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "1.5"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes one side of the JK's semi-float rear axle (Dana 44 type). The bearing is pressed onto the axle shaft and held by a bolted retainer plate, so the job means pulling the shaft, pressing off the old retaining ring and bearing, pressing on new ones and fitting a new seal, rather than bolting on…"
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "1.6"
+    typical: "2.3"
+    high: "3.6"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "This assumes the factory semi-float Dana/M200 or M220 rear axle, where the bearing is pressed onto the axle shaft. The job covers one side: remove the caliper, rotor and park-brake parts, unbolt the retainer, pull the shaft, press off the old bearing and ring, press on new ones with a new seal…"
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one rear side on a disc-brake Jetta, where the hub/bearing unit slides onto the stub axle and is held by a single central bolt, so no pressing is needed. The caliper carrier is hung aside without opening the hydraulics, so no bleeding is required."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side of a Jetta with the torsion-beam rear axle, where the hub-bearing unit bolts onto the axle stub with a single central bolt, so no pressing is needed."

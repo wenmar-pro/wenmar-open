@@ -1,0 +1,755 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: struts-front
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2WD or 4WD F-150 with front coil-over struts. Both sides are done, with the tie rod end and upper ball joint separated and the sway bar link and lower strut bolt removed for access. Typical time allows for moving springs and mounts onto new bare struts with a spring compressor;"
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front coilover struts are replaced with complete pre-assembled units on a 4WD truck, following the procedure that removes the knuckle (ball joints, tie rod, IWE, hub nut) to get the strut out."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "2.3"
+    typical: "3.2"
+    high: "4.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "This assumes a 4WD F-150 with front coilover struts and fitting complete strut assemblies on both sides. The upper ball joint, tie rod end and sway bar link are disconnected, and the knuckle is swung or removed as needed for clearance, following the Ford procedure."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed a coil-spring Ram 1500 with conventional front coil-over struts, 2WD or 4WD, both sides done. The struts mount between the frame tower and the lower control arm, and the upper ball joint or sway bar link is separated for clearance. Complete strut assemblies are the quick case;"
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "2"
+    typical: "2.8"
+    high: "4.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a standard coil-spring 4x2 or 4x4 Ram 1500 (not TRX or air suspension), with both front strut assemblies replaced. The upper ball joint is separated for clearance and the springs are transferred in a compressor; using complete loaded struts would bring the time toward the low figure."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a half-ton (1500) GMT900 with front coilover strut assemblies; 2500/3500 HD trucks use torsion bars with plain shocks instead. Covers both sides: wheels off, sway bar links and brake hose/sensor brackets freed, upper ball joint separated or knuckle tilted for clearance, the three upper nuts…"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "1.6"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "This assumes a half-ton 1500 with front coilover strut assemblies, both sides done, using pre-assembled complete struts; moving the springs to new struts with a spring compressor would add time."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "1.8"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a T1XX Silverado 1500 with front coilover shock-and-spring assemblies, where both sides are replaced and the upper ball joint is separated to remove the strut. Typical time is for fitting complete loaded struts or a quick spring transfer on a compressor;"
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "1.6"
+    typical: "2.4"
+    high: "3.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a GMT900 Sierra 1500 with front coil-over strut assemblies held by three upper nuts and a lower bolt to the lower control arm, with both sides done and 4WD needing a little more clearance work. Typical time assumes the springs and mounts are transferred in a compressor;"
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a half-ton Sierra 1500 (2WD or 4WD) with front coilover strut assemblies, both sides replaced with complete pre-assembled struts. On 4WD trucks the upper ball joint or knuckle may need to be loosened for clearance; HD models use plain shocks and would take less time."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "2.2"
+    typical: "3"
+    high: "4.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4WD Sierra 1500 with coil-over front struts. Each side is done by supporting the lower arm, freeing the brake hose bracket, wheel speed sensor and pad wear sensor harness, separating the upper ball joint, then removing three top nuts and two lower bolts."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "1.6"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Both front MacPherson strut assemblies are replaced on a 3rd-generation RAV4 (2WD or AWD, 4-cylinder or V6). The typical time allows for transferring springs and mounts with a spring compressor; complete pre-assembled struts would land near the low figure, and alignment is excluded."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "1.8"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both front struts on a non-hybrid 2013-2018 RAV4 (FWD or AWD), with the strut removed as an assembly via two knuckle bolts and three upper nuts, and the spring and mount either transferred using a spring compressor or a complete loaded strut fitted."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "2.1"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both front struts on a 5th-generation RAV4 (FWD or AWD, petrol or hybrid). On this generation the wiper motor, linkage and cowl panel must come off to reach the upper mount nuts. Typical time covers moving the springs and mounts to new struts with a compressor;"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "1.5"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Both front strut assemblies replaced on a 3rd-generation CR-V, with the wipers parked for access to the top mounts and a two-bolt pinch clamp at the knuckle. Typical allows for fitting complete loaded struts or a quick spring transfer with a compressor; alignment is excluded."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front MacPherson struts on a 2012-2016 CR-V are replaced, with the upper nuts reached by removing the cowl top lid and the spring and mount moved to the new damper with a spring compressor (complete loaded struts would be somewhat quicker)."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "2.1"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a petrol FWD or AWD CR-V with conventional MacPherson front struts held by a knuckle pinch bolt, with both sides done. Per the procedure, the caliper, spindle nut, tie-rod end and lower ball joint are released so the knuckle can drop off the strut, and the spring and mount are swapped in a…"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "1.7"
+    typical: "2.4"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes both front MacPherson struts are replaced as a pair on any 6th-gen CR-V (gas or hybrid, FWD or AWD), with top mount nuts reachable under the hood without removing the cowl and two lower bolts to the knuckle. Typical allows for transferring springs and mounts with a spring compressor;"
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "1.4"
+    typical: "2"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid 8th-gen Civic with a MacPherson strut held by two pinch bolts at the knuckle and three top nuts reached through the cowl service cap after parking the wipers."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "1.4"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front MacPherson struts on a non-hybrid Civic, held by two lower pinch bolts to the knuckle and three upper nuts under the hood, with the spring and mount moved to the new damper using a spring compressor; fitting complete loaded struts would be nearer the low figure."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "2.1"
+    typical: "2.7"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Covers both front struts on a non-Type-R Civic. Following the given procedure, the knuckle comes off the strut on each side: hang the caliper, remove the spindle nut, separate the tie-rod and lower ball joints, push the driveshaft out of the hub and remove the pinch bolt."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "1.6"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes both front MacPherson struts are replaced on a FWD 11th-gen Civic, with the upper mount nuts reachable under the hood without removing the cowl. Typical allows for moving the springs and mounts to new bare struts with a spring compressor;"
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "1.8"
+    typical: "2.6"
+    high: "4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a standard MacPherson strut front end with the three upper mount nuts reachable under the hood, done as a pair of struts. Typical includes compressing and moving the springs and mounts to the new struts."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "2.2"
+    typical: "2.9"
+    high: "4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front struts are replaced on a 2014-2019 Corolla, with the wiper linkage and cowl top panel removed for access to the upper mount nuts, and the springs and mounts transferred to the new struts using a spring compressor."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "2"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front struts on a standard 12th-generation Corolla (sedan or hatchback, petrol or hybrid). The spring and mount are moved to the new damper with a spring compressor, and the time allows for the cowl or wiper linkage removal the service steps show for upper nut access."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "1.4"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front MacPherson struts on a non-hybrid XV40 Camry (2.4 or 3.5 engine), with upper mount nuts reachable under the hood and the spring and mount either moved to the new strut with a spring compressor or replaced as a complete assembly."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "1.6"
+    typical: "2.4"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid 2.5L or 3.5L FWD Camry with conventional MacPherson struts. Both front struts are replaced; the low end assumes complete loaded strut assemblies, and the typical time allows for transferring the springs and mounts with a spring compressor. Alignment is excluded."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "1.8"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid XV70 Camry with conventional MacPherson front struts, both sides done, and the cowl louver removed to reach the upper mount nuts. Typical includes moving the springs and mounts to new bare struts with a spring compressor;"
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2025
+    year_to: 2027
+    low: "1.4"
+    typical: "2.1"
+    high: "3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front MacPherson struts on a 2025-2027 Camry (2.5L hybrid, FWD or AWD) are replaced, with the springs and mounts moved to new bare struts on a spring compressor."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "1.5"
+    typical: "2.1"
+    high: "3.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front strut assemblies on a FWD or AWD Escape are replaced, accessed through the wheel well and four upper nuts under the hood. The typical figure allows for either complete loaded struts or moving the springs and mounts with a spring compressor; alignment is excluded."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "2.8"
+    typical: "3.6"
+    high: "5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front struts on a 2013-2019 Escape (FWD or AWD), following the factory method: remove the cowl panel once for access to the upper mount bolts, and on each side detach the knuckle (caliper, rotor, axle nut, tie rod end, ball joint, pinch bolt) to free the strut."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front struts are replaced on a 4th-gen Escape (any engine, FWD or AWD), with one removal of the wiper arms and cowl grille to reach the three upper mount bolts on each side. Typical allows for moving springs and mounts with a spring compressor;"
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "1.8"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 1st-gen Rogue (FWD or AWD) with conventional MacPherson struts, both sides done, with the job time covering either fitting complete strut assemblies or transferring the springs and mounts with a spring compressor."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "1.7"
+    typical: "2.4"
+    high: "3.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front struts on an FWD or AWD Rogue are replaced as complete loaded assemblies. The knuckle is separated from the strut's clamp slot, with the brake, sensor and tie-rod parts loosened as needed, and the steering angle sensor neutral position is reset with a scan tool afterwards."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "2.2"
+    typical: "3"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front struts are replaced on a 3rd-gen Rogue (2WD or AWD), with cowl top cover removal for access to the upper mount nuts, and the strut separated from the pinch-type knuckle using the controlled spreading method."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both front struts are replaced on a FWD or AWD Equinox with MacPherson front suspension, using either complete quick-strut assemblies or transferring the spring and mount with a spring compressor."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "1.3"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front MacPherson struts are replaced as a pair on any engine and FWD/AWD version, with the upper mount bolts reached from the engine bay and the strut-to-knuckle bolts replaced with new single-use bolts."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "1.6"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a MacPherson strut front end with three upper mount nuts accessible under the hood and two knuckle bolts, replacing both sides; typical assumes complete quick-strut assemblies, with extra time included in the range for compressing springs and transferring mounts if bare struts are fitted."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "1.8"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both front struts are replaced on a typical 2.0L or 2.4L Tucson (FWD or AWD), including removing the wiper arms and cowl top cover to reach the upper mount nuts. The typical figure allows for moving the springs and mounts to the new struts with a spring compressor;"
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "1.5"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front struts are replaced on a conventional MacPherson-strut Tucson (gas or hybrid, FWD or AWD). The time allows for transferring the springs and mounts with a spring compressor; complete loaded struts would take somewhat less."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "1.7"
+    typical: "2.4"
+    high: "3.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Both front struts on a 5th-generation Elantra with a MacPherson front end. The wipers and cowl top cover must come off to reach the upper mount nuts, and the typical time assumes the springs and mounts are moved to new bare struts with a spring compressor."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "1.8"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 6th-generation Elantra with MacPherson front struts, both sides done in one job, and the wipers and cowl top cover removed to reach the upper mount nuts. Typical allows for moving the springs and mounts to new bare struts with a spring compressor;"
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "1.6"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid Elantra with conventional MacPherson struts held by three upper nuts under the hood and two knuckle bolts, both sides done together, mostly with complete loaded struts; transferring springs and mounts with a compressor adds time toward the high figure."
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "1.8"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front struts on a 5th-generation Grand Caravan, with wiper arms and the cowl grille removed once to reach the upper mount nuts on both sides and the serrated knuckle bolts driven out with a punch."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both front coilover struts on a 2WD or 4WD 2nd-gen Tacoma, with the upper ball joint or arm separated for clearance and final torque done at ride height. Typical assumes the springs and mounts are moved to the new struts with a spring compressor;"
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "1.8"
+    typical: "2.7"
+    high: "4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front coil-over shock assemblies on a 2WD or 4WD Tacoma are replaced, following the factory route: remove the skid plate, disconnect the sway bar and tie rod ends, and remove the lower bolt and three upper nuts."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "1.9"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 4th-gen Tacoma with conventional front coilovers in a double-wishbone front end, without AVS adaptive dampers. Both sides are done following the factory steps (caliper hung, rotor off, stabilizer link, speed sensor and tie rod end disconnected), with the spring and mount transferred using…"
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "2.6"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 4x4 WK2 with conventional coil-over front shock assemblies, not Quadra-Lift air suspension. Both sides are done with the half shaft, upper ball joint and caliper removed per side, and complete pre-assembled struts are fitted; transferring springs on the bench would add time."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "2.1"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumes a WL with the standard coil-spring front coil-over strut modules on both sides, removed from the lower control arm and the upper tower nuts, with springs either transferred or complete quick-struts fitted."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "1.8"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2011-2019 Explorer (FWD or AWD) with MacPherson front struts held by two knuckle bolts and four upper mount nuts reachable from the engine bay, possibly after moving cowl trim. Both sides are done with complete loaded strut assemblies, or slightly longer if the spring is transferred;"
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "2.3"
+    typical: "3.1"
+    high: "4.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "This covers both front struts on a 6th-generation Explorer (RWD or AWD) using complete pre-assembled strut units. The cowl grille and wiper arms come off once to reach the upper mount bolts, and the caliper and knuckle are moved aside on each side."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "2.2"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front struts on a 2008-2013 Highlander (2.7L 4-cyl or 3.5L V6, FWD or AWD); the wiper arms, cowl louver, wiper motor/linkage and outer cowl top panel come off once to reach the upper mounts."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "2.2"
+    typical: "2.9"
+    high: "4.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid 3rd-generation Highlander with a conventional MacPherson strut front end. Per the factory procedure, the wiper arms, cowl louver, wiper motor and linkage, and outer cowl top panel come off first for access."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "2.4"
+    typical: "3.2"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both front struts are replaced as a pair on a 2020+ Highlander, gas or hybrid, FWD or AWD. The wiper linkage, cowl braces and cowl panel must come off to reach the upper mount nuts, and the springs and mounts are moved to the new struts with a compressor and the rebound-spring holding tool."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a MacPherson front strut on both FWD and AWD CX-5s, held by two knuckle bolts and three upper mount nuts, with both sides done and the spring and mount moved to the new strut using a spring compressor. Fitting complete strut assemblies would land near the low figure;"
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "1.7"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a MacPherson strut front end on both CX-5 sides, with the strut held to the knuckle by two lower bolts and to the body by nuts reached from the engine bay, and that both struts are replaced in one visit."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "1.6"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front MacPherson struts on a FWD or AWD 2.0L or 2.4L Sportage, removed via the knuckle bolts and three upper mount nuts. Typical time allows for compressing the springs and transferring the mounts on at least one side;"
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "2.1"
+    typical: "2.8"
+    high: "3.9"
+    confidence: 44
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both front struts on a 2017-2022 Sportage (FWD or AWD), where the wiper arms and cowl top cover must come off to reach the upper mount nuts, and the knuckle is unbolted from the strut base."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "1.8"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 5th-gen Sportage with conventional MacPherson struts (no electronically controlled dampers), with both sides done and the coil springs and top mounts transferred to the new struts using a spring compressor; using pre-assembled complete struts would be at the faster end."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "1.4"
+    typical: "2"
+    high: "3.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front damper/spring assemblies are replaced on a 4-cylinder or V6 car with the damper-fork design, using complete pre-assembled struts. Transferring springs and mounts to bare struts would add roughly half an hour per side, and alignment is excluded."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "2.4"
+    typical: "3.2"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both front damper/spring assemblies on a non-hybrid 9th-gen Accord are replaced following the procedure shown, which includes removing the caliper, spindle nut, tie-rod end, lower ball joint and knuckle/hub on each side."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "2.6"
+    typical: "3.6"
+    high: "5.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both front struts on a non-hybrid 10th-gen Accord (1.5T or 2.0T). Per the procedure, the knuckle/hub assembly comes off to remove each strut, so the caliper is hung, and the tie rod, ball joint and axle are separated."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "1.6"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes the 11th-generation Accord's MacPherson front struts on both sides, held by top mount nuts reachable under the hood and bolts to the knuckle, with no cowl removal needed."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "1.6"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front struts are replaced on a 4th-generation Outback with ordinary MacPherson struts held by two knuckle bolts and three upper mount nuts reached from the engine bay. The typical figure allows for compressing and transferring the springs and mounts to bare struts;"
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "1.6"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both front struts on a 5th-gen Outback (MacPherson, three top mount nuts, two knuckle bolts with camber adjuster marked), with time included for compressing springs and transferring mounts if bare struts are used; complete loaded struts would fall toward the low figure."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "1.6"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 6th-gen Outback with conventional MacPherson front struts, both sides replaced, with either complete strut assemblies or springs and mounts transferred in a spring compressor. Includes the scan-tool VDC midpoint setting and lane keep learning clear, but excludes the wheel alignment."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "2.4"
+    typical: "3.2"
+    high: "4.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a MacPherson-strut front end on both sides, done the VW way: plenum cover off, drive axle pushed out of the hub, ball joint separated, knuckle spread off the strut, and spring and mount moved to the new strut on a spring compressor."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "2.2"
+    typical: "2.9"
+    high: "4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both front struts on an MQB-platform Jetta, replaced by loosening the axle nut, separating the ball joint, spreading the knuckle clamp, raising the cowl panel for the upper mount bolts, and transferring the spring and mount with a spring compressor."

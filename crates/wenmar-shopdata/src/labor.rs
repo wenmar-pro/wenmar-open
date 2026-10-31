@@ -30,8 +30,18 @@ pub const MIN_JOBS: i64 = 20;
 /// The scopes, narrowest first: the order a lookup tries them in.
 pub const SCOPES: [&str; 4] = ["engine", "generation", "model", "class"];
 
-/// The two kinds of figure.
-pub const BASES: [&str; 2] = ["expert", "observed"];
+/// The kinds of figure: written by a person, measured from repair orders,
+/// worked out by a model. Within one scope a lookup prefers them in the
+/// order observed, expert, ai.
+pub const BASES: [&str; 3] = ["expert", "observed", "ai"];
+
+/// The most confidence an `ai` figure may claim, in percent.
+pub const AI_MOST_CONFIDENCE: i64 = 60;
+
+/// The kinds of input an `ai` figure may have been worked out from: the
+/// vehicle's facts, the job's definition, Wenmar's own figures of the same
+/// job, and a repair procedure's steps (never its numbers).
+pub const AI_INPUTS: [&str; 4] = ["vehicle", "job", "wenmar-figures", "procedure"];
 
 /// The classes of vehicle a class-scope estimate may be for: id and name.
 /// The order decides a tie when a model year has two classes.
@@ -113,7 +123,7 @@ pub struct LaborEstimate {
     pub hours_low: i64,
     pub hours_typical: i64,
     pub hours_high: i64,
-    /// `expert` or `observed`.
+    /// `expert`, `observed` or `ai`.
     pub basis: String,
     /// How many jobs and shops stand behind an observed figure.
     pub sample_jobs: Option<i64>,
@@ -121,20 +131,54 @@ pub struct LaborEstimate {
     pub notes: Option<String>,
     /// The day the figure was last changed, as `2026-10-12`.
     pub updated: String,
+    /// For an `ai` figure: the model's confidence in percent, the model,
+    /// the prompt version, and the kinds of input it was given. `None` and
+    /// empty for the others, and for a file without the `labor_ai` dataset.
+    pub confidence_pct: Option<i64>,
+    pub model: Option<String>,
+    pub method: Option<String>,
+    pub inputs: Vec<String>,
 }
 
-/// The columns [`estimate`] reads.
-const COLUMNS: &str = "e.job_id, j.name, e.scope, e.class, e.year_from, e.year_to, e.engine, e.hours_low, e.hours_typical, e.hours_high, e.basis, e.sample_jobs, e.sample_shops, e.notes, e.updated";
+/// The columns [`estimate`] reads. With `ai`, the `labor_ai` columns from
+/// `a`; without, NULLs in their place (a file without the dataset).
+fn columns(ai: bool) -> String {
+    let extra = if ai {
+        "a.confidence_pct, a.model, a.method, a.inputs"
+    } else {
+        "NULL, NULL, NULL, NULL"
+    };
+    format!(
+        "e.job_id, j.name, e.scope, e.class, e.year_from, e.year_to, e.engine, e.hours_low, e.hours_typical, e.hours_high, e.basis, e.sample_jobs, e.sample_shops, e.notes, e.updated, {extra}"
+    )
+}
+
+/// The join that brings in `labor_ai`, when the file holds it.
+fn ai_join(ai: bool) -> &'static str {
+    if ai {
+        "LEFT JOIN labor_ai a ON a.estimate_id = e.id"
+    } else {
+        ""
+    }
+}
+
+/// Within one scope: a measured figure, then a written one, then a
+/// model's.
+const BASIS_ORDER: &str = "CASE e.basis WHEN 'observed' THEN 0 WHEN 'expert' THEN 1 ELSE 2 END";
 
 /// Every estimate that covers one vehicle, the narrowest scope of each job
 /// first: `?1` model id, `?2` model year, `?3` the engine's id form or
 /// NULL, `?4` a job id or NULL for every job. The first row of each job is
 /// the answer: within a scope a measured figure comes before a written
-/// one. Jobs come in the order of the job list.
-pub const LABOR_FOR_VEHICLE: &str = "
-SELECT e.job_id, j.name, e.scope, e.class, e.year_from, e.year_to, e.engine, e.hours_low, e.hours_typical, e.hours_high, e.basis, e.sample_jobs, e.sample_shops, e.notes, e.updated
+/// one, and a written one before a model's. Jobs come in the order of the
+/// job list.
+pub fn labor_for_vehicle_sql(ai: bool) -> String {
+    format!(
+        "
+SELECT {columns}
 FROM labor_estimate e
 JOIN job j ON j.id = e.job_id
+{join}
 WHERE (?4 IS NULL OR e.job_id = ?4)
   AND (   (e.scope = 'engine' AND e.model_id = ?1 AND ?2 BETWEEN e.year_from AND e.year_to AND e.engine = ?3)
        OR (e.scope = 'generation' AND e.model_id = ?1 AND ?2 BETWEEN e.year_from AND e.year_to)
@@ -142,8 +186,12 @@ WHERE (?4 IS NULL OR e.job_id = ?4)
        OR (e.scope = 'class' AND e.class = (SELECT class FROM vehicle_class WHERE model_id = ?1 AND year = ?2)))
 ORDER BY j.position,
          CASE e.scope WHEN 'engine' THEN 0 WHEN 'generation' THEN 1 WHEN 'model' THEN 2 ELSE 3 END,
-         CASE e.basis WHEN 'observed' THEN 0 ELSE 1 END,
-         e.id";
+         {BASIS_ORDER},
+         e.id",
+        columns = columns(ai),
+        join = ai_join(ai),
+    )
+}
 
 const TABLE: &str = "labor_estimate";
 
@@ -170,7 +218,7 @@ fn year(row: &[Value], column: usize) -> Option<u16> {
         .and_then(|year| u16::try_from(year).ok())
 }
 
-/// Reads a [`LaborEstimate`] from [`COLUMNS`].
+/// Reads a [`LaborEstimate`] from [`columns`].
 fn estimate(row: &[Value]) -> Result<LaborEstimate, ShopError> {
     Ok(LaborEstimate {
         job_id: text(row, 0)?,
@@ -188,6 +236,19 @@ fn estimate(row: &[Value]) -> Result<LaborEstimate, ShopError> {
         sample_shops: row.get(12).and_then(Value::integer),
         notes: optional_text(row, 13),
         updated: text(row, 14)?,
+        confidence_pct: row.get(15).and_then(Value::integer),
+        model: optional_text(row, 16),
+        method: optional_text(row, 17),
+        inputs: optional_text(row, 18)
+            .map(|inputs| {
+                inputs
+                    .split(',')
+                    .map(str::trim)
+                    .filter(|input| !input.is_empty())
+                    .map(str::to_owned)
+                    .collect()
+            })
+            .unwrap_or_default(),
     })
 }
 
@@ -198,6 +259,12 @@ impl<S: Source> ShopData<S> {
         self.datasets()
             .get(Dataset::Labor)
             .map(|entry| entry.as_of.as_str())
+    }
+
+    /// Whether the file says how its `ai` figures were worked out (the
+    /// `labor_ai` dataset). A file built before it existed does not.
+    pub fn holds_labor_ai(&self) -> bool {
+        self.datasets().contains(Dataset::LaborAi)
     }
 
     /// The class of one model year and where it came from: `epa`, or
@@ -233,7 +300,7 @@ impl<S: Source> ShopData<S> {
         self.require(Dataset::Labor)?;
         let optional = |text: Option<&str>| text.map_or(Value::Null, Value::from);
         let rows = self.query(
-            LABOR_FOR_VEHICLE,
+            &labor_for_vehicle_sql(self.holds_labor_ai()),
             &[
                 model_id.into(),
                 i64::from(year).into(),
@@ -257,11 +324,14 @@ impl<S: Source> ShopData<S> {
     /// and a written one, the measured one is given.
     pub fn class_estimates_for_job(&self, job: &str) -> Result<Vec<LaborEstimate>, ShopError> {
         self.require(Dataset::Labor)?;
+        let ai = self.holds_labor_ai();
         let rows = self.query(
             &format!(
-                "SELECT {COLUMNS} FROM labor_estimate e JOIN job j ON j.id = e.job_id
+                "SELECT {columns} FROM labor_estimate e JOIN job j ON j.id = e.job_id {join}
                  WHERE e.job_id = ?1 AND e.scope = 'class'
-                 ORDER BY CASE e.basis WHEN 'observed' THEN 0 ELSE 1 END, e.id"
+                 ORDER BY {BASIS_ORDER}, e.id",
+                columns = columns(ai),
+                join = ai_join(ai),
             ),
             &[job.into()],
         )?;

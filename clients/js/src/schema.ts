@@ -1930,7 +1930,10 @@ export interface components {
         LaborFigure: {
             /**
              * @description `expert`: written by a person who does the work. `observed`:
-             *     measured from repair orders; `sample` then says how many.
+             *     measured from repair orders; `sample` then says how many. `ai`:
+             *     worked out by a model from the job and the repair steps, not checked
+             *     by a person; `confidence_pct`, `model`, `method` and `inputs` then
+             *     say how. Within one scope: observed, then expert, then ai.
              * @example expert
              */
             basis: string;
@@ -1941,14 +1944,34 @@ export interface components {
             class?: string | null;
             /** @example Small SUV */
             class_name?: string | null;
+            /**
+             * Format: int64
+             * @description For an `ai` figure: how sure the model was, in percent (at most 60).
+             *     `null` for the others.
+             * @example 45
+             */
+            confidence_pct?: number | null;
             /** @description The engine's id form, for an engine-scope figure. */
             engine?: string | null;
             hours: components["schemas"]["LaborHours"];
+            /**
+             * @description For an `ai` figure: what it was worked out from, of `vehicle`,
+             *     `job`, `wenmar-figures` and `procedure` (a repair procedure's steps,
+             *     never its numbers). `null` for the others.
+             */
+            inputs?: string[] | null;
             /**
              * @description The job's id.
              * @example brake-pads-front
              */
             job: string;
+            /**
+             * @description For an `ai` figure: the prompt version. `null` for the others.
+             * @example open-labour-ai-1
+             */
+            method?: string | null;
+            /** @description For an `ai` figure: the model that answered. `null` for the others. */
+            model?: string | null;
             name: string;
             notes?: string | null;
             sample?: null | components["schemas"]["LaborSample"];

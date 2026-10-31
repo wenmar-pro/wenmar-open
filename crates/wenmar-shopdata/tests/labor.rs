@@ -28,6 +28,11 @@ INSERT INTO labor_estimate VALUES
 "#;
 
 fn shop(datasets: &str) -> ShopData<ShopSource> {
+    shop_with(datasets, &[])
+}
+
+/// [`shop`], then `extra` SQL batches run on the file.
+fn shop_with(datasets: &str, extra: &[&str]) -> ShopData<ShopSource> {
     let connection = Connection::open_in_memory().unwrap();
     connection.execute_batch(META).unwrap();
     for (key, value) in [
@@ -49,6 +54,9 @@ fn shop(datasets: &str) -> ShopData<ShopSource> {
             connection.execute_batch(ddl).unwrap();
         }
         connection.execute_batch(ROWS).unwrap();
+    }
+    for batch in extra {
+        connection.execute_batch(batch).unwrap();
     }
     ShopData::new(ShopSource::from_connection(connection)).unwrap()
 }
@@ -239,4 +247,62 @@ fn a_file_without_the_dataset_says_so() {
         );
         assert_eq!(error.to_string(), "The labor dataset is not available.");
     }
+}
+
+/// A file with the `labor_ai` dataset: three made-up model figures for
+/// model 7002, model year 2001 a compact car. Every figure is impossible
+/// on purpose.
+const AI_ENTRIES: &str = r#""jobs":{"as_of":"2026-10-11","rows":2,"licence":"mit","attribution":""},"labor":{"as_of":"2026-10-30","rows":9,"licence":"cc-by-4.0","attribution":"Labour estimates by Wenmar Pro, CC BY 4.0"},"labor_ai":{"as_of":"2026-10-30","rows":2,"licence":"cc-by-4.0","attribution":"Labour estimates by Wenmar Pro, CC BY 4.0"}"#;
+
+const AI_ROWS: &str = r#"
+INSERT INTO vehicle_class VALUES (7002, 2001, 'compact-car', 'epa');
+INSERT INTO labor_estimate VALUES
+  (8, 'test-job-a', 'model', NULL, 7000, 7002, NULL, NULL, NULL, 2700, 2800, 2900, 'ai', NULL, NULL, 'Made-up assumption.', NULL, NULL, '2026-10-30'),
+  (9, 'test-job-a', 'model', NULL, 7000, 7002, NULL, NULL, NULL, 1700, 1800, 1900, 'expert', NULL, NULL, NULL, 'test-author', 'test-reviewer', '2026-10-30'),
+  (10, 'test-job-b', 'model', NULL, 7000, 7002, NULL, NULL, NULL, 600, 700, 800, 'ai', NULL, NULL, NULL, NULL, NULL, '2026-10-30');
+INSERT INTO labor_ai VALUES
+  (8, 45, 'test-model', 'test-method-1', 'vehicle,job,procedure'),
+  (10, 30, 'test-model', 'test-method-1', 'vehicle,job');
+"#;
+
+fn ai_shop(with_dataset: bool) -> ShopData<ShopSource> {
+    shop_with(
+        if with_dataset { AI_ENTRIES } else { ENTRIES },
+        &[wenmar_shopdata::schema::LABOR_AI, AI_ROWS],
+    )
+}
+
+#[test]
+fn a_written_figure_comes_before_a_models_of_the_same_scope() {
+    let shop = ai_shop(true);
+    let found = shop.labor_for_vehicle(7002, 2001, None, None).unwrap();
+    let answers: Vec<(&str, &str, i64)> = found
+        .iter()
+        .map(|e| (e.job_id.as_str(), e.basis.as_str(), e.hours_typical))
+        .collect();
+    // Job A: the expert model figure, not the AI one. Job B: the AI model
+    // figure, narrower than its class figures (none for a compact car).
+    assert_eq!(
+        answers,
+        [("test-job-a", "expert", 1800), ("test-job-b", "ai", 700)]
+    );
+    let ai = &found[1];
+    assert_eq!(ai.confidence_pct, Some(30));
+    assert_eq!(ai.model.as_deref(), Some("test-model"));
+    assert_eq!(ai.method.as_deref(), Some("test-method-1"));
+    assert_eq!(ai.inputs, ["vehicle", "job"]);
+    assert_eq!(found[0].confidence_pct, None);
+    assert!(found[0].inputs.is_empty());
+}
+
+#[test]
+fn a_file_without_the_labor_ai_dataset_still_reads() {
+    let shop = ai_shop(false);
+    assert!(!shop.holds_labor_ai());
+    let found = shop
+        .labor_for_vehicle(7002, 2001, None, Some("test-job-b"))
+        .unwrap();
+    assert_eq!(found[0].basis, "ai");
+    assert_eq!(found[0].confidence_pct, None);
+    assert!(found[0].inputs.is_empty());
 }

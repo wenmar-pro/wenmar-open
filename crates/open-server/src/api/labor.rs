@@ -63,7 +63,9 @@ pub fn hours(hundredths: i64) -> f64 {
 
 /// An estimate as the API and the pages give it.
 pub fn figure(base: &str, found: shopdata::LaborEstimate) -> LaborFigure {
+    let inputs = (found.basis == "ai").then(|| found.inputs.clone());
     LaborFigure {
+        inputs,
         url: job_url(base, &found.job_id),
         job: found.job_id,
         name: found.job_name,
@@ -89,6 +91,9 @@ pub fn figure(base: &str, found: shopdata::LaborEstimate) -> LaborFigure {
             (Some(jobs), Some(shops)) => Some(LaborSample { jobs, shops }),
             _ => None,
         },
+        confidence_pct: found.confidence_pct,
+        model: found.model,
+        method: found.method,
         notes: found.notes,
         updated: found.updated,
     }

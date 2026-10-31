@@ -1,0 +1,766 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: starter-replacement
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "0.8"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2WD or 4WD F-150 with a V8 (5.0L/6.2L) or similar V6, where the starter is reached from below on a lift with no major components in the way. The job covers disconnecting three cable eyelets, removing the stud bolt and two bolts, fitting the new starter and test-starting;"
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "0.8"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical 2015-2020 F-150 (e.g. 3.5L EcoBoost or 5.0L V8 with automatic) on a hoist, where the job means removing the skid plate or splash shield and the transmission housing cover, disconnecting the solenoid cables, moving the cooler tube bracket aside and removing two stud bolts."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.5L EcoBoost 4WD truck on a hoist, with the starter reached from below after removing the underbody shield and transmission housing cover, then two cable nuts and the mounting studbolts."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "0.8"
+    typical: "1.2"
+    high: "1.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.6L V6 or 5.7L Hemi with conventional starter access from below on a lift: two mounting bolts, two electrical connections, and a heat shield on the 3.6L. On 4WD 5.7L trucks the axle-to-transmission support bracket may need loosening, which adds a little time;"
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "0.8"
+    typical: "1.2"
+    high: "1.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 5.7L V8 (possibly with eTorque, which adds time for the 48V system disconnect) with 4WD on a lift. The starter comes out from below after removing the heat shield and two bolts;"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "0.8"
+    typical: "1.2"
+    high: "2"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes a Gen IV small-block V8 (4.8/5.3/6.0L) or the 4.3L V6, with the starter mounted low on the passenger side and reached from underneath. Removal is two mounting bolts plus the battery cable and solenoid wire."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "0.8"
+    typical: "1.2"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4WD truck with the 5.3L or 4.3L V8/V6, where the right front differential carrier bracket has to come off to reach the two-bolt starter from below on a lift. 2WD trucks would be quicker; the high figure allows for corroded bracket and mounting bolts."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "0.8"
+    typical: "1.2"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline Silverado 1500 (2.7L L3B or 5.3L/6.2L V8) where the starter is reached from below or through the left front wheelhouse with the liner removed, held by two or three bolts."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "0.7"
+    typical: "1.1"
+    high: "1.8"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed a gas Vortec V8 (4.8/5.3/6.0/6.2) or 4.3 V6 with the starter on the passenger side of the block, reached from underneath. On 4WD trucks a skid plate or nearby lines may need to be moved for clearance;"
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4WD Sierra 1500 with a V8 (5.3L/6.2L) or the 4.3L V6, where the starter is reached from below and the right front differential carrier bracket must come off first; 2WD trucks would take less time."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a gasoline 1500-series truck reached through the left front wheelhouse liner, as the supplied steps describe. The job covers disconnecting the battery, removing the liner, unplugging the solenoid and crank sensor leads, moving the oil cooler hoses aside and removing three starter bolts…"
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4-cylinder (2.4 2AZ-FE or 2.5 2AR-FE) RAV4, where the starter is reached from above after removing the battery, tray, battery bracket and reinforcement, with two mounting bolts and two electrical connections."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the non-hybrid 2.5L 2AR-FE RAV4 (FWD or AWD), where the starter is reached from above once the battery, tray, front bracket and bracket reinforcement are removed, so no lift work is needed. Time includes reconnecting the battery, the basic system re-initialization and a start test;"
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "1.3"
+    typical: "1.7"
+    high: "2.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gasoline 2.5L A25A-FKS RAV4 with automatic transaxle. The starter is reached mainly from above after removing the air cleaner assembly and engine cover, with the front engine mount insulator removed and the engine supported from below."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.4L K24 engine (FWD or AWD), with the starter reached from below under the intake manifold after removing the splash shield and intake manifold bracket and unplugging the knock sensor. Includes the battery disconnect and reconnect procedure and a start test."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed the 2.4L four-cylinder with automatic or CVT, front- or all-wheel drive, with the starter bolted to the bellhousing below the intake side. It is reached mainly from above after removing the air intake duct and air cleaner housing, with some under-car access for the lower bolt and wiring."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "1"
+    typical: "1.5"
+    high: "2.4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a conventional gasoline CR-V (1.5L turbo or 2.4L with CVT), where the starter sits at the engine-to-transaxle junction. Reaching it means working partly from above, with the air intake and battery tray area cleared, and partly from below with the undercover removed."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the 1.5L turbo petrol with CVT, where the starter sits at the transmission end on the front of the engine. Air intake ducting and the battery/tray may need removal for access, with some work done from below. The e:HEV hybrid has no conventional starter (the motor-generator cranks the engine)"
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 1.8L R18 non-hybrid Civic, where the front exhaust pipe and intake manifold bracket come off from below to reach the two starter bolts, with new exhaust gaskets and nuts fitted. The Civic Hybrid has no conventional 12V starter, and the Si's 2.0L engine may differ somewhat in access."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a gasoline 1.8L or 2.4L (Si) Civic, where the starter sits at the front of the bellhousing under the intake manifold. Access means removing the air intake ducting and possibly a splash shield, unbolting the two starter bolts and moving the B+ and solenoid wires."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a 2.0L non-turbo or 1.5L turbo engine with a conventional starter on the engine-transmission joint. Access is gained by removing the air intake ducting and possibly the battery tray from above, with an undercover removed from below; manual and CVT versions take about the same time."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumes the 2.0L or 1.5L turbo petrol engine with CVT or manual transaxle. The starter sits at the engine-to-transaxle joint below the intake side, so the air intake ducting and possibly the battery tray come off from above, with some access from below and the splash shield removed."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 1.8L 2ZR-FE with automatic transaxle, where the starter sits at the front of the engine by the bellhousing and is reached largely from above once the ATF filler tube is removed."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 1.8L 2ZR-FE with automatic or manual transmission, where the starter sits at the front of the engine on the transmission bellhousing and is reached from below after removing the two engine under covers."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "1.4"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a petrol Corolla with a conventional starter, such as the 2.0 M20A-FKS, where the intake manifold must come off to reach the starter; the 1.8 2ZR petrol is usually quicker. Hybrid versions have no separate starter motor, so the job does not apply to them."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 4-cylinder 2.4L 2AZ-FE with an automatic transaxle. On this engine the starter is reached from above once the air cleaner inlet, cap and case are removed, and it comes out after one connector, one terminal nut and two bolts."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L 2AR-FE four-cylinder: the starter is reached from above after removing the engine cover, intake ducting, air cleaner box and battery, so no lift is needed, and the job ends with reconnection, system initialization and a start test."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid Camry with the 2.5L four-cylinder, where the starter sits at the front of the block and the front engine mounting insulator must be removed with the engine supported. Hybrid versions have no conventional starter, and the V6 may take somewhat longer."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L I4 (similar access on 2.3L/3.0L) with the starter reached from below after removing the RH splash shield, then two cable nuts, a ground wire and two stud bolts; FWD or AWD with the vehicle on a hoist."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "1"
+    typical: "1.4"
+    high: "2.1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1.5L or 2.0L EcoBoost (or 2.5L) Escape with automatic transmission, FWD or AWD, with the starter reached from below after removing the underbody shield, the charge air cooler pipe and the starter bracket."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "1.4"
+    typical: "1.9"
+    high: "2.7"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 1.5L EcoBoost per the given procedure: drain the coolant, move the heater and coolant hoses aside, remove the CAC outlet pipe, swap the starter, then vacuum fill and bleed the cooling system."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L QR25DE with CVT, where the starter is reached from below. On AWD models the right front wheel must also come off and the starter is worked out past the transfer case, which takes longer than on 2WD models; the typical figure leans toward the AWD case."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "0.9"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.5L four-cylinder (AWD or FWD), where the starter comes out from above once the battery and battery tray (with nearby air intake/ECM pieces moved aside) are removed, so no lift is strictly needed."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "0.9"
+    typical: "1.6"
+    high: "2.7"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Covers both engines. The 2021-22 2.5L PR25DD starter comes out from above after removing the air cleaner, which is about an hour. The 2023+ 1.5L turbo KR15DDT also needs the under cover, RH wheel, splash guard and drive belt off and several harnesses moved, so the typical figure leans toward the…"
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L LEA four-cylinder from the given procedure, where the electric brake booster vacuum pump must come off first and the starter is then unbolted from below on a lift. V6 versions should take a similar time, and the high figure allows for corroded terminals and stubborn mounting bolts."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 32
+    inputs: [vehicle, job, procedure]
+    notes: "I based this on the supplied procedure for a 2.0T (LTG) AWD Equinox, where the power transfer unit must come out to reach the starter, including draining and refilling it and disconnecting the propshaft and halfshaft."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "0.8"
+    typical: "1.2"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2.0L or 2.4L Theta II petrol engine, FWD or AWD, with the starter on the transaxle bellhousing held by two bolts. Depending on the engine, access may mean removing the air cleaner and intake duct from above or an undercover from below."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.0L Nu engine, where the starter is reached from above once the air duct and air cleaner assembly are removed, with no vehicle lift or undertray removal required; the 1.6T and 2.4L variants may differ slightly."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid petrol Tucson (e.g. the 2.5L), with the starter reached from below after removing the engine under cover, unclipping the oil cooler pipe and moving the radiator hose bracket aside."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 1.8L Nu engine with automatic transmission, where the starter is reached from above after removing the air cleaner assembly and intake duct, then the B-terminal cable, S-terminal connector and two mounting bolts are removed."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.0L Nu or 1.4T engine with the starter reached from below after removing the engine room under cover, with two mounting bolts plus the B and S terminal connections and no intake or other components needing removal."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.0L non-hybrid engine with IVT, starter reached from below after removing the engine under cover, held by two mounting bolts with a wiring bracket, ST connector and B+ cable. Hybrid models use a starter-generator setup instead and are not covered; N-line 1.6T may differ slightly."
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "1.4"
+    typical: "2.1"
+    high: "3.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.6L Pentastar V6 (2011-2020), where the catalytic converter and front engine mount bracket must come off from below before the starter can be unbolted and removed."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "0.8"
+    typical: "1.2"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 2.7 L four-cylinder or 4.0 L V6 truck with an automatic or manual gearbox, where the starter bolts to the bellhousing and is reached from below after removing the front skid plate."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "2.2"
+    typical: "3"
+    high: "4.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.5L V6 (2GR-FKS), where the LH exhaust manifold, with its sensor, front pipe connection and new gaskets, must come off to reach the starter under the starter cover. The 2.7L four-cylinder starter is much quicker to reach."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "1.7"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 4WD Tacoma with the 2.4L turbo engine, where the right front wheel, fender apron trim and the converter-with-catalyst assembly must come off from below to reach the starter, with new exhaust gaskets fitted. Includes the post-battery-reconnect initialization and a start test."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "1.2"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the most common setup, a 3.6L V6 with AWD/4WD, where the front driveshaft, the front differential-to-crossmember bolt and several heat shields must come off for starter clearance."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "1"
+    typical: "1.5"
+    high: "2.4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the common 3.6L Pentastar V6 (similar for the 5.7L V8) with 4x4, where the starter is reached from below after removing the underbody splash shield and possibly a heat shield or bracket near the front driveshaft."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "0.8"
+    typical: "1.2"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.5L V6 with automatic transmission, where the starter is reached from above after removing the air cleaner assembly and moving the shift cable and manual control lever aside. Includes checking shift cable adjustment on reassembly and a start test."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "1.6"
+    typical: "2.4"
+    high: "3.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.3L EcoBoost 4WD Explorer, where the intake manifold must come off to reach the starter from above, along with disconnecting the battery, oil pressure sensor connector and starter cables."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional gasoline Highlander, such as the 3.5 V6 2GR-FE (FWD or AWD) shown, where the starter is reached from above after removing the battery, air cleaner assembly and its bracket, so no lift work is needed. Hybrid versions have no conventional starter motor and are not covered."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "0.8"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the V6 (2GR-FE/2GR-FKS) non-hybrid, where the starter sits on the front of the transaxle and is reached from above once the engine-bay seals, V-bank cover, battery and air cleaner assembly are removed, so no lift work is needed."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "2.6"
+    typical: "3.3"
+    high: "4.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Based on the 2.4L turbo (T24A-FTS) with stop-start, where the starter sits under the intake manifold: the job means draining and refilling and bleeding both the engine and intercooler coolant circuits and removing the intake manifold with its intercooler, then swapping the starter."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "1.1"
+    typical: "1.6"
+    high: "2.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a SkyActiv-G 2.0L or 2.5L petrol engine with automatic or manual transaxle, FWD or AWD, with the starter on the rear of the block at the transaxle bellhousing."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "1.2"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gasoline SkyActiv-G 2.5 (naturally aspirated or turbo), FWD or AWD, with the starter on the rear of the engine at the transaxle bellhousing. It is reached mainly from below after removing the undercover, with some top-side work around the intake and air duct."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "1"
+    typical: "1.5"
+    high: "2.4"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the common 2.4L or 2.0L petrol or 2.0L diesel with a transverse automatic or manual transaxle, where the starter bolts to the bellhousing. Reaching it typically means removing the air cleaner and intake ducting, and sometimes the battery and tray, plus working from below through the splash…"
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L GDI petrol engine with automatic transmission (FWD or AWD), where the air cleaner, battery and battery tray, engine under cover and intake manifold stay come off before the two-bolt starter is removed through a mix of top and bottom access."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "1.7"
+    typical: "2.3"
+    high: "3.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the non-hybrid 2.5L petrol engine with a conventional starter, reached from above after removing the intake manifold (air intake, throttle body, vacuum and PCV hoses, harness), with new gaskets fitted on reassembly."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "1.7"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.4 L four-cylinder, where the starter is reached from above only after removing the intake manifold (throttle body, hoses, connectors, manifold fasteners and lower bracket, with new gaskets), plus battery removal and reset afterwards. The V6 versions may take somewhat less time."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "0.9"
+    typical: "1.4"
+    high: "2.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the common 2.4 L four-cylinder with either CVT or manual gearbox, where the starter sits on the front of the transaxle. It is reached after removing the air intake ducting, and possibly the battery and battery tray, with some work from below."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "1.3"
+    typical: "1.8"
+    high: "2.7"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1.5L or 2.0L non-hybrid Accord (the hybrid has no conventional starter). The job covers removing the undercover and front exhaust pipe A with new gaskets, taking the starter out between the subframe and intermediate shaft, reinstalling everything, and clearing the idle-stop starter…"
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumes the 1.5L turbo petrol with CVT, which has a conventional starter on the transmission side of the block, reached from above and below once the air intake ducting and splash shield are removed."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "0.6"
+    typical: "1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common non-turbo 2.5L boxer with CVT, where the starter sits on top of the transmission bellhousing and is reached from above once the air intake boot is removed, so no lift is needed. The 3.6R six-cylinder may take slightly longer because of tighter access."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5i flat-four with CVT, where the starter sits on top of the transmission bellhousing and is reached from above once the air intake boot is moved aside, so no lift is needed."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L flat-four (the 2.4L turbo is similar): the starter is reached from above on the left side after moving the air intake boot and removing the left front wheel for access, with no exhaust removal."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a JK with the 3.6L or 3.8L V6 and automatic transmission, where the starter is reached from below on a lift with nothing major in the way: two mounting bolts plus the solenoid connector and battery cable."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "0.8"
+    typical: "1.2"
+    high: "1.9"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a 3.6L V6 or 2.0L turbo with a conventional starter bolted to the bellhousing and reached from below. Removal of a splash shield or heat shield, two mounting bolts and the electrical connections is expected, and the eTorque belt starter-generator is not included."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "0.8"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline Jetta (1.4T, 1.8T, 2.0 or 2.5) where the starter is reached from above after removing the air filter housing or intake ducting, with no need to lift the car."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1.4T or 1.5T petrol Jetta (the GLI 2.0T is similar), where the air filter housing comes off for top access to the B+ terminal, connector and upper bolt nut, and the noise insulation and harness bracket come off from below before the starter drops out."

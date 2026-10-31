@@ -238,7 +238,7 @@ pub fn tools() -> Value {
         {
             "name": "wenmar_labor",
             "title": "Labour estimates",
-            "description": "Wenmar's own estimates of the hours a repair job takes: written by people who do the work and later measured from repair orders, never from a labour guide. An estimate, not a quote. Rust, seized fasteners and added equipment change the time. action=jobs lists the jobs an estimate can be about; with `job` it gives one job: what it includes, what it excludes, and its typical hours by class of vehicle. action=vehicle takes `id`, a vehicle id such as \"2018_ford_f-150\" (an id that ends with an engine asks for that engine), and optionally `job`: for each job it gives `hours` (low, typical, high), `basis` (expert or observed) and `scope`, which says what the figure is for: engine, generation, model or class. A class figure is typical for vehicles of that class and was not worked out on this vehicle: say so. A job with no figure for the vehicle is not listed. action=vin takes `vin` (and optionally `year`, `job`) and does the same for the vehicle the VIN decodes to. No answer holds a price: multiply by the shop's own rate. Credit the data as `attribution` says: Labour estimates by Wenmar Pro, CC BY 4.0.",
+            "description": "Wenmar's own estimates of the hours a repair job takes: written by people who do the work, measured from repair orders, or worked out by AI from the repair steps; never copied from a labour guide. An estimate, not a quote. Rust, seized fasteners and added equipment change the time. action=jobs lists the jobs an estimate can be about; with `job` it gives one job: what it includes, what it excludes, and its typical hours by class of vehicle. action=vehicle takes `id`, a vehicle id such as \"2018_ford_f-150\" (an id that ends with an engine asks for that engine), and optionally `job`: for each job it gives `hours` (low, typical, high), `basis` (expert, observed or ai: an AI estimate worked out from the repair steps, not checked by a person; say so, with its confidence_pct) and `scope`, which says what the figure is for: engine, generation, model or class. A class figure is typical for vehicles of that class and was not worked out on this vehicle: say so. A job with no figure for the vehicle is not listed. action=vin takes `vin` (and optionally `year`, `job`) and does the same for the vehicle the VIN decodes to. No answer holds a price: multiply by the shop's own rate. Credit the data as `attribution` says: Labour estimates by Wenmar Pro, CC BY 4.0.",
             "inputSchema": {
                 "type": "object",
                 "properties": {
@@ -497,7 +497,11 @@ mod tests {
         );
         assert!(description.contains("`scope`"), "{description}");
         assert!(
-            description.contains("never from a labour guide"),
+            description.contains("never copied from a labour guide"),
+            "{description}"
+        );
+        assert!(
+            description.contains("expert, observed or ai"),
             "{description}"
         );
         assert_eq!(

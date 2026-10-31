@@ -1,0 +1,777 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: oil-service
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a typical 12th-generation F-150 with a gasoline V8 or V6 (4.6L, 5.0L, 5.4L, 3.5L EcoBoost or 3.7L), whose spin-on or cartridge filter is reachable from underneath on a lift without removing any panels."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a gasoline engine (2.7/3.5 EcoBoost, 3.3 V6 or 5.0 V8) with a conventional spin-on or easily reached filter, done on a lift. The truck's ground clearance often allows access without removing a skid plate;"
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gas engine such as the 3.5L EcoBoost on a hoist, with the underbody shield and possibly skid plates removed and refitted to reach the drain plug and filter, followed by a refill, leak check and oil life reset."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a gasoline engine such as the 5.7L Hemi or 3.6L V6, where the filter is reached from underneath and no skid plate or splash shield has to come off; the oil life reset is done through the instrument cluster."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline engine (3.6L V6 eTorque or 5.7L Hemi) or 3.0L EcoDiesel, with the oil filter and drain plug reachable from underneath on a lift; the skid plate on 4WD trucks may need removal for access."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a GMT900 Silverado with a gasoline V8 or V6, a spin-on filter reachable from underneath, a single drain plug, about 6 quarts of oil, and an oil life reset through the instrument cluster."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "0.3"
+    typical: "0.45"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a routine drain-and-refill on a gasoline V8 or V6 (5.3L/6.2L/4.3L) Silverado on a lift, with a spin-on filter, drain plug, refill to about 6-8 quarts and an oil life monitor reset through the cluster."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline V8 (5.3L/6.2L) or similar Silverado engine with an easily reached spin-on filter and drain plug, a lift available, and no skid plate removal beyond normal access. Diesel and 2.7L variants are similar in effort;"
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline V8 (4.8L/5.3L/6.0L/6.2L) with an accessible drain plug and spin-on filter, done on a lift, with roughly 6 quarts of oil, finishing with a leak check and an oil life monitor reset."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline V6 or V8 (4.3L, 5.3L or 6.2L) with a spin-on filter reachable from below; the procedure supplied covers the valve lifter oil filter, not routine service, so it was set aside."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "0.4"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a gasoline V8 (5.3L or 6.2L) or similar common engine with a bottom-accessible spin-on filter and drain plug. The truck goes on a lift with no skid plate removal beyond the standard, the oil is refilled with roughly 8 quarts, and the oil life reset is done through the instrument cluster…"
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "0.4"
+    typical: "0.55"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Covers the 2.4 L 2AZ-FE (spin-on filter), the 2.5 L 2AR-FE (cartridge filter with housing drain, special cap tool and new O-rings) and the 3.5 L V6, with the vehicle on a lift. The extra steps of the cartridge-style filter push the time a little above a basic spin-on oil change;"
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 2.5L 2AR-FE RAV4 with the cartridge-type filter housing under the engine, serviced on a lift with the filter-drain pipe and cap socket on hand; the hybrid uses a different engine but the oil service is similar."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "0.4"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.5L A25A-FKS gasoline or hybrid RAV4 on a lift, with a small under-cover access panel removed, the cartridge-style canister filter changed with the cap tool, about 4.5 L of 0W-16 refilled, then a leak and level check and a maintenance reminder reset."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L K24 petrol engine (FWD or AWD) with an accessible underside drain bolt and cartridge-style spin-on filter reachable from below. The maintenance minder is reset through the dash buttons or a scan tool, and the high figure allows for a stuck drain bolt or an overtightened filter."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L K24 gasoline engine (FWD or AWD), with the vehicle on a lift and the drain plug and oil filter reached from below without removing an undercover."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "Assumes the common 1.5L turbo or 2.4L gasoline engine (the hybrid's 2.0L also has a conventional oil service). The job is done on a lift with a bottom-mounted spin-on filter and a drain plug reachable without removing the undertray, followed by a Maintenance Minder reset through the dash menu."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the 1.5L turbo gasoline or 2.0L hybrid engine, both with a spin-on filter and drain plug reachable from underneath without removing an undertray, with the car on a lift."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid gasoline Civic (1.8 R18 or 2.0 K20) on a lift with good access to the underside drain bolt and the cartridge-style spin-on filter, filled with about 4.4 L of oil. The maintenance minder reset is done through the instrument cluster buttons, with the HDS used only where needed;"
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 9th-gen Civic (1.8L R18 or 2.4L K24) on a lift with a spin-on filter reachable from below, with the drain plug, washer, filter, refill, warm-up leak and level check, and the oil life reset all included."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "0.4"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline Civic (2.0L K20C or 1.5L turbo) on a lift. The job covers removing the engine undercover plate for filter access, draining the oil, fitting a new filter and crush washer, refilling, a short run with a leak and level check, and resetting the Maintenance Minder from the gauge."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "0.4"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a gasoline Civic (1.5L turbo or 2.0L) on a lift. The job includes removing and refitting the engine undercover access panel, draining the oil, fitting a new filter and drain plug washer, refilling about 3.5 L, running the engine to check for leaks and level, and resetting the Maintenance…"
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "0.35"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 10th-gen Corolla with the 1.8L 2ZR-FE (or similar 2.4L 2AZ-FE), which uses either a cartridge filter in a cap housing or a spin-on filter, serviced from below on a lift with no undertray removal needed."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a petrol Corolla (2ZR-FE/2ZR-FAE or 1.8 equivalent) on a lift, with either a spin-on filter or a cartridge-element filter reached from underneath, no undertray complications, and a refill of about 4.2 L of 0W-20."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline Corolla (2ZR-FAE or M20A, including the hybrid) on a lift, with a spin-on or cartridge filter reached from below after removing a small under-cover access panel."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid XV40 Camry with the 2AZ-FE 2.4 L four-cylinder (spin-on filter reached from below) or the 2GR-FE V6 (cartridge filter), on a lift with no undercover complications."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L 2AR-FE with the cartridge-type filter housing, which is drained through its own drain pipe before the cap is removed with a cap wrench; the V6 uses a spin-on filter and takes a similar time."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline Camry (2.5L 4-cylinder or 3.5L V6) on a lift. The job covers removing the under covers and splash pads, draining the oil, and replacing the cartridge filter element in its cap housing, which needs its own drain tube and cap tool."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2025
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the all-hybrid XV80 Camry with the 2.5L A25A-FXS engine on a lift, with the small under-cover access panel removed and the filter reached from below."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the common 2.5L Duratec I4 or 3.0L V6 gasoline engines (including hybrid variants), FWD or AWD, with a spin-on filter reached from underneath on a lift; on the V6 the filter is harder to reach, and the hybrid needs service mode to run the engine."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a 2013-2019 Escape with the 1.5/1.6/2.0 EcoBoost or 2.5L engine, all of which use a spin-on filter reached from below with the vehicle on a lift, and no skid plate or undertray removal beyond normal access."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline 1.5L or 2.0L EcoBoost or 2.5L hybrid Escape on a hoist, where the engine undershield must be removed and refitted and the quarter-turn plastic drain plug on the 1.5L is operated by hand. Includes refill, leak and level check, and oil life monitor reset;"
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "0.4"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L QR25DE four-cylinder (FWD or AWD) with a spin-on filter reached from below after removing the splash guard, and a lift-equipped shop. Covers draining, the new filter and drain plug washer, refilling, the leak and level check and the maintenance reminder reset."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "0.4"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L QR25DE gasoline engine (FWD or AWD), with the filter reached by removing the RH fender protector side cover, then a standard drain, filter and washer replacement, refill, leak and level check, and a maintenance reminder reset."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L four-cylinder or 1.5L VC-Turbo petrol engine, FWD or AWD, with a spin-on oil filter reached from below and an engine under cover that must come off for drain and filter access."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.4L four-cylinder with a top-mounted cartridge oil filter reached from above, plus a drain plug done on a lift; the 3.0L/3.6L V6 versions are similar in effort. The time covers draining, cartridge and seal replacement, refilling, a leak and level check, and the oil life reset."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline Equinox (1.5L turbo is most common; 2.0L or 1.6L diesel are similar) on a lift, with the spin-on filter reached from below and possibly a small underbody splash shield access panel."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gasoline 2.0L or 2.4L Theta II engine with a spin-on filter reached from below after removing the small undercover access panel, with the vehicle on a lift."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a petrol Tucson (2.0L, 2.4L or 1.6T) on a lift, with a cartridge or spin-on filter reachable from underneath and possibly an undertray access panel to open."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gas engine (2.5L G4FT or 1.6T G4FJ/G4EN-style) with a cartridge filter in a cap housing that is drained via a small bolt, accessed through an undercover drain door on a lift."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "0.3"
+    typical: "0.45"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 1.8L Nu gasoline engine with a spin-on filter that is reached from underneath, so the car goes on a lift with no undertray or only a small access panel to deal with."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "0.3"
+    typical: "0.45"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline Elantra (2.0L, 1.4T or 1.6T) with a conventional spin-on filter reachable from below, the vehicle on a lift, and possibly an undertray panel to open. The estimate covers draining, a new filter and washer, refilling, a leak and level check, and resetting the oil life monitor;"
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.0L MPI engine with a cartridge-type oil filter in a housing that has its own drain bolt, plus removal of the engine under cover, on a lift. Time covers draining, filter cartridge and O-ring replacement, refilling about 4.3 L, the leak and level check, and the oil life reset."
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "0.4"
+    typical: "0.55"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.6L Pentastar with a top-mounted cartridge filter housing reached from the engine bay, plus the drain plug underneath on a lift; earlier 3.3L/3.8L engines use a spin-on filter but take similar time."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2nd-gen Tacoma with a 2.7L 2TR-FE or 4.0L 1GR-FE engine. The 4.0L cartridge filter or a skid plate on 4WD and PreRunner models may need removing for access."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "0.5"
+    typical: "0.7"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 3.5L V6 (2GR-FKS) or 2.7L four-cylinder Tacoma with the cartridge-type filter housing, which needs the drain hose and cap tool, and the skid plate or under cover removed."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L turbo four-cylinder (non-hybrid or i-FORCE MAX hybrid) on a lift, with the engine under cover removed and refitted, a spin-on cartridge-style filter removed with a cap wrench, about 5.6 L of 0W-20 refilled, a leak check, a level check and a maintenance reminder reset through the…"
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the common 3.6L Pentastar with its top-mounted cartridge filter housing, so the filter is changed from above. The sump is drained from below after any splash shield access, then refilled with about 6 quarts, leak- and level-checked, and the oil life monitor is reset through the instrument…"
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.6L Pentastar or 2.0L turbo/4xe gasoline engine with a top-access cartridge oil filter under a cover and a lift-accessible drain plug, possibly behind a splash shield access door."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a typical gasoline engine (3.5 V6, 2.0/2.3 EcoBoost or 3.5 EcoBoost) with a spin-on or cartridge filter reached from underneath, possibly through a splash-shield access panel, on a lift."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.3L EcoBoost or 3.0L/3.3L gasoline engine on a hoist, with the rear underbody shield removed to reach the drain plug and spin-on filter. The estimate covers the drain, the filter and the plug washer, the refill, the leak and level check, and the oil life reset;"
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.5L 2GR-FE V6 (the 2.7L four-cylinder is similar), which uses a cartridge filter in a cap that must be pre-drained through the access cover with the drain pipe and loosened with the special cap wrench, adding a little time over a spin-on filter."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 2GR-FKS 3.5L V6 (also applies to the 2.7L four-cylinder) with a top-mounted cartridge filter housing that needs the drain pipe and cap socket, plus a vehicle on a lift with the underbody splash cover access panel removed as needed."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the V6 (2GR-FKS) or the 2.4T/2.5 hybrid with a cartridge-type filter in a cap housing. The job is done on a lift: remove the small rear under cover, drain the oil pan, drain the filter housing with the drain pipe, replace the element and O-rings, refill about 5.5 L, check level and leaks…"
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a SKYACTIV-G 2.0 or 2.5 gasoline engine (FWD or AWD) on a lift, with drain-plug access through the under-cover service hole and the spin-on filter reached from below."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline Skyactiv-G 2.5 (or 2.5T) on a lift, with drain access through the under-cover service hole and the cartridge-free spin-on filter reachable from below."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "0.3"
+    typical: "0.5"
+    high: "0.75"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L or 2.4L gasoline engine, FWD or AWD, with a spin-on filter reached from below, on a lift with a small access cover over the drain plug. Time covers draining, filter and washer replacement, refilling, the leak and level check, and the maintenance reminder reset;"
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "0.4"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 50
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline 2.0L or 2.4L Sportage on a lift, with access through the undertray drain and filter access covers. The job covers draining the oil, fitting a spin-on filter with a cap wrench, a new drain plug washer, refilling about 4.8 L, a leak and level check, and resetting the service…"
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L gasoline engine with a cartridge-style filter reached from underneath, with an undercover access panel to remove for the drain plug and filter cap, on a lift."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L four-cylinder or 3.5L V6 with an easily reached spin-on filter, the vehicle on a lift, and the Maintenance Minder reset through the instrument cluster rather than a scan tool. The high figure allows for a stuck filter or a damaged drain plug thread."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional 2.4L I4 or 3.5L V6 gasoline Accord on a lift with filter and drain plug reachable from below without removing an undercover (any splash shield access is minor)."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "Assumed a gasoline 1.5T or 2.0T engine, or the hybrid's 2.0 Atkinson engine, all of which have a conventional drain plug and a spin-on filter reached from underneath, with the vehicle on a lift."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 1.5L turbo or 2.0L hybrid four-cylinder, vehicle on a lift, with removal and refitting of the engine undercover access panel included. Also assumed a spin-on filter changed from below, a new drain plug washer, refill, a leak and level check, and a Maintenance Minder reset through the…"
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.5L FB25/EJ25 four-cylinder or 3.6L six with the filter reached through the under-cover service hole, a vehicle on a lift, and an oil life reminder reset through the combination meter."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "0.3"
+    typical: "0.5"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a FB25 2.5L or EZ36/FB36 3.6L boxer engine. The oil filter is accessed from above or below without removing the under cover beyond the access panel, and the vehicle is on a lift."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.5L or 2.4L turbo boxer with a top-mounted spin-on oil filter reachable from the engine bay, and a bottom drain plug accessed on a lift through the under-cover access opening."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "0.3"
+    typical: "0.45"
+    high: "0.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a JK Wrangler with the 3.6L Pentastar, whose cartridge filter sits in a top-mounted housing reached from under the hood. The job covers raising the vehicle or reaching under it to drain the sump, replacing the cartridge and O-ring, refilling about 6 quarts, running the engine to check for…"
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "0.4"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the gasoline 3.6L V6 with its top-mounted cartridge filter, so the filter is changed from above and the oil is drained from underneath on a lift or by reaching under the high-clearance vehicle."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a common petrol engine (2.5 five-cylinder, 1.8/2.0 TSI or 1.4 TSI) or the 2.0 TDI, where the filter is either a top-mounted cartridge or a spin-on unit reached after removing a splash shield, plus a lift, drain and refill and a service-reminder reset through the cluster."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 1.4T or 1.5T EA211 engine, which uses a spin-on oil filter reached from below or above, plus a lower engine splash shield or access panel that must come off to reach the drain plug."

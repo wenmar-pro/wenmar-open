@@ -673,3 +673,207 @@ fn the_threshold_is_the_one_the_reader_names() {
             .all(|row| row.shops >= 5 && row.jobs >= 20)
     );
 }
+
+// ----- figures worked out by a model -----
+
+/// An AI file for test-job-a: a model figure for the Other (narrower than
+/// any written figure it has) and one for the Sampler (where a written
+/// model figure exists and wins). Every figure is impossible on purpose.
+const AI_FILE: &str = r#"
+job: test-job-a
+method: test-method-1
+model: test-model
+generated: 2026-10-30
+estimates:
+  - scope: model
+    make: testmake
+    model: other
+    low: "2.7"
+    typical: "2.8"
+    high: "2.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Made-up assumption."
+  - scope: model
+    make: testmake
+    model: sampler
+    low: "1"
+    typical: "1.1"
+    high: "1.2"
+    confidence: 20
+    inputs: [vehicle, job]
+"#;
+
+/// The expert fixtures, plus `text` as `labor/ai/test-job-a.yaml`.
+fn with_ai(name: &str, text: &str) -> Scratch {
+    let files = fixtures();
+    let files: Vec<(&str, &str)> = files
+        .iter()
+        .map(|(name, text)| (*name, text.as_str()))
+        .collect();
+    let scratch = prepared(name, &files);
+    let directory = scratch.curated().join("labor/ai");
+    std::fs::create_dir_all(&directory).unwrap();
+    std::fs::write(directory.join("test-job-a.yaml"), text).unwrap();
+    std::fs::write(directory.join("_example.yaml"), "job: [nonsense").unwrap();
+    scratch
+}
+
+#[test]
+fn ai_figures_are_built_with_how_they_were_worked_out() {
+    let scratch = with_ai("labor-ai-built", AI_FILE);
+    let summary = build(&scratch, true).unwrap();
+    let labor = summary.datasets.get(Dataset::Labor).unwrap();
+    assert_eq!((labor.as_of.as_str(), labor.rows), ("2026-10-30", 7));
+    let ai = summary.datasets.get(Dataset::LaborAi).unwrap();
+    assert_eq!(
+        (ai.as_of.as_str(), ai.rows, ai.licence.as_str()),
+        ("2026-10-30", 2, "cc-by-4.0")
+    );
+    let connection = Connection::open(scratch.out()).unwrap();
+    assert_eq!(
+        rows(
+            &connection,
+            "SELECT e.job_id, e.scope, e.model_id, e.hours_typical, e.basis, e.notes, e.author, e.updated, a.confidence_pct, a.model, a.method, a.inputs
+             FROM labor_estimate e JOIN labor_ai a ON a.estimate_id = e.id ORDER BY e.id"
+        ),
+        [
+            "test-job-a|model|7002|280|ai|Made-up assumption.|-|2026-10-30|45|test-model|test-method-1|vehicle,job,procedure",
+            "test-job-a|model|7001|110|ai|-|-|2026-10-30|20|test-model|test-method-1|vehicle,job",
+        ]
+    );
+    drop(connection);
+    let shop = ShopData::new(ShopSource::open(scratch.out()).unwrap()).unwrap();
+    // The Other has only the AI figure; the Sampler's written model figure
+    // comes before the AI one of the same scope.
+    let other = shop
+        .labor_for_vehicle(7002, 2001, None, Some("test-job-a"))
+        .unwrap();
+    assert_eq!(
+        (other[0].basis.as_str(), other[0].hours_typical),
+        ("ai", 280)
+    );
+    assert_eq!(other[0].confidence_pct, Some(45));
+    assert_eq!(other[0].inputs, ["vehicle", "job", "procedure"]);
+    let sampler = shop
+        .labor_for_vehicle(7001, 2003, None, Some("test-job-a"))
+        .unwrap();
+    assert_eq!(
+        (sampler[0].basis.as_str(), sampler[0].hours_typical),
+        ("expert", 8800)
+    );
+}
+
+#[test]
+fn without_ai_files_there_is_no_labor_ai_dataset() {
+    let files = fixtures();
+    let files: Vec<(&str, &str)> = files
+        .iter()
+        .map(|(name, text)| (*name, text.as_str()))
+        .collect();
+    let scratch = prepared("labor-no-ai", &files);
+    let summary = build(&scratch, true).unwrap();
+    assert!(!summary.datasets.contains(Dataset::LaborAi));
+    let connection = Connection::open(scratch.out()).unwrap();
+    assert!(
+        rows(
+            &connection,
+            "SELECT name FROM sqlite_master WHERE name = 'labor_ai'"
+        )
+        .is_empty()
+    );
+}
+
+#[test]
+fn an_ai_answer_outside_the_guardrails_stops_the_build() {
+    let cases = [
+        (
+            "confidence: 45",
+            "confidence: 61",
+            "confidence must be from 0 to 60",
+        ),
+        ("high: \"2.9\"", "high: \"40.01\"", "from 0.01 to 40"),
+        (
+            "low: \"2.7\"\n    typical: \"2.8\"\n    high: \"2.9\"",
+            "low: \"1\"\n    typical: \"1\"\n    high: \"3.5\"",
+            "more than 3 times typical",
+        ),
+        ("typical: \"2.8\"", "typical: \"3\"", "in that order"),
+        (
+            "inputs: [vehicle, job, procedure]",
+            "inputs: [vehicle, labour-guide]",
+            "inputs must be",
+        ),
+        (
+            "inputs: [vehicle, job, procedure]",
+            "inputs: []",
+            "inputs must be",
+        ),
+        ("model: test-model", "model: \"\"", "model must be a name"),
+        (
+            "generated: 2026-10-30",
+            "generated: soon",
+            "generated must be a day",
+        ),
+        (
+            "job: test-job-a",
+            "job: test-job-b",
+            "holds the job test-job-b",
+        ),
+        (
+            "    model: other\n",
+            "    model: nothing\n",
+            "has no model nothing",
+        ),
+        (
+            "    notes: \"Made-up assumption.\"\n",
+            "    author: someone\n",
+            "author",
+        ),
+    ];
+    for (index, (from, to, expected)) in cases.into_iter().enumerate() {
+        assert!(AI_FILE.contains(from), "{from}");
+        let text = AI_FILE.replacen(from, to, 1);
+        let scratch = with_ai(&format!("labor-ai-bad-{index}"), &text);
+        let error = format!("{:#}", build(&scratch, true).unwrap_err());
+        assert!(error.contains(expected), "{expected}: {error}");
+    }
+}
+
+#[test]
+fn the_ai_directory_in_the_repository_is_sound() {
+    let data = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data");
+    for (name, text) in open_data::shop::codes::files(&data.join("labor/ai")).unwrap() {
+        labor::parse_ai(&name, &text).unwrap();
+    }
+}
+
+/// A file as Wenmar's labour generator writes it, kept here so a change to
+/// the build that stops reading the generator's files shows.
+const GENERATED: &str = r#"# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: test-job-a
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: class
+    class: compact-car
+    low: "0.4"
+    typical: "0.5"
+    high: "1.25"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "A \"quoted\" note."
+"#;
+
+#[test]
+fn the_generators_file_is_read_by_the_build() {
+    let records = labor::parse_ai("test-job-a", GENERATED).unwrap();
+    assert_eq!(records.len(), 1);
+    let record = &records[0];
+    assert_eq!((record.low, record.typical, record.high), (40, 50, 125));
+    assert_eq!(record.notes.as_deref(), Some("A \"quoted\" note."));
+    assert_eq!(record.llm, "claude-opus-5-5");
+    assert_eq!(record.method, "open-labour-ai-1");
+}

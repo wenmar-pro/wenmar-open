@@ -1,0 +1,777 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: brake-pads-and-rotors-front
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2WD or 4WD truck with the usual unit-bearing front hub, where the rotor slips off once the caliper and bracket are removed, so no bearing or hub service is needed."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a standard F-150 with twin-piston sliding calipers on both front corners, where the anchor plate comes off with the caliper, the rotor slides off the hub, and the new anchor bolts are torqued high."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard F-150 with the usual twin-piston sliding front calipers, slip-on rotors, and brake service mode set through the scan tool or menu, both sides done together. The anchor bracket bolts are torque-to-yield and get replaced, and the slides are cleaned and greased;"
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the standard 4th-generation Ram 1500 front setup where the rotor slips off over the hub studs once the caliper bracket is removed, on 2WD or 4WD alike, so no hub or bearing work is needed. The high figure allows for a rotor rusted to the hub and seized caliper bracket bolts or slide pins."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a coil-spring Ram 1500 (DT) with conventional front calipers on bolted brackets and slip-on rotors. Both sides are done in one visit including slide cleaning and lubrication, pedal pump-up and a short bedding road test;"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "1.4"
+    typical: "1.9"
+    high: "2.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a GMT900 Silverado 1500 with the common front dual-piston caliper on a bracket held by large threadlocked bolts, rotors that slide over the studs, and work done on a lift."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "1.4"
+    typical: "1.9"
+    high: "2.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a half-ton 4WD or 2WD Silverado with the conventional front rotor held by a retaining screw, done on a lift. The caliper and bracket come off as an assembly, the pads are changed, the bracket bolts are cleaned and get fresh threadlocker allowing for cure time, and the job ends with pedal…"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "1.4"
+    typical: "1.9"
+    high: "2.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a Silverado 1500 with pin-retained front pads, where the whole caliper unbolts with two bolts to free the rotor and the rotor is held by a retaining bolt."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "1.3"
+    typical: "1.7"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a half-ton or HD Sierra with slide-off front rotors that are not integral with the hub. Both sides are done by removing the caliper and bracket together, then cleaning the bracket bolt threads and applying threadlocker, cleaning the hub face, fitting new pads and hardware, pumping up the…"
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 1500-series 2WD or 4WD Sierra with standard twin-piston front calipers and a hub-mounted rotor held by a small retaining screw, with both sides done together on a lift."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a T1XX Sierra 1500-type truck (2WD or 4WD) with fixed front calipers that unbolt as a unit and hat-type rotors held by a retaining screw, done on a lift for both sides."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both front sides on a standard 2.4 L or 3.5 L RAV4 with slip-on hub rotors. The calipers are hung aside without opening the hydraulic system, so the hose disconnection and bleeding in the supplied caliper steps are excluded."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "1.3"
+    typical: "1.7"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 4th-gen RAV4 (FWD or AWD) with sliding single-piston calipers whose brackets unbolt to release the rotors. The calipers are hung aside without opening the hydraulics, so the drain and bleed steps in the manual procedure are not needed;"
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "1.2"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 5th-gen RAV4 with conventional sliding single-piston front calipers, gas or hybrid. On hybrids without a vacuum booster, the time includes disabling the electronic brake control, disconnecting the auxiliary battery and clearing DTCs afterward."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "1.3"
+    typical: "1.7"
+    high: "2.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2007-2011 CR-V with conventional front disc brakes, either 2WD or AWD; the job covers both sides, with the caliper and bracket removed as one unit and hung up, the rotor flat screws removed, and pads, shims and retainers serviced and lubricated."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "1.1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.4L CR-V, 2WD or AWD, with single-piston sliding front calipers whose brackets come off as an assembly with the caliper so the rotors can be removed and the two small rotor retaining screws replaced."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a 5th-generation CR-V with the 1.5T or 2.4L engine and either FWD or AWD, conventional front sliding calipers, and rotors held by small retaining screws that may need an impact driver."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 6th-gen CR-V (1.5T or 2.0 hybrid, FWD or AWD) with conventional sliding single-piston front calipers and hub-mounted rotors held by retaining screws, so no hub removal is needed."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-Si 8th-gen Civic with conventional single-piston sliding front calipers, where the caliper bracket assembly comes off as a unit after unbolting the brake hose bracket from the strut, and the rotor is held by flathead screws."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a conventional front disc brake with a sliding caliper on any 9th-gen Civic trim, with the caliper bracket removed and hung on wire so the rotors can come off, the rotors held by retaining screws or simply slipped off, and a dial-gauge runout check on the new rotors without lathe work."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard (non-Type R/Si) Civic with single-piston sliding front calipers whose brackets come off for rotor removal, rotors held by a flathead retaining screw that may need an impact driver, and pads, hardware and rotors replaced on both sides."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the usual 11th-generation Civic front setup: single-piston floating calipers on bolted brackets, with rotors held by small retaining screws that may need an impact driver."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "1"
+    typical: "1.4"
+    high: "2.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes slip-on front rotors held only by the wheel and caliper bracket. The caliper is hung aside without disconnecting the brake hose, so no bleeding is needed, unlike the full caliper-removal procedure shown."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional front disc setup on any 11th-gen Corolla, with the caliper hung on a hanger (hose left connected, so no draining or bleeding) and the brackets removed so both rotors can be swapped and the slides serviced."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both front sides on a standard sliding-caliper Corolla, where each rotor comes off after the caliper and bracket are removed. On hybrid versions, a small allowance is included for disabling the electronic brake control, disconnecting and reconnecting the auxiliary battery, and clearing…"
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "1"
+    typical: "1.4"
+    high: "2.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional XV40 Camry (4-cylinder or V6, not the hybrid procedure) with slip-on front rotors, where the calipers are hung aside without opening the hydraulic line, so the fluid draining and bleeding steps in the supplied procedure are not needed."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "1.3"
+    typical: "1.7"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid XV50 Camry with conventional sliding front calipers and hub-mounted rotors held only by wheel nuts. The calipers are hung off without opening the hydraulics, so the hose disconnection and bleeding in the full overhaul procedure are excluded;"
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid XV70 Camry with a 2-pot floating front caliper, rotors held only by the caliper bracket (no retaining screws needing heat), and both sides done together, including cleaning and lubricating the slides, pushing back the pistons and a short bed-in road test."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2025
+    year_to: 2027
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a front-wheel-drive or AWD 2.5L hybrid Camry with conventional sliding single-piston calipers, where the brackets are unbolted to remove the rotors."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "1.3"
+    typical: "1.7"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2008-2012 Escape (FWD or AWD, 2.5L/3.0L) with conventional sliding front calipers whose anchor brackets unbolt so the rotors can be removed; the rotors are taken as slip-fit over the studs and held only by a retaining clip or rust."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical 2013-2019 Escape with a floating single-piston front caliper on a bolted bracket and a rotor held only by the wheel and possibly a retaining screw, done on both front wheels."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "1.3"
+    typical: "1.7"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard 4th-gen Escape with conventional sliding front calipers. Both sides are done: wheels off, caliper and bracket off, rotor swapped with hub faces cleaned, slides lubricated and new pads fitted."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the conventional front disc brakes with single-piston sliding calipers on 2WD or AWD models and slip-on rotors held by the wheel and possibly retaining screws, so the caliper brackets come off to free the rotors and the hubs stay in place."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "1.3"
+    typical: "1.7"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single-piston sliding caliper on each front corner with a two-bolt bracket (torque member) and a slip-on rotor that may be held by small retaining screws, covering both sides on FWD or AWD with the 2.5L or hybrid-free common drivetrains."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard single-piston sliding front caliper on the 2.5L or 1.5L turbo Rogue, FWD or AWD, with the torque member (bracket) removed to free a rotor held only by the wheel and possibly a retaining screw."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional single-piston sliding caliper front axle on all Equinox engines and drivetrains (FWD or AWD), with both sides done together. The time covers cleaning the hub faces, preparing and threadlocking the bracket bolts, pumping the pedal and a short burnish road test;"
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a front-wheel-drive or all-wheel-drive Equinox with conventional floating calipers, rotors held by a retaining screw, and caliper bracket bolts that need cleaning, threadlocker and a torque-angle tightening."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2nd-gen Tucson with conventional single-piston sliding front calipers whose brackets must be unbolted to remove the rotor (rotor held by a small retaining screw or two), done as an axle set with both sides."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional sliding single-piston front caliper on both sides, with the caliper carrier unbolted to free the rotor and any rotor retaining screw removed. No electronic parking brake service mode is needed at the front, and the time covers both sides plus a short bedding road test."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional Tucson with front sliding single-piston calipers and two-piece rotors held by a small retaining screw, covering both front wheels with caliper brackets removed, slides serviced, new pads and hardware fitted, and a short road test."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2011-2016 Elantra with front disc brakes using a sliding caliper on a bolted carrier and a hat-type rotor held by a small retaining screw. The job covers both sides: removing the carrier to free the rotor, cleaning and greasing the slides, fitting new hardware, pumping up the pedal and a…"
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2017-2020 Elantra with conventional front sliding calipers. Both sides are done: brake hose bracket off, caliper swung down or removed, bracket bolts out, rotor retaining screws removed, new rotors, pads, return springs and lubed slides fitted, then pedal pump and a short bedding road…"
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2021+ Elantra (non-N, non-hybrid variants similar) with conventional sliding front calipers and a hub-mounted rotor held by a retaining screw, so each rotor comes off once the caliper bracket is unbolted."
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard front axle with single-piston sliding calipers on bolt-on brackets and slip-on hub rotors, done on a lift with both sides serviced, including cleaning and lubricating slides and abutments, fitting new hardware and a short road test."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "1.2"
+    typical: "1.7"
+    high: "2.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes slip-on hat-style front rotors, which come off after the caliper and bracket are removed on both 2WD and 4WD second-generation Tacomas. The caliper is hung without opening the hydraulic line, so no bleeding is needed."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "1"
+    typical: "1.4"
+    high: "2.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the fixed four-piston front calipers come off on their two mounting bolts and hang from the suspension without opening the brake line, so no bleeding is needed."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the fixed multi-piston front calipers with pin-retained pads, where each caliper is unbolted and hung aside so the hat-type rotor can slide off the hub, done on both sides. Brake control disabling on the hybrid adds a few minutes, and the road test for bedding in the pads is included."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a standard WK2 with single-piston sliding front calipers; the SRT/Trackhawk fixed Brembo calipers follow a different procedure. Both sides are done: caliper and bracket off, hub face cleaned, rotors replaced, slides and abutments serviced, calipers refitted, pedal pumped up and a short road…"
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a conventional hydraulic front disc setup with two-piston sliding calipers and hub-mounted rotors held only by wheel studs or a retaining screw, the same on gasoline and 4xe hybrid variants. Both sides are done together, including a short road test to bed in the pads;"
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 5th-gen Explorer (FWD or AWD) with the standard single-piston sliding front calipers, where the caliper and anchor bracket come off to free the rotor for replacement on both sides, plus cleaning and lubricating the slides."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard 6th-gen Explorer with front sliding calipers, the brake service mode activated via the cluster or scan tool, rotors that slip off the hub after the anchor brackets are removed, and new anchor bolts installed."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both front wheels on a 2nd-generation Highlander with the 3.5 V6 (FWD or AWD), with sliding calipers removed and hung on their hoses without opening the hydraulic system; the supplied caliper-replacement steps with hose disconnection and bleeding were not counted."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 3rd-gen Highlander (FWD or AWD) with slip-on front rotors and floating calipers that are hung aside without opening the hydraulic line, so no bleeding is needed."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "1.4"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gasoline or hybrid Highlander with conventional sliding front calipers and rotors that slip off the hub once the caliper brackets are removed, done on both sides."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard single-piston sliding front caliper on either the 2.0L or 2.5L, FWD or AWD, with rotors held only by the caliper bracket or small retaining screws. Both sides are included, with piston compression, slide cleaning and lubrication, and a short road test to bed in the pads."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "1.3"
+    typical: "1.7"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a standard CX-5 front axle with a 2-piston floating caliper on a bolted mounting support and a hat-style rotor held only by retaining screws or by the wheel. Both sides are done, with no hydraulic lines opened and no fluid exchange;"
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2011-2016 Sportage (FWD or AWD) with conventional sliding single-piston front calipers whose brackets unbolt to free a hat-type rotor that slides off the hub, possibly held by a retaining screw."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "1.3"
+    typical: "1.7"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard 4th-generation Sportage (FWD or AWD, any common engine) with single-piston sliding front calipers, bolt-on caliper brackets and hat-type rotors held by retaining screws, done on both front wheels together."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid Sportage with a conventional sliding front caliper that pivots up on one bolt, a two-bolt bracket with new mounting bolts, and a rotor held by retaining screws; the steps are the same for FWD and AWD."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard Accord with conventional single-piston sliding front calipers held to the knuckle by a bracket, and rotors retained by flathead screws that may need impact-driver removal."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional sliding single-piston front caliper on either the Akebono or Nissin type, with each rotor held by flathead retaining screws. Both sides are done together: caliper brackets come off to free the rotors, hubs are cleaned, slides and abutments are lubricated, pistons are…"
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a conventional sliding-caliper front disc setup common to the 1.5T, 2.0T and hybrid versions, with rotors held by retaining screws that come off once the caliper bracket is removed, and the job done on both front wheels."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "1.3"
+    typical: "1.7"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the 11th-gen Accord (1.5T or 2.0 hybrid, FWD) with sliding single-piston front calipers and rotors held by retaining screws that may need an impact driver; both front axles done together, including the road test for bedding in."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2010-2014 Outback with the standard sliding front calipers and slip-on rotors. Both sides are done: the caliper assembly comes off as a unit with the brake hose bracket unbolted and is hung from the strut, the rotors are swapped, the slides are cleaned and lubricated, the pistons are…"
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical 2.5i or 3.6R AWD Outback with the conventional front sliding calipers, with the caliper and bracket removed as a unit and the hydraulic line left closed, so no bleeding is needed."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard 6th-generation Outback with a single-piston sliding front caliper, removed with its bracket as an assembly and hung from the strut, and rotors that slip over the hub using the 8 mm jacking-bolt threads."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a stock JK with the standard front disc brakes on a solid axle. Both sides are done: calipers hung off, adapters unbolted to free the rotors, hubs cleaned, new pads and clips fitted, then pedal pump-up and a short bed-in road test."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "1.3"
+    typical: "1.7"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a JL Wrangler with the usual solid front axle and twin-piston sliding calipers on adapters, using large wheels and tyres. Both sides are serviced: the caliper and its high-torque adapter come off and the caliper is hung up without opening the hydraulics, the rotor retaining screw is…"
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "1.2"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a standard 6th-gen Jetta with conventional floating single-piston front calipers (FN3 type) and carrier brackets on 12-mm-class bolts, with a rotor retaining screw on each side, and both sides done together with a short bed-in road test."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 7th-generation Jetta with the standard floating single-piston front calipers, two caliper guide bolts, two bracket bolts and a rotor retaining screw per side, plus a wear sensor on one side, done with both front wheels off on a lift."

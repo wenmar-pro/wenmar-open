@@ -36,6 +36,9 @@ pub fn basis_words(figure: &LaborFigure) -> String {
             "measured from {} repair orders at {} shops",
             sample.jobs, sample.shops
         ),
+        None if figure.basis == "ai" => {
+            "an AI estimate worked out from the repair steps, not checked by a person".to_owned()
+        }
         None => "written by a person who does this work".to_owned(),
     }
 }

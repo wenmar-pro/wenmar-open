@@ -1677,6 +1677,12 @@ pub struct LaborFigure {
     pub years: Option<LaborYears>,
     pub engine: Option<String>,
     pub sample: Option<LaborSample>,
+    /// For an `ai` figure: confidence in percent, the model, the prompt
+    /// version, what it was worked out from. `null` for the others.
+    pub confidence_pct: Option<i64>,
+    pub model: Option<String>,
+    pub method: Option<String>,
+    pub inputs: Option<Vec<String>>,
     pub notes: Option<String>,
     pub updated: String,
     pub url: String,
@@ -1761,7 +1767,12 @@ impl<S: Source, C: Source> Answers<'_, S, C> {
 
     fn labor_figure(&self, found: crate::labor::LaborEstimate) -> LaborFigure {
         let hours = |hundredths: i64| hundredths as f64 / 100.0;
+        let inputs = (found.basis == "ai").then(|| found.inputs.clone());
         LaborFigure {
+            inputs,
+            confidence_pct: found.confidence_pct,
+            model: found.model,
+            method: found.method,
             url: format!("{}/jobs/{}", self.base, found.job_id),
             job: found.job_id,
             name: found.job_name,

@@ -1,0 +1,777 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: oxygen-sensor-replacement
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes one sensor (upstream or downstream) on a common engine such as the 5.0L or 5.4L V8, reached from below with the truck on a lift using an O2 sensor socket, with the connector unclipped from its harness bracket."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed replacement of a single upstream heated oxygen sensor on one bank of a typical engine such as the 3.5L EcoBoost. The work covers removing the engine cover to reach the connector, lifting the truck and removing the underbody shield or skid plate if fitted, and unscrewing the sensor with a…"
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one upstream heated oxygen sensor on a 3.5L EcoBoost (similar on other engines), reached from below on a lift after removing the underbody shield or skid plate if fitted."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one sensor (upstream or downstream) on a common gasoline engine such as the 5.7 HEMI or 3.6 Pentastar, reached from below on a lift with a sensor socket, including connector release from its clip and a scan-tool check."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one sensor (upstream or downstream) on a common gas engine such as the 5.7 Hemi or 3.6 Pentastar, reached from below on a lift with a sensor socket, with the connector unclipped from its bracket. Upstream sensors near the manifold, and heat-seized threads, push the time toward the high end."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "0.5"
+    typical: "0.8"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one upstream (bank 1 sensor 1) sensor on a V8 truck reached from below. On 4WD models the front propeller shaft is unbolted from the front differential for access, then the sensor is unplugged from its clip, swapped with a sensor socket and the codes are cleared."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "0.4"
+    typical: "0.6"
+    high: "1.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single upstream (Bank 1 Sensor 1) heated oxygen sensor on a V8 Silverado, reached from below with the truck on a lift. The connector is unclipped from its bracket and the sensor is removed with a sensor socket, and the new sensor is pre-coated with anti-seize."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "1.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one upstream heated oxygen sensor (bank 1 sensor 1) on a gasoline V8 such as the 5.3L or 6.2L, reached from below on a lift with a sensor socket, using a pre-coated new sensor."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a GMT900 Sierra with a gasoline V8 (4.8/5.3/6.0/6.2) and one sensor replaced, most likely bank 1 sensor 1 on a 4WD truck, where the front propshaft must be unbolted from the front differential for access."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "0.4"
+    typical: "0.6"
+    high: "1.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 5.3L or 6.2L V8 truck and a single upstream sensor (bank 1 sensor 1) reached from below on a lift, with the connector reachable without removing heat shields or other parts."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "1.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one upstream or downstream heated O2 sensor on a V8 (5.3L/6.2L) or similar engine, reached from below on a lift with the vehicle cool, using a pre-coated replacement sensor. The time includes the scan-tool heater resistance learn reset and code clearing;"
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes one sensor on a 2.4L four-cylinder or 3.5L V6. Either the downstream sensor reached from below, or the upstream air-fuel sensor reached through the rear-facing manifold area. The V6 rear-bank upstream sensor would sit toward the high end of the range."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "0.6"
+    typical: "1.1"
+    high: "2.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "This estimate assumes the 2AR-FE 2.5L downstream heated oxygen sensor (bank 1 sensor 2), following the factory route of removing the front exhaust pipe sections, then fitting new gaskets, checking for exhaust leaks, clearing codes and checking readings."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one sensor is replaced on the 2.5L A25A engine, either the upstream air-fuel ratio sensor on the manifold, reached from the top after removing the engine cover, or the downstream sensor on the front pipe, reached from below."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.4 K24 engine and replacement of the upstream A/F sensor at the rear-mounted exhaust manifold/catalyst, reached from above or below with an O2 sensor socket and possibly a heat shield removed. Includes clearing codes and checking sensor readings with a scan tool;"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "0.5"
+    typical: "0.8"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.4L four-cylinder CR-V and replacement of a single sensor, either the upstream A/F sensor on the front-mounted manifold/catalyst (reached from above after moving a heat shield or wiring) or the downstream sensor reached from below."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "0.5"
+    typical: "0.8"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 1.5 L turbo gasoline engine and replacement of a single sensor, either the upstream A/F sensor at the turbo/catalyst outlet or the downstream sensor reached from below. The work is done with an O2 sensor socket, followed by clearing codes and checking live data;"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed one sensor is replaced on either the 1.5L turbo or the 2.0L hybrid engine. The downstream sensor is reached from below, while the upstream air-fuel sensor near the close-coupled converter may need heat shield or cover removal for access."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "0.4"
+    typical: "0.6"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the front air/fuel sensor on the R18A1 (2.0L Si similar) is reached through the engine bay using an O2 sensor socket, with possible access from below."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the upstream air/fuel sensor is being replaced, using the K24-style procedure where the wiper arms, cowl covers and under-cowl panel come off for access from above, followed by clearing codes and checking live data. A downstream sensor reached from below would take less time;"
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "0.4"
+    typical: "0.6"
+    high: "1.1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single sensor is replaced, typically the upstream A/F sensor on the exhaust manifold/catalyst assembly of the 2.0L or 1.5T engine. It is reached from above or below with a slotted sensor socket, the connector is unplugged and re-clipped, and codes are cleared with a scan tool."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Covers one sensor, either the upstream air/fuel ratio sensor or the downstream sensor, on the 2.0L or 1.5L turbo engine. Upstream access may require removing a heat shield or splash cover, and the downstream sensor is reached from below on a lift."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the downstream heated oxygen sensor on the front exhaust pipe of the 1.8L 2ZR-FE. Its connector is routed into the cabin through a floor grommet, so the job means raising the car, freeing the harness clamp bracket and passing the lead through the floor, with brief scan-tool code clearing…"
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2ZR-FE Corolla and the downstream heated oxygen sensor shown in the procedure. Its connector is reached inside the cabin by removing the console insert and folding back the carpet, and the sensor is pulled from below through a body grommet after removing the underbody floor cover."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the upstream air-fuel ratio sensor (sensor 1) on the 2.0 L M20A-FKS, reached from above after removing the wiper arms, wiper motor and linkage, the cowl panels and the dash heat insulator, then reinstalling everything and running the initialization and exhaust leak check."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "0.4"
+    typical: "0.6"
+    high: "1.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the downstream heated oxygen sensor on the 2AZ-FE 2.4 L engine, reached from below on a lift: unplug the connector, remove the sensor with a slotted sensor socket, fit the new one with anti-seize, torque it, then clear codes and check readings with a scan tool."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "0.4"
+    typical: "0.6"
+    high: "1.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L 2AR-FE with the downstream heated oxygen sensor in the front exhaust pipe, reached from below on a lift, with the connector reached without removing other parts."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "0.4"
+    typical: "0.6"
+    high: "1.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the upstream air-fuel ratio sensor (sensor 1) on the 2.5L A25A-FKS, reached from the top after removing the engine cover and unclipping three harness clamps, then removed with a sensor socket. Clearing codes and a brief check of readings and exhaust leaks are included;"
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2025
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "1.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the upstream air-fuel ratio sensor (sensor 1) on the 2.5L hybrid/gas engine, reached from above after removing the engine cover, with the sensor socket used for removal and installation."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "0.4"
+    typical: "0.6"
+    high: "1.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single upstream or downstream heated oxygen sensor on the 2.5L or 3.0L engine, reached from below on a hoist with a sensor socket. Unplugging, swapping with anti-seize, clearing codes and a brief readings check are included; front sensors on the V6 rear bank may take longer."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the upstream heated oxygen sensor on the 2.0L EcoBoost, reached from above after removing the cowl panel, air cleaner outlet pipe and crankcase vent tube, as the supplied steps describe."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one heated oxygen sensor on a 1.5L or 2.0L EcoBoost Escape, reached from below on a lift: either the downstream catalyst monitor sensor or the upstream sensor, which can need a heat shield removed."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L QR25DE with one sensor replaced, either the upstream air-fuel ratio sensor or the downstream heated oxygen sensor on the manifold-catalyst at the rear of the engine."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "0.5"
+    typical: "0.8"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the common 2.5L QR25DE with one sensor replaced, either the upstream air-fuel ratio sensor at the manifold catalyst or the downstream sensor reached from below."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "0.4"
+    typical: "0.8"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes one sensor is replaced, either the upstream air-fuel ratio sensor at the close-coupled catalyst or the downstream sensor, on the 2.5L or 1.5L turbo engine. The upstream sensor may need a heat shield or under-cover removed and is harder to reach;"
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "0.4"
+    typical: "0.6"
+    high: "1.1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single upstream (sensor 1) heated oxygen sensor on the 2.4L engine, reached from above after removing the intake manifold cover, with a pre-coated new sensor. Time covers unplugging, removing and fitting the sensor, clearing codes and checking live data;"
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one heated oxygen sensor on the common 1.5L turbo engine, most likely the upstream (sensor 1) unit reached from above after removing the engine cover, with the downstream sensor taking similar time from below."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "0.5"
+    typical: "0.8"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L or 2.4L gasoline Tucson and replacement of one sensor. The upstream sensor is reached from above at the manifold or close-coupled converter, which is quicker."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one heated oxygen sensor (e.g. the downstream Bank 1 Sensor 2 on the 2.0L) whose connector is reached by removing the console side cover, with the sensor itself removed from below on a lift using an O2 sensor socket. Includes battery disconnect, code clearing and a readings check;"
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single downstream (Bank 1/Sensor 2) heated oxygen sensor on the 2.5L G4KN or similar engine, reached from below with the vehicle on a lift and removed with the sensor socket."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes replacement of one heated oxygen sensor, upstream or downstream, on the common 1.8L petrol engine. Covers battery disconnect, unplugging the connector (for the downstream sensor this can mean removing the console side cover), removing and fitting the sensor with a sensor socket, then…"
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "0.4"
+    typical: "0.6"
+    high: "1.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single heated oxygen sensor (typically the downstream Bank 1/Sensor 2, reached from below on a lift) on the 2.0L or 1.4L turbo engine, with the connector easily accessible."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L non-hybrid Elantra and a single oxygen sensor, either the upstream sensor on the manifold or close-coupled converter or the downstream sensor reached from below."
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "0.4"
+    typical: "0.7"
+    high: "1.4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed one heated oxygen sensor on a common engine, most often the 3.6L V6, replaced with a sensor socket. Downstream sensors and the front-bank upstream sensor are fairly quick to reach."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "0.4"
+    typical: "0.6"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one heated oxygen sensor (typically the downstream sensor behind the catalyst on the 2.7L 2TR-FE or the 4.0L V6) reached from below with the truck raised."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "0.6"
+    typical: "1.3"
+    high: "2.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one downstream heated oxygen sensor (sensor 2) on the 3.5L V6 4WD. The factory procedure drops the front exhaust pipes and heat insulator, but an experienced tech can often swap the sensor in place from below. Codes are cleared and readings and exhaust leaks checked afterwards;"
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "0.4"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.4L turbo four-cylinder Tacoma with the upstream air-fuel ratio sensor in the turbo-outlet converter, reached from above or below with the special sensor socket and no heat shields or other parts removed."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "0.5"
+    typical: "0.9"
+    high: "1.8"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one sensor, upstream or downstream, on a gasoline V6 or V8 WK2. Some downstream positions on the V8s need the transmission crossmember lowered and possibly the front prop shaft removed, which pushes toward the high figure. Clearing codes and checking readings with a scan tool is included."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed one sensor on the common 3.6L Pentastar (or 2.0L turbo/4xe) engine, typically a downstream sensor reached from below on a lift, with the connector unclipped from its bracket."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "0.5"
+    typical: "0.8"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one heated oxygen sensor (upstream or downstream, either bank) on a 3.5L V6 or 2.0/2.3L EcoBoost, reached from below on a hoist with a slotted sensor socket."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single heated oxygen sensor (upstream or downstream) on the common 2.3L EcoBoost, reached partly from above after removing the engine appearance cover and partly from below on a hoist, using an oxygen sensor socket. Codes are cleared and readings checked with a scan tool;"
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "0.5"
+    typical: "1"
+    high: "2.4"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one downstream (sensor 2) sensor on the 3.5 V6, AWD or FWD, swapped in place from below with an oxygen sensor socket after removing the under covers. The factory route of dropping the propshaft and front exhaust sections is reserved for the high figure, along with seized threads;"
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "0.5"
+    typical: "0.8"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one sensor is replaced, typically an upstream air-fuel ratio sensor on the 3.5L V6: the front bank is reached from above after removing the engine cover, and the rear bank from below after removing the under cover. The time includes code clearing and a readings check;"
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the upstream air-fuel ratio sensor (sensor 1) on the 2.4L turbo T24A-FTS, which is reached from above. That means removing the wiper arms, wiper motor and linkage, cowl panel, cowl braces, splash shield seals and the engine cover, then refitting everything, checking for exhaust leaks and…"
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the rear (downstream) heated oxygen sensor on a SKYACTIV-G 2.0/2.5, reached from below with the vehicle lifted, with the under cover (and on 2WD the insulator and brace bar) removed to get at it."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed this is the downstream heated oxygen sensor after the catalyst on a 2.5 L petrol engine, reached from below with the vehicle lifted. On 2WD models the plate, floor under cover and brace bar come off first; AWD models only need the LH under cover removed."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "0.4"
+    typical: "0.6"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single sensor (upstream or downstream) on the common 2.0/2.4L inline-four, where the upstream sensor is reached at the exhaust manifold or close-coupled converter from above or below and the downstream sensor from underneath."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed one sensor (upstream or downstream) is replaced on the 2.4L or 2.0L gasoline engine. The estimate covers raising the vehicle where needed, unplugging the connector from its bracket, using a sensor socket, and clearing codes and checking live data afterwards."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L GDI petrol engine with one sensor replaced, either the upstream sensor at the close-coupled converter (heat protector and connector bracket removed) or the downstream sensor reached from below on a lift."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "0.4"
+    typical: "0.6"
+    high: "1.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the 2.4L four-cylinder with the upstream A/F sensor in the exhaust manifold, removed with a slotted O2 sensor socket and reached from above or below, and that only one sensor is replaced. The secondary sensor below the catalyst takes about the same time."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one sensor is replaced, either the upstream A/F sensor or the downstream sensor on a 2.4L four-cylinder or 3.5L V6 Accord. The time covers using a sensor socket, routing the harness, and clearing codes and checking readings with a scan tool."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "0.4"
+    typical: "0.7"
+    high: "1.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 1.5L turbo Accord, replacing the upstream air/fuel sensor near the turbo and close-coupled converter with a slotted sensor socket, partly from above and partly from below with the car raised. Assumed one sensor only;"
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes one sensor on either the 1.5L turbo or the 2.0L hybrid engine, which may be the upstream air-fuel sensor near the close-coupled converter or the downstream sensor reached from below after removing the splash shield."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the rear (downstream) oxygen sensor on the 2.5L H4 engine. The job covers disconnecting the battery, removing the intake duct to reach the connector, lifting the vehicle, removing the under cover, swapping the sensor with anti-seize, then reassembling, clearing codes and checking readings;"
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the rear (post-catalyst) oxygen sensor on a 2.5i or 3.6R with the vehicle on a lift, which means disconnecting the battery, removing the front under cover and the RH front mud guard, swapping the sensor with penetrating oil and anti-seize, then reassembling and clearing codes."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the rear (downstream) oxygen sensor on the 2.5L boxer, reached from below after lifting the vehicle and removing the front under cover, with the battery ground disconnected and codes cleared and readings checked afterward."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one sensor on the 3.6L V6 (or 3.8L), here the left bank upstream or downstream sensor, reached from below with the wheelhouse splash shield removed. The estimate covers battery disconnect, chasing the threads, torquing the new pre-coated sensor, clearing codes and checking the readings;"
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.6L V6 JL with one upstream sensor replaced, reached by removing the left front wheelhouse splash shield, unplugging the connector, swapping the sensor with a sensor socket, chasing the threads, then clearing codes and checking live data."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "0.4"
+    typical: "0.6"
+    high: "1.1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the downstream (after-catalyst) heated oxygen sensor on a 1.8T/2.0 gasoline Jetta, reached from below on a lift after lowering the right underbody panel, with the connector unclipped from its bracket and the sensor removed with a slotted sensor socket."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the downstream (after-catalyst) sensor on the 1.4T/1.5T engine, reached from below after removing the left front and tunnel underbody panels, with the connector unclipped from its bracket and the harness freed and rerouted."

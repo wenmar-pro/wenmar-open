@@ -1,0 +1,777 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: tie-rod-end
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side on a 2WD or 4WD F-150 with rack-and-pinion steering, where the outer tie rod end threads onto the inner rod with a jam nut and is separated from the knuckle with a puller or pickle fork. Alignment is excluded, and the high figure allows for a seized jam nut or a stuck taper."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side of a 2015-2020 F-150 with rack-and-pinion steering, either 2WD or 4WD. The job covers only the outer tie rod end: wheel off, measure or count turns, release the jam nut, pop the taper from the knuckle, thread on the new end to the same length, torque the nut and fit the cotter pin…"
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side's outer tie rod end on a 2WD or 4WD F-150 with the electric power steering rack. The job covers wheel removal, loosening the jam nut, separating the taper from the knuckle with a puller, threading the new end on to the same length, torquing it and refitting the wheel."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side's outer tie rod end on the rack-and-pinion steering of a 2WD or 4WD Ram 1500, with alignment excluded. The supplied steps describe winch tie rods, not steering, so they were disregarded and the estimate is based on the normal process: loosen the jam nut, separate the taper, count…"
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side on a rack-and-pinion steered Ram 1500 (2WD or 4WD), with the jam nut loosened, the stud popped with a ball joint separator, and the new end threaded on by counting turns. Toe adjustment and alignment are excluded, and the high figure allows for a seized jam nut or a stuck taper."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side of a GMT900 Silverado with rack-and-pinion steering (2WD or 4WD), where the outer end threads onto the inner tie rod with a jam nut and is held at the knuckle by a nut."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side of a rack-and-pinion K2XX Silverado (2WD or 4WD) with the outer tie rod held to the knuckle by a torque-plus-angle nut. Covers wheel removal, marking the jam nut position, pulling the taper with a puller, threading on the new end to the same length, and refitting, with no alignment…"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2WD or 4WD half-ton with rack-and-pinion steering, replacing one side's outer tie rod end, with a jam nut and a prevailing-torque stud nut. The tie rod is set by match marks or by counting turns, and the toe alignment is excluded."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side on a GMT900 Sierra 1500 with rack-and-pinion steering (2WD or 4WD IFS), where the outer end threads onto the inner rod and is held by a jam nut, the castle nut is removed, and the taper is pressed out with a puller."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side on a K2XX Sierra with a rack-and-pinion steering gear, where the outer end is threaded onto the inner rod with a jam nut and held to the knuckle by a castle or prevailing-torque nut."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side of a T1XX Sierra rack-and-pinion system with a threaded outer tie rod end, a jam nut and a self-locking stud nut, replaced by counting turns or measuring to keep approximate toe. Alignment is excluded; the high figure allows for a seized jam nut or tapered stud on rusty vehicles."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side of a 3rd-generation RAV4 (2.4L or 3.5L, FWD or AWD) with a conventional outer tie rod end on a castle nut with cotter pin and a jam nut on the inner rod."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side on a 4th-gen RAV4 with rack-and-pinion steering, where the outer tie rod end threads onto the inner rod with a jam nut and fits the knuckle with a castle nut and cotter pin."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side on a 5th-gen RAV4 (gas or hybrid, FWD or AWD) with a conventional rack-mounted tie rod that has a jam nut and a castle nut with cotter pin or a self-locking nut at the knuckle."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes one side of a 2007-2011 CR-V (2.4L K24, FWD or AWD) with a conventional outer tie rod end threaded onto the rack's inner rod with a jam nut and fitted to the knuckle with a castle nut and cotter pin. The ball stud is separated with a puller or by striking the knuckle;"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side only on a CR-V with a conventional rack-and-pinion steering rack, where the outer tie rod end threads onto the inner rod with a jam nut and fixes to the knuckle with a castle nut and cotter pin. Alignment is excluded;"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side on an EPS rack-and-pinion CR-V with a castle nut and cotter pin, where the jam nut is loosened, the position is marked or the threads are counted, and the new end is spun on to the same length. Alignment is excluded, and the high figure allows for a seized jam nut or a stuck taper."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side only on a 6th-gen CR-V (1.5T or hybrid, FWD or AWD), where the outer tie rod end threads onto the inner rod with a jam nut and is held in the knuckle by a castle nut and cotter pin or a self-locking nut. Alignment is excluded;"
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side of an 8th-gen Civic (any common engine, rack-and-pinion steering) with a castle nut and cotter pin at the knuckle and a jam nut on the tie rod, replaced by counting turns or measuring to the same length. Alignment is excluded;"
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side only on a 9th-gen Civic with conventional rack-and-pinion steering, where the outer end threads onto the inner rod with a jam nut and fits the knuckle with a castle nut and cotter pin, separated using a puller or separator."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side of a 10th-gen Civic with conventional rack-and-pinion steering, where the outer tie rod end threads onto the inner rod with a jam nut and is held to the knuckle by a castle nut and cotter pin or self-locking nut. Wheel alignment afterward is excluded;"
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side only on an 11th-gen Civic with conventional rack-and-pinion steering, where the outer tie rod end threads onto the inner rod with a jam nut and attaches to the knuckle with a castle or self-locking nut. Alignment is excluded;"
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes one side of a front-wheel-drive 10th-generation Corolla (1.8L or 2.4L), with a standard castle nut and cotter pin at the knuckle and a jam nut on the tie rod. Alignment is excluded, and the high figure allows for a seized jam nut or a tapered stud that is hard to break free."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side of an 11th-gen Corolla with conventional rack-and-pinion steering, where the outer end threads onto the inner rod with a jam nut and fits the knuckle with a castle nut and cotter pin."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side of a 12th-gen Corolla with conventional rack-and-pinion steering, where the outer tie rod end is held to the knuckle by a castle nut and cotter pin and to the inner rod by a jam nut."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side of a front-wheel-drive XV40 Camry with a conventional rack-and-pinion outer tie rod end held by a castle nut and cotter pin, with a threaded jam nut on the inner rod."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side of an XV50 Camry with rack-and-pinion steering, where the outer tie rod end threads onto the inner rod with a jam nut and is secured to the knuckle with a castle nut and cotter pin. The figure covers one side only and excludes the wheel alignment that should follow."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side only on a front-wheel-drive or AWD XV70 with a conventional rack-and-pinion outer tie rod end held by a castle nut and cotter pin and a jam nut on the inner rod. Ordinary condition, with the new end threaded to the marked position; wheel alignment is not included."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2025
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side of a 2025+ Camry (hybrid FWD or AWD, conventional rack-and-pinion steering) with a threaded outer tie rod end held by a jam nut and a castle nut with cotter pin or a self-locking nut at the knuckle."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "0.5"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side only, on a 2nd-gen Escape with rack-and-pinion steering and a jam-nut-secured outer tie rod end held to the knuckle by a self-locking nut."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side's outer tie rod end on an EPAS-equipped Escape, including battery ground disconnect/reconnect, wheel removal, possible underbody shield removal, puller separation from the knuckle, counting turns to set length, and torquing the new nut and jam nut;"
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "0.6"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side's outer tie rod end on a 2020-2025 Escape (FWD or AWD), with the inner tie rod and boot left in place; the supplied steps describe the inner tie rod and were not used."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes one side of a 1st-gen Rogue (2.5L QR25DE, FWD or AWD, rack-and-pinion steering), with the outer end threaded onto the inner rod and secured by a jam nut and a castle nut with cotter pin or a self-locking nut at the knuckle."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes one side of a 2nd-gen Rogue (2.5L or hybrid, FWD or AWD) with the conventional threaded outer tie rod end held by a jam nut and a castle or nylock nut at the knuckle, with the length kept by counting turns or measuring."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side of a 2021+ Rogue (2.5L or 1.5L VC-Turbo, FWD or AWD) with electric rack-mounted steering, where the outer tie rod end threads onto the inner rod with a jam nut and is held to the knuckle by a nut. Alignment is excluded;"
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side only on a 2nd-gen Equinox with rack-and-pinion steering, using a puller to free the stud and counting turns or match-marking the jam nut so the new end goes on at the same length."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side only on a 2018-2024 Equinox with rack-and-pinion steering, where the outer tie rod end threads onto the inner rod and is locked by a jam nut, and the knuckle nut uses torque plus angle."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side of a 2nd-gen Tucson (2.0 or 2.4 petrol or 2.0 diesel, FWD or AWD) with rack-and-pinion steering, where the outer tie rod end is held by a jam nut on the inner rod and a self-locking or castle nut at the knuckle."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side on a Tucson with the column-mounted electric power steering rack, whose outer tie rod end uses a castle or self-locking nut at the knuckle and a jam nut on the inner rod, so the job is a straightforward measure, separate and re-thread."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side on a Tucson with an electric rack and a conventional outer tie rod end with a self-locking ball-stud nut, separated from the knuckle with a puller or a hammer, and the jam nut loosened to swap the end at the measured length. Alignment is excluded;"
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "0.5"
+    typical: "0.8"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side on a front-wheel-drive Elantra MD/UD with the 1.8L or 2.0L engine and a rack-and-pinion steering setup where the outer tie rod end threads onto the inner rod with a jam nut and fits into the knuckle with a castle or self-locking nut."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side only on a 6th-gen Elantra with MDPS rack, outer tie rod end held by a jam nut and a castle/self-locking nut at the knuckle, separated with a puller. Alignment is excluded, and the high figure allows for a seized jam nut or tapered stud."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side only on a front-wheel-drive Elantra with motor-driven power steering. The job covers loosening the jam nut, marking the thread position, pressing the ball stud out of the knuckle, threading on the new end to the same length, torquing the stud nut and jam nut, and refitting the…"
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side of a front-wheel-drive or AWD Grand Caravan with a rack-and-pinion gear, using a nut held with a wrench on the stud and a ball joint puller to separate the joint, with the new end threaded on by counting rotations. Alignment is excluded;"
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes one side of a 2WD PreRunner or 4WD Tacoma with rack-and-pinion steering, where the outer end threads onto the inner rod with a jam nut and fixes to the knuckle with a castle nut and cotter pin."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side of a rack-and-pinion Tacoma (2WD or 4WD) with a castle nut and cotter pin at the knuckle and a jam nut on the inner rod. The tie rod end is separated with a puller or by striking the knuckle, and the new end is threaded to the marked position;"
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed one side on a 2024+ Tacoma with rack-and-pinion steering and a conventional outer tie rod end threaded onto the inner rod with a jam nut and a castle nut and cotter pin at the knuckle."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a WK2 with the conventional rack-and-pinion steering, where the outer tie rod end threads onto the inner rod with a jam nut and uses a self-locking nut at the knuckle. The time covers one side only, with the new end set to the original thread count;"
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes one side on a WL Grand Cherokee with rack-and-pinion steering, where the outer tie rod end threads onto the inner rod with a jam nut and is secured to the knuckle with a nut. It is separated with a puller or a separator tool, and alignment is excluded;"
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side only on a 5th-gen Explorer with rack-and-pinion steering, where the outer end threads onto the inner rod with a jam nut and the taper stud is held by a nut on the steering knuckle; the taper is separated with a puller or by shocking the knuckle."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side's outer tie rod end on a conventional rack-and-pinion EPAS setup, covering lifting, wheel removal, measuring and marking the jam nut position, popping the tapered stud from the knuckle with a puller, threading on the new end at the same length, torquing the nut, and refitting the…"
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side on a 2nd-gen Highlander (2.7L I4 or 3.5L V6, FWD or AWD) with rack-and-pinion steering, where the outer end threads onto the inner rod with a jam nut and a castle nut and cotter pin at the knuckle."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side only on a 2014-2019 Highlander with rack-and-pinion steering, either FWD or AWD. The job covers loosening the jam nut, popping the taper out of the knuckle with a separator, and counting the turns so the new end goes on at the same length. Alignment is excluded;"
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side on a 4th-gen Highlander with conventional rack-and-pinion steering, where the outer tie rod end is reached easily after wheel removal."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "One side outer tie rod end on a 1st-gen CX-5 (FWD or AWD), with wheel removal, the ball stud separated from the knuckle with a puller, the new end threaded on to the marked position and the jam nut, castle nut and snap pin fitted."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side of a 2017-2025 CX-5 (FWD or AWD, any engine) with a castle nut and snap pin at the knuckle. Covers lifting, wheel removal, separating the joint with a puller, marking and matching the length, torquing, and checking the tie rod end position on the ground. Wheel alignment is excluded."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side on a 2011-2016 Sportage (SL) with rack-and-pinion steering, where the outer end threads onto the inner rod with a jam nut and is held in the knuckle by a self-locking or castle nut."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side only on a QL Sportage with electric power steering rack, where the outer end threads onto the inner rod with a jam nut and attaches to the knuckle by a tapered stud with a nut."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes one side only on a conventional rack-mounted electric power steering gear with a nut-retained outer tie rod end, using a puller or separator at the knuckle and counting turns to keep the toe setting. Alignment is excluded, and the high figure allows for a seized jam nut or tapered stud."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side of an 8th-gen Accord (4-cyl or V6, rack-and-pinion steering) with a castle nut and cotter pin at the knuckle and a jam nut on the inner tie rod thread."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side on a front-wheel-drive 9th-gen Accord with electric power steering, where the outer tie rod end threads onto the inner rod with a jam nut and attaches to the knuckle with a castle nut and cotter pin. Alignment is excluded;"
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side of a front-wheel-drive 10th-generation Accord with a conventional outer tie rod end that uses a castle nut and cotter pin and a jam nut on the inner rod."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side only on a 2023+ Accord with the 1.5T or 2.0 hybrid and electric power steering, where the outer tie rod end threads onto the inner rod with a jam nut and is held in the knuckle by a nut that needs a separator tool."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes one side only on a 2010-2014 Outback with rack-and-pinion steering, where the outer tie rod end is held by a castle nut and cotter pin and is separated from the knuckle with a puller or fork, and a jam nut lets you match the original length. Alignment is excluded;"
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed one side of an all-wheel-drive Outback (2.5L or 3.6R) with a conventional outer tie rod end held by a jam nut on the inner rod and a castle nut with cotter pin at the knuckle, separated with a puller or pickle fork. Alignment is excluded;"
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a single outer tie rod end on one side of an electric power steering rack, with the castle nut and cotter pin at the knuckle and a jam nut on the rack threads. The new end is threaded on to the same measured length;"
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a stock JK solid front axle with a tube-style tie rod and threaded, clamped ends, replacing one outer end at the knuckle with wheel removal, separator use, counting turns, and torquing the nut and clamp. Toe setting and alignment are excluded;"
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "This assumes the JL solid front axle with a knuckle-to-knuckle tie rod using threaded ends in an adjuster sleeve. One end is replaced by loosening the clamp, counting turns, and separating the taper, which may mean moving the steering damper bracket; it is refitted with a new torque-plus-angle nut."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one side of a 6th-gen Jetta with a conventional rack and outer tie rod end held by a self-locking nut on the knuckle and a jam nut on the tie rod, and that a puller separates the taper. Alignment is excluded; the high figure allows for a seized jam nut or taper."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one outer tie rod end on a 7th-generation Jetta with an ordinary rack: lift, wheel off, mark or measure the jam-nut position, press the ball stud off the knuckle with a puller, then spin the new end on to the same length and torque the self-locking nut."

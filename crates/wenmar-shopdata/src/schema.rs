@@ -697,9 +697,11 @@ CREATE INDEX job_component_component ON job_component (component_id);
 /// - `generation`: model years `year_from` to `year_to` of `model_id`;
 /// - `engine`: the same, with the engine whose id form is `engine`.
 ///
-/// `basis` is `expert` (written by a person) or `observed` (measured from
+/// `basis` is `expert` (written by a person), `observed` (measured from
 /// repair orders; `sample_jobs` and `sample_shops` are then set, and
-/// `author` and `reviewer` are NULL). `vehicle_class` holds the class of
+/// `author` and `reviewer` are NULL) or `ai` (worked out by a model from the
+/// job and the repair steps; `author` and `reviewer` are NULL, and its
+/// row of [`LABOR_AI`] says how). `vehicle_class` holds the class of
 /// each model year that has one; `source` is `epa` or `nearest`. A file
 /// that holds the dataset also holds the `jobs` dataset.
 pub const LABOR: &str = "
@@ -734,4 +736,19 @@ CREATE TABLE vehicle_class (
     source   TEXT NOT NULL,
     PRIMARY KEY (model_id, year)
 ) WITHOUT ROWID;
+";
+
+/// The `labor_ai` dataset: how each `ai` row of `labor_estimate` was
+/// worked out. `confidence_pct` is the model's own, at most 60; `method`
+/// is the prompt version; `inputs` the kinds of input it was given, comma
+/// separated (`vehicle`, `job`, `wenmar-figures`, `procedure`). A file
+/// that holds the dataset also holds the `labor` dataset.
+pub const LABOR_AI: &str = "
+CREATE TABLE labor_ai (
+    estimate_id    INTEGER PRIMARY KEY REFERENCES labor_estimate (id),
+    confidence_pct INTEGER NOT NULL,
+    model          TEXT NOT NULL,
+    method         TEXT NOT NULL,
+    inputs         TEXT NOT NULL
+);
 ";

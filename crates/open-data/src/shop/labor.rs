@@ -8,7 +8,10 @@ use std::path::Path;
 use anyhow::{Context, Result, bail};
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::Deserialize;
-use wenmar_shopdata::labor::{ATTRIBUTION, CLASSES, MIN_JOBS, MIN_SHOPS, class_name, class_of_epa};
+use wenmar_shopdata::labor::{
+    AI_INPUTS, AI_MOST_CONFIDENCE, ATTRIBUTION, CLASSES, MIN_JOBS, MIN_SHOPS, class_name,
+    class_of_epa,
+};
 use wenmar_shopdata::{Dataset, DatasetEntry, licence, schema};
 use wenmar_vehicles::text::{is_slug, slug, squeeze};
 
@@ -600,6 +603,327 @@ pub fn load_observed(
     Ok(Some((table.generated, rows)))
 }
 
+// ----- figures worked out by a model -----
+
+/// The most hours an `ai` figure may be, in hundredths: 40.
+pub const AI_MOST_HUNDREDTHS: i64 = 4_000;
+/// An `ai` figure's high may be at most this many times its typical.
+pub const AI_MOST_SPREAD: i64 = 3;
+/// The longest a model's or a method's name may be, in characters.
+pub const AI_LONGEST_NAME: usize = 80;
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct AiWritten {
+    scope: String,
+    #[serde(default)]
+    class: Option<String>,
+    #[serde(default)]
+    make: Option<String>,
+    #[serde(default)]
+    model: Option<String>,
+    #[serde(default)]
+    year_from: Option<u16>,
+    #[serde(default)]
+    year_to: Option<u16>,
+    #[serde(default)]
+    engine: Option<String>,
+    low: String,
+    typical: String,
+    high: String,
+    confidence: i64,
+    inputs: Vec<String>,
+    #[serde(default)]
+    notes: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct AiFile {
+    job: String,
+    method: String,
+    model: String,
+    generated: String,
+    estimates: Vec<AiWritten>,
+}
+
+/// One figure of an AI file, checked for shape.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AiRecord {
+    pub job: String,
+    pub scope: String,
+    pub class: Option<String>,
+    pub make: Option<String>,
+    pub model: Option<String>,
+    pub year_from: Option<u16>,
+    pub year_to: Option<u16>,
+    pub engine: Option<String>,
+    /// Whole hundredths of an hour.
+    pub low: i64,
+    pub typical: i64,
+    pub high: i64,
+    pub confidence_pct: i64,
+    pub inputs: Vec<String>,
+    pub notes: Option<String>,
+    /// The model that answered, the prompt version, the day.
+    pub llm: String,
+    pub method: String,
+    pub generated: String,
+}
+
+/// Whether `text` is a name a file may give a model or a method: not
+/// empty, no longer than [`AI_LONGEST_NAME`], no control characters.
+fn is_ai_name(text: &str) -> bool {
+    !text.trim().is_empty()
+        && text.chars().count() <= AI_LONGEST_NAME
+        && !text.chars().any(char::is_control)
+}
+
+/// The scope fields of one figure: the ones its scope needs and no other.
+/// The same rules as a written estimate's.
+#[allow(clippy::too_many_arguments)]
+fn check_scope_fields(
+    place: &str,
+    scope: &str,
+    class: Option<&str>,
+    make: Option<&str>,
+    model: Option<&str>,
+    year_from: Option<u16>,
+    year_to: Option<u16>,
+    engine: Option<&str>,
+) -> Result<()> {
+    let vehicle = make.is_some() || model.is_some();
+    let years = year_from.is_some() || year_to.is_some();
+    match scope {
+        "class" => {
+            let Some(class) = class else {
+                bail!("{place}: a class figure needs class");
+            };
+            if class_name(class).is_none() {
+                bail!("{place}: {class} is not a class");
+            }
+            if vehicle || years || engine.is_some() {
+                bail!("{place}: a class figure takes no make, model, model year or engine");
+            }
+        }
+        "model" | "generation" | "engine" => {
+            if class.is_some() {
+                bail!("{place}: a {scope} figure takes no class");
+            }
+            if !(make.is_some_and(is_slug) && model.is_some_and(is_slug)) {
+                bail!("{place}: a {scope} figure needs make and model, as id forms");
+            }
+            if scope == "model" {
+                if years || engine.is_some() {
+                    bail!("{place}: a model figure takes no model year and no engine");
+                }
+            } else {
+                let (Some(from), Some(to)) = (year_from, year_to) else {
+                    bail!("{place}: a {scope} figure needs year_from and year_to");
+                };
+                if from > to {
+                    bail!("{place}: year_from is after year_to");
+                }
+                match (scope, engine) {
+                    ("engine", Some(engine)) if is_slug(engine) => {}
+                    ("engine", _) => bail!("{place}: an engine figure needs engine, as an id form"),
+                    (_, Some(_)) => bail!("{place}: a generation figure takes no engine"),
+                    (_, None) => {}
+                }
+            }
+        }
+        other => {
+            bail!("{place}: the scope {other} is not one of class, model, generation and engine")
+        }
+    }
+    Ok(())
+}
+
+/// Reads the text of one AI file, `ai/<name>.yaml`, and checks everything
+/// that can be checked without the job list and the catalog, with the
+/// guardrails a model's answer must pass: hours from 0.01 to 40 and in
+/// order, a high at most three times the typical, a confidence of at most
+/// 60, inputs from [`AI_INPUTS`].
+pub fn parse_ai(name: &str, yaml: &str) -> Result<Vec<AiRecord>> {
+    let file = format!("data/labor/ai/{name}.yaml");
+    let parsed: AiFile = serde_saphyr::from_str(yaml).with_context(|| format!("reading {file}"))?;
+    if parsed.job != name {
+        bail!(
+            "{file} holds the job {}; name the file after its job",
+            parsed.job
+        );
+    }
+    if !is_day(&parsed.generated) {
+        bail!(
+            "{file}: generated must be a day like 2026-10-30, not {:?}",
+            parsed.generated
+        );
+    }
+    for (field, value) in [("model", &parsed.model), ("method", &parsed.method)] {
+        if !is_ai_name(value) {
+            bail!("{file}: {field} must be a name of 1 to {AI_LONGEST_NAME} characters");
+        }
+    }
+    let mut records = Vec::with_capacity(parsed.estimates.len());
+    for (index, written) in parsed.estimates.into_iter().enumerate() {
+        let place = format!("{file}, figure {}", index + 1);
+        check_scope_fields(
+            &place,
+            &written.scope,
+            written.class.as_deref(),
+            written.make.as_deref(),
+            written.model.as_deref(),
+            written.year_from,
+            written.year_to,
+            written.engine.as_deref(),
+        )?;
+        let hours = |field: &str, text: &str| {
+            hundredths(text)
+                .filter(|value| *value <= AI_MOST_HUNDREDTHS)
+                .with_context(|| {
+                    format!(
+                        "{place}: {field} must be hours like \"1.5\", from 0.01 to 40, not {text:?}"
+                    )
+                })
+        };
+        let (low, typical, high) = (
+            hours("low", &written.low)?,
+            hours("typical", &written.typical)?,
+            hours("high", &written.high)?,
+        );
+        if !(low <= typical && typical <= high) {
+            bail!("{place}: low, typical and high must be in that order");
+        }
+        if high > AI_MOST_SPREAD * typical {
+            bail!("{place}: high is more than {AI_MOST_SPREAD} times typical");
+        }
+        if !(0..=AI_MOST_CONFIDENCE).contains(&written.confidence) {
+            bail!("{place}: confidence must be from 0 to {AI_MOST_CONFIDENCE}");
+        }
+        let mut seen = HashSet::new();
+        if written.inputs.is_empty()
+            || written
+                .inputs
+                .iter()
+                .any(|input| !AI_INPUTS.contains(&input.as_str()) || !seen.insert(input))
+        {
+            bail!(
+                "{place}: inputs must be one or more of {}, each once",
+                AI_INPUTS.join(", ")
+            );
+        }
+        let notes = written
+            .notes
+            .as_deref()
+            .map(squeeze)
+            .filter(|notes| !notes.is_empty());
+        if notes
+            .as_ref()
+            .is_some_and(|notes| notes.chars().count() > LONGEST_NOTE)
+        {
+            bail!("{place}: notes is longer than {LONGEST_NOTE} characters");
+        }
+        records.push(AiRecord {
+            job: parsed.job.clone(),
+            scope: written.scope,
+            class: written.class,
+            make: written.make,
+            model: written.model,
+            year_from: written.year_from,
+            year_to: written.year_to,
+            engine: written.engine,
+            low,
+            typical,
+            high,
+            confidence_pct: written.confidence,
+            inputs: written.inputs,
+            notes,
+            llm: parsed.model.clone(),
+            method: parsed.method.clone(),
+            generated: parsed.generated.clone(),
+        });
+    }
+    Ok(records)
+}
+
+/// An AI figure with its make and model as catalog ids.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AiFigure {
+    pub record: AiRecord,
+    pub make_id: Option<i64>,
+    pub model_id: Option<i64>,
+}
+
+/// Every figure of `<curated>/labor/ai`, checked against the job list and
+/// the catalog as a written estimate is: the job exists, the vehicle and
+/// the engine exist for every model year named, and no job has two AI
+/// figures for one scope.
+pub fn load_ai(curated: &Path, catalog: &Connection) -> Result<Vec<AiFigure>> {
+    let found = files(&curated.join("labor").join("ai"))?;
+    if found.is_empty() {
+        return Ok(Vec::new());
+    }
+    let components = Components::load(curated)?;
+    let jobs = Jobs::load(curated, &components)?;
+    let Some(jobs) = jobs.filter(|jobs| jobs.status == Status::Reviewed) else {
+        bail!("data/labor/ai has figures but data/jobs.yaml is still a draft");
+    };
+    let mut figures = Vec::new();
+    let mut held: HashSet<String> = HashSet::new();
+    for (name, yaml) in found {
+        let file = format!("data/labor/ai/{name}.yaml");
+        if !jobs.list.iter().any(|job| job.id == name) {
+            bail!("{file}: {name} is not a job of jobs.yaml");
+        }
+        for record in parse_ai(&name, &yaml)? {
+            let job = &record.job;
+            let (Some(make), Some(model)) = (record.make.as_deref(), record.model.as_deref())
+            else {
+                let class = record.class.clone().unwrap_or_default();
+                if !held.insert(format!("{job}|class|{class}")) {
+                    bail!("{file}: two class figures for {class}");
+                }
+                figures.push(AiFigure {
+                    record,
+                    make_id: None,
+                    model_id: None,
+                });
+                continue;
+            };
+            let (make_id, model_id) =
+                model_ids(catalog, make, model).with_context(|| file.clone())?;
+            let scope = record.scope.as_str();
+            match (record.year_from, record.year_to) {
+                (Some(from), Some(to)) => {
+                    for year in from..=to {
+                        let Some(engines) = engines_of(catalog, model_id, year)? else {
+                            bail!("{file}: the catalog has no {year} {make} {model}");
+                        };
+                        let engine = record.engine.clone().unwrap_or_default();
+                        if scope == "engine" && !engines.contains(&engine) {
+                            bail!("{file}: the {year} {make} {model} has no engine {engine}");
+                        }
+                        if !held.insert(format!("{job}|{scope}|{model_id}|{year}|{engine}")) {
+                            bail!("{file}: two {scope} figures cover the {year} {make} {model}");
+                        }
+                    }
+                }
+                _ => {
+                    if !held.insert(format!("{job}|model|{model_id}")) {
+                        bail!("{file}: two model figures for {make} {model}");
+                    }
+                }
+            }
+            figures.push(AiFigure {
+                record,
+                make_id: Some(make_id),
+                model_id: Some(model_id),
+            });
+        }
+    }
+    Ok(figures)
+}
+
 /// Fills `vehicle_class`: for each light model year of the catalog, the
 /// class EPA's size class puts it in (the one with the most EPA rows), or
 /// that of the nearest model year of the same model that has one. Does
@@ -680,6 +1004,7 @@ fn shape_classes(context: &ShapeContext<'_>) -> Result<()> {
 pub fn shape(context: &mut ShapeContext<'_>) -> Result<()> {
     let estimates = load(context.curated, context.catalog)?;
     let observed = load_observed(context.curated, context.catalog)?;
+    let ai = load_ai(context.curated, context.catalog)?;
     let (generated, measured) = match observed {
         Some((generated, rows)) => (Some(generated), rows),
         None => (None, Vec::new()),
@@ -688,6 +1013,7 @@ pub fn shape(context: &mut ShapeContext<'_>) -> Result<()> {
         .iter()
         .map(|estimate| estimate.record.updated.clone())
         .chain(generated.clone().filter(|_| !measured.is_empty()))
+        .chain(ai.iter().map(|figure| figure.record.generated.clone()))
         .max()
     else {
         return Ok(());
@@ -746,12 +1072,64 @@ pub fn shape(context: &mut ShapeContext<'_>) -> Result<()> {
             ])?;
         }
     }
+    if !ai.is_empty() {
+        // A model's figure has no author either; `labor_ai` says how it was
+        // worked out.
+        transaction.execute_batch(schema::LABOR_AI)?;
+        let mut insert = transaction.prepare(
+            "INSERT INTO labor_estimate (job_id, scope, class, make_id, model_id, year_from, year_to, engine, hours_low, hours_typical, hours_high, basis, notes, updated)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, 'ai', ?12, ?13)",
+        )?;
+        let mut how = transaction.prepare(
+            "INSERT INTO labor_ai (estimate_id, confidence_pct, model, method, inputs) VALUES (?1, ?2, ?3, ?4, ?5)",
+        )?;
+        for figure in &ai {
+            let record = &figure.record;
+            insert.execute(params![
+                record.job,
+                record.scope,
+                record.class,
+                figure.make_id,
+                figure.model_id,
+                record.year_from,
+                record.year_to,
+                record.engine,
+                record.low,
+                record.typical,
+                record.high,
+                record.notes,
+                record.generated,
+            ])?;
+            how.execute(params![
+                transaction.last_insert_rowid(),
+                record.confidence_pct,
+                record.llm,
+                record.method,
+                record.inputs.join(","),
+            ])?;
+        }
+    }
     shape_classes(context)?;
+    if let Some(ai_as_of) = ai
+        .iter()
+        .map(|figure| figure.record.generated.clone())
+        .max()
+    {
+        context.register(
+            Dataset::LaborAi,
+            DatasetEntry {
+                as_of: ai_as_of,
+                rows: ai.len() as u64,
+                licence: licence::CC_BY_4.to_owned(),
+                attribution: ATTRIBUTION.to_owned(),
+            },
+        )?;
+    }
     context.register(
         Dataset::Labor,
         DatasetEntry {
             as_of,
-            rows: (estimates.len() + measured.len()) as u64,
+            rows: (estimates.len() + measured.len() + ai.len()) as u64,
             licence: licence::CC_BY_4.to_owned(),
             attribution: ATTRIBUTION.to_owned(),
         },

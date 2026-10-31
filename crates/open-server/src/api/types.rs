@@ -2481,7 +2481,10 @@ pub struct LaborFigure {
     pub name: String,
     pub hours: LaborHours,
     /// `expert`: written by a person who does the work. `observed`:
-    /// measured from repair orders; `sample` then says how many.
+    /// measured from repair orders; `sample` then says how many. `ai`:
+    /// worked out by a model from the job and the repair steps, not checked
+    /// by a person; `confidence_pct`, `model`, `method` and `inputs` then
+    /// say how. Within one scope: observed, then expert, then ai.
     #[schema(example = "expert")]
     pub basis: String,
     /// What the figure is for, and so how far to trust it for one
@@ -2499,6 +2502,19 @@ pub struct LaborFigure {
     pub engine: Option<String>,
     /// `null` for an `expert` figure.
     pub sample: Option<LaborSample>,
+    /// For an `ai` figure: how sure the model was, in percent (at most 60).
+    /// `null` for the others.
+    #[schema(example = 45)]
+    pub confidence_pct: Option<i64>,
+    /// For an `ai` figure: the model that answered. `null` for the others.
+    pub model: Option<String>,
+    /// For an `ai` figure: the prompt version. `null` for the others.
+    #[schema(example = "open-labour-ai-1")]
+    pub method: Option<String>,
+    /// For an `ai` figure: what it was worked out from, of `vehicle`,
+    /// `job`, `wenmar-figures` and `procedure` (a repair procedure's steps,
+    /// never its numbers). `null` for the others.
+    pub inputs: Option<Vec<String>>,
     pub notes: Option<String>,
     /// The day the figure was last changed.
     #[schema(example = "2026-10-12")]

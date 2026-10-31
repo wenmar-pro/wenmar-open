@@ -1,0 +1,777 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: spark-plugs
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "1.2"
+    typical: "1.7"
+    high: "3.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Based on the 5.0L V8, where all eight coils come out from the top after removing the engine cover and moving a few harnesses, brackets and hoses, followed by cleaning the wells and changing the plugs by hand."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "1.1"
+    typical: "1.6"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline V6 (3.5L EcoBoost as in the steps, similar for the 2.7L/3.3L) or 5.0L V8, with the engine cover and some air intake or charge-air ducting removed for coil access, especially at the rear cylinders."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "1"
+    typical: "1.6"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline V6 (3.5L or 2.7L EcoBoost) or 5.0L V8 engine, the usual F-150 engines, with the engine cover and air intake ducting removed for access and the rear coils near the firewall being the tightest to reach."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "1.3"
+    typical: "1.9"
+    high: "3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the common 5.7L Hemi V8, which has 16 plugs (two per cylinder, served by coils and short leads), with the air intake tubing removed for access; the 3.6L V6 needs the upper intake plenum removed to reach one bank, which takes a similar time."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "1.5"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 5.7L Hemi with 16 plugs (two per cylinder, accessed through coil-on-plug units and the secondary plug leads), with engine covers and minor components moved aside but no intake removal."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "1"
+    typical: "1.6"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a Gen IV V8 (4.8L, 5.3L, 6.0L or 6.2L) with eight plugs reached from above and the wheel wells, with valve-cover-mounted coils and short plug wires; the rear plugs are tight against the firewall and exhaust manifolds."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "1"
+    typical: "1.4"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 5.3L V8 (8 plugs) with valve-cover-mounted coils and short plug wires; plugs are reached from above and around the wheel wells, with the rear cylinders near the firewall being the tightest. The 4.3L V6 would take slightly less time, and the 6.2L about the same."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "1.1"
+    typical: "1.5"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gasoline 5.3L or 6.2L V8 with plug wires running from valve-cover-mounted coils, replacing all eight plugs on both banks after removing the rocker cover insulators and repositioning the PCV tube. The 3.0L diesel has no spark plugs, and the 2.7L four-cylinder would take less time."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the usual Gen IV V8 (4.8/5.3/6.0/6.2L), which has eight plugs fed by short wires from coils mounted on the valve covers. The plugs are reached from above and through the wheel wells, and the rear plugs near the firewall are the tight ones."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "1"
+    typical: "1.5"
+    high: "2.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 5.3L or 6.2L V8 with valve-cover-mounted coils and short plug wires, so the work is pulling eight boots, cleaning the wells, swapping all eight plugs and torquing them, with the rear cylinders near the firewall being the slowest."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "1.1"
+    typical: "1.6"
+    high: "2.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gas 5.3L or 6.2L V8 with eight plugs, replacing both banks by removing the rocker cover insulators, PCV connector and short plug wires, with no coil replacement. The 3.0L diesel has no spark plugs, and the 2.7L four-cylinder would take less time."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4-cylinder RAV4 (2.4 2AZ-FE or 2.5 2AR-FE) with coil-on-plug ignition: remove the engine cover, unplug and unbolt the four coils, then swap and torque the four plugs from the top with no intake removal."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L 2AR-FE inline four (non-hybrid), with coil-on-plug ignition easily reached under a single engine cover. The job covers removing the cover, four coils and four plugs, gapping and torquing the new plugs, refitting everything and running a misfire check;"
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the 2.5 L A25A inline-four (petrol or hybrid), where the four coils sit on top of the head under a single engine cover, so only the cover and the four coils come off."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.4 L K24 inline four-cylinder engine, where the four coil-on-plug units sit on top of the valve cover under a single cover, so access is direct with no intake removal. The high figure allows for plugs stuck in the aluminium head or brittle coil connectors."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L K24 inline four, with all four plugs reachable on top of the engine once the coil cover and coils are removed, so no intake parts need to come off. The new plugs are iridium and pre-gapped and only need checking;"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 1.5L turbo inline-4 (or 2.4L on base 2017-2019 models), with the intake resonator and engine cover removed for access to four coil-on-plug coils. Fine-wire iridium plugs are pre-gapped and only checked, anti-seize is applied, and the Maintenance Minder is reset;"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the transverse inline-four (1.5L turbo or 2.0L hybrid), where the coil-on-plug units sit on top of the head under a plastic cover and need no intake removal."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "0.5"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 1.8L R18 inline-four (or the similar 2.0L in the Si) with four coil-on-plug coils directly accessible on top of the engine, so only the cover and coils come off before the plugs. The Hybrid's twin-plug 1.3L would take somewhat longer."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "0.6"
+    typical: "0.9"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4-cylinder petrol Civic with coil-on-plug ignition. On the common 1.8 R18 the plugs are reached by removing only the coil cover and coils; on the 2.4 K24Z7 (Si) shown in the steps, the wiper arms, cowl covers and under-cowl panel must come off first, which pushes the time toward the upper…"
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "0.5"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a petrol inline-four (2.0 K20C2 or 1.5 turbo) with coil-on-plug ignition sitting directly under a plastic engine cover, so only the cover and four coils come off with no intake removal. High allows for plugs that are tight or galled in the aluminium head."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the common inline four-cylinder engines (2.0L naturally aspirated, 1.5L turbo or hybrid 2.0L), where the four coil-on-plug units sit on top of the head under a plastic cover, so the plugs are easy to reach without removing the intake."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the inline four-cylinder petrol engine (1.8 2ZR-FE or 2.4 2AZ-FE) with coil-on-plug ignition and the plugs easily reached from the top once the plastic engine cover is off. No intake removal is needed. The high figure allows for plugs seized in the aluminium head or brittle coil connectors."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "0.5"
+    typical: "0.8"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 1.8 L 2ZR-FE inline-four with coil-on-plug ignition and all four plugs reachable from the top. The job is pulling the plastic engine cover, unbolting four coils and swapping the 14 mm plugs, with no intake removal needed."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one of the inline four-cylinder petrol engines (1.8 2ZR, 2.0 M20A or the 1.8 hybrid) with coil-on-plug ignition reachable from the top after removing the engine cover. No intake removal is needed;"
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes the common 4-cylinder (2.4L 2AZ or 2.5L 2AR, including the hybrid), with the engine cover and four coil-on-plug units removed from the top for direct access to iridium plugs."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "0.6"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.5L 4-cylinder (2AR-FE), where only the engine cover and four coil-on-plug coils come off for direct access to the plugs. The 3.5L V6 would take noticeably longer because the intake plenum must come off to reach the rear bank."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "1"
+    typical: "1.4"
+    high: "2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Estimate follows the supplied 3.5L V6 (2GR-FKS) procedure: remove the V-bank cover, remove six coils including the harder-to-reach rear bank near the cowl, swap six plugs, refit, and check for misfires."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2025
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L A25A-FXS four-cylinder hybrid (the only XV80 engine), where the coils sit on top of the head cover under the engine cover, so the job is just cover off, four coils out, four iridium plugs swapped and refitted."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "0.6"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.3L/2.5L four-cylinder with coil-on-plug ignition, per the supplied procedure: remove the engine cover and four coils, blow out the wells, then swap the plugs by hand to 12 Nm. The 3.0L V6 needs the upper intake removed to reach the rear bank and would take roughly twice as long."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed one of the inline four-cylinder gasoline engines (2.5L, 1.6L, 1.5L or 2.0L EcoBoost), with coil-on-plug ignition reached from the top after removing the engine cover and possibly a small duct or bracket."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 1.5L EcoBoost three-cylinder, with coil-on-plug ignition reached after removing the top engine cover, and plugs removed by hand tools on a warm engine."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5 L QR25DE inline-four used in all first-generation Rogues, FWD or AWD, with four coil-on-plug coils easily reached on top of the engine after removing the engine cover. No intake removal is needed, and the high figure allows for seized plugs or stuck coil boots."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "0.5"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the 2.5L inline four-cylinder (QR25DE), which has four coil-on-plug units easily reached on top of the engine once the air duct is removed. The job covers four pre-gapped iridium plugs fitted to torque with a thin-wall plug socket, followed by a start-up check for misfires."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed either the 2.5L inline-four (2021-2022) or the 1.5L VC-Turbo three-cylinder (2023 on), both with top-mounted coil-on-plug ignition. On the turbo engine the engine cover, air inlet hose and turbo hose come off for access;"
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.4L four-cylinder, where the one-piece coil pack on top of the engine unbolts and lifts off to reach all four plugs, with no intake removal needed. The 3.0L or 3.6L V6 versions need the upper intake removed for the rear bank and would take considerably longer."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline transverse inline-four (mainly the 1.5L turbo, with the 2.0L turbo similar), where the engine cover and coils come off the top of the head for access to four plugs torqued to 17 N·m."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a gasoline inline-four (2.0 or 2.4 litre) with coil-on-plug ignition, where the plugs are reached from the top of the engine after removing the plastic cover and four coils, with no intake removal needed. Diesel versions sold in some markets have no spark plugs and are excluded;"
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "0.6"
+    typical: "0.9"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a petrol inline four-cylinder (2.0L MPI, 2.4L GDI or 1.6T) with coil-on-plug ignition on top of the engine. Only the engine cover and four coils need to come off, with no intake removal. Diesel versions sold in some markets have no spark plugs and are excluded."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed an inline four-cylinder petrol engine, either the 2.5 naturally aspirated or the 1.6 turbo (including hybrids), with coil-on-plug ignition reached by removing only the engine cover and four coils. No intake plenum removal is needed;"
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the 1.8L Nu or 2.0L inline-four gasoline engine with four coil-on-plug units on top, reached by lifting off the plastic engine cover with no intake removal needed."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse inline four-cylinder (2.0L, 1.4T or 1.6T) with coil-on-plug ignition on top of the head, where only the engine cover and the four coils come off before the plugs are removed, gapped, and torqued."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.0L naturally aspirated inline-four with coil-on-plug ignition, where only the engine cover and four coils come off for top access to the plugs. The 1.6 turbo or hybrid versions may take slightly longer, and the high figure allows for stubborn coil connectors or tight plugs."
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "1.8"
+    typical: "2.4"
+    high: "3.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common transverse V6, mainly the 3.6 Pentastar, where the upper intake plenum must come off to reach the rear-bank coils and plugs, with new plenum gaskets fitted. The engine cover and air intake are also removed, and all six plugs are replaced with the gap checked before fitting."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "0.8"
+    typical: "1.6"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "The estimate covers both 2nd-generation engines. The 2.7L four-cylinder has coils on top and is quick, which sets the low figure. The typical figure reflects the more common 4.0L V6, where the air intake ducting and, for best access to the rear bank, the upper intake plenum must come off, which…"
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "1.8"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.5L 2GR-FKS V6, where the upper intake surge tank must come off with new gaskets to reach the rear-bank coils and plugs, plus the harness bracket and all six coils. The 2.7L four-cylinder has open access and would take well under half this time."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.4L T24A-FTS turbo inline-four (including the i-FORCE MAX hybrid version), with four coil-on-plug units reached from the top after removing the engine cover, plus the post-repair inspection and misfire check."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "1.6"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.6L V6, where the upper intake plenum must come off to reach the rear-bank coils and plugs. The 5.7L/6.4L V8 with 16 plugs takes a similar amount of time, and the 3.0L EcoDiesel has no spark plugs, so this job does not apply to it."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "1.4"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Based on the most common engine, the 3.6L V6, where the upper intake plenum must come off to reach the rear-bank plugs, with new gaskets and coil-on-plug units removed and refitted. The 2.0T 4xe would take noticeably less time; the 5.7L V8 has 16 plugs, so its time could differ."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "1.8"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the common transverse 3.5L Ti-VCT V6. On this engine the upper intake manifold must come off to reach the rear-bank coils and plugs, so the estimate includes removing and refitting it with new gaskets."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.3L EcoBoost inline-four from the given procedure: remove the engine cover and any intake ducting in the way, unplug and pull four coil-on-plugs, blow out the wells, then swap the plugs on a warm engine and torque them to spec."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "2"
+    typical: "2.6"
+    high: "3.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.5L 2GR-FE V6. On that engine the wipers, cowl, and wiper motor come off, the coolant is partly drained, and the intake surge tank is removed to reach the rear-bank plugs, then everything is refitted, coolant refilled and bled, and the engine checked for misfires."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 3.5L V6 (2GR-FE or 2GR-FKS, non-hybrid), where the upper intake surge tank has to come off to reach the rear-bank coils and plugs; this means disconnecting the air duct, throttle body, vacuum and PCV lines and fitting new surge tank gaskets before replacing all six plugs."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "1.6"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.5L 2GR-FKS V6 shown in the procedure. The intake surge tank (upper plenum) must come off for access to the rear bank, with new plenum gaskets fitted, and all six plugs are replaced."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L or 2.5L Skyactiv-G inline-four with the coils on top under the plug hole plate, so no intake removal is needed. The job is battery disconnect, cover off, four coil connectors and coils out, four plugs replaced to torque, then reassembly and a run check for misfires."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline Skyactiv-G 2.0/2.5 inline-four or 2.5 turbo with coil-on-plug ignition under the plug hole plate, with direct top access and no intake removal needed; the Skyactiv-D diesel versions have no spark plugs."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a petrol inline-four (2.4L MPI or 2.0L turbo GDI) with coil-on-plug ignition: remove the engine cover, unplug and unbolt four coils, swap the four plugs, then refit and check for misfires."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline inline-four (2.4L GDI or 2.0T) with coil-on-plug ignition reachable from the top after removing the engine cover, so no intake removal is needed. Diesel versions sold in some markets have no spark plugs and are not covered by this estimate."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline inline four-cylinder (2.5L GDI or 1.6T hybrid) with coil-on-plug ignition reachable from the top after removing the engine cover, so no intake removal is needed."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "0.5"
+    typical: "0.8"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Based on the 2.4 L four-cylinder with coil-on-plug ignition, where only the coil cover and four coils come off before the plugs are swapped. The high figure allows for seized or galled plugs, or for the 3.5 L V6, whose rear-bank plugs are harder to reach."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "0.4"
+    typical: "0.7"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I based this on the 2.4L inline-four, where the coil cover and four coil-on-plug coils come straight off the top of the engine, so the plugs are easy to reach. The high figure allows for stuck plugs, and partly for the 3.5L V6, whose rear bank is harder to reach."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common transverse inline four-cylinder engines (1.5L turbo, 2.0L turbo or hybrid 2.0L), with four coil-on-plug coils reached from the top after removing the engine cover."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the inline four-cylinder engines used in this generation (1.5L turbo or 2.0L hybrid), with coil-on-plug ignition directly accessible under a top engine cover, so only the cover, four coil connectors and coil bolts come off."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "1"
+    typical: "1.6"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.5 L flat-four (EJ253 or FB25) with coil-on-plug ignition. Access is tight beside the frame rails, and the air cleaner case must come off for the right bank. The 3.6 L flat-six has more plugs and worse access, so it would land toward the high figure."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "1.1"
+    typical: "1.6"
+    high: "2.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 2.5i FB25 boxer four with four coil-on-plug plugs reached from the sides of the engine bay, with the battery removed for the left bank and the air cleaner case removed for the right bank."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L direct-injection boxer four (the 2.4L turbo is similar), with plugs reached from each side of the engine bay. The LH side needs the battery and possibly the intake duct removed, and the RH side needs only the battery ground disconnected."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "1"
+    typical: "1.6"
+    high: "2.6"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a petrol V6 Wrangler: on the 3.8L both coil banks are reachable after moving the air intake, while the 3.6L Pentastar needs the upper intake plenum removed and refitted with new gaskets to reach the rear bank, so the typical figure blends the two."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "1.2"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed the common 3.6L Pentastar V6, where the upper intake plenum must come off to reach the rear-bank coils and plugs and is refitted with new gaskets."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gasoline engine (1.8/2.0 TSI, 1.4 TSI, 2.0 8v or 2.5 five-cylinder) with coil-on-plug ignition reached by removing the snap-off engine cover and pulling the coils. The 2.0 TDI diesel has no spark plugs, so the job does not apply to that engine."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a transverse inline four-cylinder turbo petrol engine (1.4T/1.5T EA211, or the 2.0T in the GLI) with coil-on-plug ignition reachable from the top once the plastic engine cover is removed; no intake removal is needed."

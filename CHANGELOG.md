@@ -4,6 +4,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Added
+
+- AI labour estimates (`basis: ai`) in `data/labor/ai/`: the 22 jobs of the reviewed job list on 70 generations of the best-selling models, 1,471 figures. A model works each one out from the vehicle, the job and, when there is one, the steps of a repair procedure, never a number from one; the figure carries the model's confidence, the model, the prompt version and what it was given (`confidence_pct`, `model`, `method`, `inputs`). Within one scope a measured figure comes first, then a written one, then an AI one.
+
 ## [0.4.0] - 2026-10-27
 
 ### Added

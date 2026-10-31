@@ -28,11 +28,12 @@ pub enum Dataset {
     Manuals,
     Jobs,
     Labor,
+    LaborAi,
     VinGuides,
 }
 
 impl Dataset {
-    pub const ALL: [Dataset; 18] = [
+    pub const ALL: [Dataset; 19] = [
         Dataset::RecallsUs,
         Dataset::RecallsCa,
         Dataset::Investigations,
@@ -50,6 +51,7 @@ impl Dataset {
         Dataset::Manuals,
         Dataset::Jobs,
         Dataset::Labor,
+        Dataset::LaborAi,
         Dataset::VinGuides,
     ];
 
@@ -73,6 +75,7 @@ impl Dataset {
             Dataset::Manuals => "manuals",
             Dataset::Jobs => "jobs",
             Dataset::Labor => "labor",
+            Dataset::LaborAi => "labor_ai",
             Dataset::VinGuides => "vin_guides",
         }
     }
@@ -216,6 +219,7 @@ mod tests {
                 "manuals",
                 "jobs",
                 "labor",
+                "labor_ai",
                 "vin_guides"
             ]
         );

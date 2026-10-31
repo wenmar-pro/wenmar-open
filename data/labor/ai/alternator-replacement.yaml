@@ -1,0 +1,766 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: alternator-replacement
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "0.9"
+    typical: "1.4"
+    high: "2.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical 2WD or 4WD truck with the 5.0L V8, where the alternator is reached from above and below after removing the belt and tensioner. The 3.5L EcoBoost and 4.6/5.4L engines can have tighter access, which is reflected in the upper end of the range, along with the charging output test."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.5L EcoBoost 4WD on a hoist, with the LH air cleaner outlet pipe, the turbo bypass valve tube and the skid plate (if fitted) removed for access. The belt is slipped off the tensioner and reused, and charging output is checked afterwards;"
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the primary (single) alternator on a 3.5L EcoBoost, which means removing the LH air cleaner outlet pipe and turbo bypass tube, slipping the belt off the tensioner and unbolting three fasteners plus the B+ and plug, then testing output afterwards."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "0.8"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline 3.6L V6 or 5.7L V8 with top-side access to the alternator: belt off via the tensioner, support bracket removed on the 5.7L, two mounting bolts and the electrical connections, then a charging output check after reassembly."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a non-eTorque truck, such as the 5.7L Hemi without the mild-hybrid system, with a conventional belt-driven alternator mounted high at the front of the engine."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "0.7"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a Vortec V8 (4.8/5.3/6.0) or 4.3 V6 with the alternator mounted upper front on the engine. The air intake duct may need removing for access, the serpentine belt is released at the automatic tensioner, and the old alternator is unbolted from its bracket with the B+ cable and connector moved…"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a K2XX Silverado 1500 with the common gasoline V6/V8, where the alternator sits high on the front of the engine and is reached from above. The job is releasing the tensioner to slip the belt off, possibly moving the air intake duct, unbolting two mounting bolts and the B+ cable, then…"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "1.1"
+    typical: "1.7"
+    high: "2.6"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "I based this on the 2.7L turbo (L3B) procedure shown, which means removing the air cleaner, intake ducts, charge air cooler hoses, the underbody shield and the left wheelhouse liner to reach the alternator."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "0.7"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes a half-ton gasoline Vortec V8 (4.8/5.3/6.0L), where the alternator sits high at the front of the engine and comes out after releasing the serpentine belt tensioner, possibly removing the air intake duct, and taking off the B+ cable, the connector and the mounting bolts."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline V8 (5.3L/6.2L) or V6 4.3L, where the alternator sits high on the front of the engine and is reached from above after releasing the serpentine belt tensioner, with at most the air intake duct moved aside."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "1"
+    typical: "1.7"
+    high: "2.7"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "This assumes a typical 5.3L or 6.2L V8, where the alternator is reached from above after the belt is removed. The 2.7L turbo (L3B) procedure supplied adds a coolant drain and refill, air cleaner and charge-air hose removal, and splash shield work from below, which pushes it toward the upper end."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "0.8"
+    typical: "1.2"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 4-cylinder RAV4 (2.4 2AZ-FE or 2.5 2AR-FE) with the alternator reached from above after removing the serpentine belt and a harness bracket, followed by a charging output test. The 3.5 V6 has tighter access and would fall toward the high figure."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "0.8"
+    typical: "1.2"
+    high: "1.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L 4-cylinder petrol engine (non-hybrid). The alternator is reached from above after releasing the belt tensioner and removing the harness clamp brackets, with no major parts in the way. The time includes battery disconnect, system re-initialization and a charging output check;"
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "0.9"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 2.5L A25A-FKS RAV4 with the alternator reachable from above once the air cleaner assembly and the auto-tensioned serpentine belt are removed; hybrid and Prime versions have no belt-driven alternator, so this job does not apply to them."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the 2.4 L K24Z engine, where the alternator sits at the front upper part of the engine and comes out from above once the drive belt and auto-tensioner are removed. The time includes the battery disconnect and reconnect procedures (radio code and idle relearn) and a charging output check."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L K24 petrol engine, with the alternator reached from above at the front of the engine after removing the belt, idler pulley base and auto-tensioner as the steps describe."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "0.9"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid CR-V with the 1.5 L turbo or 2.4 L engine, where the alternator comes out after the engine undercover and drive belt are removed with no major parts in the way; the hybrid models have no conventional belt-driven alternator and are not covered."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "1.2"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "This estimate applies to the 1.5L turbo petrol models (FWD or AWD). The alternator is reached from above and below, after removing the under-cover and possibly some intake or air-duct parts, then the serpentine belt is slackened at the auto-tensioner."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid Civic with the 1.8L R18 engine (the 2.0L Si is similar), with the alternator reachable from above and an automatic belt tensioner, so the only removal needed is the serpentine belt."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "1.1"
+    typical: "1.7"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 9th-generation Civic. The K24 (Si) procedure shown requires removing the belt, auto-tensioner, idler pulley base, grille cover, bulkhead and condenser fan shroud to extract the alternator."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "0.9"
+    typical: "1.4"
+    high: "2.1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.0L K20C2 or 1.5L turbo petrol engine, with the alternator reached from above and below after removing the drive belt and auto-tensioner (and the under-cover if needed). The time includes reconnecting the battery and a basic charging output test, with no other parts replaced."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "1.1"
+    typical: "1.6"
+    high: "2.5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a front-wheel-drive Civic with either the 2.0L naturally aspirated or 1.5L turbo petrol engine; the alternator is reached from above and below after removing the under-cover and possibly the intake ducting."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "0.9"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 1.8L 2ZR-FE (similar access on the 2.4L 2AZ-FE) with an automatic belt tensioner, with the alternator reached from above and below after removing the RH engine under cover."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "0.9"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1.8L 2ZR-FE Corolla with the alternator mounted high on the front of the engine. The job means removing the engine cover and the serpentine belt via the automatic tensioner, then unbolting the alternator from above with minimal other disassembly."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.7"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a petrol Corolla (2.0L M20A-FKS or 1.8L 2ZR) with the alternator reachable from above once the radiator support cover and air inlet duct are removed and the auto-tensioned belt is slipped off; hybrid versions have no conventional alternator."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L 2AZ-FE four-cylinder with an automatic belt tensioner. Access is through the right wheel well after removing the wheel, the under cover and the fender apron seal, and the alternator comes out after unplugging the connector, the B+ lead and the harness bracket and removing two bolts."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "0.9"
+    typical: "1.4"
+    high: "2.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.5L 2AR-FE four-cylinder, where the alternator sits high on the front of the engine and comes out from above once the belt is released at the automatic tensioner, plus time for the charging test and any system re-initialization after battery reconnection."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid 2.5L A25A-FKS Camry; hybrid versions have no conventional alternator, and the 3.5L V6 may differ somewhat. The alternator is reached from above after removing the air cleaner assembly, intake duct seal and MAP sensor and taking the belt off the automatic tensioner, with a quick…"
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.5L four-cylinder on a hoist: RH splash shield off, belt slipped off with the tensioner, alternator and air ducts removed from below and above, then refit and charging output checked; the 3.0L V6 can take somewhat longer."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "1.3"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I based this on the 2.0L EcoBoost AWD procedure, done from below on a hoist. The A/C compressor is assumed unbolted and moved aside with its lines still connected, and the mounting bracket is swapped. If the refrigerant has to be recovered and recharged, add time;"
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "2"
+    typical: "2.7"
+    high: "3.6"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gasoline 1.5L EcoBoost per the given procedure; the A/C compressor inlet line has to come off, so refrigerant recovery, evacuation and recharge are included, along with air cleaner removal and the belt off and on."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "0.8"
+    typical: "1.2"
+    high: "1.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L QR25DE four-cylinder with an automatic belt tensioner and the alternator mounted high on the front of the engine, so it lifts out from above without removing the axle or the subframe. FWD and AWD are treated the same, with a basic charging-output check at the end."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L QR25DE four-cylinder (FWD or AWD), with the alternator removed upward from the engine bay after removing the serpentine belt via the auto-tensioner and the dipstick guide with a new O-ring."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "2.1"
+    typical: "2.9"
+    high: "4.1"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes either the 2.5 L PR25DD or 1.5 L KR15DDT engine with the alternator reached from above. The A/C internal heat exchanger pipe (and, on the PR25DD, the low-pressure hose) must come off, so the estimate includes refrigerant recovery, evacuation and recharge, plus the energy-management/charging…"
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "0.9"
+    typical: "1.4"
+    high: "2.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.6L LFX V6 layout shown, with the alternator reached from above after removing the serpentine belt and idler pulley; the 2.4L four-cylinder sits lower and may need under-vehicle access, so it leans toward the upper end."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L LTG turbo or 1.5L LYX gas engine with a front-wheel- or all-wheel-drive layout, and that the alternator comes out from above after removing the EVAP purge components, belt and shield. Some lift work is needed for the battery cable and stud, and the alternator must be manoeuvred out;"
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "2.1"
+    typical: "2.9"
+    high: "4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.0L or 2.4L Theta II petrol engine, where the alternator sits beneath the intake manifold. The manifold must come off (air intake, throttle body, sensors, vacuum lines) to reach the through bolt, and is refitted with new gaskets."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "0.9"
+    typical: "1.4"
+    high: "2.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.0L or 2.4L petrol engine with an automatic belt tensioner, where the alternator is reached from above and below after removing the engine undercover; the job covers releasing the tensioner to remove the belt, unplugging the connector and B+ cable, and removing the mounting bolts."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "1.1"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.5L G4KN/G4EN-style gasoline engine (non-hybrid). Removal goes from the top and front, which means disconnecting several harness connectors and a wiring bracket next to the alternator, then two mounting bolts, with the belt removed and refitted and the charging output checked…"
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "0.9"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 1.8L Nu (or 2.0L) petrol engine with an automatic belt tensioner, so the belt only needs releasing rather than adjusting. The alternator is reached from above and partly from below with the engine undercover removed, and comes out through the engine bay without disturbing other major…"
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 2.0L engine, or the 1.4T/1.6T, with a serpentine belt and automatic tensioner, where the alternator can be reached from above or from below after removing the splash shield."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "0.8"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.0L non-hybrid engine, where the alternator is reached from above or below after the serpentine belt comes off the automatic tensioner, and only the connector, B+ cable and mounting bolts need removing."
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "1.8"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I based this on the 3.6L Pentastar, the most common engine for these years. That job means removing the air cleaner and serpentine belt, partially draining the coolant, pulling the cooling fan to reach the upper bolts and working from below on a lift, then refilling the coolant and checking…"
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "0.8"
+    typical: "1.2"
+    high: "2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.7L 4-cylinder or 4.0L V6 with a serpentine belt and automatic tensioner, where the alternator mounts on two bolts and is reached from above or below without removing major components."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "0.8"
+    typical: "1.3"
+    high: "2.1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the common 3.5L V6 or 2.7L four-cylinder, where the alternator is reached from above or below after removing the engine cover, the intake duct and possibly a splash shield."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "This assumes the conventional 2.4L turbo gasoline engine with a belt-driven alternator. The hybrid i-FORCE MAX may not use a conventional alternator. The job covers removing the engine cover and possibly the under-cover, releasing the belt tensioner, unplugging the connector and B+ terminal, and…"
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "0.8"
+    typical: "1.2"
+    high: "1.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 3.6L V6 or 5.7L/6.4L V8 petrol engines, worked from above using the under-hood remote battery terminal. The V8s also need the air cleaner body removed."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "0.8"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed the common 3.6L Pentastar V6 (similar for the 5.7L V8), with a conventional belt-driven alternator mounted high at the front of the engine; reaching it means removing the engine cover and possibly the air intake duct before releasing the belt."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "1.4"
+    typical: "2"
+    high: "3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common V6 (3.5L naturally aspirated or 3.5L EcoBoost) where the cooling fan and shroud must come out for access. The job covers removing the belt, unbolting the alternator and its radial arm adapter, refitting everything, and running a charging check;"
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.3L EcoBoost on the longitudinal platform, with the alternator reached from above and through the left front wheel opening after removing the steering shield. Includes removing the engine cover, belt cover and CAC tube, slipping the belt off, and testing charging output;"
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "2.3"
+    typical: "3.1"
+    high: "4.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.5L V6 (2GR-FE) following the factory route: wheel, fender liner and under covers off, coolant drained, and grille, upper support, condenser and radiator/fan moved for access, plus coolant refill and bleed and a charging test."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "1.2"
+    typical: "1.7"
+    high: "2.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.5L V6 (2GR-FE/2GR-FKS), non-hybrid, where the cooling fan shroud must come off for access to the alternator without draining coolant; the 2.7L four-cylinder would likely be somewhat quicker."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "1.5"
+    typical: "2.1"
+    high: "2.9"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline model, following the supplied 2.4L turbo (T24A-FTS) procedure. That procedure includes draining and refilling the intercooler coolant and removing the intercooler reserve tank and hoses, on top of the belt and alternator swap and a charging test."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a SkyActiv-G 2.0L or 2.5L petrol engine, FWD or AWD, with the alternator on the front of the engine and a spring-loaded auto-tensioner on the serpentine belt."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.5L SkyActiv-G petrol engine (turbo similar) with an auto-tensioned serpentine belt, where the alternator is reached from above after removing the coolant reserve tank and the wiring harness bracket."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "1"
+    typical: "1.4"
+    high: "2.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L petrol engine with AWD, where the alternator is reached from the top after removing the VIS actuator/valve, with an automatic belt tensioner and no subframe or undertray work beyond normal access."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "1.6"
+    typical: "2.2"
+    high: "3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.4L GDI four-cylinder (similar on the 2.0L), FWD or AWD, on a lift. The alternator comes out by supporting the engine and removing the right engine mount bracket, then loosening the A/C compressor without opening the refrigerant circuit, with the belt, under cover and wiring removed…"
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "2.3"
+    typical: "3.1"
+    high: "4.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the non-hybrid 2.5L GDI engine (the hybrid and plug-in hybrid use a starter-generator instead of a conventional alternator), where the procedure requires removing the intake manifold and the engine room under cover, then supporting the engine on a jack and detaching the mount bracket to…"
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "0.8"
+    typical: "1.2"
+    high: "1.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.4L four-cylinder, where the alternator sits up front and is reachable from above once the auto-tensioner releases the belt and two mounting bolts are removed. Time includes battery disconnect and reconnect with the radio and idle relearn, plus a charging output check;"
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.4L four-cylinder petrol engine (non-hybrid) with alternator access mostly from above, and that the drive belt auto-tensioner must come off for clearance. Time includes the battery disconnect/reconnect procedure with relearns and a charging output check; the 3.5L V6 may differ somewhat."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a petrol 1.5T or 2.0T model with a belt-driven alternator that can be reached from above once the drive belt and intake ducting are moved aside. Hybrid versions have no conventional alternator, so this job does not apply to them."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "1.1"
+    typical: "1.6"
+    high: "2.5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the 1.5L turbo petrol engine (LX/EX), which has a belt-driven alternator reached from above and below after removing the splash shield and some intake or heat-shield parts."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.5L boxer (EJ253 or FB25) or 3.6R, all of which mount the alternator at the top front of the engine with easy access from above. The job covers removing the belt (manual adjuster or auto tensioner) and the belt cover bracket, swapping the unit, re-tensioning the belt and checking…"
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "0.8"
+    typical: "1.2"
+    high: "2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5i FB25 boxer, where the alternator sits high on the front of the engine and is reached from above after disconnecting the battery ground, releasing the auto-tensioned belt and removing the small belt cover bracket."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L FB25 boxer (the 2.4 turbo is similar), with the alternator mounted on top-front of the engine and reached from above. The job is removing the intake duct, releasing the auto-tensioned serpentine belt, unplugging and unbolting the alternator, then reassembling and doing a…"
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a petrol JK (3.8L or 3.6L Pentastar), where the alternator sits high at the front of the engine. On the 3.6L the engine cover and air cleaner body come off for access; the belt is released at the tensioner and the alternator is held by a connector, the B+ nut and four mounting bolts."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "0.8"
+    typical: "1.2"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the common 3.6L Pentastar V6 with a conventional 12V alternator mounted high at the front of the engine, where the air intake or a cover may need to come off for access. eTorque mild-hybrid models use a 48V belt starter-generator instead, which is a different and longer job not covered here."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a petrol engine (1.8T/2.0 EA888 or 2.5L five-cylinder) with the alternator mounted high on the front of the engine. Access is from above after removing the engine cover and possibly an air intake or charge-air duct, and the belt is released with the automatic tensioner."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 1.5L TSI (or similar 1.4T) with A/C. The job includes removing the noise insulation underneath, the belt and tensioner, and unbolting the A/C compressor and hanging it aside without opening the refrigerant circuit, then lowering the alternator out from below."

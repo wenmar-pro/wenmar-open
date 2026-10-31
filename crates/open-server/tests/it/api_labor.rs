@@ -129,6 +129,10 @@ async fn a_vehicle_gets_the_narrowest_figure_of_each_job_and_which_scope_it_was(
             "years": null,
             "engine": null,
             "sample": null,
+            "confidence_pct": null,
+            "model": null,
+            "method": null,
+            "inputs": null,
             "notes": null,
             "updated": "2026-10-10",
             "url": "https://open.example/jobs/test-job-a"

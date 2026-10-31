@@ -1,0 +1,777 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: water-pump-replacement
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 5.0L V8 shown in the repair steps (external pump behind the thermostat housing, belt-driven), including drain, belt and thermostat housing removal, heater tube O-ring, and refill and bleed."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "1.8"
+    typical: "2.4"
+    high: "3.5"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Based on the external, belt-driven coolant pump of the 2017-2020 3.5L EcoBoost shown: remove the right charge-air pipe, degas bottle, belt and pulley, outlet connector and hoses, then fit the new pump and vacuum-fill and bleed the system."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "1.6"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Based on the 3.5L EcoBoost layout shown: an external belt-driven pump reached by removing the left charge-air pipe, moving the degas bottle aside, and removing the drive belt, pulley, outlet connector and hoses, then vacuum filling and bleeding. The 5.0L and 2.7L are broadly similar."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "I assumed the common 5.7 Hemi or 3.6 V6, where the pump is mounted on the front of the engine and driven by the accessory belt, so no timing components need to come off."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "2"
+    typical: "2.8"
+    high: "4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 5.7L Hemi (with or without eTorque) and an externally mounted, belt-driven pump on the front of the timing cover. Assumes the job covers draining the coolant, removing the air intake, fan or shroud, the accessory belts (including the one-time stretch belt on eTorque), the pump…"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "1.4"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a Gen IV small-block V8 (4.8/5.3/6.0 L) in a GMT900 Silverado, where the pump is at the front of the block and comes out after removing the intake duct, draining the coolant, removing the serpentine belt and disconnecting four coolant hoses plus the vent hose."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common gas EcoTec3 V8 (5.3L/6.2L) in a 1500, where the belt-driven pump bolts to the front cover and comes off after draining, removing the intake duct, fan and shroud, drive belt and hoses."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "2.6"
+    typical: "3.8"
+    high: "6"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "The estimate covers the common V8s (5.3L/6.2L), where the job is drain coolant, remove the fan/shroud, belt and hoses, swap the pump and gasket, then refill and bleed."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a Gen IV small-block V8 (4.8/5.3/6.0/6.2) with an externally mounted, belt-driven pump that is reached from the front once the air duct, drive belt and four coolant hoses are off."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "2.2"
+    typical: "2.8"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 1500 Sierra with a 4.3L, 5.3L or 6.2L EcoTec3 gas engine, where the externally mounted, belt-driven pump comes out after removing the intake duct, fan and shroud, drive belt and coolant hoses, with no timing work."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "2.2"
+    typical: "3.2"
+    high: "4.8"
+    confidence: 32
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical gas V8 (5.3L or 6.2L) or similar engine, where the work is draining coolant, removing the air intake, fan/shroud and drive belt, and swapping the front-mounted pump, followed by refill and bleed."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "1.6"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 4-cylinder (2AZ-FE or 2AR-FE) with an externally mounted, belt-driven pump, reached by removing the under covers, coolant reservoir, drive belt, alternator and belt tensioner, followed by refilling and bleeding the cooling system."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "1.6"
+    typical: "2.2"
+    high: "3.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L 2AR-FE petrol engine (non-hybrid), where the water pump is belt-driven on the outside of the timing-chain cover, so no timing work is needed."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "1.4"
+    typical: "2"
+    high: "3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L A25A engine (petrol or hybrid), which has a block-mounted electric water pump with no drive belt or timing parts in the way. The job is to drain the coolant, remove the thermostat/water inlet housing and nearby hoses, swap the pump and gasket, then refill and bleed, which may need…"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "1.1"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.4L K24Z1/K24Z6 timing-chain engine, where the water pump is mounted externally and driven by the accessory belt. Access is from the belt end of the engine, and the job covers removing the belt, tensioner pulley and pump pulley, swapping the pump with a new O-ring, then refilling and…"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.4L K24 timing-chain engine with a belt-driven external water pump. Access is from the right wheel well after removing the splash shield, drive belt, idler base, auto-tensioner and crankshaft pulley; the timing chain is not disturbed."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the common belt-driven water pump on the 1.5L turbo or 2.4L petrol engine, mounted on the outside of the block and reached after draining the coolant and removing the accessory drive belt, the pump pulley and nearby splash or wheel-well shields, with no timing chain work."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "1.5"
+    typical: "2.1"
+    high: "3.1"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the 1.5L turbo petrol engine, where the pump is driven by the serpentine belt on the front of the block and is reached from the right side with the splash shield off. Access is assumed not to need the timing chain disturbed."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the common R18A1 1.8L (and similar K20 Si) engine with a timing chain and an external belt-driven water pump. The pump comes off once the drive belt and auto-tensioner are removed, so no timing work is needed."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "1.1"
+    typical: "1.6"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a non-hybrid Civic with a belt-driven external water pump: the 1.8 R18 or the K24Z7 Si, which has timing chains, so no timing belt work is involved."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "1.3"
+    typical: "1.9"
+    high: "2.7"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed one of the timing-chain engines (2.0L K20 or 1.5T L15). On these the water pump is external and driven by the accessory belt, so the job means draining the coolant, removing the drive belt and auto-tensioner, swapping the pump and gasket, then refilling and bleeding."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "1.4"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed the common 1.5L turbo or 2.0L non-turbo chain-driven engines, where the belt-driven pump bolts to the timing chain case and is reached after supporting the engine and removing the right-side mount, drive belt and pump pulley."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "1.4"
+    typical: "2"
+    high: "2.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 1.8 L 2ZR-FE with its externally mounted, chain-cover-bolted pump. The job involves removing the engine cover, RH under cover, drive belt and alternator for access, swapping the pump and gasket, then refilling and warm-up bleeding the system."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 1.8L 2ZR-FE timing-chain engine, where the belt-driven pump bolts to the timing chain cover and is reached by removing the drive belt and alternator, so no timing work is needed. The estimate includes draining, refilling and bleeding the coolant and a leak check."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "2.1"
+    typical: "2.9"
+    high: "3.9"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.0 L M20A-FKS with the electric water pump under the intake manifold, as in the given steps. Removing and refitting the intake manifold is most of the time, plus draining, refilling and bleeding (possibly with a scan-tool pump routine)."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "1.9"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4 L 2AZ-FE four-cylinder with automatic transmission, following the given steps: remove the under covers, RH mount stay, torque rod and mount bracket with the engine supported, then the belt and alternator to reach the pump, which is sealed with FIPG, followed by a coolant refill and…"
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "1.8"
+    typical: "2.4"
+    high: "3.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.5L 2AR-FE four-cylinder with a belt-driven external pump, removed by taking off the drive belt, alternator and belt tensioner, which may need under-car or wheel-well access. Includes draining, refilling and bleeding the coolant and a leak check;"
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "1.3"
+    typical: "1.9"
+    high: "2.7"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 2.5L A25A-FKS, whose electric water pump bolts to the block behind the thermostat water inlet, so no drive belt or timing parts come off. The time covers draining, removing the inlet and pump, cleaning the faces, refitting, and refilling and bleeding the system;"
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2025
+    year_to: 2027
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L A25A-FXS hybrid, the only Camry powertrain for these years, which uses an electrically driven water pump with no drive belt or timing parts involved. The pump is reached by removing the engine undercover and the water inlet/thermostat housing, then unplugging it."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "1.1"
+    typical: "1.5"
+    high: "2.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.3L/2.5L four-cylinder with the belt-driven external pump shown in the steps: drain, remove the accessory belt and pump pulley, unbolt the pump, fit a new O-ring, then refill and bleed."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "1.3"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the externally mounted, accessory-belt-driven coolant pump shown for the 2.0L EcoBoost; other engines in the range are treated as similar. The job covers draining, removing the belt and pulley, unbolting the pump, fitting a new gasket and O-ring, refitting, then vacuum filling, bleeding and…"
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Based on the 1.5L EcoBoost three-cylinder, whose belt-driven pump on the front of the engine comes out after the drive belt and generator are removed, with a vacuum fill and bleed afterward."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "1.6"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L QR25DE with a timing chain and a belt-driven water pump bolted to the front of the block, reached by removing the drive belt, auto-tensioner and alternator. Only the pump and its gasket are replaced;"
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "1.7"
+    typical: "2.4"
+    high: "3.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 2.5L QR25DE petrol engine, where the belt-driven water pump and its housing sit on the front of the engine and the alternator must be removed for access, along with the drive belt and splash shields."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "1.6"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the 2.5L four-cylinder or 1.5L turbo three-cylinder, with the pump mounted externally on the engine front cover and reached from the right wheel well and underside."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "2.5"
+    typical: "3.2"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 2.4L four-cylinder (LAF/LEA), whose water pump is driven by the balance shaft chain. Access requires removing the air cleaner, intake cover, close-coupled catalytic converter and thermostat housing, and the pump sprocket is held with the special tool so the chain does not need…"
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "2.6"
+    typical: "3.4"
+    high: "4.6"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 1.5L turbo (LYX) engine. The pump sits behind the thermostat housing and engine oil cooler, so the estimate covers removing the charge air tube, oil cooler, thermostat housing and turbo coolant feed pipe, repositioning the turbo oil feed, then refitting everything and filling and…"
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 2.0L or 2.4L Theta II gasoline engine, where the belt-driven water pump sits on the front of the engine and comes out after draining coolant, removing the drive belt, pump pulley and exhaust manifold heat shield. No timing components are disturbed."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "1.2"
+    typical: "1.7"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.0L (or similar 2.4L/1.6T) engine, where the water pump sits outside the chain-driven timing cover and is driven by the accessory belt, so no timing work is needed."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L Smartstream petrol engine, where the water pump is externally mounted and driven by its own belt, so no timing components are removed; access is from above and below after removing the under cover."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "1"
+    typical: "1.4"
+    high: "2.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 1.8L or 2.0L Nu engine, which has a timing chain and an external water pump driven by the accessory belt, so only the drive belt and pump pulley come off with no timing work."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "1.1"
+    typical: "1.5"
+    high: "2.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 2.0L Nu or 1.4T/1.6T Gamma engines, where the water pump is bolted externally to the front of the block and driven by the accessory belt, so no timing components need to come off."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "1.2"
+    typical: "1.7"
+    high: "2.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 2.0L non-hybrid engine with a belt-driven external water pump, reached by draining coolant, removing the accessory belt and pulley, and unbolting the pump without disturbing the timing chain."
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "2"
+    typical: "2.8"
+    high: "4.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the common 3.6L Pentastar V6 (2011-2020), where the pump bolts to the front of the timing cover and is reached from the passenger side after removing the drive belt, tensioner and nearby components, with no timing work needed."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.7L 2TR-FE four-cylinder 4WD as in the steps given. The job covers removing the under cover, draining, removing the fan shroud and fan, alternator and belt tensioner, then swapping the 10-bolt pump and refilling and bleeding the system. The 4.0L V6 will take somewhat longer."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "2.3"
+    typical: "3"
+    high: "4.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 3.5L V6 (2GR-FKS) automatic, where the pump bolts to the front of the timing cover. The fan shroud, fan, drive belt, tensioner and idler pulleys come off, and the A/C compressor and power steering pump are unbolted and moved aside without opening their lines."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "1.5"
+    typical: "2.1"
+    high: "2.9"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.4L turbo four-cylinder (gasoline or i-FORCE MAX hybrid) with a belt-driven water pump bolted to the front of the engine, reached from above and below after removing the engine undercover and V-ribbed belt."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "1.5"
+    typical: "2.3"
+    high: "3.5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the common 3.6L V6 or 5.7L V8, both with an externally mounted, accessory-belt-driven water pump on the front of the engine, so no timing chain work is needed. The estimate covers fan and shroud or other front components where needed, the belt and pulley, pump swap, then refill and bleed."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "2.5"
+    typical: "3.4"
+    high: "4.8"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumes the common 3.6L Pentastar V6, where the pump mounts on the front of the timing cover and is driven by the timing chain. The job assumes removing the air intake, fan/shroud, drive belt, tensioner and idlers to reach the pump without removing the timing cover, then a vacuum or careful fill…"
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "7.5"
+    typical: "9.5"
+    high: "13"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the common 3.5L V6 (naturally aspirated Ti-VCT or EcoBoost) with AWD. On these engines the pump sits inside the engine and is driven by the timing chain, so the job means removing the engine front cover and the timing chains, which in turn requires supporting the engine, removing the…"
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "1.3"
+    typical: "1.8"
+    high: "2.7"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.3L EcoBoost, whose belt-driven pump is mounted externally on the front of the engine. The job covers draining, removing the air cleaner, degas bottle, engine cover and shield, slipping the belt, swapping the pump and O-ring, then vacuum filling and bleeding."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "2.6"
+    typical: "3.3"
+    high: "4.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.5 L V6 (2GR-FE) AWD, where the belt-driven pump bolts to the timing cover and needs the right-hand engine mount bracket removed with the engine supported, plus removal of the crank pulley, belt tensioner pulley, idler and water inlet housing."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "1.8"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 3.5L V6 (2GR-FE/FKS) with a belt-driven water pump bolted to the front of the timing cover. It is reached from the passenger side by removing the thermostat housing, accessory belt, idler pulley and the pump with its pulley, without disturbing the timing chain or the engine mount."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "1.6"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 30
+    inputs: [vehicle, job, procedure]
+    notes: "The steps supplied cover the small electric intercooler pump on the 2.4L turbo, but I estimated the main engine coolant pump on the common engines (2.4T, 3.5L V6, 2.5L hybrid). That covers draining, removing the belt and parts in the way, swapping the pump and gasket, refilling and bleeding."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "1.6"
+    typical: "2.3"
+    high: "3.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the SkyActiv-G 2.0L or 2.5L petrol engine, where the water pump is external and driven by the accessory belt, so no timing work is needed. The job involves draining the coolant, removing the splash shield, drive belt and pump pulley, disconnecting the water inlet pipe (refitted with a new…"
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "1.8"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a petrol Skyactiv-G 2.0/2.5 engine with a belt-driven pump on the timing-cover side. Access is gained by removing the right front wheel, splash shield and drive belt, with possible engine support or mount loosening."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "1.1"
+    typical: "1.6"
+    high: "2.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L (or 2.0L) four-cylinder with a timing chain, where the water pump is belt-driven on the front of the engine and comes out after removing the accessory belt and pump pulley, with no timing work."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "1.2"
+    typical: "1.7"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.4L GDI (similar on the 2.0T), where the water pump is driven by the accessory belt and sits on the front of the engine. The estimate covers draining the coolant, removing the belt, pulley and pump, refitting with a new gasket, and refilling and bleeding the system;"
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "1.6"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the non-hybrid 2.5L petrol engine with a belt-driven water pump on a separate pump belt, accessible from above and below after removing the under cover."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "1.2"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Based on the 2.4L four-cylinder (K24), where the pump is driven by the accessory belt and reached from the front once the belt, tensioner and pump pulley are off; draining, refilling and bleeding are included. The 3.5L V6 drives its pump from the timing belt and would take considerably longer."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "1.4"
+    typical: "2"
+    high: "2.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 2.4L four-cylinder, where the belt-driven water pump sits on the front of the block behind the alternator. The job covers draining coolant, removing the drive belt and alternator, swapping the pump and O-ring, refitting, then refilling and bleeding."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "1.6"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the common 1.5T or 2.0T petrol engine, where the pump bolts to the front of the engine and comes out once the accessory drive belt, pump pulley and nearby brackets or hoses are moved aside, without opening the timing chain cover."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "1.4"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed the 1.5L turbo petrol (timing chain) with a belt-driven external water pump on the front of the engine, removed after draining coolant and taking off the drive belt and nearby brackets or ducting, with no timing work needed."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "3"
+    typical: "3.8"
+    high: "5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L EJ253 SOHC belt-driven engine shown in the steps. That means removing the radiator, drive belts, crank pulley, timing covers, timing belt, LH cam sprocket, rear cover and tensioner bracket to reach the pump, then refitting the original belt with timing marks aligned and refilling…"
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the FB25 2.5i engine, where the belt-driven water pump bolts to the upper oil pan and can be reached from below with the under cover off, after removing the serpentine belt and pump pulley. No timing chain work is needed, and the time includes draining, refilling and bleeding the coolant."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "1.8"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L FB25 flat-four, where the water pump is an external, belt-driven unit on the front of the engine reached from below once the front exhaust pipe and harness stay are removed, with no timing-chain work needed."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "1.4"
+    typical: "2.1"
+    high: "3.2"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes a gasoline 3.8L V6 (2007-2011) or 3.6L Pentastar V6 (2012-2017). On both engines the pump is belt-driven and mounted externally on the front of the engine, so the job needs only the fan shroud and fan, the serpentine belt and the pump pulley removed, plus a coolant drain, refill and bleed."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "1.6"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 3.6L Pentastar V6, whose belt-driven pump bolts externally to the timing cover, so the timing chain is not disturbed. The job covers disconnecting the battery, draining coolant, removing the drive belt, generator and bracket, left idler pulley and hoses, swapping the 12-bolt pump…"
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "2.2"
+    typical: "3.1"
+    high: "4.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2015 1.8L TSI (EA888 Gen3), where the pump is part of the thermostat/pump module under the intake side and is driven by a small toothed belt from the balance shaft."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "1.9"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 1.4/1.5 TSI (EA211) engine, where the pump and thermostat module sits on the transmission side of the head and is driven by a small toothed belt off the camshaft."

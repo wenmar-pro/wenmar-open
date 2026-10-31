@@ -1,0 +1,777 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: battery-replacement
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the single 12-volt battery sits in the engine bay with easy top access and a hold-down clamp. No battery management system registration is needed on this generation, so the job covers testing, swapping, cleaning the terminals and tray, and a brief idle relearn by running the engine."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single conventional 12 V battery under the hood (no dual-battery or auxiliary battery), with transfer of the heat shield to the new battery. Includes a quick battery and charging test, memory saver, cleaning, and a scan-tool BMS reset after installation."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single main 12 V battery under the hood with heat shield and strap hold-down, no auxiliary battery. The job includes battery and charging-system testing, terminal cleaning and a scan-tool BMS reset after installation."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the stock under-hood battery with an intelligent battery sensor on the negative cable, a thermal cover and a single-bolt hold-down. The time covers a battery and charging test, a memory saver, cleaning the terminals and tray, and a scan-tool check to clear codes, with a brief window and…"
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the single 12-volt battery under the hood with a thermal cover, a hold-down retainer, and an intelligent battery sensor on the negative cable, including testing, a memory saver, cleaning, and window or auto-up relearn. On eTorque trucks only the 12-volt battery is replaced;"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a single top-post or side-post battery in the driver-side front of the engine bay, held by a wedge-style hold-down, with no battery registration needed on these trucks."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "0.5"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gas 5.3L 4WD truck with the single driver-side battery, where the cross brace and fuse block must come off and the surge tank is moved aside without draining. The time also covers testing the battery and charging system, cleaning, using a memory saver and a basic relearn;"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gas-engine Silverado 1500 with the single under-hood battery, where the positive terminal is integrated with the battery distribution fuse block that has to be unclipped and moved aside, and the hold-down strap bolts need cleaning and thread locker on refit."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a single top-post or side-terminal battery under the hood in the front corner, held by a wedge-bolt hold-down. Some trucks have a second auxiliary battery, which is not included."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "0.5"
+    typical: "0.7"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gas 5.3L 1500 with a single battery on the driver's side, where the cross brace, fuse block and retainer come off and the surge tank is moved aside without draining coolant."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "0.5"
+    typical: "0.8"
+    high: "1.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single under-hood battery, as on the gasoline engines, with the distribution fuse block mounted on the positive post that must be unclipped and moved aside, plus the strap and retainer bolts that need fresh threadlocker."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the battery sits in the usual engine-bay location under a top hold-down bar with easy access on both the 2.4L four-cylinder and 3.5L V6, with no battery registration required."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the gasoline 2.5L RAV4, whose 12V battery sits under the hood with a simple hold-down; the hybrid's 12V battery under the rear cargo floor takes a little longer, which the high figure covers."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline or hybrid RAV4 with the 12-volt battery under the hood, which is easy to reach. The job covers battery and charging-system testing, a memory saver, removing the hold-down and battery, cleaning, fitting and torquing the new battery, and initialising systems such as the power…"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L K24 CR-V with an easily accessible battery in the engine bay held by a two-nut setting plate; time covers a battery and charging test, memory saver, terminal and tray cleaning, and reconnection steps such as radio code entry, power window auto-function reset and idle relearn by…"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional 12 V flooded or AGM battery in the open engine bay, retained by a setting plate with J-bolts, with no battery registration needed."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the conventional under-hood 12-volt battery on the 1.5T and 2.4 petrol models (the hybrid's 12-volt battery is also under the hood and similar in effort), with an easy-to-reach clamp-style hold-down."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the 12 V battery sits in the engine bay of both the 1.5T and hybrid versions, held by a top clamp and easy to reach, with a battery sensor on the negative terminal."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the battery sits in the engine bay with an easily reached hold-down plate and no other parts to remove. The estimate covers a quick battery and charging test, cleaning the terminals and tray, and a simple post-reconnection routine such as entering the radio anti-theft code, resetting the…"
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional 12 V battery in the engine bay of a non-hybrid 9th-gen Civic, with a negative-terminal battery current sensor and a simple hold-down plate."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional under-hood 12 V battery with a hold-down plate, an insulator jacket and a battery box, on a petrol 10th-gen Civic with no auxiliary battery. The time covers battery and charging tests, a memory saver, cleaning, and refitting."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the conventional 12 V battery in the engine bay of the gasoline Civic (2.0 L or 1.5 L turbo; also the hybrid's auxiliary 12 V battery if accessible), with a simple hold-down, no battery registration required, and a brief power-window auto up/down reset plus idle relearn after reconnecting."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a conventional flooded or AGM battery under the hood with an easily reached top hold-down clamp, as on 1.8L and 2.4L petrol engines, and no battery registration required."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a conventional flooded or AGM 12 V battery in the front left of the engine bay with a simple top hold-down bracket, easy access, and no battery registration needed; only a quick test, a terminal clean, a memory saver and an idle/power-window relearn are included."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gasoline Corolla with the 12-volt battery in the engine bay, held by a simple clamp. The job covers battery and charging tests, a memory saver, swapping and cleaning, and a quick power-window auto up/down reset; the remaining systems relearn automatically while driving."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a gasoline 2AZ-FE or 2GR-FE Camry with the battery under the hood on the driver's side. The job covers a quick battery and charging test, an optional memory saver, a simple hold-down, terminal and tray cleaning, and re-initialising the auto power windows; no battery registration is needed."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a petrol 2.5L or 3.5L V6 Camry with the 12V battery under the hood on the driver's side, held by a simple clamp and needing no battery registration, only power-window auto up/down reinitialisation and clock or radio reset."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid Camry with the 12 V battery under the hood. The job covers a battery and charging test, a memory saver, the swap with terminal cleaning, and the post-reconnect initialization (power window auto up/down reset, and possibly steering angle or idle relearn)."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2025
+    year_to: 2027
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed the XV80 Camry is the hybrid-only 2.5L model with its 12-volt auxiliary battery under the hood, reached without removing major components beyond covers and the hold-down."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed a standard under-hood 12-volt battery on the driver side with a top or base hold-down and no battery registration, though radio presets and idle may need a simple relearn. The time includes a quick battery and charging test, a memory saver, and cleaning the terminals and tray;"
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "0.6"
+    typical: "0.9"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional underhood 12 V battery on gasoline Escape models. Getting the battery out means removing the air cleaner assembly and moving the wiring harness and high-current junction box aside, and a scan tool BMS reset and a test of the charging system are included."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gas or hybrid Escape. On gas models the battery is under the hood with a simple hold-down; hybrids have it in the rear cargo area with a vent hose."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the 2.5L QR25DE Rogue with the battery in the engine bay under an easily removed cover, held by a simple top hold-down bracket, and with no battery registration needed."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the 2.5L gasoline or hybrid Rogue with the 12V battery in the engine bay under a top hold-down bracket, easily reached with no major components removed."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a conventional 12-volt battery mounted under the hood with easy access, possibly requiring removal of a battery cover or nearby air intake duct, on either the 2.5L or 1.5L VC-Turbo engine."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the battery sits in the engine bay under a cover, with the ECM bracket doubling as the hold-down that must be repositioned and part of the front fascia opening cover moved aside for clearance."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed an underhood battery in the engine compartment with a battery distribution fuse block mounted on top of it that must be unbolted and set aside, plus the negative cable and a stop/start-equipped vehicle that may need a battery sensor or BMS reset with a scan tool."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the battery sits under the hood in the left front with an insulation cover and a single-bolt hold-down bracket, all easy to reach, and that the tray stays in place unless it needs cleaning."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional 12V battery under the hood beside the air cleaner, with the air intake duct removed for access; tray removal only if needed for cleaning."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.5L gasoline Tucson with the 12-volt battery in the engine bay under its cover and hold-down bracket. The time includes battery and charging tests, a memory saver, cleaning the terminals and tray, and resetting the power windows and other items after reconnection."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the standard engine-bay battery on a non-ISG Elantra with a conventional flooded battery. The job covers testing, memory saver, hold-down removal and, if needed, moving the intake duct for clearance, cleaning the terminals, and a simple driver window and idle relearn;"
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the battery sits in the front-left of the engine bay with a simple hold-down bracket and insulation sleeve, and that no air box or other parts must come off."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the conventional 2.0L Elantra with the battery under the hood in an engine-bay tray, accessible after removing the hold-down and terminals, with a possible air-intake or cover clearance step."
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a conventional flooded or AGM battery in the front driver-side engine bay. Some years need the air intake duct or a cover moved for clearance, and the negative-terminal battery sensor is transferred without damage. Battery registration is not required;"
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 50
+    inputs: [vehicle, job]
+    notes: "Assumed a conventional flooded or AGM battery in the engine bay of a 2005-2015 Tacoma (2.7L I4 or 4.0L V6), held by a top bar and J-bolt hold-down, with no battery registration needed and only a brief idle relearn and radio/clock reset."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional under-hood 12 V battery held by a top clamp. The quoted steps include alternator removal, which is excluded, so only the battery part is counted: testing, memory saver, swapping the battery, cleaning the terminals and tray, and initializing power windows and similar systems."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed the 12-volt battery sits under the hood with a conventional hold-down on both the 2.4L turbo and the i-FORCE MAX hybrid trucks, with no seat or panel removal needed to reach it."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "0.4"
+    typical: "0.65"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the AGM battery sits under the front passenger floor, as on the 2016 3.6L, with the seat moved forward, a floor cover, an IBS connector, a thermal blanket and a bolted hold-down."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "I assumed the main 12-volt AGM battery sits in the floor well under the front passenger seat, so the seat must be slid back and the access cover removed before the battery comes out, with the intelligent battery sensor transferred to the new one."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the conventional under-hood battery in the front engine compartment with a two-nut hold-down and no extra trim to remove, plus a quick battery and charging test and the BMS reset done with a scan tool."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 12-volt battery sits in the engine bay with a vent hose and a hold-down clamp, and that no major components need removal for access. The time includes testing the battery and charging system, using a memory saver, cleaning the terminals and tray, and running the BMS reset with a scan…"
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the 12-volt battery sits in its usual under-hood spot on the 2.7L, 3.5L and hybrid versions, with easy access to the hold-down and terminals. Includes a quick battery and charging test, a memory saver, cleaning the terminals and tray, and re-initialising the auto power windows and clock or…"
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a conventional 12-volt battery in the engine bay, reached with little or no trim removal; this covers both the 2.7L/3.5L petrol models and the hybrid."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gas model (2GR-FKS V6 or 2.4 turbo) with the 12-volt battery under the hood, held by a single clamp with no other parts to remove. The time covers battery and charging-system testing, a memory saver, cleaning the terminals and tray, and initializing the power windows, power back door and…"
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the conventional under-hood 12-volt battery on the 2.0 or 2.5 Skyactiv petrol models. Any i-stop battery state-of-charge reset needs a scan tool where fitted, followed by a power window auto up/down relearn."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed the battery sits in the engine bay under a cover with a top hold-down, and that i-stop versions need the battery current-integration reset after fitting. I also assumed the power-window auto-up relearn and clock or radio setup are done, with test and memory saver connection included."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional under-hood 12 V battery on a 2.0L or 2.4L petrol or diesel Sportage, where the air duct and air cleaner may need to come off to reach the hold-down; the ECM and tray stay in place."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the conventional 12-volt battery sits in the engine bay on a tray with a top hold-down bracket, held by simple terminal clamps, with no air-intake removal needed."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline or turbo non-hybrid Sportage with the 12V battery under the hood, a battery sensor on the negative terminal, and ISG that needs time to stabilise but no scan-tool registration."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes an easily reached under-hood battery held by a two-nut setting plate, plus quick battery and charging tests, a memory saver, and terminal and tray cleaning."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional underhood 12 V battery on the 2.4L or 3.5L non-hybrid Accord, reached by removing the hold-down plate with no other components in the way."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a conventional 12 V battery in the engine bay of a 1.5T, 2.0T or hybrid Accord, reached without removing major components, with a memory saver fitted, a test of the old battery and charging system, and terminals and tray cleaned."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a conventional under-hood 12V battery (including on the e:HEV hybrids, which still carry an under-hood 12V auxiliary battery) with a simple hold-down, plus a memory saver, a battery and charging test, and terminal cleaning."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the battery sits in its usual under-hood spot with a J-rod hold-down and good access. Time covers a quick battery and charging test, memory saver, swap and terminal cleaning, plus the electronic throttle initial check (ignition on 10 seconds before starting) and resetting the windows and…"
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional under-hood 12 V battery with a battery current sensor on the negative terminal. The sensor is moved to the new battery, and the job includes a quick battery and charging test, a memory saver, cleaning, and power window auto-up/down and idle relearn after reconnection."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional under-hood 12 V battery with a negative-terminal battery sensor that is transferred to the new battery, plus a hold-down and cable holder, on 2.5L or 2.4T models."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a left-hand-drive gasoline JK with the battery under the hood on a tray secured by a single hold-down retainer, with easy access and pinch-clamp terminals."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the main under-hood 12-volt battery on a common gas engine (3.6L or 2.0L, possibly with stop-start or eTorque). The job covers testing, a memory saver, disconnecting the IBS-equipped negative and the positive cable, removing the hold-down, cleaning, refitting, torquing and a basic relearn."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline Jetta with the battery in the engine bay under a cover. The job covers testing, a memory saver, removing the clamp plate and terminals, cleaning, fitting the new battery and adapting it with a scan tool, plus window and idle relearn."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "0.5"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1.4T or 1.5T Jetta with the battery under the engine bay heat-shield boot, held by a single bracket bolt, and possibly fitted with start/stop and an AGM or EFB battery."

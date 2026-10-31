@@ -1,0 +1,777 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: ac-compressor-replacement
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "2.2"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes a typical V8 or V6 (5.4L, 5.0L, 3.5L EcoBoost or 3.7L) with the compressor mounted low on the engine front, reached from above and below with the splash shield removed."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "2.2"
+    typical: "2.9"
+    high: "4.1"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "This assumes a typical gasoline V6 or V8 with the belt-driven compressor low on the engine, reached from below after removing the splash shield. It also assumes a TXV system whose receiver-drier is a desiccant cartridge in the condenser that can be replaced without replacing the condenser, plus…"
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "2.1"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumes a belt-driven compressor on a 2.7L/3.5L EcoBoost, 3.3L or 5.0L engine, reached from below after removing the splash shield and possibly the intake duct. Assumes an R-1234yf system with a TXV and a desiccant cartridge in the condenser, which is replaced."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.6L V6 or 5.7L Hemi with an expansion-valve system, so there is no orifice tube. On these trucks the receiver/drier is built into the condenser, so the estimate covers only a desiccant cartridge swap where one is serviceable, not a condenser replacement."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "1.8"
+    typical: "2.4"
+    high: "3.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 5.7L Hemi (with or without eTorque), serviced from below on a hoist after R-1234yf recovery and serpentine belt removal; the time covers oil balancing, new seals, evacuation, recharge and a performance check."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 4.8/5.3/6.0 V8 truck. The compressor is reached from above and below with the belt and a single block-fitting hose bolt, and the drier element or accumulator is replaced alongside it. The total includes refrigerant recovery, oil balancing, vacuum, recharge and a leak and performance check."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 4WD Silverado with a gas V8 (5.3L or similar) where the compressor sits low on the engine and is reached from below after removing the skid shield and accessory belt."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "2.2"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a T1XX Silverado 1500 with a belt-driven compressor; the steps shown are for the 2.7L turbo, which needs the intake cover, air duct, drive belt, left wheelhouse liner, intermediate steering shaft, skid shields and charge air cooler hose moved for access."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "1.9"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a GMT900 Sierra with a Gen IV V8 (e.g. 5.3L), a belt-driven compressor reached from the engine bay, and an orifice-tube system with an accumulator."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "2.2"
+    typical: "2.9"
+    high: "4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "This assumes a 5.3L V8 4WD Sierra 1500. The compressor is reached from below after the skid shield and the separate compressor belt come off, and the hose manifold and electrical connector are disconnected."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "2.6"
+    typical: "3.4"
+    high: "4.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a T1XX Sierra 1500 with a belt-driven compressor reached by removing the intake cover, air duct, belt, left wheelhouse liner, splash shields and the intermediate steering shaft (plus the charge air hose on the 2.7L turbo)."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "2.1"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the 4-cylinder 2AZ-FE or 2AR-FE, with the compressor mounted low on the engine front and reached from below after removing the splash shield and drive belt."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L petrol engine (FWD or AWD, non-hybrid), with the compressor reached from below after removing the engine undercover. Includes recovery, belt removal, line and connector removal, oil balancing of the new compressor, replacing the desiccant cartridge in the condenser's built-in…"
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "1.9"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gasoline 2.5L A25A-FKS RAV4 with the belt-driven compressor; hybrids use an electric high-voltage compressor and would be a different job. Includes recovery, removal of the belt, air cleaner and horn, the oil-charge adjustment, replacing the desiccant cartridge in the condenser modulator…"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a K24 2.4L CR-V with the compressor removed from below after taking off the drive belt and front splash shield. Includes refrigerant recovery, replacing the desiccant cartridge in the condenser-mounted receiver, new O-rings and the correct oil charge, then evacuation, recharge and a…"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "2"
+    typical: "2.6"
+    high: "3.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.4L petrol engine, with the compressor reached from below after removing the splash shield and drive belt. The receiver drier is the desiccant cartridge built into the condenser, swapped through its access cap, and the job includes recovery, a 30-minute evacuation, recharge, and leak…"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "2.1"
+    typical: "2.8"
+    high: "3.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 1.5 L turbo or 2.4 L non-hybrid CR-V, with the compressor reached from below after removing the undercover and front subframe brace. Time covers refrigerant recovery, belt and hose removal, compressor swap with oil adjusted and new O-rings, replacing the desiccant cartridge in the…"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "2.3"
+    typical: "3"
+    high: "4.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the 1.5L turbo petrol model with a belt-driven compressor reached from below after removing the splash shield and drive belt, with the desiccant cartridge in the condenser's receiver section replaced."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "2.5"
+    typical: "3.2"
+    high: "4.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 8th-gen Civic, mainly the 1.8 R18A1, which needs the grille cover, alternator, condenser fan shroud and splash shield removed for access, with the K20 Si being similar."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a non-hybrid 9th-generation Civic (1.8 L or 2.4 L Si) with R-134a, where the compressor comes out from above after removing the upper radiator brackets, bulkhead cover, condenser fan shroud and drive belt."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-Type-R Civic (2.0L or 1.5T) where the compressor comes out from below after removing the undercover and drive belt, with the receiver desiccant serviced in the condenser modulator rather than swapping the condenser."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "2.2"
+    typical: "2.9"
+    high: "4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a 1.5L turbo or 2.0L petrol Civic with the electrically controlled compressor mounted low on the front of the engine, reached from below after removing the splash shield and serpentine belt. The receiver drier is taken to be the replaceable desiccant cartridge in the condenser side tank;"
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "1.8"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1ZZ-FE or 2AZ-FE Corolla with an R134a system, where the compressor is reached from below after removing the right under cover and drive belt."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "1.8"
+    typical: "2.4"
+    high: "3.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 1.8L 2ZR-FE with the belt-driven compressor low on the front of the engine, reached from below after removing the engine undercover and the V-ribbed belt."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "1.7"
+    typical: "2.4"
+    high: "3.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gasoline Corolla (2ZR-FAE or 2.0L) with a belt-driven compressor reached from below after removing the engine under cover, including the desiccant cartridge in the condenser's integral receiver and full recover, evacuate, recharge and performance check."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "2.2"
+    typical: "2.9"
+    high: "4"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes either the 2.4L four-cylinder or 3.5L V6, with the compressor mounted low on the front of the engine and reached from below once the splash shield and serpentine belt are removed."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "3"
+    typical: "3.8"
+    high: "5.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L 2AR-FE with a belt-driven compressor that, per the procedure, needs the radiator removed for access, so coolant drain, refill and bleed are included."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "2.4"
+    typical: "3.2"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid Camry, mainly the 2.5L four-cylinder, where the compressor comes out from below after removing the undercover and belt. The supplied V6 (2GR-FKS) procedure also requires radiator removal and coolant drain/refill, which pushes the time toward the high end."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2025
+    year_to: 2027
+    low: "2"
+    typical: "2.7"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the hybrid-only XV80 Camry with an electric, high-voltage A/C compressor and no drive belt. The time covers HV isolation via the service plug, removing the air cleaner and moving the inverter reserve tank, swapping the compressor with oil adjustment and new O-rings, replacing the…"
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "2.3"
+    typical: "3.1"
+    high: "4.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a conventional belt-driven compressor on the 2.3L/2.5L four-cylinder or 3.0L V6, reached from below after removing the splash shield, with an accumulator and in-line orifice tube replaced at the same time."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "2.3"
+    typical: "3.1"
+    high: "4.4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "I assumed a typical 2.5L or EcoBoost front-drive or AWD Escape with the compressor low on the front of the engine, reached from below once the splash shield and drive belt are off."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "2.3"
+    typical: "3.2"
+    high: "4.6"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed a 1.5L or 2.0L EcoBoost with a belt-driven compressor mounted low on the engine and reached from below after removing the splash shield, with a TXV system and a receiver-drier desiccant built into the condenser. R-1234yf recovery and recharge are included."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "2.2"
+    typical: "2.9"
+    high: "3.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L QR25DE engine (FWD or AWD), with the compressor lifted out from above after removing the belt and alternator. The drier is taken to be the desiccant cartridge in the condenser's modulator tank, swapped without replacing the condenser, and recovery, evacuation and recharge with a…"
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "1.8"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L four-cylinder with the compressor reached from below after removing the engine under cover and partially removing the RH fender liner, with the belt only released, not removed. Recovery, evacuation, recharge and leak and performance checks are included;"
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "1.7"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L four-cylinder or 1.5L VC-Turbo engine with a belt-driven compressor reached from below once the under cover and drive belt are off, with no other major parts in the way."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.4L (LEA) four-cylinder with the compressor reached from below after removing the right splash shield, drive belt and the compressor hose assembly."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 1.5L turbo (LYX) front-drive engine, with the compressor reached from below after removing the splash shield and belt. Assumed a TXV system with the drier desiccant serviced at the condenser rather than an orifice tube, and included refrigerant recovery, vacuum hold, recharge and…"
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "1.8"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.0L or 2.4L petrol engine with the compressor bolted low on the front of the block, reached from above and below after removing the engine undercover."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "1.8"
+    typical: "2.4"
+    high: "3.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.0L or 2.4L gas engine (the 1.6T is similar) with the compressor reached from above and below after loosening the belt, and with no bumper removal needed."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "2.2"
+    typical: "2.8"
+    high: "3.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid 2.5L or 1.6T Tucson with a belt-driven R-1234yf compressor reached from below once the under cover is off, with no need to drop the subframe or remove other major parts."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "1.8"
+    typical: "2.5"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 1.8L or 2.0L petrol engine with the compressor mounted low on the front of the block, reached from below after removing the engine undercover, with an auto-tensioned serpentine belt."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the compressor is reached from below after removing the under cover and the right front wheel guard, with the belt slackened at the tensioner, on any of the 2.0L, 1.4T or 1.6T engines."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "1.9"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid Elantra (2.0L or 1.6T) with a belt-driven R-1234yf compressor reached from below after removing the under cover and wheel liner. The receiver drier is taken to be the desiccant cartridge in the condenser modulator, replaced from below."
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "1.8"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a typical 3.6L V6 (similar on the earlier 3.3/3.8/4.0L), with the compressor reached from below after removing the right splash shield and serpentine belt, and an expansion-valve system with a separate receiver/drier that is replaced."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "1.8"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.7L 2TR-FE or 4.0L 1GR-FE Tacoma. The V6 needs the fan shroud, V-bank cover and alternator removed for access, while the wheel, under cover and fender apron seal come off on both engines."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "2.2"
+    typical: "2.9"
+    high: "3.9"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 3.5L 2GR-FKS V6, where the drive belt and generator must come out to reach the compressor; the 2.7L 2TR-FE needs only the belt removed and would run somewhat shorter."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "2.2"
+    typical: "2.9"
+    high: "4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the common 2.4L turbo four-cylinder with a belt-driven compressor reached from below after removing the engine undercover, and a receiver-drier desiccant cartridge built into the condenser that can be serviced without removing the condenser."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "2.2"
+    typical: "2.8"
+    high: "3.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a petrol V6 or V8 (or 3.0L diesel) WK2 with no internal compressor failure, so no condenser or flush is needed. The receiver drier is built into the condenser and is not replaced separately."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "2.2"
+    typical: "3"
+    high: "4.3"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumed the common 3.6L V6 with a belt-driven compressor reached from below after removing the splash shield and belt, an R-1234yf system, and a desiccant cartridge in the condenser serviced in place rather than a separate accumulator or orifice tube."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "2.3"
+    typical: "3.1"
+    high: "4.4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a transverse 3.5L V6 or EcoBoost four-cylinder or V6 with a belt-driven compressor reached from below after removing the splash shield, drive belt and nearby parts."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "2.3"
+    typical: "3.2"
+    high: "4.6"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumes a 2.3L or 3.0L EcoBoost (or 3.3L hybrid) with an R-1234yf system, a compressor mounted low on the engine and reached from below after removing the splash shield and belt."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "2.2"
+    typical: "2.9"
+    high: "4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid Highlander (2.7L 1AR-FE or 3.5L 2GR-FE) with a belt-driven compressor reached through the RH wheel well and from below after removing the wheel, under cover, fender liner and belt."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 2.7L four-cylinder or 3.5L V6 with the compressor low on the engine, reached from below once the engine under cover is off. Time covers recovery, belt removal, compressor swap with oil balancing and new O-rings, replacement of the desiccant cartridge in the condenser-mounted…"
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "3.2"
+    typical: "4.1"
+    high: "5.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.5L V6 (2GR-FKS) with a belt-driven compressor, where the radiator must come out for access, including coolant drain, refill and bleed. The receiver drier was assumed to be the replaceable desiccant cartridge in the condenser modulator, with standard recovery, vacuum, recharge and…"
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "2.1"
+    typical: "2.8"
+    high: "3.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a Skyactiv-G 2.0L or 2.5L petrol engine, with the compressor mounted low on the front of the block and reached from below after removing the undercover and the belt from its automatic tensioner."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "2.2"
+    typical: "2.9"
+    high: "3.9"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.5L Skyactiv-G (non-turbo or turbo) with the compressor mounted low on the front of the engine, reached from below after removing the splash shield and drive belt, with the desiccant cartridge in the condenser-integrated receiver replaced through its cap."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "1.9"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "This assumes a 2.0L or 2.4L petrol engine (or diesel where fitted) with a belt-driven compressor reached from below once the under cover is off and the serpentine belt is loosened."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "2.1"
+    typical: "2.9"
+    high: "4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.4 GDI or 2.0 engine with the belt-driven variable-displacement compressor reached from below after removing the engine undercover. The receiver drier is taken to be the desiccant cartridge in the condenser-mounted modulator, which is replaced without changing the condenser."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "1.8"
+    typical: "2.4"
+    high: "3.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.5L petrol engine with a belt-driven compressor, reached from below after removing the engine undercover. The receiver drier is assumed to be the desiccant cartridge built into the condenser, and recovery, evacuation and recharge time on the machine is included."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "2.1"
+    typical: "2.8"
+    high: "3.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4 four-cylinder or 3.5 V6, with the compressor low on the front of the engine. Access requires removing the drive belt and the condenser fan shroud, and the compressor comes out without disturbing the radiator."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "2"
+    typical: "2.7"
+    high: "3.7"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L four-cylinder with the compressor reached from above and below after removing the drive belt and condenser fan shroud, with the desiccant cartridge in the condenser's receiver tank replaced through its access plug."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "2.1"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 33
+    inputs: [vehicle, job]
+    notes: "Assumes a 1.5T or 2.0T gasoline model with a belt-driven compressor mounted low on the engine and reached from below after removing the splash shield, with the desiccant cartridge in the condenser's integrated receiver replaced instead of a separate drier, and no orifice tube fitted."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "2.3"
+    typical: "3.1"
+    high: "4.3"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumes the 1.5T petrol with a belt-driven compressor reached from below after removing the splash shield and belt; the e:HEV hybrid's high-voltage electric compressor has no belt but needs HV shutdown and the correct insulating oil, which takes about as long."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "2.2"
+    typical: "2.9"
+    high: "4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.5 H4 or 3.6 H6 with the compressor reached from above after removing the drive belt, moving the alternator harness and removing the collector cover bracket. The time covers refrigerant recovery, evacuation and recharge, and the scan-tool compressor break-in run;"
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "2"
+    typical: "2.7"
+    high: "3.7"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.5i H4 or 3.6R H6 with the compressor reached from above after removing the V-belt and the cover or collector bracket, with refrigerant recovery, evacuation and recharge done on a machine."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes either the 2.5 NA or 2.4 turbo boxer with the compressor reached from above and below after removing the V-belt and belt cover, including the fuel pipe protector on the turbo engine. Covers recovery, evacuation and recharge, oil adjustment, and the scan-tool compressor break-in."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "2.2"
+    typical: "2.8"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "This assumes a petrol 3.8L or 3.6L JK with an R-134a system. The compressor is reached from above and below after removing the belt and the splash shield."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "1.6"
+    typical: "2.2"
+    high: "3.1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.6L V6 with R-1234yf. The job covers recovery, belt removal, line and connector disconnection, removing the three compressor fasteners and stud, balancing the oil, then evacuation, recharge and a performance check."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "1.8"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a typical 1.8T/2.0/2.5 Jetta with a clutchless, belt-driven compressor reached from below after removing the splash shield. Includes recovery, evacuation and recharge, and the drier desiccant cartridge in the condenser side tank, with no condenser removal or flush."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "2.1"
+    typical: "2.7"
+    high: "3.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 1.4T, 1.5T or 2.0T petrol engine with a belt-driven clutchless variable compressor mounted low on the front of the engine, reached from below after removing the undertray, possibly the right wheel liner, and the ribbed belt."

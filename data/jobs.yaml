@@ -1,104 +1,328 @@
-# [REVIEW] A starter list drafted on 2026-10-12: ids and names only. What each
-# job includes and excludes is not written yet. A person who does this work
-# completes every job, then changes `status` to `reviewed`.
+# Reviewed 2026-10-30 by the owner (ids and names); includes and excludes
+# drafted the same day in our own words. Never a time in this file.
 #
 # Jobs: the repair jobs a labour time can be about. Written by hand for
 # this project; see jobs.md beside this file for the fields and the rules.
 # An id never changes once a labour record or a repair order uses it.
-status: draft
-updated: 2026-10-12
+status: reviewed
+updated: 2026-10-30
 jobs:
   - id: oil-service
     name: "Change engine oil and filter"
     system: engine
     components: [engine-oil]
+    includes:
+      - "raise or reach the vehicle"
+      - "drain the engine oil"
+      - "replace the oil filter and drain plug washer"
+      - "refill with the specified oil"
+      - "start the engine and check for leaks and level"
+      - "reset the oil life monitor"
+    excludes:
+      - "tire rotation"
+      - "air filter replacement"
+      - "multipoint inspection"
   - id: brake-pads-front
     name: "Replace front brake pads"
     system: brakes
     components: [brake-pad]
     related: [brake-pads-and-rotors-front]
+    includes:
+      - "raise the vehicle and remove the front wheels"
+      - "remove the calipers and old pads"
+      - "clean and lubricate the slides and pad abutments"
+      - "fit new pads and hardware"
+      - "refit the calipers and wheels, torque the wheel nuts"
+      - "pump up the pedal and road test"
+    excludes:
+      - "rotor replacement or machining"
+      - "brake fluid exchange"
+      - "caliper replacement"
   - id: brake-pads-rear
     name: "Replace rear brake pads"
     system: brakes
     components: [brake-pad]
     related: [brake-pads-and-rotors-rear]
+    includes:
+      - "raise the vehicle and remove the rear wheels"
+      - "retract the electric or mechanical parking brake where fitted"
+      - "remove the calipers and old pads"
+      - "clean and lubricate the slides and pad abutments"
+      - "fit new pads and hardware and wind back the pistons"
+      - "refit the calipers and wheels, set the parking brake and road test"
+    excludes:
+      - "rotor replacement or machining"
+      - "parking brake shoe service"
+      - "brake fluid exchange"
   - id: brake-pads-and-rotors-front
     name: "Replace front brake pads and rotors"
     system: brakes
     components: [brake-pad, brake-rotor]
     related: [brake-pads-front]
+    includes:
+      - "raise the vehicle and remove the front wheels"
+      - "remove the calipers, caliper brackets and old pads"
+      - "remove and replace both rotors"
+      - "clean and lubricate the slides and pad abutments"
+      - "fit new pads and hardware and refit the calipers"
+      - "refit the wheels, pump up the pedal, bed in the pads on a road test"
+    excludes:
+      - "brake fluid exchange"
+      - "caliper replacement"
+      - "wheel bearing replacement"
   - id: brake-pads-and-rotors-rear
     name: "Replace rear brake pads and rotors"
     system: brakes
     components: [brake-pad, brake-rotor]
     related: [brake-pads-rear]
+    includes:
+      - "raise the vehicle and remove the rear wheels"
+      - "retract the parking brake where fitted"
+      - "remove the calipers, caliper brackets and old pads"
+      - "remove and replace both rotors"
+      - "fit new pads and hardware and refit the calipers"
+      - "refit the wheels, set the parking brake, bed in the pads on a road test"
+    excludes:
+      - "parking brake shoe service"
+      - "brake fluid exchange"
+      - "caliper replacement"
   - id: brake-fluid-exchange
     name: "Exchange brake fluid"
     system: brakes
     components: [brake-fluid]
+    includes:
+      - "remove old fluid from the reservoir and refill with fresh fluid"
+      - "bleed each wheel in order until clean fluid comes through"
+      - "run the ABS bleed routine with a scan tool where the vehicle needs it"
+      - "top up, check the pedal and road test"
+    excludes:
+      - "brake pad or rotor replacement"
+      - "brake line repair"
   - id: battery-replacement
     name: "Replace the 12-volt battery"
     system: electrical
     components: [battery]
+    includes:
+      - "test the old battery and charging system"
+      - "fit a memory saver where the vehicle needs one"
+      - "remove the hold-down and the old battery"
+      - "clean the terminals and tray"
+      - "fit the new battery and torque the terminals"
+      - "register the battery or relearn windows and idle where the vehicle needs it"
+    excludes:
+      - "alternator replacement"
+      - "cable or terminal replacement"
   - id: alternator-replacement
     name: "Replace the alternator"
     system: electrical
     components: [alternator]
+    includes:
+      - "disconnect the battery"
+      - "remove the drive belt and any parts in the way"
+      - "unplug and unbolt the alternator"
+      - "fit the new alternator and reconnect it"
+      - "refit the belt and parts removed"
+      - "test the charging output"
+    excludes:
+      - "drive belt replacement"
+      - "battery replacement"
+      - "belt tensioner replacement"
   - id: starter-replacement
     name: "Replace the starter motor"
     system: electrical
     components: [starter]
+    includes:
+      - "disconnect the battery"
+      - "raise the vehicle where the starter is reached from below"
+      - "remove parts in the way and unbolt the starter"
+      - "fit the new starter and reconnect the cables"
+      - "refit the parts removed and test the start"
+    excludes:
+      - "battery replacement"
+      - "flywheel or flexplate repair"
   - id: spark-plugs
     name: "Replace spark plugs"
     system: electrical
     components: [spark-plug]
+    includes:
+      - "remove the engine covers, intake parts or coils in the way"
+      - "remove all spark plugs"
+      - "check the gap of the new plugs and fit them to torque"
+      - "refit the coils, intake parts and covers"
+      - "start the engine and check for misfires"
+    excludes:
+      - "ignition coil replacement"
+      - "throttle body cleaning"
   - id: drive-belt-replacement
     name: "Replace the accessory drive belt"
     system: engine
     components: [drive-belt]
+    includes:
+      - "release the tensioner and remove the old belt"
+      - "inspect the pulleys and tensioner"
+      - "fit the new belt on its routing"
+      - "start the engine and check the belt tracks"
+    excludes:
+      - "tensioner or idler pulley replacement"
+      - "alternator replacement"
   - id: water-pump-replacement
     name: "Replace the water pump"
     system: engine
     components: [water-pump]
     related: [timing-belt-replacement]
+    includes:
+      - "drain the coolant"
+      - "remove the drive belt, timing parts or other parts in the way"
+      - "remove the old pump and clean the sealing faces"
+      - "fit the new pump and gasket"
+      - "refit the parts removed"
+      - "refill and bleed the cooling system and check for leaks"
+    excludes:
+      - "timing belt replacement"
+      - "thermostat replacement"
+      - "radiator replacement"
   - id: timing-belt-replacement
     name: "Replace the timing belt"
     system: engine
     components: [timing-belt]
     related: [water-pump-replacement]
+    includes:
+      - "remove the drive belts, covers, engine mount and parts in the way"
+      - "set the engine at its timing marks"
+      - "remove the old belt, tensioner and idler"
+      - "fit the new belt, tensioner and idler and check the timing"
+      - "refit everything removed"
+      - "start the engine and check it runs and idles correctly"
+    excludes:
+      - "water pump replacement"
+      - "camshaft or crankshaft seal replacement"
+      - "drive belt replacement"
   - id: radiator-replacement
     name: "Replace the radiator"
     system: engine
     components: [radiator]
+    includes:
+      - "drain the coolant"
+      - "remove the fans, shrouds, hoses and cooler lines in the way"
+      - "remove the old radiator"
+      - "fit the new radiator and refit the parts removed"
+      - "refill and bleed the cooling system and check for leaks"
+    excludes:
+      - "thermostat replacement"
+      - "hose replacement"
+      - "A/C condenser replacement"
   - id: struts-front
     name: "Replace front struts"
     system: suspension
     components: [shock-strut]
+    includes:
+      - "raise the vehicle and remove the front wheels"
+      - "disconnect the sway bar link, brake hose bracket and sensors on the strut"
+      - "remove both strut assemblies"
+      - "fit new complete struts, or move the spring and mount to the new strut"
+      - "refit the struts and wheels, torque at ride height"
+      - "road test"
+    excludes:
+      - "wheel alignment"
+      - "sway bar link replacement"
+      - "strut mount replacement on its own"
   - id: shocks-rear
     name: "Replace rear shock absorbers"
     system: suspension
     components: [shock-strut]
+    includes:
+      - "raise the vehicle and support the rear axle or suspension"
+      - "remove trim or parts in the way of the upper mounts"
+      - "remove both rear shocks"
+      - "fit the new shocks and torque at ride height"
+      - "road test"
+    excludes:
+      - "rear spring replacement"
+      - "wheel alignment"
   - id: wheel-bearing-front
     name: "Replace a front wheel bearing"
     system: suspension
     components: [wheel-bearing]
+    includes:
+      - "raise the vehicle and remove the wheel"
+      - "remove the brake caliper, bracket and rotor"
+      - "disconnect the wheel speed sensor"
+      - "remove the hub or press out the bearing"
+      - "fit the new hub or press in the new bearing"
+      - "refit everything and torque the axle nut"
+      - "road test"
+    excludes:
+      - "wheel alignment"
+      - "brake pad or rotor replacement"
+      - "axle shaft replacement"
   - id: wheel-bearing-rear
     name: "Replace a rear wheel bearing"
     system: suspension
     components: [wheel-bearing]
+    includes:
+      - "raise the vehicle and remove the wheel"
+      - "remove the brake caliper, bracket and rotor or drum"
+      - "disconnect the wheel speed sensor"
+      - "remove the hub or press out the bearing"
+      - "fit the new hub or press in the new bearing"
+      - "refit everything and torque the fasteners"
+      - "road test"
+    excludes:
+      - "wheel alignment"
+      - "brake pad, rotor or shoe replacement"
   - id: tie-rod-end
     name: "Replace an outer tie rod end"
     system: steering
     components: [tie-rod]
+    includes:
+      - "raise the vehicle and remove the wheel"
+      - "mark or measure the tie rod end's position"
+      - "separate the tie rod end from the knuckle"
+      - "fit the new tie rod end at the same length"
+      - "torque and fit the cotter pin or lock nut"
+      - "refit the wheel"
+    excludes:
+      - "wheel alignment"
+      - "inner tie rod replacement"
   - id: ac-compressor-replacement
     name: "Replace the A/C compressor"
     system: hvac
     components: [ac-compressor]
+    includes:
+      - "recover the refrigerant"
+      - "remove the drive belt and parts in the way"
+      - "disconnect the lines and electrical connector and remove the compressor"
+      - "fit the new compressor with new seals and the right oil charge"
+      - "replace the receiver drier or accumulator and the orifice tube where fitted"
+      - "evacuate, recharge and check the system's performance"
+    excludes:
+      - "condenser replacement"
+      - "system flush"
+      - "leak repair elsewhere in the system"
   - id: fuel-pump-replacement
     name: "Replace the fuel pump"
     system: fuel-system
     components: [fuel-pump]
+    includes:
+      - "relieve the fuel pressure and disconnect the battery"
+      - "reach the pump through the access panel or by lowering the tank"
+      - "disconnect the lines and connector and remove the pump module"
+      - "fit the new pump or module with a new seal"
+      - "refit the tank or panel"
+      - "check the fuel pressure, start the engine and check for leaks"
+    excludes:
+      - "fuel tank replacement"
+      - "fuel filter replacement where it is separate"
   - id: oxygen-sensor-replacement
     name: "Replace an oxygen sensor"
     system: exhaust-emissions
     components: [oxygen-sensor]
+    includes:
+      - "raise the vehicle where the sensor is reached from below"
+      - "unplug the sensor"
+      - "remove the old sensor"
+      - "fit the new sensor with anti-seize where it is not pre-coated"
+      - "reconnect, clear the codes and check the readings"
+    excludes:
+      - "exhaust repair"
+      - "catalytic converter replacement"

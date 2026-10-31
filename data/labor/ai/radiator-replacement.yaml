@@ -1,0 +1,777 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: radiator-replacement
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "2.4"
+    typical: "3.1"
+    high: "4.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gasoline engine (3.5L EcoBoost, 3.7L, 5.0L or 6.2L) with an automatic transmission, following the procedure that removes the radiator and A/C condenser together."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "1.8"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical 3.5L EcoBoost or 5.0L truck where the grille comes off and the cooling module tilts back so the condenser can be separated without opening the A/C system."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "1.8"
+    typical: "2.6"
+    high: "3.7"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 3.5L EcoBoost 4WD truck with an electric fan and shroud, where the grille comes off and the cooling module tilts back so the condenser can be unclipped and left connected."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "1.8"
+    typical: "2.5"
+    high: "3.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline V6 or 5.7L V8 4WD truck with automatic transmission, where the grille must come off and the A/C condenser/trans cooler combination unit is unbolted and moved aside without opening the A/C or transmission lines."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "2"
+    typical: "2.7"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 5.7L V8 4WD truck with an electric fan module, where the radiator lifts out upward after separating it from the combined A/C condenser and transmission cooler, without opening the A/C or transmission cooler lines."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a gasoline V6 or V8 (4.3L–6.0L) truck with a belt-driven clutch fan and shroud, the upper and lower radiator hoses, and quick-connect transmission and engine oil cooler lines at the radiator."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "1.6"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a typical 1500 with a 5.3L or 6.2L V8 and automatic transmission. The radiator comes out the top after removing the upper tie bar, air baffle, surge tank and fan shroud, and disconnecting the hoses plus the transmission and engine oil cooler lines;"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "1.8"
+    typical: "2.6"
+    high: "4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a gas V8 or 2.7L truck where the radiator comes out from the top after removing the air intake duct, fan and shroud, upper baffles and the transmission and engine oil cooler lines, with the A/C condenser separated but left connected so no refrigerant recovery is needed."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "1.6"
+    typical: "2.3"
+    high: "3.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline V8 (4.8/5.3/6.0L) with an automatic, a mechanical clutch fan and shroud, and quick-connect transmission and engine oil cooler lines. The radiator is lifted out from above after draining, refilled and bled, with a transmission fluid top-off; HD diesel models would take longer."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "2.2"
+    typical: "3"
+    high: "4.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 5.3L V8 Sierra 1500 with automatic transmission, where the radiator, low-temp radiator and transmission auxiliary cooler come out as one assembly after removing the upper tie bar, air baffle, surge tank, fan shroud, coolant hoses, and the transmission and engine oil cooler lines."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "2.3"
+    typical: "3.3"
+    high: "4.6"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a T1XX Sierra 1500 with a common gas engine (2.7L turbo or 5.3L V8), where the radiator, condenser, fan and charge air cooler (if fitted) come out as one module, with the radiator separated and transferred on the bench."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "2.6"
+    typical: "3.6"
+    high: "5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I followed the factory method for a 4-cylinder (2AZ-FE or 2AR-FE) RAV4: remove the front bumper cover, alternator and battery, recover and recharge the A/C, and take out the radiator with the condenser and fan shroud as one unit before separating them."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "2.1"
+    typical: "2.9"
+    high: "3.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L 2AR-FE petrol RAV4, where the radiator comes out as a unit with the condenser and fan shroud from above after removing a headlight, the hood lock and the upper radiator support."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "2.4"
+    typical: "3.1"
+    high: "4.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.5L A25A-FKS petrol engine. The front bumper cover, energy absorber, reinforcement, air cleaner, hood lock and upper radiator support come off so the radiator and fan assembly can be lifted out while the condenser stays in the car."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "1.2"
+    typical: "1.7"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes the common 2.4L petrol engine with automatic transmission, where the radiator comes out upward after removing the upper brackets, both fan/shroud assemblies, the upper and lower hoses and the ATF cooler lines, with no bumper removal needed."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "1.8"
+    typical: "2.4"
+    high: "3.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.4L petrol engine with the radiator lifted out from above after removing the grille, upper duct, mount brackets, horn, hood latch and both fan shroud assemblies, with no transmission cooler lines on the radiator."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a 1.5 L turbo gasoline CR-V (FWD or AWD) whose radiator comes out upward once the bulkhead cover, intake ducting, undercover lid, both fan shroud assemblies and the upper mounts are removed, with no transmission cooler lines at the radiator."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "1.5"
+    typical: "2.1"
+    high: "3.1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Covers both the 1.5 turbo petrol with CVT and the 2.0 hybrid. The radiator is assumed to come out the top after removing the upper support cover, intake ducting, fan shroud assembly, hoses and brackets, with the condenser left in place and the bumper left on."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed a typical 1.8L R18 or 2.0L K20 Civic, automatic or manual. The job covers draining the coolant, unplugging and removing the fan shroud assemblies, and disconnecting the upper and lower hoses and the ATF cooler lines where fitted."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "This assumes a 9th-gen Civic with the 1.8 L or 2.4 L gas engine, where the radiator lifts out from above after the grille cover, upper brackets and bulkhead come off."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "1.6"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 10th-gen Civic with a 2.0 or 1.5T engine and the radiator lifted out from above after removing the upper brackets and the fan shroud assemblies. The A/C condenser is unbolted and left connected, and the CVT fluid warmer is on the transmission, so no cooler lines are opened at the radiator."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "1.5"
+    typical: "2.1"
+    high: "3.1"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes a 2.0L or 1.5T engine with CVT or manual. The radiator comes out from above once the upper cover, upper support and fan/shroud assembly are removed, with the A/C condenser unbolted and left connected."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "1.8"
+    typical: "2.5"
+    high: "3.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 10th-gen Corolla with an automatic transaxle (1ZZ/2ZR-FE), where the front bumper cover, hood lock support and upper radiator support come off so the radiator and fan shroud assembly can be lifted out with the condenser left in place."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "1.4"
+    typical: "1.9"
+    high: "2.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1.8L 2ZR-FE petrol Corolla with CVT or automatic transmission. The job covers removing the under covers and battery, disconnecting the hoses, the radiator pipe and the fan connector, and lifting the radiator out with the fan shroud while the A/C condenser stays in the car, then refilling…"
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a gasoline or hybrid Corolla where the CVT uses a transaxle-mounted fluid warmer rather than radiator cooler lines, so the radiator comes out upward once the upper support pieces, air intake, hoses and fan shroud are off and the condenser is left in place."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "1.9"
+    typical: "2.5"
+    high: "3.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.4L 4-cylinder (or similar V6) Camry with automatic transaxle, so the transmission cooler lines must be disconnected at the radiator. The front bumper cover and upper radiator support come off, the fan assembly is moved to the new radiator, the condenser stays in the car, and the cooling…"
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "1.7"
+    typical: "2.4"
+    high: "3.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.5L four-cylinder Camry where the front bumper, upper radiator support and hood lock come off, the condenser is unbolted and left connected, and the radiator and fan come out as a unit, with no transmission cooler lines at the radiator."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "2.3"
+    typical: "3"
+    high: "4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.5L four-cylinder non-hybrid Camry, where the front bumper cover, headlights, bumper reinforcement, hood lock, air cleaner and upper radiator support come off so the radiator and fan shroud can lift out while the A/C condenser stays in the car."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2025
+    year_to: 2027
+    low: "2.8"
+    typical: "3.6"
+    high: "4.9"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L hybrid that is the only XV80 powertrain, with a combined engine/inverter radiator, so the bumper cover, headlights, bumper reinforcement, hood lock, shutter and inverter water pump must come off."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "1.5"
+    typical: "2.1"
+    high: "3.1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 2.5L or 3.0L Escape with automatic transmission, FWD or AWD: drain the coolant, remove the electric fan and shroud, disconnect the upper, lower and degas hoses and any transmission cooler lines, and unbolt the A/C condenser and set it aside without opening the refrigerant…"
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "2.3"
+    typical: "3.2"
+    high: "4.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 1.5L/1.6L/2.0L EcoBoost or 2.5L Escape where the radiator, fan, charge air cooler (on turbo engines) and A/C condenser come out from below as one cooling module after removing the lower support."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "2.8"
+    typical: "3.6"
+    high: "5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1.5L or 2.0L EcoBoost Escape where the radiator, A/C condenser and charge air cooler come out together from above, so the refrigerant is recovered and the system later evacuated and recharged."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "1.2"
+    typical: "1.7"
+    high: "2.4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L QR25DE with CVT, FWD or AWD, where the radiator lifts out from above after the under cover, air inlet duct, hoses and electric fan assembly are removed and the upper clips are released; no transmission cooler lines need disconnecting."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "2"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.5L 4-cylinder with CVT (FWD or AWD), where the cooling fan assembly comes out, the lower hose and CVT cooler hoses are disconnected, and the condenser is unbolted and separated from the radiator."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "2.3"
+    typical: "3.1"
+    high: "4.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.5L or 1.5L turbo Rogue with the radiator, fan and sub radiator removed upward after taking off the front grille, bumper, headlamps, air cleaner and upper core support."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "2.4"
+    typical: "3.2"
+    high: "4.5"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.4L (LEA/LAF) or 3.0/3.6L (LFX) gasoline Equinox with automatic transmission. Following the given procedure, the A/C condenser comes out, so time is included for refrigerant recovery, evacuation and recharge along with removing the fan shroud, hoses and transmission cooler lines, then…"
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "3"
+    typical: "3.9"
+    high: "5.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 1.5L turbo (LYX) layout, where the radiator comes out the front after removing the bumper fascia, air baffles, A/C condenser and charge air cooler, with the fan assembly transferred to the new radiator."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "2"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.0L or 2.4L petrol Tucson with automatic transmission. The job includes removing the air cleaner, under cover, fan assembly and front bumper, disconnecting the ATF cooler lines and unclipping the A/C condenser from the radiator without opening the refrigerant circuit, then refilling and…"
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "2.2"
+    typical: "2.8"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.0L or 2.4L petrol engine with the factory procedure: drain coolant, remove the cooling fan, front bumper cover, air guards and upper brackets, and the hoses. The A/C condenser is unbolted from the radiator without opening the refrigerant circuit, and the radiator is lifted out."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "2.3"
+    typical: "3"
+    high: "4"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 2.5L gasoline Tucson with an automatic transmission. The radiator and fan come out as one assembly from the front after removing the bumper cover, bumper beam and air guards. The A/C condenser stays attached and the system stays charged, with its pipe bracket only loosened."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes a 1.8L or 2.0L petrol engine with an automatic transmission. The radiator comes out from above after removing the upper mounts, fan shroud assembly, hoses and transmission cooler lines, with the A/C condenser unbolted and moved aside without opening the refrigerant circuit."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "1.4"
+    typical: "2"
+    high: "3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a typical 6th-gen Elantra, most often the 2.0L, where the radiator lifts out from above once the fan shroud, hoses and upper brackets are removed and the A/C condenser is unbolted and left charged."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "1.8"
+    typical: "2.4"
+    high: "3.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 2.0L Elantra with the IVT, whose transmission fluid is not cooled through the radiator, so there are no cooler lines to disconnect."
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "2"
+    typical: "2.7"
+    high: "3.7"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline V6 (3.3L, 3.6L or 3.8L) van with an automatic transmission, where the procedure moves the upper radiator crossmember aside and disconnects the A/C lines at the condenser block."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2005
+    year_to: 2015
+    low: "1.3"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.7L 4-cylinder or 4.0L V6 Tacoma with automatic transmission, so the transmission cooler lines at the radiator and shroud must be disconnected."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2016
+    year_to: 2023
+    low: "1.6"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.5L V6 (2GR-FKS) automatic truck with a belt-driven fan and fluid coupling, so the job includes removing the under covers, grille and drive belt, lifting out the shroud and fan together, and disconnecting the trans cooler lines."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "3.6"
+    typical: "4.6"
+    high: "6.2"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.4L turbo with automatic transmission, 4WD and water-cooled intercooler. The front bumper and RH wheel come off, the ATF is drained, refilled and level-checked at temperature, the intercooler is transferred to the new radiator, and the condenser is suspended rather than opened."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "2.6"
+    typical: "3.6"
+    high: "5"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gas V6 or V8 WK2 where, per the procedure, the A/C condenser comes out with the refrigerant recovered and recharged, along with the upper crossmember and the cooling fan module, before the radiator lifts out. Refill and bleed are included;"
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "2"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a 3.6L V6 or 5.7L V8 with automatic transmission, where the radiator comes out from above after removing the upper support cover, air intake ducting, electric fan and shroud assembly, hoses and transmission cooler lines, with the condenser left in place."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "2.3"
+    typical: "3.1"
+    high: "4.3"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 5th-generation Explorer with a 3.5L V6 (naturally aspirated or EcoBoost) or 2.0/2.3L EcoBoost, FWD or AWD. The job covers draining coolant, removing the fan and shroud and the front bumper cover, disconnecting charge air tubes where fitted, transmission cooler lines and hoses, separating…"
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "2.4"
+    typical: "3.3"
+    high: "4.8"
+    confidence: 35
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a longitudinal 2.3L or 3.0L EcoBoost Explorer where the radiator, condenser and fan come out as one cooling module, which is then separated on the bench."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "1.7"
+    typical: "2.4"
+    high: "3.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.5 V6 (2GR-FE) automatic. The radiator comes out from above with the fan assembly after removing the grille, hood lock and upper radiator support, and the A/C condenser is unbolted and moved aside without discharging."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "2.1"
+    typical: "2.9"
+    high: "4.2"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 2.7L or 3.5L V6 Highlander, front or AWD, where the radiator and fan shroud drop out from below. Per the procedure, the A/C condenser is removed, which includes refrigerant recovery and recharge plus front-end access. Coolant drain, refill and bleed are included."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "1.9"
+    typical: "2.6"
+    high: "3.8"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical 4th-gen Highlander, whether V6, hybrid or 2.4 turbo, where the radiator comes out after draining, removing the upper support covers, fan shroud and hoses and freeing the condenser."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "1.6"
+    typical: "2.2"
+    high: "3.1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2.0L or 2.5L SKYACTIV-G petrol engine with automatic transmission and the ATF cooler lines at the radiator, and that the radiator lifts out from above."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "1.4"
+    typical: "2.1"
+    high: "3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a petrol (2.5 or 2.5T) CX-5 whose automatic transmission fluid is cooled at the transmission, so there are no cooler lines at the radiator. The job covers removing the under cover, air intake ducting, hoses, fan and shroud and the upper mounts, then unbolting the condenser and leaving it on…"
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "1.6"
+    typical: "2.2"
+    high: "3.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.4L or 2.0L petrol Sportage with automatic transaxle, so the radiator comes out from above after removing the battery, tray, air cleaner, grille guard, horn bracket, upper covers, fan assembly and ATF cooler lines, with the condenser separated but left connected."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "2.1"
+    typical: "2.9"
+    high: "3.9"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.4L or 2.0L gasoline Sportage with automatic transmission, where the front bumper cover, headlamps and radiator upper support member must come off."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "2"
+    typical: "2.7"
+    high: "3.7"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid 2.5L petrol Sportage with automatic transmission and no transmission cooler lines at the radiator. The radiator comes out the front after removing the bumper cover and beam, and the A/C condenser is unbolted and moved aside without discharging."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.4L four-cylinder automatic. The radiator comes out the top with the fan shrouds still attached, after removing the battery and its base, the grille cover, the intake duct and the splash shield and disconnecting the ATF cooler lines."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "1.2"
+    typical: "1.6"
+    high: "2.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 9th-gen Accord, mainly the 2.4L CVT whose radiator lifts out from above with both fan shrouds attached; the shrouds and ECT sensor 2 are swapped onto the new core."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "1.5"
+    typical: "2.1"
+    high: "3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid 1.5T or 2.0T Accord, where the radiator comes out from the top. This means removing the intake parts, grille cover, upper bumper beam, horn and hood cable, moving the upper bulkhead frame and taking out both fan shrouds."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "1.6"
+    typical: "2.3"
+    high: "3.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes either the 1.5L turbo with CVT or the 2.0L e:HEV hybrid. The radiator is taken out from above after removing the upper bulkhead cover, the electric fan shroud and the hoses, with the A/C condenser left in place."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "1.3"
+    typical: "1.9"
+    high: "2.8"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.5L H4 or 3.6L H6 with CVT or automatic, where the radiator lifts out with the fans attached and the fan shroud assemblies are then moved to the new radiator. The time includes the under cover, cooler line disconnection with new hoses, refill and bleed, and a CVT fluid level check."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "2.4"
+    typical: "3.1"
+    high: "4.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.5i or 3.6R with CVT where the front bumper, active grille shutter, grille bracket and front exhaust pipe come off, the fans stay on the radiator, and the condenser stays connected and is tied up. Includes draining, refilling with the engine running to bleed air, and a leak check."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "3"
+    typical: "3.8"
+    high: "5.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.5L or 2.4T boxer Outback following the given procedure: front bumper and active grille shutter off, front exhaust pipe dropped, condenser unbolted and tied up rather than discharged, radiator removed with the fans attached, then the fans, hoses and new gaskets moved to the new radiator."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "2.3"
+    typical: "3"
+    high: "4.1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a JK with A/C and an automatic transmission, following the procedure where the radiator, condenser and transmission cooler come out as a stack. This requires removing the grille and recovering and recharging the A/C, and the A/C machine time is included."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "1.9"
+    typical: "2.6"
+    high: "3.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a JL with the 3.6L V6 and automatic transmission: the grille, both headlamps, the electric fan and shroud are removed, and the trans cooler and A/C condenser are unbolted from the radiator without opening their lines or discharging the A/C."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "1.5"
+    typical: "2.2"
+    high: "3.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a petrol Jetta (such as the 1.8T/2.0/2.5) where the fan shroud lifts out from above and the radiator comes out upward with the A/C condenser left in place and still connected."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "1.4"
+    typical: "2"
+    high: "2.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1.4L/1.5L TSI front-wheel-drive Jetta, with the radiator coming out from below after the noise insulation, fan shroud and two quick-connect hoses are removed and the A/C lines are moved aside without opening the system."

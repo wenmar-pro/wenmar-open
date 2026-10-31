@@ -1,0 +1,755 @@
+# Written by Wenmar's labour generator: AI estimates, not checked by a person.
+# Do not edit by hand; run the generator again.
+job: brake-pads-rear
+method: "open-labour-ai-1"
+model: "claude-opus-5-5"
+generated: 2026-10-30
+estimates:
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2009
+    year_to: 2014
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 12th-gen F-150 uses rear disc brakes with single-piston sliding calipers, and the parking brake is a drum-in-hat shoe system that needs no retraction for pad work."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2015
+    year_to: 2020
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes rear disc brakes with sliding single-piston calipers whose pistons push straight back, plus a mechanical drum-in-hat parking brake that needs no electronic retraction. Covers both rear axles' pads and hardware, with rotors reused and no fluid service."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2021
+    year_to: 2027
+    low: "0.9"
+    typical: "1.2"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 14th-gen F-150 with rear discs and an electric parking brake built into the caliper, which needs brake service mode through the cluster or a scan tool and the EPB connector unplugged."
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2013
+    year_to: 2018
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed rear disc brakes with a drum-in-hat mechanical parking brake, so no electronic retraction is needed. Both rear sides are done: wheels off, caliper slide bolts out, pistons compressed, anti-rattle clips cleaned and replaced, new pads fitted, then reassembly, pedal pump-up, fluid top-off and…"
+  - scope: generation
+    make: ram
+    model: 1500
+    year_from: 2019
+    year_to: 2027
+    low: "0.9"
+    typical: "1.2"
+    high: "1.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 2019+ Ram 1500 (DT) with rear disc brakes and an electric park brake integrated in the caliper, which needs service mode via switch or scan tool and the battery isolated before the work."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2007
+    year_to: 2013
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a GMT900 Silverado with rear disc brakes and a drum-in-hat parking brake, so no parking brake retraction is needed. Both rear axle sides are done by pivoting each caliper on its guide pin bolt, compressing the piston, cleaning and lubricating the bracket, fitting new pads and clips with new…"
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2014
+    year_to: 2018
+    low: "0.9"
+    typical: "1.2"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a K2XX Silverado 1500 with rear disc brakes, where the parking brake is a separate drum-in-hat shoe set, so the caliper only needs to be pivoted on its lower guide pin with no parking brake retraction."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 2019
+    year_to: 2027
+    low: "1"
+    typical: "1.4"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 1500-series Silverado with rear discs and caliper-mounted electric parking brake actuators. The job covers putting the parking brake in service mode, battery disconnect, removing and refitting both rear calipers with new pads and retainers, screwing back the pistons, park brake…"
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2007
+    year_to: 2013
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a truck with rear disc brakes (JD9), not the rear-drum setup fitted to some 1500s. The caliper uses single-piston sliding calipers that pivot up after removing one guide pin bolt, and the drum-in-hat parking brake needs no adjustment."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2014
+    year_to: 2018
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "This assumes a K2XX Sierra 1500 with rear disc brakes and a single-piston sliding caliper. The parking brake is a separate drum-in-hat shoe set, so no electronic retraction is needed. On each side the caliper pivots up on the lower guide pin bolt, which is replaced with a new one;"
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 2019
+    year_to: 2027
+    low: "1"
+    typical: "1.4"
+    high: "2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a T1XX Sierra with the electric parking brake caliper on rear discs, so service mode, a battery disconnect, park brake calibration and a pad-life reset are needed, plus a road test with a brake burnish."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2006
+    year_to: 2012
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both rear wheels on a 3rd-gen RAV4 with rear disc brakes and a drum-in-hat mechanical parking brake that needs no retraction for pad work. The caliper is unbolted from its bracket and hung without opening the hydraulic line, so no bleeding is included;"
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2013
+    year_to: 2018
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both rear axles' pads are replaced on a non-hybrid RAV4 with rear discs and a drum-in-hat mechanical parking brake, so the pistons push straight back. The calipers are unbolted from the mounting without opening the hydraulic system, so no bleeding is needed."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2019
+    year_to: 2025
+    low: "0.9"
+    typical: "1.2"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a RAV4 with electric parking brake actuators on the rear calipers, with the pad replacement mode entered and exited through a scan tool. Both rear axle sides are done: the caliper is swung up on the lower slide pin bolt, the pads, shims and wear plates are replaced, the slides are serviced…"
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2007
+    year_to: 2011
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3rd-gen CR-V with rear discs, a drum-in-hat mechanical parking brake that does not act on the caliper, and a push-back piston that only needs compressing, so no parking brake retraction is required."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2012
+    year_to: 2016
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed rear discs with push-back caliper pistons and a separate drum-in-hat mechanical parking brake, so no electronic retract tool or piston wind-back is needed."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2017
+    year_to: 2022
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the 5th-generation CR-V's electric parking brake, with its motor on the rear caliper, is put into service/maintenance mode with a scan tool or the dash procedure before the work."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2023
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the 6th-gen CR-V (1.5T or hybrid, FWD or AWD) uses rear disc brakes with an electric parking brake integrated in the caliper, so the EPB must be put into service mode with a scan tool or the switch procedure before the pistons are pushed back."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2006
+    year_to: 2011
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a Civic trim with rear disc brakes (EX, Si and some others; base drum-brake trims would need a shoe job instead), with mechanical parking brake calipers whose pistons screw back."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2012
+    year_to: 2015
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed a rear disc brake Civic with a mechanical cable parking brake built into the caliper, so each piston has to be screwed back with a wind-back tool and the cutout aligned with the pad tab. The time covers both rear wheels, cleaning and pasting the brackets and retainers, and a road test;"
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2016
+    year_to: 2021
+    low: "0.9"
+    typical: "1.2"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 10th-gen Civic with rear discs and an electric parking brake, so a scan tool puts the calipers into pad maintenance mode (or the actuators come off), with the electric connector disconnected at each caliper."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2022
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the 11th-gen Civic has rear disc brakes with a caliper-mounted electric parking brake. The parking brake must be put into service mode with a scan tool or the dash procedure before retracting the pistons and recalibrated afterwards. Both rear axle sides are done, with the rotors reused."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2009
+    year_to: 2013
+    low: "0.9"
+    typical: "1.2"
+    high: "1.7"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a rear-disc Corolla (such as the XRS or other disc-equipped trims, since many 10th-gen cars use rear drums instead) with calipers that have an integral screw-type parking brake piston."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2014
+    year_to: 2019
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "This assumes a Corolla trim fitted with rear disc brakes and a mechanical (cable) parking brake, with both rear axle sides done and pistons pushed or wound back as the caliper design requires. Many base trims in some markets use rear drums, and this pad job would not apply to those cars."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2020
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed both rear axle sides are done on a typical Corolla with rear discs and a single-piston floating caliper. Electric parking brake models are assumed to need a service-mode retraction and mechanical ones a screw-back piston tool."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2007
+    year_to: 2011
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a rear disc-brake XV40 Camry with a drum-in-hat mechanical parking brake. The rear caliper pistons push straight back without winding. The job covers both rear axle sides, with the caliper unbolted from its slide pins and hung up without disconnecting the hose."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2012
+    year_to: 2017
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a non-hybrid XV50 with rear disc brakes and a separate drum-in-hat mechanical parking brake. The parking brake is not disturbed, the brake hose stays connected, no bleeding is needed, and the caliper piston pushes straight back without winding."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2018
+    year_to: 2024
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the XV70's rear disc brakes with a caliper-mounted electric parking brake, retracted into maintenance mode with a scan tool or the dash procedure, and both rear axle sides done together. The rotors are reused as-is and the caliper slides are in serviceable condition."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2025
+    year_to: 2027
+    low: "1"
+    typical: "1.4"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2025 Camry hybrid with an electric parking brake, using caliper-mounted actuators that are retracted through scan-tool rear pad replacement mode. The job covers both rear wheels, with the caliper pivoted up and the pistons pushed back."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2008
+    year_to: 2012
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a rear-disc Escape (such as the Hybrid and the trims fitted with rear discs) with a drum-in-hat mechanical parking brake, so the rear caliper pistons push straight back without wind-back; base models with rear drums would need a shoe job instead."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2013
+    year_to: 2019
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both rear wheels are done as an axle set on a 2013-2019 Escape (FWD or AWD), using rear calipers with a cable-operated integral parking brake whose pistons are wound back with a retractor tool, with no rotor work and only a fluid level top-up."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2020
+    year_to: 2025
+    low: "0.9"
+    typical: "1.2"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed rear disc brakes with electric parking brake calipers, where service mode is entered with a scan tool or the instrument cluster and the pistons are pushed back with a tool rather than a C-clamp. Both rear wheels are done, with cleaning of pad adhesive and abutments and a road test;"
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2008
+    year_to: 2013
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a first-generation Rogue with rear discs and a drum-in-hat mechanical parking brake, so the caliper piston presses straight back with no wind-back and the caliper pivots on its lower slide pin."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2014
+    year_to: 2020
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2nd-generation Rogue's rear disc brakes with a mechanical drum-in-hat parking brake, so the caliper pistons push straight back without an electronic service mode. Both rear axle sides are done with new pads, shims and retainers, and the rotors are reused."
+  - scope: generation
+    make: nissan
+    model: rogue
+    year_from: 2021
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3rd-gen Rogue's rear calipers with integrated electric parking brake actuators, where the EPB is put in service/release mode with a scan tool or the switch procedure."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2010
+    year_to: 2017
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes rear disc brakes with a pivoting caliper and a drum-in-hat mechanical parking brake, so the pistons press straight back with no electronic service mode."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2018
+    year_to: 2024
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3rd-gen Equinox with rear disc brakes and an electric parking brake, which needs service mode via a scan tool or the vehicle menu and a calibration afterwards."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2010
+    year_to: 2015
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed rear disc brakes on both sides with a drum-in-hat mechanical parking brake, so no electronic retraction is needed and the caliper pistons push straight back. Each caliper is pivoted on its lower guide bolt, and new pads, retainers and shims are fitted on both sides of the axle."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2016
+    year_to: 2021
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical 3rd-gen Tucson with rear disc brakes and a drum-in-hat mechanical parking brake, so the caliper pistons push straight back with the tool and no electronic parking brake service mode is needed."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2022
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a Tucson with an electric parking brake integrated in the rear calipers, so a scan tool is needed to put the EPB into pad replacement mode before and after the job."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2011
+    year_to: 2016
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a car with rear disc brakes and a cable-operated parking brake. The job covers both rear axle sides: swing or remove the calipers on the guide-rod bolts, fit new pads and retainers, clean and lube the slides, wind back the pistons (screw-in style if the parking brake is integral), then…"
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2017
+    year_to: 2020
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a car fitted with rear disc brakes and calipers that hold the cable-operated parking brake, so the cable is unhooked and each piston is screwed back with the special tool."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2021
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a rear disc brake Elantra with either a cable parking brake (piston wound back with a cube tool) or EPB (scan tool pad replacement mode), covering both rear axles with slide and abutment cleaning and lubrication, and no hydraulic opening, so no bleeding is needed."
+  - scope: generation
+    make: dodge
+    model: grand-caravan
+    year_from: 2009
+    year_to: 2020
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the rear disc brakes on both sides, with pistons wound back by rotating them as the procedure requires, and new abutment shims fitted and lubricated. Rotors are reused and the adapter brackets are not replaced. The high figure allows for corroded abutments and stubborn guide pin bolts."
+  - scope: generation
+    make: toyota
+    model: tacoma
+    year_from: 2024
+    year_to: 2027
+    low: "1"
+    typical: "1.4"
+    high: "2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the 4th-gen Tacoma's rear disc brakes with a cable-actuated parking brake mechanism in the caliper. The job needs a scan-tool pad replacement mode, the parking brake wire disconnected at each caliper, the caliper swung up, and the piston rotated and pushed back with a special tool."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2011
+    year_to: 2021
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a typical non-SRT WK2 with single-piston sliding rear calipers and a drum-in-hat parking brake, so the parking brake does not need retracting at the caliper. The job covers both rear wheels: pads, hardware, cleaning and lubricating the slides, and a road test, with the rotors reused."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2022
+    year_to: 2027
+    low: "0.9"
+    typical: "1.2"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the WL's rear disc brakes with an electric parking brake integrated into the caliper, which must be put into service mode with a scan tool or the in-vehicle procedure before the pistons are pushed back."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2011
+    year_to: 2019
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a conventional rear disc setup with an integral mechanical parking brake in the caliper, so each piston is wound back with a screw-type adjuster tool and the caliper is swung aside on its bracket rather than removed."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2020
+    year_to: 2027
+    low: "0.9"
+    typical: "1.2"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 6th-generation Explorer with rear discs and an electric parking brake motor on the caliper, so brake service mode is entered with a scan tool or the cluster procedure and the pistons are pushed back without rotating them."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2008
+    year_to: 2013
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Both rear axle sides are done on the standard rear disc setup, which has a separate drum-in-hat parking brake. The caliper is unbolted from its slide pins and lifted off without opening the hydraulic line, and the push-back pistons are compressed with no bleeding needed."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2014
+    year_to: 2019
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 3.5L Highlander with a cable drum-in-hat parking brake (no electric brake) and pads replaced on both rear wheels. The caliper is unbolted and hung without opening the hydraulic line, so no bleeding or rotor removal is needed, despite what the full-removal procedure shows;"
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2020
+    year_to: 2027
+    low: "1"
+    typical: "1.4"
+    high: "2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline or hybrid Highlander with rear disc brakes and an electric parking brake, which needs a scan tool to enter and exit pad replacement mode (on hybrids, brake control is also disabled and the auxiliary battery disconnected)."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2013
+    year_to: 2016
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 1st-gen CX-5's rear calipers with an integrated cable-operated parking brake, where the piston must be screwed back with a wind-back tool and the pad projection aligned with the piston groove."
+  - scope: generation
+    make: mazda
+    model: cx-5
+    year_from: 2017
+    year_to: 2025
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both rear axle sides are done, with the caliper pivoted on one bolt. On electric parking brake models, maintenance mode is entered by switch sequence or scan tool."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2011
+    year_to: 2016
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Both rear wheels on a 3rd-gen Sportage (FWD or AWD), where the rear disc uses a separate drum-in-hat mechanical parking brake. The caliper pivots up on one guide bolt and the piston pushes straight back, so no electric brake service mode or wind-back tool is needed."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2017
+    year_to: 2022
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 4th-generation Sportage (FWD or AWD) with rear disc brakes where the caliper pivots up after removing the lower guide rod bolt, and a drum-in-hat mechanical parking brake that needs no electronic retraction; the electric parking brake fitted to some markets adds a little time."
+  - scope: generation
+    make: kia
+    model: sportage
+    year_from: 2023
+    year_to: 2027
+    low: "0.9"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes both rear wheels on a fifth-generation Sportage with the electric parking brake caliper. The EPB is released and set using a scan tool's pad change mode, the piston is wound back with a rotating piston tool, and slides and abutments are cleaned and lubricated before a road test;"
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2008
+    year_to: 2012
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 8th-gen Accord has rear disc brakes with a mechanical parking brake integrated into the caliper, so each piston must be screwed back in with a wind-back tool and aligned with the pad tab."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2013
+    year_to: 2017
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a non-hybrid 9th-gen Accord with rear calipers that have an integrated mechanical parking brake. Both sides are serviced: the cable bracket and hose bolt are removed, the pistons are screwed back with a wind-back tool, the slides and abutments are cleaned and pasted, and the job finishes…"
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2018
+    year_to: 2022
+    low: "0.9"
+    typical: "1.2"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes both rear axle sides are done on a 10th-generation Accord with its standard motor-on-caliper electric parking brake. The brake is put into service or maintenance mode with a scan tool or the dash and switch procedure before the pistons are pushed back, and is re-calibrated afterwards."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2023
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the 11th-gen Accord (1.5T or 2.0 hybrid) with rear disc brakes and an electric parking brake integrated in the rear calipers, which is put into service mode with a scan tool or the dash procedure before the pistons are pushed back."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2010
+    year_to: 2014
+    low: "0.7"
+    typical: "1"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a conventional rear disc brake with a push-back hydraulic piston on both sides, with the electronic parking brake acting on a separate drum-in-hat shoe that only needs to be released, not service-mode retracted."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2015
+    year_to: 2019
+    low: "0.9"
+    typical: "1.2"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 5th-gen Outback with the electric parking brake built into the rear caliper motor, so the scan tool is used to enter and exit brake maintenance mode and the battery sensor ground is disconnected."
+  - scope: generation
+    make: subaru
+    model: outback
+    year_from: 2020
+    year_to: 2025
+    low: "1"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 6th-gen Outback with an electric parking brake integrated into the rear calipers, so the job needs brake maintenance mode, a battery sensor disconnect, an EPB connector, a pad clip, a hose bracket and hex guide pins on both sides."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2007
+    year_to: 2017
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a JK with rear disc brakes, single-piston sliding calipers on adapters, and a drum-in-hat parking brake that needs no retraction, so the pistons push straight back with a C-clamp."
+  - scope: generation
+    make: jeep
+    model: wrangler
+    year_from: 2018
+    year_to: 2027
+    low: "0.9"
+    typical: "1.2"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a JL Wrangler with conventional rear disc brakes, a sliding caliper on an adapter, and a drum-in-hat mechanical parking brake that does not need releasing at the caliper."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2011
+    year_to: 2018
+    low: "0.9"
+    typical: "1.2"
+    high: "1.7"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the more common rear disc setup with a cable-operated parking brake built into the caliper, so the pistons are screwed back with a wind-back tool rather than pushed. Early base models with rear drums would need a different job;"
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2019
+    year_to: 2027
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a rear disc brake Jetta, either a torsion-beam car or a GLI with multi-link rear, fitted with an electromechanical parking brake that needs a scan tool for service mode."

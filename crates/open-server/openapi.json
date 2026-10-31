@@ -5280,7 +5280,7 @@
         "properties": {
           "basis": {
             "type": "string",
-            "description": "`expert`: written by a person who does the work. `observed`:\nmeasured from repair orders; `sample` then says how many.",
+            "description": "`expert`: written by a person who does the work. `observed`:\nmeasured from repair orders; `sample` then says how many. `ai`:\nworked out by a model from the job and the repair steps, not checked\nby a person; `confidence_pct`, `model`, `method` and `inputs` then\nsay how. Within one scope: observed, then expert, then ai.",
             "example": "expert"
           },
           "class": {
@@ -5298,6 +5298,15 @@
             ],
             "example": "Small SUV"
           },
+          "confidence_pct": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "For an `ai` figure: how sure the model was, in percent (at most 60).\n`null` for the others.",
+            "example": 45
+          },
           "engine": {
             "type": [
               "string",
@@ -5308,10 +5317,35 @@
           "hours": {
             "$ref": "#/components/schemas/LaborHours"
           },
+          "inputs": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "For an `ai` figure: what it was worked out from, of `vehicle`,\n`job`, `wenmar-figures` and `procedure` (a repair procedure's steps,\nnever its numbers). `null` for the others."
+          },
           "job": {
             "type": "string",
             "description": "The job's id.",
             "example": "brake-pads-front"
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "For an `ai` figure: the prompt version. `null` for the others.",
+            "example": "open-labour-ai-1"
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "For an `ai` figure: the model that answered. `null` for the others."
           },
           "name": {
             "type": "string"
