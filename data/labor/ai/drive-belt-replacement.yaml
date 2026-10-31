@@ -3,7 +3,7 @@
 job: drive-belt-replacement
 method: "open-labour-ai-1"
 model: "claude-opus-5-5"
-generated: 2026-10-30
+generated: 2026-10-31
 estimates:
   - scope: generation
     make: ford
@@ -764,3 +764,1961 @@ estimates:
     confidence: 40
     inputs: [vehicle, job]
     notes: "Assumes a front-wheel-drive Jetta with the common 1.4T or 1.5T EA211 engine (or the 2.0T in the GLI), using a single ribbed belt with an automatic spring tensioner. Access is through the right front wheelhousing liner and from above, and the tensioner is locked with a pin while the belt is changed."
+  - scope: generation
+    make: ford
+    model: e-350
+    year_from: 1992
+    year_to: 2024
+    low: "0.4"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a serpentine belt with an automatic spring tensioner, reached from the front of the van with the hood open. The fan shroud or upper shroud may need loosening to thread the belt around the fan;"
+  - scope: generation
+    make: gmc
+    model: savana
+    year_from: 1996
+    year_to: 2027
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline V6 or V8 Savana with a single serpentine belt and an automatic tensioner, worked from the engine cover or hood area. The estimate includes removing the air cleaner and setting aside the coolant reservoir for access, then routing the belt, checking the tensioner index marks and…"
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 2004
+    year_to: 2008
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a gas V8 (4.6L or 5.4L 3-valve) or 4.2L V6 with a single serpentine belt and an automatic spring tensioner, reached from the top with a breaker bar or belt tool and no fan shroud removal needed."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 1997
+    year_to: 2003
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a 4.2L V6, 4.6L or 5.4L V8 with a single serpentine belt and an automatic spring tensioner released with a breaker bar, with good access from the top and no fan or shroud removal needed. The high figure allows for a tight fan clearance, awkward routing or a stiff tensioner."
+  - scope: generation
+    make: ford
+    model: f-350
+    year_from: 1999
+    year_to: 2007
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a single serpentine belt with an automatic tensioner, as on the 7.3L/6.0L Power Stroke, 5.4L and 6.8L V10 engines. Belt access on the front of the engine is reasonable, though the fan shroud and fan can get in the way on some engines."
+  - scope: generation
+    make: ford
+    model: f-250
+    year_from: 1999
+    year_to: 2007
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a single serpentine belt with an automatic spring tensioner, which covers the 5.4L, 6.8L and 7.3L/6.0L diesel engines. The belt is threaded around the engine fan without removing the fan or shroud. Diesels and tight fan clearance push the time toward the high end."
+  - scope: generation
+    make: ford
+    model: transit
+    year_from: 2015
+    year_to: 2027
+    low: "0.4"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a common petrol V6 (3.7L or 3.5L EcoBoost) or diesel with one serpentine belt and an automatic spring tensioner, worked from above and below with possibly the air intake duct or a splash shield removed for access."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 2001
+    year_to: 2005
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed the common D17 engine, replacing the main alternator/AC serpentine belt with its automatic tensioner. Access is from above and through the right wheel well or lower splash shield. The separate power steering belt, and the different K20 Si and hybrid layouts, are not included."
+  - scope: generation
+    make: dodge
+    model: dakota
+    year_from: 1997
+    year_to: 2004
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a single serpentine belt with an automatic spring tensioner, as used on the 2.5L, 3.9L, 4.7L and 5.2/5.9L engines, with the belt worked around the mechanical fan and shroud without removing them."
+  - scope: generation
+    make: dodge
+    model: ram
+    year_from: 2002
+    year_to: 2008
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a gas V8 (4.7L or 5.7L Hemi) or the Cummins diesel, each with a single serpentine belt and an automatic spring tensioner that is reached from the top with a breaker bar, with good access in the full-size engine bay."
+  - scope: generation
+    make: toyota
+    model: sienna
+    year_from: 2011
+    year_to: 2020
+    low: "0.6"
+    typical: "0.9"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.5L V6 (2GR-FE/2GR-FKS) with a single serpentine belt, reached by removing the right front wheel and fender apron seal, then locking the automatic tensioner with a hex key to swap the belt."
+  - scope: generation
+    make: ford
+    model: ranger
+    year_from: 1998
+    year_to: 2011
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single serpentine belt with an automatic spring tensioner on the common 2.3L, 2.5L, 3.0L or 4.0L engines, reached from the top of the engine bay without removing the fan shroud or other parts."
+  - scope: generation
+    make: ford
+    model: e-250
+    year_from: 1992
+    year_to: 2014
+    low: "0.4"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a single serpentine belt with an automatic spring tensioner, worked from the front through the hood opening, threading the belt past the mechanical fan without removing the fan or shroud. Diesel versions or vans with extra accessories that crowd the belt path may take toward the high figure."
+  - scope: generation
+    make: honda
+    model: civic
+    year_from: 1996
+    year_to: 2000
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a D-series engine where the alternator (and A/C, if fitted) belt has no automatic tensioner and is set by loosening the alternator pivot and adjuster bolts, then re-tensioned by hand. Assumes only that belt is replaced;"
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 1998
+    year_to: 2002
+    low: "0.4"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.3L four-cylinder, where the alternator/AC belt is tensioned by loosening the alternator pivot and lock bolts and using the adjuster bolt rather than an automatic tensioner, and the power steering belt may have to come off first for access."
+  - scope: generation
+    make: dodge
+    model: ram
+    year_from: 1994
+    year_to: 2001
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the single serpentine belt with automatic spring tensioner found on the Magnum V6/V8, V10 and Cummins engines, with the belt worked around the mechanical fan without removing the fan or shroud."
+  - scope: generation
+    make: ford
+    model: f-150
+    year_from: 1992
+    year_to: 1996
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a 4.9L inline-six or a 5.0L/5.8L V8 with a single serpentine belt and a spring-loaded automatic tensioner released with a breaker bar. The belt is threaded around the engine-driven fan and shroud without removing them;"
+  - scope: generation
+    make: dodge
+    model: journey
+    year_from: 2009
+    year_to: 2020
+    low: "0.4"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Estimate covers both the 2.4L, where the belt is reached from above with a wrench on the tensioner, and the more common 3.6L V6, which needs the battery disconnected, the vehicle raised, the right front wheel and wheelhouse splash shield removed, then everything refitted."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 1995
+    year_to: 2001
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed a single serpentine belt with an automatic spring tensioner on the 4.0L OHV/SOHC V6 or 5.0L V8. On these engines the belt is reached from the top with the fan shroud in place, possibly by easing it around the fan clutch."
+  - scope: generation
+    make: gmc
+    model: sierra
+    year_from: 1999
+    year_to: 2006
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline V8 (4.8/5.3/6.0L) with a single serpentine belt and a spring tensioner, which means removing the air intake outlet duct, releasing the tensioner with a breaker bar, routing the new belt and refitting the duct."
+  - scope: generation
+    make: ford
+    model: f-250
+    year_from: 2008
+    year_to: 2016
+    low: "0.4"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a single serpentine belt with an automatic spring tensioner. On the gas V8/V10 engines access is fairly open, while the 6.4 and 6.7 diesels are tighter around the fan and shroud and may need the fan or shroud moved, which pushes toward the high end."
+  - scope: generation
+    make: dodge
+    model: dakota
+    year_from: 2005
+    year_to: 2011
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a 3.7L V6 or 4.7L V8 with a single serpentine belt and an automatic spring tensioner, worked from above with a long-handle wrench and only minor fan-shroud clearance issues. No air intake removal is assumed beyond what is needed for access."
+  - scope: generation
+    make: ford
+    model: f-350
+    year_from: 2008
+    year_to: 2016
+    low: "0.4"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a single serpentine accessory belt with an automatic tensioner, as used on the 5.4L, 6.2L and 6.8L gas engines and the 6.4L and 6.7L diesels. The diesels' tight engine bays and fan/shroud clearance push the time toward the upper end, and the range covers only the main accessory belt with…"
+  - scope: generation
+    make: ford
+    model: transit-connect
+    year_from: 2014
+    year_to: 2023
+    low: "0.7"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.0L gas engine shown in the steps, where the separate stretch-fit A/C compressor belt must come off first, plus the belt cover, with the van raised and the right front wheel and splash shield removed for access."
+  - scope: generation
+    make: chevrolet
+    model: blazer
+    year_from: 1995
+    year_to: 2005
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 4.3L V6 with a single serpentine belt and automatic spring tensioner. The tensioner is reached from above with a 3/8 inch drive, with no fan shroud or other parts removed, followed by a check of routing, the tensioner indicator and belt tracking with the engine running."
+  - scope: generation
+    make: nissan
+    model: altima
+    year_from: 2002
+    year_to: 2006
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.5L four-cylinder with a single serpentine belt and automatic tensioner, accessed by removing the right-hand engine side cover and locking the tensioner with a pin. The 3.5L V6 uses two belts with manual adjusters and would take somewhat longer."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 2002
+    year_to: 2006
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L K24 engine with a single serpentine belt and an automatic tensioner, accessed from above with the lower splash shield removed for clearance."
+  - scope: generation
+    make: honda
+    model: cr-v
+    year_from: 1997
+    year_to: 2001
+    low: "0.4"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the B20B four-cylinder, where accessories are driven by manually adjusted ribbed belts (alternator/AC belt and a separate power steering belt) rather than an automatic tensioner."
+  - scope: generation
+    make: ford
+    model: taurus
+    year_from: 1996
+    year_to: 1999
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the common 3.0L Vulcan or Duratec V6 with a single serpentine belt and automatic tensioner, released with a wrench and reached mostly from above with some access from the wheel well or underneath."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 1999
+    year_to: 2005
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a common Mk4 engine such as the 1.8T with a spring-loaded ribbed-belt tensioner. The tensioner is swung with a wrench and pinned, and the lower noise insulation tray is removed for access to the crank pulley."
+  - scope: generation
+    make: ford
+    model: edge
+    year_from: 2007
+    year_to: 2014
+    low: "0.5"
+    typical: "0.8"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the common 3.5L/3.7L V6 with a single serpentine belt and automatic tensioner, removed partly from above and partly from below with the vehicle on a hoist and the RH inner fender splash shield removed. FWD or AWD makes little difference;"
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 2003
+    year_to: 2007
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4 L four-cylinder with a single serpentine belt and an automatic tensioner that is reached from above with a long-handle release tool, with no splash shields or mounts to remove. The V6 has tighter access and could take somewhat longer, which the high figure partly covers."
+  - scope: generation
+    make: dodge
+    model: ram
+    year_from: 2009
+    year_to: 2012
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a gasoline V8 (4.7L or 5.7L Hemi) or 3.7L V6 with a single serpentine belt and automatic spring tensioner, reachable from above with the fan shroud left in place. A Cummins diesel, or an engine needing extra clearance around the fan, would take toward the high end."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 2003
+    year_to: 2008
+    low: "0.5"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed the common 1ZZ-FE 1.8 L engine with a single serpentine belt and a spring-loaded automatic tensioner, reached by removing the right front wheel and splash shield. The engine mount stays in place, and the time covers belt routing, a pulley and tensioner inspection, and a run check."
+  - scope: generation
+    make: dodge
+    model: caravan
+    year_from: 1991
+    year_to: 1995
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 35
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse 3.3L or 3.8L V6 with one main accessory belt. Its tension is set at the tensioner or adjuster, reached from above and through the right wheel well with the splash shield removed. On the 2.5L or 3.0L engines, separate V-belts and manual adjusters could change the time somewhat."
+  - scope: generation
+    make: chevrolet
+    model: malibu
+    year_from: 1997
+    year_to: 2003
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a transverse front-drive Malibu with either the 2.4L four-cylinder or the 3.1L V6, each using a single serpentine belt with a spring-loaded automatic tensioner that can be released with a wrench or breaker bar from above or through the right wheel well."
+  - scope: generation
+    make: chevrolet
+    model: silverado
+    year_from: 1999
+    year_to: 2006
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gas V8 (4.8/5.3/6.0L) with a single serpentine belt and automatic tensioner, where the air cleaner outlet duct must come off for access. Diesel or 8.1L variants with different routing may vary slightly; the time covers duct removal and refit, belt swap, pulley inspection and a run check."
+  - scope: generation
+    make: honda
+    model: accord
+    year_from: 1994
+    year_to: 1997
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the common 2.2L four-cylinder, which uses separate V-belts tensioned by moving the accessory (alternator pivot/adjuster bolt) rather than an automatic tensioner, and that one belt (e.g. alternator) is replaced."
+  - scope: generation
+    make: bmw
+    model: x5
+    year_from: 2000
+    year_to: 2006
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.0i M54 or 4.4i V8 E53 where the viscous fan and clutch must come off first and the separate A/C belt must be removed and refitted to reach the main accessory belt."
+  - scope: generation
+    make: ford
+    model: focus
+    year_from: 2000
+    year_to: 2007
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a typical petrol Zetec or Duratec engine with a single serpentine belt and automatic tensioner, reached by removing the right front wheel and inner splash shield. Air-conditioning-equipped routing is assumed; no tensioner or pulley parts are replaced."
+  - scope: generation
+    make: volkswagen
+    model: golf
+    year_from: 1999
+    year_to: 2006
+    low: "0.4"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a typical Mk4 petrol or TDI engine with a single serpentine belt and automatic tensioner, reached from above after removing the engine cover and from below after removing the right-hand splash shield. The tensioner is rotated and locked with a pin, and no engine mount removal is needed."
+  - scope: generation
+    make: ford
+    model: escape
+    year_from: 2001
+    year_to: 2007
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single serpentine belt with an automatic spring tensioner on either the 3.0L V6 or the four-cylinder engines. The belt is reached from above and through the right wheel well, possibly with the splash shield removed, and no other components need to come off."
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 1998
+    year_to: 2002
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the common 1ZZ-FE petrol engine with a single serpentine belt and an automatic tensioner, worked from above and below, with the right-hand splash shield removed where needed for access. Older 4A/7A engines use separate V-belts with manual adjusters and would take a similar time."
+  - scope: generation
+    make: acura
+    model: mdx
+    year_from: 2001
+    year_to: 2006
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.5L/3.7L J-series V6 with a single serpentine belt and automatic tensioner. The tensioner is accessed from the top of the transverse engine with a long-handle release tool, and no other components need to come off."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 1999
+    year_to: 2004
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 4.0L inline-six or 4.7L V8 with a single serpentine belt and an automatic spring tensioner, reached from above with no shroud or fan removal."
+  - scope: generation
+    make: jeep
+    model: cherokee
+    year_from: 1990
+    year_to: 2001
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the common 4.0L inline-six (or 2.5L four) with a single serpentine belt. Tension is set either with a screw adjuster on the power steering pump or idler bracket, or with an automatic tensioner on later models, and the belt is threaded past the engine-driven fan blades without removing the…"
+  - scope: generation
+    make: nissan
+    model: sentra
+    year_from: 2000
+    year_to: 2006
+    low: "0.4"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the 2.5L engine with a single serpentine belt and automatic tensioner: remove the right-side splash cover, lock the tensioner with a pin, swap the belt and check that it tracks. The 1.8L engines use separate belts with manual adjusters, which would take a similar or slightly longer time."
+  - scope: generation
+    make: nissan
+    model: pathfinder
+    year_from: 1996
+    year_to: 2004
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "I assumed either the VG33E 3.3 or VQ35DE 3.5 V6, both of which run separate belts adjusted with idler or adjuster bolts rather than an automatic tensioner."
+  - scope: generation
+    make: toyota
+    model: tercel
+    year_from: 1991
+    year_to: 1994
+    low: "0.4"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed the 1.5L 3E-E SOHC engine, which uses V-belts tensioned by moving the alternator on its pivot and adjuster bolt rather than an automatic tensioner."
+  - scope: generation
+    make: nissan
+    model: altima
+    year_from: 2007
+    year_to: 2012
+    low: "0.5"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 2.5L QR25DE four-cylinder with a single serpentine belt and auto-tensioner, reached by removing the RH fender protector side cover. The tensioner is locked with a pin and the belt routed water pump pulley last; the V6 (VQ35) takes slightly longer but falls within the range."
+  - scope: generation
+    make: mercedes-benz
+    model: sprinter
+    year_from: 2010
+    year_to: 2018
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the OM642 V6 diesel layout, where the separate fan poly-V belt must come off before the main accessory belt can be released and replaced, with the van raised on a lift for underside access. Both belts are refitted on their routings and checked with a test run;"
+  - scope: generation
+    make: jeep
+    model: liberty
+    year_from: 2002
+    year_to: 2007
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 3.7L V6 or 2.4L I4 with a single serpentine belt and an automatic spring tensioner released with a breaker bar from above, with no other components removed."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 1997
+    year_to: 2001
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes either the 2.2L 4-cylinder or the 3.0L V6. These engines use manually adjusted belts (an alternator pivot or idler adjusting bolt) instead of an automatic tensioner, so 'releasing the tensioner' means slackening the adjuster and re-tensioning by hand."
+  - scope: generation
+    make: volkswagen
+    model: jetta
+    year_from: 2006
+    year_to: 2010
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Based on the common 2.5L five-cylinder, which uses two ribbed belts (A/C and generator/coolant pump). Access requires removing the lower noise insulation and the front of the right wheel housing liner, and the A/C belt must come off to reach the main belt."
+  - scope: generation
+    make: buick
+    model: lesabre
+    year_from: 1992
+    year_to: 1999
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the transverse front-wheel-drive 3800 V6 (Series I or Series II) with a single serpentine belt and a spring-loaded automatic tensioner. The belt is reached from the top of the engine bay by levering the tensioner with a breaker bar, with no major components removed."
+  - scope: generation
+    make: ford
+    model: edge
+    year_from: 2015
+    year_to: 2024
+    low: "0.6"
+    typical: "1"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.0L EcoBoost layout, where the separate stretch-fit A/C compressor belt must be removed from below and refitted, and the engine cover and belt shield come off before the main belt is changed. V6 versions without this extra step would usually take somewhat less time."
+  - scope: generation
+    make: acura
+    model: mdx
+    year_from: 2007
+    year_to: 2013
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 3.7L V6 with a single serpentine belt and automatic tensioner, mounted transversely so the belt end sits toward the passenger-side frame rail. The tensioner is released from above with a slim release tool, and the belt is routed by hand with no wheel or splash shield removal;"
+  - scope: generation
+    make: toyota
+    model: sienna
+    year_from: 2004
+    year_to: 2010
+    low: "0.5"
+    typical: "0.8"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.3L or 3.5L V6 (FWD or AWD), with the single serpentine belt reached by removing the right front wheel and fender apron seal. The tensioner is released and pinned with the special tool and a hex bar, the new belt is routed, the tensioner is released and belt tracking is checked with…"
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 1993
+    year_to: 1998
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a single serpentine belt on either the 4.0L inline-six or the 5.2/5.9L V8. The belt is fed around the engine-driven fan without removing the fan or shroud, and its tension is released at the tensioner with a breaker bar or wrench, with no tensioner adjustment beyond that."
+  - scope: generation
+    make: volvo
+    model: s70
+    year_from: 1998
+    year_to: 2000
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a transverse 5-cylinder petrol engine with a single serpentine belt driving the alternator, power steering pump and A/C compressor, with an automatic spring tensioner released by wrench from above. Tight access may need the right front wheel and splash shield removed;"
+  - scope: generation
+    make: acura
+    model: tl
+    year_from: 2004
+    year_to: 2008
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.2L J32 V6 transverse engine with a single serpentine belt and automatic tensioner, reached from the top after removing the right engine compartment cover, using a long-handle release tool. No wheel or splash-shield removal;"
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 1992
+    year_to: 1996
+    low: "0.4"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed the 2.2L 4-cylinder or 3.0L V6, which use separate V-ribbed belts tensioned by manual adjusting bolts or an adjustable idler rather than an automatic tensioner. The estimate covers replacing one accessory belt;"
+  - scope: generation
+    make: nissan
+    model: maxima
+    year_from: 2000
+    year_to: 2003
+    low: "0.6"
+    typical: "1"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the V6 (VQ30DE or VQ35DE) with two accessory belts tensioned by manual adjuster bolts on idler or bracket pulleys. Access is from the passenger-side wheel well and top of the engine, so the wheel or splash shield may need to come off."
+  - scope: generation
+    make: lexus
+    model: es
+    year_from: 2007
+    year_to: 2012
+    low: "0.5"
+    typical: "0.8"
+    high: "1.2"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed the ES350 with the transverse 2GR-FE V6, which uses a single serpentine belt with an automatic tensioner on the passenger side. The estimate allows for removing the right front wheel and inner fender splash shield if top access is too tight to route the belt."
+  - scope: generation
+    make: toyota
+    model: venza
+    year_from: 2009
+    year_to: 2016
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes either the 2.7L 4-cylinder or the 3.5L V6 with a single serpentine belt and an automatic tensioner, accessed by removing the right front wheel, engine under cover, fender liner and apron seal."
+  - scope: generation
+    make: toyota
+    model: camry
+    year_from: 2002
+    year_to: 2006
+    low: "0.9"
+    typical: "1.3"
+    high: "2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4 L 2AZ-FE four-cylinder, where the belt loops around the RH engine mount, so the wheel, splash shield, engine cover, torque rod, mount stay and No. 2 mount bracket must come off with the engine supported. The 3.0/3.3 V6 needs less disassembly and would be quicker."
+  - scope: generation
+    make: honda
+    model: odyssey
+    year_from: 2005
+    year_to: 2010
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the transverse J35 V6 with a single serpentine belt and an auto-tensioner reached from the passenger-side wheel well or engine bay, and no other parts removed. On the J35A7 hydraulic tensioner the wrench must be turned slowly, which adds a little time;"
+  - scope: generation
+    make: bmw
+    model: x5
+    year_from: 2007
+    year_to: 2013
+    low: "0.7"
+    typical: "1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.0 inline-six (N52/N55) or similar engine, where the fan cowl with electric fan must come out for access, the tensioner is locked with a pin and the single main belt is swapped. V8 or diesel variants with a separate A/C belt may take somewhat longer."
+  - scope: generation
+    make: lexus
+    model: rx
+    year_from: 2010
+    year_to: 2015
+    low: "0.4"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumed the common RX350 with the transverse 2GR-FE V6 and a single serpentine belt with an automatic tensioner. The belt is reached mostly from above, possibly with the engine cover or right-side splash shield removed for access;"
+  - scope: generation
+    make: ford
+    model: fusion
+    year_from: 2006
+    year_to: 2012
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 3.0L V6 (the I4 engines are similar or slightly quicker), with the belt reached from below after the RH fender splash shield and lower splash shield are removed on a hoist."
+  - scope: generation
+    make: ram
+    model: promaster-3500
+    year_from: 2014
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.6L Pentastar V6 (the common engine; the EcoDiesel was also offered in some years) with or without A/C, accessed from the right wheel well."
+  - scope: generation
+    make: gmc
+    model: envoy
+    year_from: 2002
+    year_to: 2009
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 4.2L inline-six or 5.3L V8 with a single serpentine belt and an automatic tensioner reachable from above with a 3/8 inch breaker bar, with no fan shroud or fan removal needed."
+  - scope: generation
+    make: acura
+    model: integra
+    year_from: 1994
+    year_to: 2001
+    low: "0.3"
+    typical: "0.6"
+    high: "1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a B-series four-cylinder with separate ribbed belts set by manual adjusters (alternator pivot and adjuster bolt) instead of an automatic tensioner."
+  - scope: generation
+    make: ford
+    model: f-250
+    year_from: 2017
+    year_to: 2022
+    low: "0.4"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a single serpentine belt with an automatic spring tensioner on the 6.2L or 7.3L gas or 6.7L diesel, reached from above with possible removal of the air intake duct or fan shroud upper section."
+  - scope: generation
+    make: infiniti
+    model: g35
+    year_from: 2003
+    year_to: 2007
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the VQ35DE with two manually adjusted belts (alternator/power steering and A/C), each tensioned by an idler-pulley adjusting bolt rather than an automatic tensioner. The job covers removing the undercover, replacing both belts, setting the tension and checking belt tracking;"
+  - scope: generation
+    make: ford
+    model: flex
+    year_from: 2009
+    year_to: 2019
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.5L V6 (naturally aspirated or EcoBoost) with a single serpentine belt and automatic tensioner, reached from below on a hoist after removing the pin-retained splash shield. Tensioner and pulley replacement are excluded; the time covers inspection and a running check of belt tracking."
+  - scope: generation
+    make: ford
+    model: mustang
+    year_from: 1994
+    year_to: 2004
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed a single serpentine belt with an automatic spring tensioner on the 3.8L V6, 4.6L V8 or 3.9L V6, reachable from above with the tensioner released by a breaker bar or wrench. Some trims may need the air intake tube or fan shroud moved aside, which accounts for the upper end of the range."
+  - scope: generation
+    make: nissan
+    model: maxima
+    year_from: 1995
+    year_to: 1999
+    low: "0.5"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the VQ30DE V6, which uses manually adjusted belts (adjuster bolts on the idler/alternator brackets) rather than a single automatic tensioner. The estimate covers one accessory belt reached from above and through the right wheel-well splash shield, set to the correct tension;"
+  - scope: generation
+    make: gmc
+    model: yukon
+    year_from: 2000
+    year_to: 2006
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a GMT800 Yukon with the 4.8L, 5.3L or 6.0L V8 using a single serpentine belt and an automatic tensioner. The job includes removing and refitting the air cleaner outlet duct for access, swapping the belt with a breaker bar on the tensioner, inspecting the pulleys and running the engine to…"
+  - scope: generation
+    make: dodge
+    model: durango
+    year_from: 1998
+    year_to: 2003
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a single serpentine belt with an automatic spring tensioner on the 3.9L V6, 4.7L, 5.2L or 5.9L V8, threaded past the mechanical fan without removing the fan or shroud. The high figure allows for a stiff tensioner pivot or needing to loosen the fan shroud for access."
+  - scope: generation
+    make: ford
+    model: explorer
+    year_from: 2002
+    year_to: 2005
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 4.0L SOHC V6 or 4.6L V8, each with a single serpentine belt and an automatic spring tensioner that is released with a breaker bar. The fan shroud and other components are assumed to stay in place, apart from minor fan-area clearance work to route the belt."
+  - scope: generation
+    make: nissan
+    model: nv
+    year_from: 2012
+    year_to: 2021
+    low: "0.35"
+    typical: "0.6"
+    high: "1"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes a US-market full-size NV van with the 4.0L V6 or 5.6L V8 and a single serpentine belt with an automatic spring tensioner, reached through the hood with a breaker bar. The engine sits partly under the cab, so access is tighter than on a pickup but needs no major disassembly."
+  - scope: generation
+    make: jeep
+    model: patriot
+    year_from: 2007
+    year_to: 2017
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gas World Engine (2.0L/2.4L) with an automatic belt tensioner reached from the top or the right wheel well; no splash shield or wheel removal beyond normal access, with the belt routed and tension released by a wrench on the tensioner."
+  - scope: generation
+    make: ford
+    model: focus
+    year_from: 2012
+    year_to: 2018
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.0L Duratec-HE/GDI engine, where the separate stretch-fit A/C compressor belt must be removed first and then refitted or replaced with the installer tool."
+  - scope: generation
+    make: chevrolet
+    model: equinox
+    year_from: 2005
+    year_to: 2009
+    low: "0.9"
+    typical: "1.3"
+    high: "1.9"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.4L V6 (the 3.6L in the Sport is similar), where the serpentine belt passes through the right engine mount. The job therefore includes removing the air cleaner, supporting the engine, and removing and refitting the right engine mount in addition to releasing the tensioner and routing…"
+  - scope: generation
+    make: honda
+    model: odyssey
+    year_from: 1999
+    year_to: 2004
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 3.5L V6 with an automatic tensioner driving the alternator/AC compressor belt, reached from the passenger-side wheel well. The 2002-04 splash shield is removed, and only the main alternator/compressor serpentine belt is replaced, not any separate power steering belt on earlier models."
+  - scope: generation
+    make: nissan
+    model: sentra
+    year_from: 2007
+    year_to: 2012
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.0L MR20DE (or 2.5L QR25DE) with a single serpentine belt and an automatic tensioner locked with a pin, reached through the right-hand splash shield with the car on a lift."
+  - scope: generation
+    make: gmc
+    model: acadia
+    year_from: 2007
+    year_to: 2016
+    low: "0.5"
+    typical: "0.8"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.6L V6 (LLY/LLT) with a single serpentine belt, which is reached by removing the right front wheelhouse liner (wheel off as needed) and releasing the tensioner with a wrench."
+  - scope: generation
+    make: toyota
+    model: 4runner
+    year_from: 1996
+    year_to: 2002
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the common 3.4L V6 or 2.7L four-cylinder, where the accessory belts are set by adjuster bolts or idlers rather than a single spring tensioner. The upper fan shroud may need to come off for access, and the new belts are tensioned by hand and checked running."
+  - scope: generation
+    make: audi
+    model: a4
+    year_from: 2009
+    year_to: 2016
+    low: "0.6"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a longitudinal B8 engine such as the 2.0 TFSI or a common TDI/V6 with a single serpentine belt and automatic tensioner, reached through the engine covers and the noise insulation tray without putting the front end in full service position."
+  - scope: generation
+    make: honda
+    model: element
+    year_from: 2003
+    year_to: 2011
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the 2.4L K24 four-cylinder with a single serpentine belt and automatic spring tensioner, reached mostly from above with a wrench on the tensioner, possibly removing the passenger-side splash shield to route the belt around the lower pulleys."
+  - scope: generation
+    make: lexus
+    model: rx
+    year_from: 2004
+    year_to: 2009
+    low: "0.4"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes the transverse 3.3 L (3MZ-FE) or 3.5 L (2GR-FE) V6 with a single serpentine belt and an automatic tensioner. The belt is reached mostly from above, with the engine cover and possibly the right wheel and splash shield removed for access to the lower pulleys."
+  - scope: generation
+    make: ford
+    model: taurus
+    year_from: 2000
+    year_to: 2007
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes the transverse 3.0L V6 (Vulcan OHV or Duratec DOHC) with a single serpentine belt and an automatic spring tensioner released with a breaker bar. Some access from below or through the right wheel well may be needed to route the belt around the lower pulleys."
+  - scope: generation
+    make: chevrolet
+    model: cruze
+    year_from: 2011
+    year_to: 2015
+    low: "0.6"
+    typical: "0.9"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 1.8L or 1.4L turbo gasoline engine with a serpentine belt driving the alternator, water pump and A/C, reached by lifting the car and removing the right front wheelhouse liner. The tensioner is rotated and pinned, the belt is swapped and its tracking is checked with the engine running."
+  - scope: generation
+    make: chevrolet
+    model: cobalt
+    year_from: 2005
+    year_to: 2010
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed an Ecotec 2.2L/2.4L with a single serpentine belt and automatic tensioner, reached from below after removing the engine splash shield, with the tensioner rotated using a thin-profile tensioner tool."
+  - scope: generation
+    make: bmw
+    model: x3
+    year_from: 2004
+    year_to: 2010
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a petrol six-cylinder (M54 or N52) E83 where the fan cowl with electric fan, or the viscous fan and shroud on earlier engines, must come off first for access. The estimate covers locking the tensioner with the pin tool, swapping the main accessory belt, refitting, and a run-up check;"
+  - scope: generation
+    make: infiniti
+    model: qx56
+    year_from: 2004
+    year_to: 2010
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 5.6L VK56DE V8 with a single serpentine belt and automatic tensioner. The job covers removing the air duct and resonator, releasing the tensioner with a long-handle tool, swapping the belt, rotating the crank and checking the tension indicator, with access from the top of the engine bay."
+  - scope: generation
+    make: bmw
+    model: 335i
+    year_from: 2007
+    year_to: 2011
+    low: "0.7"
+    typical: "1"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the N54 3.0L twin-turbo engine and replacement of the main alternator drive belt only, not the separate A/C belt. Access requires removing the fan cowl, the recirculated-air/boost hose and loosening the air duct, then locking the tensioner with a pin to swap the belt."
+  - scope: generation
+    make: honda
+    model: pilot
+    year_from: 2003
+    year_to: 2008
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single serpentine belt on the transverse J35 V6 with an automatic tensioner reached from the passenger-side top of the engine bay. Some versions use a slow-acting hydraulic tensioner."
+  - scope: generation
+    make: hyundai
+    model: santa-fe
+    year_from: 2007
+    year_to: 2012
+    low: "0.4"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes a transverse engine (2.4 I4, 2.7/3.3 V6 or 2.2 diesel) with a single serpentine belt and automatic tensioner. On the V6 the belt sits tight against the inner fender, so the wheel and splash shield may need to come off."
+  - scope: generation
+    make: buick
+    model: enclave
+    year_from: 2008
+    year_to: 2017
+    low: "0.5"
+    typical: "0.8"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the transverse 3.6L V6 (LY7/LLT) with a single serpentine belt and automatic tensioner, reached by removing the front portion of the passenger-side wheelhouse liner, possibly with the wheel off. The time covers liner removal and refitting, belt swap and inspection, and a running check;"
+  - scope: generation
+    make: chevrolet
+    model: colorado
+    year_from: 2004
+    year_to: 2012
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed an inline 4- or 5-cylinder (2.8/2.9/3.5/3.7L) with a single serpentine belt and a spring tensioner reached from the top with a 3/8 inch bar, with no fan shroud or air intake removal needed."
+  - scope: generation
+    make: dodge
+    model: avenger
+    year_from: 2008
+    year_to: 2014
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single serpentine belt with an automatic tensioner. On the 2.4L the belt is reached from above or below without removing other parts; the 3.6L (and similar V6) also needs the right front wheel and inner splash shield removed and the battery disconnected, so the typical figure is weighted…"
+  - scope: generation
+    make: dodge
+    model: dakota
+    year_from: 1990
+    year_to: 1996
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a serpentine belt with an automatic tensioner, as on the 1992-on Magnum 3.9L V6 and 5.2L V8, with the belt worked around the mechanical fan and shroud without removing them."
+  - scope: generation
+    make: honda
+    model: odyssey
+    year_from: 2011
+    year_to: 2017
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the 3.5L V6 with a single serpentine belt and automatic spring tensioner on the passenger-side end of the transverse engine. The belt is reached from above and, where needed, through the right front wheel well after removing the wheel and splash shield."
+  - scope: generation
+    make: hyundai
+    model: sonata
+    year_from: 2011
+    year_to: 2014
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the 2.4L or 2.0T four-cylinder with a single serpentine belt and automatic tensioner at the passenger-side end of the engine. The tensioner is released with a wrench from above, and the belt is routed around the lower pulleys, possibly from below with the splash shield or wheel-well liner…"
+  - scope: generation
+    make: kia
+    model: sorento
+    year_from: 2003
+    year_to: 2009
+    low: "0.4"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a longitudinally mounted engine (mainly the 3.5 or 3.8 V6, or the 2.5 diesel) with a single serpentine belt and an automatic tensioner, released with a wrench. The fan shroud and possibly the viscous fan may need moving or removing for clearance."
+  - scope: generation
+    make: pontiac
+    model: g6
+    year_from: 2005
+    year_to: 2010
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 3.5L/3.9L V6 G6 with a single serpentine belt, where the air cleaner assembly and engine mount strut are removed for access before the tensioner is released with a breaker bar."
+  - scope: generation
+    make: ford
+    model: focus
+    year_from: 2008
+    year_to: 2011
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the North American 2.0L Duratec I4 with an automatic tensioner and a single serpentine belt, worked from underneath on a hoist. The job covers removing the two-bolt splash shield, rotating the tensioner by its hex to swap the belt, inspecting the pulleys, and refitting and running the…"
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 1993
+    year_to: 1997
+    low: "0.4"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a 4A-FE or 7A-FE petrol engine with V-ribbed belts tensioned by the alternator pivot and adjusting bolts rather than an automatic tensioner. The estimate covers replacing the alternator/water pump belt, including removing and refitting the power steering or A/C belt if it is in the way…"
+  - scope: generation
+    make: chevrolet
+    model: impala
+    year_from: 2000
+    year_to: 2005
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 3.4L or 3.8L V6 with a single serpentine belt and an automatic spring tensioner reachable from the top or the wheel well with a 3/8 breaker bar, with no other components needing removal."
+  - scope: generation
+    make: hyundai
+    model: elantra
+    year_from: 2001
+    year_to: 2006
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed the common 2.0L Beta four-cylinder with a transverse layout, where the accessory belt is reached from above and through the right wheel well after removing the splash shield. Some versions use separate belts adjusted at the alternator or an idler pulley rather than an automatic tensioner;"
+  - scope: generation
+    make: subaru
+    model: impreza
+    year_from: 2008
+    year_to: 2011
+    low: "0.4"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the EJ-series flat-four, which uses a front belt for the alternator and power steering plus a separate rear stretch-fit A/C belt. I took the job as replacing the front belt or belts and, as the repair steps show, cutting the rear A/C belt and fitting a new one with the installation jig…"
+  - scope: generation
+    make: ford
+    model: transit-connect
+    year_from: 2010
+    year_to: 2013
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the North American 2.0L four-cylinder petrol engine with a single serpentine belt and automatic tensioner, reached from below after lifting the van and removing a two-bolt splash shield."
+  - scope: generation
+    make: cadillac
+    model: escalade
+    year_from: 2007
+    year_to: 2014
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 6.2L V8 (or the 6.0L hybrid's conventional belt where applicable) with a single serpentine belt and a spring-loaded tensioner, so the only extra removal is the air cleaner outlet duct."
+  - scope: generation
+    make: lincoln
+    model: town-car
+    year_from: 1998
+    year_to: 2011
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 4.6L SOHC V8 with a single serpentine belt and automatic tensioner. The belt is reached from above with no shroud or fan removal needed; the tensioner is rotated with a breaker bar, the belt is swapped, the pulleys are spun and inspected, and the belt tracking is checked with the…"
+  - scope: generation
+    make: nissan
+    model: pathfinder
+    year_from: 2013
+    year_to: 2020
+    low: "0.5"
+    typical: "0.8"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 3.5L VQ35DE V6 with a single serpentine belt reached through the right front wheel well, removing the RH wheel and fender side cover, and locking the auto-tensioner with a pin. Applies equally to 2WD and 4WD; the hybrid variant is assumed to use a similar single-belt layout."
+  - scope: generation
+    make: nissan
+    model: murano
+    year_from: 2003
+    year_to: 2007
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.5L V6 with manually adjusted belts, where the job replaces the outer alternator/AC belt by removing the RH splash guard, loosening the idler adjusting bolt, refitting the belt and setting tension by hand. If the inner power steering belt is also replaced, add a few tenths of an hour."
+  - scope: generation
+    make: audi
+    model: q5
+    year_from: 2018
+    year_to: 2027
+    low: "0.6"
+    typical: "0.9"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed the common longitudinal 2.0 TFSI or TDI engine with a single ribbed belt at the front of the engine, reached from below after removing the underbody noise panel, with the tensioner released from above or below using a locking tool and no lock-carrier service position needed."
+  - scope: generation
+    make: volvo
+    model: s60
+    year_from: 2001
+    year_to: 2009
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a transverse 5-cylinder petrol engine (2.4, 2.5T or T5) where the upper torque rod, its bracket, a ground strap and a power steering line bracket must come off before the tensioner can be levered back with a long tool. Only the main accessory belt is replaced;"
+  - scope: generation
+    make: toyota
+    model: sienna
+    year_from: 1998
+    year_to: 2003
+    low: "0.6"
+    typical: "1"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the 3.0L 1MZ-FE V6 mounted transversely, with the belt reached through the right wheel well after removing the wheel and splash shield. Later years use a single serpentine belt with an automatic tensioner; earlier two-belt setups with manual adjusters take about the same time to service."
+  - scope: generation
+    make: chevrolet
+    model: malibu
+    year_from: 2008
+    year_to: 2012
+    low: "0.5"
+    typical: "0.8"
+    high: "1.2"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L four-cylinder, where the air cleaner assembly comes off and the spring-type tensioner is compressed with the special compressor tool. The tensioner stop is removed and refitted if equipped. The 3.6L V6 with a conventional tensioner would be somewhat quicker."
+  - scope: generation
+    make: nissan
+    model: versa
+    year_from: 2007
+    year_to: 2011
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 1.8L MR18DE four-cylinder with a single serpentine belt and an automatic tensioner locked with a pin, as the steps describe. Access is partly from below, so the right front wheel and splash shield may need to come off to route the belt around the crank pulley;"
+  - scope: generation
+    make: subaru
+    model: forester
+    year_from: 2014
+    year_to: 2018
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the FB25/FB20 or FA20DIT engine with one serpentine belt and an automatic tensioner, reached from the front of the engine bay. At most the air intake duct or a splash cover comes off. The supplied steps describe full engine removal, which this job does not need, so I disregarded them."
+  - scope: generation
+    make: audi
+    model: q5
+    year_from: 2009
+    year_to: 2017
+    low: "0.6"
+    typical: "1"
+    high: "1.8"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a longitudinal 2.0 TFSI, 3.2 FSI, 3.0 TFSI or 3.0 TDI with a single main poly-V belt and a spring tensioner released with a locking pin. Access is via the engine cover, intake ducting and lower noise insulation;"
+  - scope: generation
+    make: audi
+    model: a4
+    year_from: 2006
+    year_to: 2008
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a B7 A4 with the common 2.0T FSI four-cylinder or 3.2 V6 petrol engine, where the serpentine belt sits at the front of the longitudinal engine."
+  - scope: generation
+    make: toyota
+    model: yaris
+    year_from: 2007
+    year_to: 2011
+    low: "0.5"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 1.5L 1NZ-FE petrol engine with a single ribbed belt tensioned by swinging the alternator on its pivot and adjusting bolts, reached by removing the right-hand engine under cover."
+  - scope: generation
+    make: chevrolet
+    model: impala
+    year_from: 2006
+    year_to: 2013
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transverse 3.5L or 3.9L V6 with a single serpentine belt and an automatic spring tensioner. Access is from the top after removing the engine cover, using a breaker bar or belt tool on the tensioner, with no other components needing removal."
+  - scope: generation
+    make: chevrolet
+    model: avalanche
+    year_from: 2002
+    year_to: 2006
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a Gen III small-block V8 (4.8L, 5.3L or 6.0L) with a single serpentine belt and an automatic spring tensioner. The air cleaner outlet duct is removed for access, the belt is swapped with a breaker bar and refitted under the idler last, and the belt tracking is then checked with the engine…"
+  - scope: generation
+    make: audi
+    model: a4
+    year_from: 2002
+    year_to: 2005
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a common longitudinal petrol engine such as the 1.8T or 3.0 V6, with the engine cover, front intake ducting and lower splash shield removed for access, and the tensioner released and pinned with a special tool."
+  - scope: generation
+    make: chrysler
+    model: 300
+    year_from: 2011
+    year_to: 2023
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the 3.6L Pentastar V6 or 5.7/6.4L Hemi V8, each with a single serpentine belt and an automatic spring tensioner reached from above, with only the engine cover or air intake duct needing removal. AWD versions or tight V8 packaging may take somewhat longer."
+  - scope: generation
+    make: chrysler
+    model: 300
+    year_from: 2005
+    year_to: 2010
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "I assumed a single serpentine belt with an automatic tensioner reachable from above on the 2.7L, 3.5L or 5.7L Hemi engines. Removing the air intake duct or engine cover may be needed for access, and AWD models may be slightly tighter to work on."
+  - scope: generation
+    make: hyundai
+    model: santa-fe
+    year_from: 2013
+    year_to: 2018
+    low: "0.4"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a single serpentine belt with a spring-loaded auto tensioner on the 2.4 GDI, 2.0T or 3.3 V6. Access is from above and through the wheel well, and may need the right front wheel or splash shield removed."
+  - scope: generation
+    make: toyota
+    model: rav4
+    year_from: 2001
+    year_to: 2005
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.0L or 2.4L four-cylinder with a single serpentine belt and an automatic tensioner, reached from above and through the right wheel well after removing the splash shield if needed."
+  - scope: generation
+    make: nissan
+    model: maxima
+    year_from: 2004
+    year_to: 2008
+    low: "0.5"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the transverse 3.5L VQ35DE V6, where the accessory belts sit against the passenger-side inner fender. The estimate covers one main accessory belt (alternator/A-C) with adjustment through its idler/tensioner."
+  - scope: generation
+    make: acura
+    model: tl
+    year_from: 1999
+    year_to: 2003
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumes the 3.2L J-series V6, mounted transversely with the belts at the passenger-side end and reached mostly from above. Many of these engines use separate alternator and power steering/AC belts set with manual adjusting bolts rather than a single serpentine belt on an automatic tensioner, so…"
+  - scope: generation
+    make: volvo
+    model: s80
+    year_from: 1999
+    year_to: 2006
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 38
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a transverse 5- or 6-cylinder petrol engine (the procedure shown matches the 2.9/T6). The job includes removing and refitting the upper torque rod, the brackets, the ground strap and the power steering line bolts, then releasing the tensioner with the special tool, swapping the belt and…"
+  - scope: generation
+    make: volvo
+    model: xc90
+    year_from: 2003
+    year_to: 2014
+    low: "0.5"
+    typical: "0.9"
+    high: "1.5"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a transversely mounted engine (5-cylinder 2.5T/D5, 6-cylinder T6/3.2, or V8) with a single serpentine belt and an automatic tensioner. The belt sits close to the right-hand inner wing, so the wheel and splash shield may need to come off for access and routing."
+  - scope: generation
+    make: bmw
+    model: x3
+    year_from: 2011
+    year_to: 2017
+    low: "0.4"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a petrol N20 or N55 (or common diesel) F25 with a single serpentine accessory belt and an automatic tensioner, reached from the front after removing the engine cover and some intake ducting or a fan shroud panel."
+  - scope: generation
+    make: toyota
+    model: highlander
+    year_from: 2001
+    year_to: 2007
+    low: "0.4"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes a single serpentine belt with an automatic spring tensioner, which both the 2.4L four-cylinder and the 3.0L/3.3L V6 use. Allows time to remove the right front wheel or splash shield where needed for access on the transverse engine."
+  - scope: generation
+    make: toyota
+    model: tundra
+    year_from: 2000
+    year_to: 2006
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a single serpentine accessory belt. The 4.7L 2UZ-FE uses an automatic tensioner and is quicker. The 3.4L 5VZ-FE needs the under cover removed and the adjusting-bolt idler set with a tension gauge, which pushes it toward the upper part of the range."
+  - scope: generation
+    make: jeep
+    model: compass
+    year_from: 2007
+    year_to: 2016
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.0L or 2.4L World Engine (transverse, automatic tensioner). The belt is changed from above and through the right wheel well or splash shield as needed, with no tensioner, idler or alternator work. The diesel variant is not considered."
+  - scope: generation
+    make: jeep
+    model: grand-cherokee
+    year_from: 2005
+    year_to: 2010
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a single serpentine belt with an automatic spring tensioner, worked mainly from above (3.7L, 4.7L or 5.7L gas engines), with the air intake duct removed for clearance if needed. The high figure allows for awkward lower routing on the diesel or SRT8, or a stiff tensioner bolt."
+  - scope: generation
+    make: lexus
+    model: is
+    year_from: 2006
+    year_to: 2013
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes a petrol V6 (IS250/IS350) with a single serpentine belt and automatic tensioner, reached from the top after removing the engine cover and possibly the air intake duct, with the lower engine undercover removed for routing."
+  - scope: generation
+    make: lexus
+    model: rx
+    year_from: 1999
+    year_to: 2003
+    low: "0.5"
+    typical: "0.8"
+    high: "1.2"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the RX300 with the transverse 3.0 L V6 (1MZ-FE), FWD or AWD, using a single serpentine belt with an automatic tensioner. Access may require removing the right front wheel and inner fender splash shield to rotate the tensioner and route the belt, plus a run-up check."
+  - scope: generation
+    make: infiniti
+    model: g37
+    year_from: 2008
+    year_to: 2013
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the VQ37VHR V6 with a single serpentine belt and an automatic tensioner, reached by removing the engine undercover from below and locking the tensioner with a pin. AWD and RWD versions are taken as similar, with the alternator and idler pulleys left in place."
+  - scope: generation
+    make: toyota
+    model: tundra
+    year_from: 2007
+    year_to: 2021
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a V8 (4.6L or 5.7L) Tundra with a single serpentine belt and automatic tensioner, needing the engine cover and lower under cover removed for access. The tensioner is rotated and pinned, the belt is swapped and routed, and the pulleys are checked before a run test;"
+  - scope: generation
+    make: toyota
+    model: corolla
+    year_from: 1990
+    year_to: 1992
+    low: "0.4"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 38
+    inputs: [vehicle, job]
+    notes: "Assumes a transverse 4A-series petrol engine with separate V-belts adjusted by moving the alternator on its pivot and adjuster bolts rather than an automatic tensioner."
+  - scope: generation
+    make: kia
+    model: soul
+    year_from: 2010
+    year_to: 2013
+    low: "0.4"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 42
+    inputs: [vehicle, job]
+    notes: "Assumes a 1.6 L or 2.0 L petrol engine with a single serpentine belt and an automatic tensioner on the right side of the engine. Partial access through the right front wheel well (wheel and splash shield off) may be needed to route the belt around the lower pulleys."
+  - scope: generation
+    make: bmw
+    model: 325i
+    year_from: 2001
+    year_to: 2006
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes an M54 inline-six with a viscous fan clutch that must come off, along with the fan shroud as needed, plus removal and refitting of the separate A/C belt to reach the alternator/main drive belt. Only the main accessory belt is replaced; the A/C belt is reused."
+  - scope: generation
+    make: audi
+    model: q7
+    year_from: 2007
+    year_to: 2015
+    low: "0.6"
+    typical: "0.9"
+    high: "1.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 3.0 TDI (similar access on the petrol V6/V8) with the single main ribbed belt. The job includes removing the engine cover, air duct hose and lower noise insulation, unclipping the harness bracket, and releasing the tensioner with the special Torx tool from above and below on a lift."
+  - scope: generation
+    make: mitsubishi
+    model: lancer
+    year_from: 2008
+    year_to: 2017
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a 4B11/4B12-family four-cylinder (or the 1.5L) with a single serpentine belt and an automatic tensioner, worked from above and through the right wheel well, with the coolant reservoir moved aside and the splash shield removed."
+  - scope: generation
+    make: fiat
+    model: 500
+    year_from: 2012
+    year_to: 2019
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 1.4L engine with A/C, where the belt has an automatic tensioner and is reached from above after removing the air cleaner assembly, with some wheel/splash-shield access possibly needed."
+  - scope: generation
+    make: toyota
+    model: echo
+    year_from: 2000
+    year_to: 2005
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "I assumed the 1.5L 1NZ-FE with manually adjusted belts (pivot and adjusting bolt) rather than an automatic tensioner, so the job means loosening the pivot, slackening the adjuster, fitting and tensioning the new belt."
+  - scope: generation
+    make: chevrolet
+    model: hhr
+    year_from: 2006
+    year_to: 2011
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a 2.2L or 2.4L Ecotec (or 2.0L turbo with similar layout) transverse engine with a single serpentine belt and spring tensioner, reached after lifting the vehicle and removing the lower splash shield, using a thin tensioner tool in the tight space between engine and frame rail."
+  - scope: generation
+    make: ram
+    model: promaster-city
+    year_from: 2015
+    year_to: 2022
+    low: "0.8"
+    typical: "1.1"
+    high: "1.6"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 2.4L Tigershark four-cylinder with an automatic belt tensioner, where the engine cover, air cleaner body, belt cover, right lower and wheelhouse splash shields and a power steering line retainer must come off before the belt can be swapped."
+  - scope: generation
+    make: dodge
+    model: charger
+    year_from: 2011
+    year_to: 2023
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the common 3.6L V6 with the air cleaner body removed for tensioner access and a single serpentine belt. The 5.7L/6.4L/6.2L V8s are similar or slightly quicker, and AWD variants add little time; the job covers belt only, with no tensioner or idler replacement."
+  - scope: generation
+    make: dodge
+    model: stratus
+    year_from: 1995
+    year_to: 2000
+    low: "0.6"
+    typical: "1"
+    high: "1.6"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes one accessory belt (e.g. the alternator/AC belt) on a common 2.0L, 2.4L or 2.5L V6 engine, mounted transversely in a cramped bay. Access may require removing the right front wheel and splash shield, and the belt is set with a manual adjuster or tensioner rather than an automatic one."
+  - scope: generation
+    make: toyota
+    model: tercel
+    year_from: 1995
+    year_to: 1999
+    low: "0.4"
+    typical: "0.7"
+    high: "1.1"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed the 1.5L 5E-FE engine, which uses V-belts tensioned by an alternator pivot and adjuster bolt rather than an automatic tensioner. The estimate covers replacing the alternator/water pump belt, including removing and refitting the outer power steering or A/C belt where fitted, then…"
+  - scope: generation
+    make: honda
+    model: pilot
+    year_from: 2009
+    year_to: 2015
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.5L V6 with a single serpentine belt and automatic tensioner, accessed from the top after unclipping the power steering reservoir, using a slim tensioner release tool. Includes routing the new belt, a pulley and tensioner inspection, and a run check;"
+  - scope: generation
+    make: acura
+    model: mdx
+    year_from: 2014
+    year_to: 2020
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 3.5L V6 with a single serpentine belt and automatic tensioner, reached from the top of the transverse engine with at most the engine cover or a splash shield removed. Covers routing the new belt, inspecting the pulleys and checking belt tracking with the engine running;"
+  - scope: generation
+    make: chevrolet
+    model: corvette
+    year_from: 1990
+    year_to: 1996
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a single serpentine belt with an automatic spring tensioner on the L98, LT1 or LT4 V8, which may need the air intake duct moved aside for access. The supplied A/C compressor clutch steps are unrelated to this job and were not used."
+  - scope: generation
+    make: subaru
+    model: forester
+    year_from: 2009
+    year_to: 2013
+    low: "0.3"
+    typical: "0.6"
+    high: "1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "The supplied steps describe engine removal, so I disregarded them. I assumed only the V-belt cover comes off, the tensioner is released and the belt is swapped from above. The 2011-2013 FB25 uses a single serpentine belt with an automatic tensioner;"
+  - scope: generation
+    make: volkswagen
+    model: passat
+    year_from: 1998
+    year_to: 2005
+    low: "0.5"
+    typical: "0.8"
+    high: "1.4"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes a longitudinally mounted 1.8T or 2.8 V6 with a single serpentine accessory belt and a spring tensioner locked with a pin. Time covers removing the engine cover and lower splash shield, plus the viscous fan where it blocks the belt, without putting the lock carrier into service position."
+  - scope: generation
+    make: buick
+    model: regal
+    year_from: 1997
+    year_to: 2004
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes the transverse 3.8L V6 (naturally aspirated or supercharged GS) with a single serpentine belt and spring-loaded automatic tensioner reached from the top of the engine bay, with no splash shields or engine mounts to remove."
+  - scope: generation
+    make: gmc
+    model: yukon
+    year_from: 1995
+    year_to: 1999
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumed the common 5.7L Vortec V8 (or 6.5L diesel) with a single serpentine belt and an automatic spring tensioner released with a breaker bar, with good access from the front of the engine bay."
+  - scope: generation
+    make: subaru
+    model: forester
+    year_from: 2019
+    year_to: 2024
+    low: "0.3"
+    typical: "0.5"
+    high: "0.8"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the FB25 2.5L boxer with a single serpentine belt and an automatic tensioner reached from the top once the intake collector cover is removed, so no splash shields or other components need to come off."
+  - scope: generation
+    make: audi
+    model: a4
+    year_from: 1996
+    year_to: 2001
+    low: "1.2"
+    typical: "1.8"
+    high: "2.6"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a B5 A4 with either the 1.8/1.8T four-cylinder (main ribbed belt plus separate A/C belt) or the 2.8 V6 (fan clutch removal needed). Either way, the lock carrier must be moved to the service position, which accounts for most of the time, and only the belts are replaced."
+  - scope: generation
+    make: acura
+    model: rdx
+    year_from: 2013
+    year_to: 2018
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the 3.5L V6 (J35) with a single serpentine belt and an automatic tensioner that is released and locked with a pin, reached from the engine bay or the passenger wheel well without removing other components."
+  - scope: generation
+    make: acura
+    model: tl
+    year_from: 2009
+    year_to: 2014
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a J35/J37 V6 with a single serpentine belt and auto-tensioner, reached from the top after removing the engine covers; the transverse V6 makes access tight, so a slim tension release tool is needed."
+  - scope: generation
+    make: saturn
+    model: vue
+    year_from: 2002
+    year_to: 2007
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.2L L61 four-cylinder layout shown, where the belt is reached through the right wheel well after removing the wheel and splash shield and releasing the tensioner with the special tool. The tensioner is not removed. V6 versions have different access and may take somewhat less time."
+  - scope: generation
+    make: nissan
+    model: altima
+    year_from: 1998
+    year_to: 2001
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumes the 2.4L KA24DE four-cylinder, which uses manually adjusted belts (adjuster bolt on an idler or alternator bracket) rather than an automatic tensioner."
+  - scope: generation
+    make: hyundai
+    model: tucson
+    year_from: 2005
+    year_to: 2009
+    low: "0.5"
+    typical: "0.8"
+    high: "1.3"
+    confidence: 40
+    inputs: [vehicle, job]
+    notes: "Assumed a petrol 2.0 L four-cylinder or 2.7 L V6 with a single serpentine accessory belt and automatic tensioner, reached from above and through the right wheel well with the splash shield removed. Air-conditioned car; any separate belts, such as on the diesel, are not included."
+  - scope: generation
+    make: volkswagen
+    model: beetle
+    year_from: 1998
+    year_to: 2010
+    low: "0.4"
+    typical: "0.7"
+    high: "1.2"
+    confidence: 45
+    inputs: [vehicle, job]
+    notes: "Assumes a transverse engine (2.0 8V, 1.8T, 1.9 TDI or 2.5 five-cylinder) with a single serpentine belt and a spring tensioner, reached from above and through the right wheel well."
+  - scope: generation
+    make: cadillac
+    model: cts
+    year_from: 2003
+    year_to: 2007
+    low: "0.4"
+    typical: "0.6"
+    high: "1"
+    confidence: 40
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the main generator/water pump belt on the 3.6L V6 (or the single serpentine belt on the 2.8/3.2L), reached from above after removing the engine cover and possibly the intake duct, with the tensioner released by a wrench. The separate A/C and power steering belt on the 3.6L is not included."
+  - scope: generation
+    make: acura
+    model: tsx
+    year_from: 2004
+    year_to: 2008
+    low: "0.3"
+    typical: "0.5"
+    high: "0.9"
+    confidence: 45
+    inputs: [vehicle, job, procedure]
+    notes: "Assumes the 2.4L K24 inline-four, which has a single serpentine accessory belt with a spring-loaded auto-tensioner that is reached from above with a long-handled release tool, so no other parts need to come off."
+  - scope: generation
+    make: nissan
+    model: versa
+    year_from: 2012
+    year_to: 2019
+    low: "0.6"
+    typical: "0.9"
+    high: "1.3"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed the HR16DE 1.6 with a manual adjusting-bolt idler pulley rather than an automatic tensioner. Access is through the RH wheel well with the wheel and fender liner partly removed, and the belt tension is set, rechecked after turning the crank and measured, so the job takes longer than a…"
+  - scope: generation
+    make: dodge
+    model: caliber
+    year_from: 2007
+    year_to: 2012
+    low: "0.4"
+    typical: "0.6"
+    high: "0.9"
+    confidence: 42
+    inputs: [vehicle, job, procedure]
+    notes: "Assumed a gasoline World engine (1.8, 2.0 or 2.4) with a single serpentine belt and an automatic spring tensioner, worked mostly from above. Routing around the crank pulley may need the right front wheel and splash shield removed."
