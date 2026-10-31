@@ -5,7 +5,7 @@
 # this project; see jobs.md beside this file for the fields and the rules.
 # An id never changes once a labour record or a repair order uses it.
 status: reviewed
-updated: 2026-10-30
+updated: 2026-10-31
 jobs:
   - id: oil-service
     name: "Change engine oil and filter"
@@ -181,6 +181,7 @@ jobs:
       - "timing belt replacement"
       - "thermostat replacement"
       - "radiator replacement"
+      - "resealing the engine front cover, where the pump comes off without removing it"
   - id: timing-belt-replacement
     name: "Replace the timing belt"
     system: engine
@@ -317,6 +318,7 @@ jobs:
     name: "Replace an oxygen sensor"
     system: exhaust-emissions
     components: [oxygen-sensor]
+    related: [oxygen-sensor-upstream-bank-1, oxygen-sensor-upstream-bank-2, oxygen-sensor-downstream-bank-1, oxygen-sensor-downstream-bank-2]
     includes:
       - "raise the vehicle where the sensor is reached from below"
       - "unplug the sensor"
@@ -324,5 +326,69 @@ jobs:
       - "fit the new sensor with anti-seize where it is not pre-coated"
       - "reconnect, clear the codes and check the readings"
     excludes:
+      - "exhaust repair"
+      - "catalytic converter replacement"
+  - id: oxygen-sensor-upstream-bank-1
+    name: "Replace the oxygen sensor before the catalytic converter, bank 1"
+    system: exhaust-emissions
+    components: [oxygen-sensor]
+    related: [oxygen-sensor-upstream-bank-2, oxygen-sensor-downstream-bank-1, oxygen-sensor-downstream-bank-2, oxygen-sensor-replacement]
+    includes:
+      - "the sensor ahead of the catalytic converter on bank 1, the side with cylinder 1 (the only bank of an inline engine)"
+      - "raise the vehicle where the sensor is reached from below"
+      - "remove the parts in the way, or lower the subframe, where the sensor cannot be reached otherwise"
+      - "unplug the sensor and remove it"
+      - "fit the new sensor with anti-seize where it is not pre-coated"
+      - "refit the parts removed, reconnect, clear the codes and check the readings"
+    excludes:
+      - "the other oxygen sensors"
+      - "exhaust repair"
+      - "catalytic converter replacement"
+  - id: oxygen-sensor-upstream-bank-2
+    name: "Replace the oxygen sensor before the catalytic converter, bank 2"
+    system: exhaust-emissions
+    components: [oxygen-sensor]
+    related: [oxygen-sensor-upstream-bank-1, oxygen-sensor-downstream-bank-1, oxygen-sensor-downstream-bank-2, oxygen-sensor-replacement]
+    includes:
+      - "the sensor ahead of the catalytic converter on bank 2, the side without cylinder 1 (V and flat engines only)"
+      - "raise the vehicle where the sensor is reached from below"
+      - "remove the parts in the way, or lower the subframe, where the sensor cannot be reached otherwise"
+      - "unplug the sensor and remove it"
+      - "fit the new sensor with anti-seize where it is not pre-coated"
+      - "refit the parts removed, reconnect, clear the codes and check the readings"
+    excludes:
+      - "the other oxygen sensors"
+      - "exhaust repair"
+      - "catalytic converter replacement"
+  - id: oxygen-sensor-downstream-bank-1
+    name: "Replace the oxygen sensor after the catalytic converter, bank 1"
+    system: exhaust-emissions
+    components: [oxygen-sensor]
+    related: [oxygen-sensor-upstream-bank-1, oxygen-sensor-upstream-bank-2, oxygen-sensor-downstream-bank-2, oxygen-sensor-replacement]
+    includes:
+      - "the sensor behind the catalytic converter of bank 1, the side with cylinder 1 (the only bank of an inline engine)"
+      - "raise the vehicle where the sensor is reached from below"
+      - "remove the parts in the way, such as a heat shield, where the sensor cannot be reached otherwise"
+      - "unplug the sensor and remove it"
+      - "fit the new sensor with anti-seize where it is not pre-coated"
+      - "refit the parts removed, reconnect, clear the codes and check the readings"
+    excludes:
+      - "the other oxygen sensors"
+      - "exhaust repair"
+      - "catalytic converter replacement"
+  - id: oxygen-sensor-downstream-bank-2
+    name: "Replace the oxygen sensor after the catalytic converter, bank 2"
+    system: exhaust-emissions
+    components: [oxygen-sensor]
+    related: [oxygen-sensor-upstream-bank-1, oxygen-sensor-upstream-bank-2, oxygen-sensor-downstream-bank-1, oxygen-sensor-replacement]
+    includes:
+      - "the sensor behind the catalytic converter of bank 2, the side without cylinder 1 (V and flat engines only)"
+      - "raise the vehicle where the sensor is reached from below"
+      - "remove the parts in the way, such as a heat shield, where the sensor cannot be reached otherwise"
+      - "unplug the sensor and remove it"
+      - "fit the new sensor with anti-seize where it is not pre-coated"
+      - "refit the parts removed, reconnect, clear the codes and check the readings"
+    excludes:
+      - "the other oxygen sensors"
       - "exhaust repair"
       - "catalytic converter replacement"
