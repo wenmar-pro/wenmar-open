@@ -41,6 +41,7 @@ estimates:
 | `confidence` | The model's own, 0 to 60. |
 | `inputs` | What it was worked out from: `vehicle`, `job`, `wenmar-figures` (Wenmar's written and measured class figures of the job), `procedure` (repair steps, numbers removed). |
 | `notes` | Optional, at most 300 characters. |
+| `llm`, `method` | Optional, per figure: the model that answered and the prompt version of this figure, when not the file's `model` and `method` (a file a second model, or a later prompt, added figures to). |
 
 The build refuses any other field, a guardrail broken, a job not in `data/jobs.yaml`, a vehicle not in the catalog, or two figures of one job for one scope.
 

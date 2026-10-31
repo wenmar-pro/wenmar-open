@@ -635,6 +635,13 @@ struct AiWritten {
     inputs: Vec<String>,
     #[serde(default)]
     notes: Option<String>,
+    /// The model that answered this figure, when not the file's `model`
+    /// (a file a second model or a later prompt added to).
+    #[serde(default)]
+    llm: Option<String>,
+    /// The prompt version of this figure, when not the file's `method`.
+    #[serde(default)]
+    method: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -823,6 +830,11 @@ pub fn parse_ai(name: &str, yaml: &str) -> Result<Vec<AiRecord>> {
         {
             bail!("{place}: notes is longer than {LONGEST_NOTE} characters");
         }
+        for (field, value) in [("llm", &written.llm), ("method", &written.method)] {
+            if value.as_deref().is_some_and(|value| !is_ai_name(value)) {
+                bail!("{place}: {field} must be a name of 1 to {AI_LONGEST_NAME} characters");
+            }
+        }
         records.push(AiRecord {
             job: parsed.job.clone(),
             scope: written.scope,
@@ -838,8 +850,8 @@ pub fn parse_ai(name: &str, yaml: &str) -> Result<Vec<AiRecord>> {
             confidence_pct: written.confidence,
             inputs: written.inputs,
             notes,
-            llm: parsed.model.clone(),
-            method: parsed.method.clone(),
+            llm: written.llm.unwrap_or_else(|| parsed.model.clone()),
+            method: written.method.unwrap_or_else(|| parsed.method.clone()),
             generated: parsed.generated.clone(),
         });
     }

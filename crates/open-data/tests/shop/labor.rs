@@ -830,6 +830,11 @@ fn an_ai_answer_outside_the_guardrails_stops_the_build() {
             "    author: someone\n",
             "author",
         ),
+        (
+            "    notes: \"Made-up assumption.\"\n",
+            "    llm: \"\"\n",
+            "llm must be a name",
+        ),
     ];
     for (index, (from, to, expected)) in cases.into_iter().enumerate() {
         assert!(AI_FILE.contains(from), "{from}");
@@ -876,4 +881,16 @@ fn the_generators_file_is_read_by_the_build() {
     assert_eq!(record.notes.as_deref(), Some("A \"quoted\" note."));
     assert_eq!(record.llm, "claude-opus-5-5");
     assert_eq!(record.method, "open-labour-ai-1");
+}
+
+#[test]
+fn a_figure_may_name_its_own_model_and_method() {
+    let text = GENERATED.replace(
+        "    notes: \"A \\\"quoted\\\" note.\"\n",
+        "    notes: \"A \\\"quoted\\\" note.\"\n    llm: \"deepseek-flash\"\n    method: \"open-labour-ai-2\"\n",
+    );
+    assert_ne!(text, GENERATED);
+    let record = &labor::parse_ai("test-job-a", &text).unwrap()[0];
+    assert_eq!(record.llm, "deepseek-flash");
+    assert_eq!(record.method, "open-labour-ai-2");
 }
