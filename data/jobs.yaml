@@ -5,7 +5,7 @@
 # this project; see jobs.md beside this file for the fields and the rules.
 # An id never changes once a labour record or a repair order uses it.
 status: reviewed
-updated: 2026-10-31
+updated: 2026-11-01
 jobs:
   - id: oil-service
     name: "Change engine oil and filter"
@@ -392,3 +392,316 @@ jobs:
       - "the other oxygen sensors"
       - "exhaust repair"
       - "catalytic converter replacement"
+  # Added 2026-11-01, drafted by Claude for the owner's review: the big jobs whose
+  # time varies most between vehicles (tier 1 of wenmar-labor's jobs-proposed.md).
+  - id: heater-core-replacement
+    name: "Replace the heater core"
+    system: hvac
+    components: [cooling-system]
+    includes:
+      - "recover the refrigerant where the evaporator case must open"
+      - "drain the coolant and disconnect the heater hoses at the firewall"
+      - "remove the dash, console or panels in the way of the heater case"
+      - "open the case and replace the heater core"
+      - "refit everything removed, refill and bleed the cooling system"
+      - "recharge the A/C where it was opened, and check heat and air"
+    excludes:
+      - "heater hose replacement"
+      - "evaporator replacement"
+      - "coolant exchange"
+  - id: timing-chain-replacement
+    name: "Replace the timing chains, guides and tensioners"
+    system: engine
+    components: [engine-oil]
+    related: [timing-belt-replacement, water-pump-replacement]
+    includes:
+      - "every timing chain of the engine, with its guides, tensioners and sprockets"
+      - "remove what is in the way of the timing cover, such as belts, pulleys and mounts"
+      - "remove the timing cover, or the engine or transmission where the chains sit at the back"
+      - "set the engine to its timing marks and fit the new chains"
+      - "refit the cover with new seals, refill oil and coolant"
+      - "start the engine and check for codes and leaks"
+    excludes:
+      - "water pump replacement"
+      - "camshaft or phaser replacement"
+  - id: intake-manifold-gasket
+    name: "Replace the intake manifold gaskets"
+    system: engine
+    related: [fuel-injector-replacement, knock-sensor-replacement]
+    includes:
+      - "remove the upper and lower intake manifold of the engine"
+      - "disconnect the throttle body, fuel rail, vacuum lines and wiring in the way"
+      - "drain the coolant where it runs through the manifold"
+      - "clean the sealing faces and fit new gaskets"
+      - "refit, refill and bleed the coolant, and check for leaks"
+    excludes:
+      - "knock sensor replacement"
+      - "fuel injector replacement"
+      - "cylinder head work"
+  - id: valve-cover-gasket-bank-1
+    name: "Replace the valve cover gasket, bank 1"
+    system: engine
+    related: [valve-cover-gasket-bank-2, spark-plugs]
+    includes:
+      - "the cover on bank 1, the side with cylinder 1 (the only cover of an inline engine)"
+      - "remove the coils, wiring, hoses and parts in the way, such as an intake plenum"
+      - "remove the cover, clean the sealing faces"
+      - "fit a new cover gasket and spark plug tube seals where fitted"
+      - "refit everything removed and check for leaks"
+    excludes:
+      - "the other bank's cover"
+      - "spark plug replacement"
+  - id: valve-cover-gasket-bank-2
+    name: "Replace the valve cover gasket, bank 2"
+    system: engine
+    related: [valve-cover-gasket-bank-1, spark-plugs]
+    includes:
+      - "the cover on bank 2, the side without cylinder 1 (V and flat engines only)"
+      - "remove the coils, wiring, hoses and parts in the way, such as an intake plenum"
+      - "remove the cover, clean the sealing faces"
+      - "fit a new cover gasket and spark plug tube seals where fitted"
+      - "refit everything removed and check for leaks"
+    excludes:
+      - "the other bank's cover"
+      - "spark plug replacement"
+  - id: oil-pan-gasket
+    name: "Replace the oil pan gasket"
+    system: engine
+    components: [engine-oil]
+    includes:
+      - "raise the vehicle and drain the engine oil"
+      - "remove what is in the way of the pan: a crossmember or steering parts; lower the subframe or raise the engine"
+      - "remove the pan, clean the sealing faces and fit a new gasket or sealant"
+      - "refit everything removed and refill the oil"
+      - "start the engine and check for leaks"
+    excludes:
+      - "oil service"
+      - "rear main seal replacement"
+  - id: clutch-replacement
+    name: "Replace the clutch"
+    system: powertrain
+    components: [clutch, manual-transmission]
+    includes:
+      - "remove the transmission or transaxle, with the axles or driveshaft in the way"
+      - "replace the clutch disc, pressure plate and release bearing"
+      - "check the flywheel and fit a new pilot bearing where used"
+      - "refit the transmission and bleed or adjust the clutch"
+      - "road test"
+    excludes:
+      - "flywheel replacement or machining"
+      - "clutch master or slave cylinder replacement"
+  - id: steering-rack-replacement
+    name: "Replace the steering rack"
+    system: steering
+    components: [steering-gear, power-steering]
+    related: [tie-rod-end]
+    includes:
+      - "raise the vehicle and disconnect the tie rod ends and the steering shaft"
+      - "disconnect the fluid lines or the electric assist wiring"
+      - "lower the subframe where the rack cannot come out otherwise"
+      - "replace the rack, moving over the outer tie rod ends"
+      - "refit everything removed, fill and bleed the fluid, and centre the steering"
+    excludes:
+      - "wheel alignment"
+      - "tie rod end replacement"
+  - id: exhaust-manifold-bank-1
+    name: "Replace the exhaust manifold, bank 1"
+    system: exhaust-emissions
+    components: [exhaust-pipe]
+    related: [exhaust-manifold-bank-2, catalytic-converter-replacement]
+    includes:
+      - "the manifold on bank 1, the side with cylinder 1 (the only manifold of an inline engine)"
+      - "remove the heat shields, sensors and parts in the way"
+      - "separate the manifold from the down pipe or converter"
+      - "remove the manifold, with broken studs extracted where they snap"
+      - "fit the new manifold with new gaskets and refit everything removed"
+      - "start the engine and check for leaks"
+    excludes:
+      - "the other bank's manifold"
+      - "catalytic converter replacement"
+      - "oxygen sensor replacement"
+  - id: exhaust-manifold-bank-2
+    name: "Replace the exhaust manifold, bank 2"
+    system: exhaust-emissions
+    components: [exhaust-pipe]
+    related: [exhaust-manifold-bank-1, catalytic-converter-replacement]
+    includes:
+      - "the manifold on bank 2, the side without cylinder 1 (V and flat engines only)"
+      - "remove the heat shields, sensors and parts in the way"
+      - "separate the manifold from the down pipe or converter"
+      - "remove the manifold, with broken studs extracted where they snap"
+      - "fit the new manifold with new gaskets and refit everything removed"
+      - "start the engine and check for leaks"
+    excludes:
+      - "the other bank's manifold"
+      - "catalytic converter replacement"
+      - "oxygen sensor replacement"
+  - id: catalytic-converter-replacement
+    name: "Replace the catalytic converter"
+    system: exhaust-emissions
+    components: [catalytic-converter]
+    related: [exhaust-manifold-bank-1]
+    includes:
+      - "the main converter of bank 1, or the only one; a converter built into the manifold counts"
+      - "raise the vehicle and remove the heat shields and supports in the way"
+      - "move over the oxygen sensors"
+      - "replace the converter with new gaskets or clamps"
+      - "start the engine and check for leaks and codes"
+    excludes:
+      - "oxygen sensor replacement"
+      - "exhaust pipe or muffler replacement"
+  - id: fuel-injector-replacement
+    name: "Replace the fuel injectors"
+    system: fuel-system
+    components: [fuel-injector]
+    related: [intake-manifold-gasket]
+    includes:
+      - "every injector of the engine"
+      - "relieve the fuel pressure"
+      - "remove the intake parts in the way of the fuel rail"
+      - "remove the rail and injectors, fit new injectors with new seals"
+      - "code the injectors to the engine computer where it is required"
+      - "refit everything removed, prime the fuel system and check for leaks"
+    excludes:
+      - "fuel pump replacement"
+      - "intake manifold gasket replacement"
+  - id: camshaft-position-sensor-bank-1
+    name: "Replace a camshaft position sensor, bank 1"
+    system: engine
+    components: [engine-control-module]
+    related: [camshaft-position-sensor-bank-2]
+    includes:
+      - "one camshaft sensor of bank 1, the side with cylinder 1, the hardest to reach where it has several"
+      - "remove the parts in the way, such as an intake duct or a cover"
+      - "unplug and replace the sensor with a new seal"
+      - "refit everything removed and clear the codes"
+    excludes:
+      - "the other camshaft sensors"
+      - "crankshaft position sensor replacement"
+  - id: camshaft-position-sensor-bank-2
+    name: "Replace a camshaft position sensor, bank 2"
+    system: engine
+    components: [engine-control-module]
+    related: [camshaft-position-sensor-bank-1]
+    includes:
+      - "one camshaft sensor of bank 2, the side without cylinder 1 (V and flat engines only), the hardest to reach"
+      - "remove the parts in the way, such as an intake duct or a cover"
+      - "unplug and replace the sensor with a new seal"
+      - "refit everything removed and clear the codes"
+    excludes:
+      - "the other camshaft sensors"
+      - "crankshaft position sensor replacement"
+  - id: knock-sensor-replacement
+    name: "Replace the knock sensors"
+    system: engine
+    components: [engine-control-module]
+    related: [intake-manifold-gasket]
+    includes:
+      - "every knock sensor of the engine"
+      - "remove the intake manifold or other parts in the way where the sensors sit under them"
+      - "replace the sensors, and their harness where it comes with them"
+      - "refit everything removed with new gaskets, and clear the codes"
+    excludes:
+      - "intake manifold gasket replacement on its own"
+  # Small jobs: one reference time for every vehicle (wenmar-labor's
+  # data/labor/reference.yaml), never asked vehicle by vehicle.
+  - id: wiper-blades
+    name: "Replace the front wiper blades"
+    system: visibility
+    components: [wiper]
+    includes:
+      - "remove the old front blades"
+      - "fit the new blades and check they clear the glass"
+    excludes:
+      - "rear wiper blade"
+      - "wiper arm or motor replacement"
+  - id: engine-air-filter
+    name: "Replace the engine air filter"
+    system: engine
+    includes:
+      - "open the air filter housing"
+      - "replace the filter and clean the housing"
+      - "close the housing and check the duct clamps"
+    excludes:
+      - "cabin air filter replacement"
+  - id: cabin-air-filter
+    name: "Replace the cabin air filter"
+    system: hvac
+    includes:
+      - "remove the glovebox, cowl or panel over the filter"
+      - "replace the filter"
+      - "refit everything removed"
+    excludes:
+      - "engine air filter replacement"
+  - id: headlight-bulb
+    name: "Replace a headlight bulb"
+    system: lighting
+    components: [headlight]
+    includes:
+      - "one bulb of one headlight"
+      - "remove the cover, duct or part in the way of the bulb"
+      - "replace the bulb and check it works and is aimed"
+    excludes:
+      - "headlight assembly replacement"
+      - "headlight aiming on its own"
+  - id: tpms-sensor
+    name: "Replace a tire pressure sensor"
+    system: tires
+    components: [tpms]
+    includes:
+      - "one sensor of one wheel"
+      - "dismount the tire, replace the sensor, remount and balance"
+      - "program or relearn the sensor"
+    excludes:
+      - "tire replacement"
+      - "the other wheels' sensors"
+  - id: sway-bar-link
+    name: "Replace a sway bar link"
+    system: suspension
+    includes:
+      - "one link of one side"
+      - "raise the vehicle and remove the wheel where it is in the way"
+      - "replace the link and torque it with the suspension loaded"
+    excludes:
+      - "sway bar bushing replacement"
+  - id: transmission-fluid-service
+    name: "Service the automatic transmission fluid and filter"
+    system: powertrain
+    components: [automatic-transmission]
+    includes:
+      - "drain the fluid, or exchange it with a machine"
+      - "replace the filter and pan gasket where the pan comes off"
+      - "refill with the specified fluid and set the level hot"
+    excludes:
+      - "transfer case or differential fluid"
+  - id: coolant-exchange
+    name: "Exchange the engine coolant"
+    system: engine
+    components: [cooling-system]
+    includes:
+      - "drain or exchange the coolant"
+      - "refill with the specified coolant and bleed the air out"
+      - "check the level and for leaks hot"
+    excludes:
+      - "thermostat replacement"
+      - "hose replacement"
+  - id: differential-fluid-service
+    name: "Change the differential fluid"
+    system: powertrain
+    components: [differential]
+    includes:
+      - "one differential"
+      - "drain the fluid, or remove the cover and fit a new gasket"
+      - "refill with the specified fluid and friction modifier where needed"
+    excludes:
+      - "the other differential or the transfer case"
+  - id: wheel-alignment
+    name: "Align all four wheels"
+    system: suspension
+    includes:
+      - "check the tires and the steering and suspension parts for play"
+      - "measure and set the toe, and the camber and caster where adjustable"
+      - "centre the steering wheel and reset the steering angle sensor where fitted"
+      - "road test"
+    excludes:
+      - "replacing worn parts found"
