@@ -1120,9 +1120,9 @@ pub fn json_alternate(html: &str) -> Option<String> {
 pub fn assert_head(html: &str, path: &str) {
     assert!(
         html.contains(
-            r#"<a class="name" href="/" aria-label="Wenmar Open, home">Wenmar<span>Open</span></a>"#
-        ),
-        "{path}: the wordmark"
+            r#"<a class="name" href="/" aria-label="Wenmar Open, home"><svg class="mark""#
+        ) && html.contains(r#"</svg>Wenmar<span>Open</span></a>"#),
+        "{path}: the logo mark and the wordmark"
     );
     let title = html
         .split("<title>")

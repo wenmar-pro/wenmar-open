@@ -1,14 +1,20 @@
 //! Brand colours and type.
 //!
-//! These are the values of Wenmar Pro's design tokens, copied on 2026-10-01.
-//! Wenmar Pro's own token crate is private and this repository is public, so
-//! the values are repeated here instead of depended on. When the brand
-//! changes, change them here.
+//! These are the Wenmar web palette, shared with wenmarpro.com, Wenmar Find and
+//! Wenmar Jobs (2026-11-03; Wenmar Pro's brand guide, "Web palette"): porcelain
+//! ground, white cards, scarlet for actions. Wenmar Pro's own token crate is
+//! private and this repository is public, so the values are repeated here
+//! instead of depended on. When the brand changes, change them here.
 
-/// The one brand colour. It marks the single most important action on a
-/// page and nothing else.
+/// The red of the logo mark and the wordmark's "Open", and nothing else. Large
+/// bold text: 3 to 1 is enough on every ground.
 pub const BRAND: &str = "#e50914";
-pub const BRAND_HOVER: &str = "#c20d12";
+/// Scarlet: the main action on a page, and the focus outline. White text on it
+/// passes AA.
+pub const ACCENT: &str = "#db222a";
+/// The accent under the pointer, in both schemes: darker, so white text on it
+/// still passes.
+pub const ACCENT_HOVER: &str = "#b81b22";
 
 /// A set of surface, border and text colours.
 pub struct Palette {
@@ -29,31 +35,31 @@ pub struct Palette {
 }
 
 pub const LIGHT: Palette = Palette {
-    page: "#f8f7f4",
+    page: "#f4f4ed",
     surface: "#ffffff",
-    inset: "#f1f5f9",
-    border: "#e2e8f0",
-    border_strong: "#cbd5e1",
-    control: "#64748b",
-    heading: "#0f172a",
-    body: "#0f172a",
-    secondary: "#334155",
-    warn_text: "#92400e",
-    warn_bg: "#fffbeb",
+    inset: "#eaeae1",
+    border: "#deded4",
+    border_strong: "#8b959e",
+    control: "#78828b",
+    heading: "#050609",
+    body: "#050609",
+    secondary: "#4a5661",
+    warn_text: "#8a4b00",
+    warn_bg: "#fdf1dc",
 };
 
 pub const DARK: Palette = Palette {
-    page: "#0e0e10",
-    surface: "#18181b",
-    inset: "#27272a",
-    border: "#27272a",
-    border_strong: "#3f3f46",
-    control: "#71717a",
-    heading: "#fafafa",
-    body: "#d4d4d8",
-    secondary: "#a1a1aa",
+    page: "#050609",
+    surface: "#101217",
+    inset: "#1c1f25",
+    border: "#262a31",
+    border_strong: "#4a525c",
+    control: "#5c636e",
+    heading: "#f4f4ed",
+    body: "#f4f4ed",
+    secondary: "#b4bdc6",
     warn_text: "#fbbf24",
-    warn_bg: "#451a03",
+    warn_bg: "#2a1c05",
 };
 
 /// The brand faces are served by this site (`assets/fonts/`). After each
@@ -103,7 +109,7 @@ fn palette(palette: &Palette) -> String {
 /// visitor's system asks for it.
 pub fn css() -> String {
     format!(
-        ":root{{color-scheme:light dark;--brand:{BRAND};--brand-hover:{BRAND_HOVER};--sans:{FONT_SANS};--mono:{FONT_MONO};--text:{TEXT_BODY}px;--small:{TEXT_SMALL}px;--section:{TEXT_SECTION}px;--title:{TEXT_TITLE}px;--wordmark:{TEXT_WORDMARK}px;--medium:{WEIGHT_MEDIUM};--semibold:{WEIGHT_SEMIBOLD};--radius:{RADIUS}px;--touch:{TOUCH}px;{}}}\n@media (prefers-color-scheme:dark){{:root{{{}}}}}\n",
+        ":root{{color-scheme:light dark;--brand:{BRAND};--accent:{ACCENT};--accent-hover:{ACCENT_HOVER};--sans:{FONT_SANS};--mono:{FONT_MONO};--text:{TEXT_BODY}px;--small:{TEXT_SMALL}px;--section:{TEXT_SECTION}px;--title:{TEXT_TITLE}px;--wordmark:{TEXT_WORDMARK}px;--medium:{WEIGHT_MEDIUM};--semibold:{WEIGHT_SEMIBOLD};--radius:{RADIUS}px;--touch:{TOUCH}px;{}}}\n@media (prefers-color-scheme:dark){{:root{{{}}}}}\n",
         palette(&LIGHT),
         palette(&DARK)
     )
@@ -117,9 +123,10 @@ mod tests {
     fn the_css_carries_the_brand_values() {
         let css = css();
         assert!(css.contains("--brand:#e50914;"), "{css}");
-        assert!(css.contains("--page:#f8f7f4;"), "{css}");
+        assert!(css.contains("--accent:#db222a;"), "{css}");
+        assert!(css.contains("--page:#f4f4ed;"), "{css}");
         assert!(
-            css.contains("@media (prefers-color-scheme:dark){:root{--page:#0e0e10;"),
+            css.contains("@media (prefers-color-scheme:dark){:root{--page:#050609;"),
             "{css}"
         );
         assert!(
@@ -127,8 +134,8 @@ mod tests {
             "{css}"
         );
         assert!(css.contains("--touch:44px;"), "{css}");
-        assert!(css.contains("--control:#64748b;"), "{css}");
-        assert!(css.contains("--control:#71717a;"), "{css}");
+        assert!(css.contains("--control:#78828b;"), "{css}");
+        assert!(css.contains("--control:#5c636e;"), "{css}");
         assert!(css.contains("--wordmark:20px;"), "{css}");
     }
 
@@ -168,9 +175,17 @@ mod tests {
                 );
             }
         }
-        // White text on the brand button.
-        assert!(contrast("#ffffff", BRAND) >= 4.5);
-        assert!(contrast("#ffffff", BRAND_HOVER) >= 4.5);
+        // White text on the main button, and the focus outline on every ground.
+        assert!(contrast("#ffffff", ACCENT) >= 4.5);
+        assert!(contrast("#ffffff", ACCENT_HOVER) >= 4.5);
+        for palette in [&LIGHT, &DARK] {
+            for ground in [palette.page, palette.surface] {
+                assert!(
+                    contrast(ACCENT, ground) >= 3.0,
+                    "the focus outline on {ground}"
+                );
+            }
+        }
     }
 
     #[test]

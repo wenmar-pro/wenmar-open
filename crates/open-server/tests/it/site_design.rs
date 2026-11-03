@@ -63,10 +63,10 @@ async fn every_page_has_the_wordmark_and_what_a_shared_link_needs() {
         assert_basics(&html, path);
         // The address bar takes the page's colour in each scheme.
         assert!(html.contains(
-            r##"<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f8f7f4">"##
+            r##"<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f4ed">"##
         ));
         assert!(html.contains(
-            r##"<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e0e10">"##
+            r##"<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#050609">"##
         ));
     }
     // The fixed-width face is asked for early only where it is on the first
@@ -91,29 +91,42 @@ async fn every_page_has_the_wordmark_and_what_a_shared_link_needs() {
 #[tokio::test]
 async fn the_brand_red_marks_the_wordmark_and_one_action() {
     let css = stylesheet().await;
-    // The colour itself is written once, as a token.
-    assert_eq!(css.matches("#e50914").count(), 1, "the red is a token");
-    // It is used by the wordmark, the primary button and the focus outline,
-    // and by nothing else.
-    let allowed = [
-        ".name span{",
-        "button.primary{",
-        "button.primary:hover{",
-        "a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{",
-    ];
-    let mut uses = 0;
-    for rule in css.split('}') {
-        if !rule.contains("var(--brand") {
-            continue;
+    // Each red is written once, as a token.
+    assert_eq!(
+        css.matches("#e50914").count(),
+        1,
+        "the brand red is a token"
+    );
+    assert_eq!(css.matches("#db222a").count(), 1, "the scarlet is a token");
+    // The brand red is the wordmark's alone; the scarlet is the primary
+    // button's and the focus outline's, and nothing else's.
+    let count = |token: &str, allowed: &[&str]| {
+        let mut uses = 0;
+        for rule in css.split('}') {
+            if !rule.contains(token) {
+                continue;
+            }
+            uses += 1;
+            let rule = rule.trim_start();
+            assert!(
+                allowed.iter().any(|selector| rule.starts_with(selector)),
+                "{token} used by: {rule}"
+            );
         }
-        uses += 1;
-        let rule = rule.trim_start();
-        assert!(
-            allowed.iter().any(|selector| rule.starts_with(selector)),
-            "red used by: {rule}"
-        );
-    }
-    assert_eq!(uses, 4);
+        uses
+    };
+    assert_eq!(count("var(--brand", &[".name span{"]), 1);
+    assert_eq!(
+        count(
+            "var(--accent",
+            &[
+                "button.primary{",
+                "button.primary:hover{",
+                "a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{",
+            ]
+        ),
+        3
+    );
 
     let app = common::app().await;
     let (_, home) = page(&app, "/").await;
