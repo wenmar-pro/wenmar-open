@@ -27,6 +27,11 @@ name: Monthly release
 # job asks GitHub for a write token and pushes a tag: the code it runs must not
 # be able to read one out of .git/config. The push step asks for the token
 # itself, and rewrites the remote URL there and nowhere else.
+#
+# The v* tag ruleset must not restrict creations. GitHub will not add the
+# built-in GitHub Actions app to a repository ruleset's bypass list, so this
+# bot could never create the tag under a creation rule. Updates and deletions
+# stay restricted to administrators, so a release tag cannot be moved or lost.
 
 on:
   schedule:

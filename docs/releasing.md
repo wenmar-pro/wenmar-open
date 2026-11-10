@@ -97,7 +97,7 @@ No secret is stored and no GitHub setting has to change. You push as yourself, a
 
 `scripts/release.sh` holds the logic and `scripts/release-test.sh` tests it; `bin/release` is the wrapper.
 
-`.github/workflows/monthly-release.yml` does the same thing unattended on the same schedule. It is written and checked, but it is not switched on: its push would be refused by the tag ruleset, because Actions pushes as `github-actions[bot]` rather than as an administrator. Turning it on is one change by hand, described below.
+`.github/workflows/monthly-release.yml` does the same thing unattended on the same schedule. It is switched on. The tag ruleset does not restrict creation, because GitHub does not allow the built-in GitHub Actions app on a ruleset's bypass list: Actions pushes as `github-actions[bot]`, so a creation rule would refuse every unattended release. The ruleset still refuses updates and deletions to everyone but administrators, so a release tag cannot be moved or removed. See "One-time setup" below.
 
 ### Seeing what a release would do, without doing it
 
@@ -176,8 +176,8 @@ Do these once, in this order, before the first release. They are done by the own
 1. The repository must be public. npm will not publish provenance for a package built in a private repository.
 2. **Settings, Environments, New environment.** Name it `release`. Under "Deployment branches and tags" choose "Selected branches and tags" and add a tag rule `v*`, so only a release tag can use the environment.
 3. Optional: in the same environment, add yourself under "Required reviewers". Each release then waits for your approval before each of its two publishing jobs.
-4. **Settings, Rules, Rulesets, New tag ruleset.** Target tags matching `v*`. Restrict creations, updates and deletions, with only repository administrators on the bypass list. Then only an administrator can start a release, and nobody can move a release tag.
-5. Nothing further is needed for `bin/release`: you push as yourself, and administrators are already on the bypass list. To run the release unattended instead, see "The monthly release": the `v*` ruleset then needs the GitHub Actions app added to its bypass list, because Actions pushes as `github-actions[bot]` rather than as an administrator. Tags stay restricted to that list, and still cannot be moved or deleted by a person.
+4. **Settings, Rules, Rulesets, New tag ruleset.** Target tags matching `v*`. Restrict updates and deletions, with only repository administrators on the bypass list. Do **not** add "Restrict creations": `monthly-release.yml` creates the tag as `github-actions[bot]`, and GitHub refuses to add the GitHub Actions app to a repository ruleset's bypass list (`422 Actor GitHub Actions integration must be part of the ruleset source or owner organization`). A creation rule would therefore refuse every unattended release. Without it, anyone with write access can create a `v*` tag; updates and deletions stay administrator-only, so a tag, once cut, cannot be moved or removed.
+5. Nothing further is needed for `bin/release`: you push as yourself, and administrators are already on the bypass list. The monthly release works as it is, with no secret stored. Tags are immutable to everyone but an administrator.
 
 The `release` environment needs no change either way: it already admits deployment from a `v*` tag, and that tag is pushed before `release.yml` starts.
 
