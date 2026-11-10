@@ -3,14 +3,11 @@
   "decode_errors": 0,
   "fields": {
     "abs": {
-      "agree": 76,
+      "agree": 79,
       "differ": [],
-      "missing": [
-        "JM1NDAN77K1000001",
-        "WUAASAFV5K7000001"
-      ],
+      "missing": [],
       "extra": [],
-      "both_empty": 440
+      "both_empty": 439
     },
     "adaptive_cruise": {
       "agree": 41,
@@ -55,12 +52,9 @@
       "both_empty": 476
     },
     "backup_camera": {
-      "agree": 59,
+      "agree": 61,
       "differ": [],
-      "missing": [
-        "JM1NDAN77K1000001",
-        "WUAASAFV5K7000001"
-      ],
+      "missing": [],
       "extra": [],
       "both_empty": 457
     },
@@ -82,7 +76,6 @@
       "agree": 480,
       "differ": [
         "1A9GPEAA4GC596001",
-        "JH2JA5557NY000001",
         "JH2VE04J9R5000001",
         "JKBAFSF16RA000001",
         "JYE8FX0035A000001",
@@ -102,16 +95,16 @@
       ],
       "missing": [],
       "extra": [
-        "2C6WX38AX6A000001"
+        "4S9M2A1E9PA569001"
       ],
-      "both_empty": 19
+      "both_empty": 20
     },
     "cylinders": {
-      "agree": 362,
+      "agree": 364,
       "differ": [],
       "missing": [],
       "extra": [],
-      "both_empty": 156
+      "both_empty": 154
     },
     "displacement_cc": {
       "agree": 435,
@@ -135,19 +128,15 @@
       "agree": 271,
       "differ": [],
       "missing": [],
-      "extra": [
-        "2C6WX38AX6A000001"
-      ],
-      "both_empty": 246
+      "extra": [],
+      "both_empty": 247
     },
     "drivetrain": {
       "agree": 251,
       "differ": [],
       "missing": [],
-      "extra": [
-        "2C6WX38AX6A000001"
-      ],
-      "both_empty": 266
+      "extra": [],
+      "both_empty": 267
     },
     "dynamic_brake_support": {
       "agree": 56,
@@ -157,14 +146,16 @@
       "both_empty": 462
     },
     "electrification": {
-      "agree": 40,
+      "agree": 39,
       "differ": [],
       "missing": [],
-      "extra": [],
+      "extra": [
+        "4S9M2A1E9PA569001"
+      ],
       "both_empty": 478
     },
     "engine_configuration": {
-      "agree": 226,
+      "agree": 228,
       "differ": [
         "JF1AX5310LB000001",
         "JH2SC79J2T3000001",
@@ -172,7 +163,7 @@
       ],
       "missing": [],
       "extra": [],
-      "both_empty": 289
+      "both_empty": 287
     },
     "engine_model": {
       "agree": 196,
@@ -182,14 +173,11 @@
       "both_empty": 322
     },
     "esc": {
-      "agree": 62,
+      "agree": 65,
       "differ": [],
-      "missing": [
-        "JM1NDAN77K1000001",
-        "WUAASAFV5K7000001"
-      ],
+      "missing": [],
       "extra": [],
-      "both_empty": 454
+      "both_empty": 453
     },
     "forward_collision": {
       "agree": 52,
@@ -199,20 +187,17 @@
       "both_empty": 466
     },
     "fuel": {
-      "agree": 447,
+      "agree": 446,
       "differ": [],
       "missing": [],
-      "extra": [],
+      "extra": [
+        "4S9M2A1E9PA569001"
+      ],
       "both_empty": 71
     },
     "gvwr": {
-      "agree": 312,
-      "differ": [
-        "JM1NDAN77K1000001",
-        "JTHBP1BL6JA000001",
-        "W1KSJ5JA9MR000001",
-        "YV1BK0TU1LG000001"
-      ],
+      "agree": 316,
+      "differ": [],
       "missing": [
         "1B9ME2010ED828001",
         "1HFAF1606HA000001",
@@ -263,10 +248,8 @@
         "ZDCPD0616DA000001",
         "ZDCSC66J6CR000001"
       ],
-      "extra": [
-        "2C6WX38AX6A000001"
-      ],
-      "both_empty": 153
+      "extra": [],
+      "both_empty": 154
     },
     "lane_centering": {
       "agree": 12,
@@ -293,10 +276,8 @@
       "agree": 517,
       "differ": [],
       "missing": [],
-      "extra": [
-        "2C6WX38AX6A000001"
-      ],
-      "both_empty": 0
+      "extra": [],
+      "both_empty": 1
     },
     "manufacturer": {
       "agree": 518,
@@ -306,7 +287,7 @@
       "both_empty": 0
     },
     "model": {
-      "agree": 508,
+      "agree": 507,
       "differ": [
         "1HFAF1606HA000001",
         "3C41RVNA0FA000001",
@@ -320,9 +301,9 @@
       ],
       "missing": [],
       "extra": [
-        "2C6WX38AX6A000001"
+        "4S9M2A1E9PA569001"
       ],
-      "both_empty": 0
+      "both_empty": 1
     },
     "park_assist": {
       "agree": 23,
@@ -332,17 +313,19 @@
       "both_empty": 495
     },
     "pedestrian_braking": {
-      "agree": 27,
+      "agree": 29,
       "differ": [],
       "missing": [],
       "extra": [],
-      "both_empty": 491
+      "both_empty": 489
     },
     "plant_city": {
-      "agree": 441,
+      "agree": 440,
       "differ": [],
       "missing": [],
-      "extra": [],
+      "extra": [
+        "4S9M2A1E9PA569001"
+      ],
       "both_empty": 77
     },
     "plant_company": {
@@ -353,17 +336,21 @@
       "both_empty": 335
     },
     "plant_country": {
-      "agree": 455,
+      "agree": 454,
       "differ": [],
       "missing": [],
-      "extra": [],
+      "extra": [
+        "4S9M2A1E9PA569001"
+      ],
       "both_empty": 63
     },
     "plant_state": {
-      "agree": 342,
+      "agree": 341,
       "differ": [],
       "missing": [],
-      "extra": [],
+      "extra": [
+        "4S9M2A1E9PA569001"
+      ],
       "both_empty": 176
     },
     "rear_cross_traffic": {
@@ -381,39 +368,34 @@
       "both_empty": 475
     },
     "seats": {
-      "agree": 54,
+      "agree": 53,
       "differ": [],
       "missing": [],
-      "extra": [],
+      "extra": [
+        "4S9M2A1E9PA569001"
+      ],
       "both_empty": 464
     },
     "series": {
       "agree": 182,
       "differ": [],
       "missing": [],
-      "extra": [
-        "2C6WX38AX6A000001"
-      ],
-      "both_empty": 335
+      "extra": [],
+      "both_empty": 336
     },
     "tpms": {
-      "agree": 116,
+      "agree": 117,
       "differ": [],
-      "missing": [
-        "1N6CM0K10JA000001"
-      ],
+      "missing": [],
       "extra": [],
       "both_empty": 401
     },
     "traction_control": {
-      "agree": 62,
+      "agree": 65,
       "differ": [],
-      "missing": [
-        "JM1NDAN77K1000001",
-        "WUAASAFV5K7000001"
-      ],
+      "missing": [],
       "extra": [],
-      "both_empty": 454
+      "both_empty": 453
     },
     "transmission": {
       "agree": 102,
@@ -437,10 +419,8 @@
       "agree": 240,
       "differ": [],
       "missing": [],
-      "extra": [
-        "1BAM2CXA4BB000001"
-      ],
-      "both_empty": 277
+      "extra": [],
+      "both_empty": 278
     },
     "vehicle_type": {
       "agree": 518,

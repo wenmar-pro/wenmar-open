@@ -26,7 +26,7 @@ To find which trims and engines go together, the build works through every combi
 
 ## What vPIC does not provide
 
-- **Trims are often missing.** Of 53,050 model years of cars, MPVs and trucks in the 2026.09 data, 13,984 have a trim from vPIC, 22,960 have only a series, and the rest have neither. The Ford F-150 has `Raptor` and `Police` and no `XL`, `XLT` or `Lariat`; those come from `presets.yaml`.
+- **Trims are often missing.** Of 53,054 model years of cars, MPVs and trucks in the 2026.10 data, 13,975 have a trim from vPIC, 23,001 have only a series, and the remaining 16,078 have neither. The Ford F-150 has `Raptor` and `Police` and no `XL`, `XLT` or `Lariat`; those come from `presets.yaml`.
 - **Engines can be listed for models that never had them.** When a manufacturer puts several models in one schema and marks the engine only by the eighth character, vPIC does not say which engine goes with which model, and each model lists them all. The 2021 Ram 1500 lists a 6.7L diesel for this reason. Heavy trucks can list dozens.
 - **The eighth character settles the engine for about a third of model years.** 14,999 of the 47,163 model years with engines. Honda and Toyota, among others, put the engine elsewhere in the VIN.
 - **"Trucks" includes heavy trucks.** vPIC's vehicle type does not separate a pickup from a highway tractor, so the default scope (cars, MPVs and trucks) includes makes such as Freightliner. They sort after the popular makes.
@@ -37,10 +37,10 @@ To find which trims and engines go together, the build works through every combi
 ## Look something up
 
 ```bash
-cargo run --release -p open-data -- catalog --data data/build/wenmar-open-2026.09.sqlite3 makes --year 2019
-cargo run --release -p open-data -- catalog --data data/build/wenmar-open-2026.09.sqlite3 engines --make ford --model f-150 --year 2019
-cargo run --release -p open-data -- catalog --data data/build/wenmar-open-2026.09.sqlite3 search 2019 civic si
-cargo run --release -p open-data -- catalog --data data/build/wenmar-open-2026.09.sqlite3 vin 1HGCM82633A004352
+cargo run --release -p open-data -- catalog --data data/build/wenmar-open-2026.10.sqlite3 makes --year 2019
+cargo run --release -p open-data -- catalog --data data/build/wenmar-open-2026.10.sqlite3 engines --make ford --model f-150 --year 2019
+cargo run --release -p open-data -- catalog --data data/build/wenmar-open-2026.10.sqlite3 search 2019 civic si
+cargo run --release -p open-data -- catalog --data data/build/wenmar-open-2026.10.sqlite3 vin 1HGCM82633A004352
 ```
 
 Add `--scope all` to include trailers, motorcycles, buses and the rest, or `--scope 6` for one vPIC vehicle type.
@@ -48,7 +48,7 @@ Add `--scope all` to include trailers, motorcycles, buses and the rest, or `--sc
 ## Check against NHTSA
 
 ```bash
-cargo run --release -p open-data -- catalog-parity --data data/build/wenmar-open-2026.09.sqlite3
+cargo run --release -p open-data -- catalog-parity --data data/build/wenmar-open-2026.10.sqlite3
 ```
 
 This compares the catalog's models with NHTSA's recorded lists. Names are compared without regard to case. It fails when:
@@ -56,21 +56,19 @@ This compares the catalog's models with NHTSA's recorded lists. Names are compar
 - a model NHTSA lists is newly missing from the catalog, for any model year;
 - a model is newly in the catalog and not in NHTSA's list, for a model year before the year the lists were recorded.
 
-NHTSA keeps adding models to the current model year and the next, and each monthly release carries them. The lists here are recorded once and the monthly build runs against them unchanged, so for the model years from the year of the recording on (2026 and later, for lists recorded on 2026-10-01) a model the lists do not have is printed as newer than the recording and does not fail the check. Without this the monthly release would stop almost every month until the lists were recorded again. The cost is that a fault which lists too many models only in those years is printed, not caught; the five earlier sample years still catch one that affects every year.
+NHTSA keeps adding models to the current model year and the next, and each monthly release carries them. The lists here are recorded once and the monthly build runs against them unchanged, so for the model years from the year of the recording on (2026 and later, for lists recorded on 2026-11-10) a model the lists do not have is printed as newer than the recording and does not fail the check. Without this the monthly release would stop almost every month until the lists were recorded again. The cost is that a fault which lists too many models only in those years is printed, not caught; the five earlier sample years still catch one that affects every year.
 
 When the check prints such models, record the lists again (below) so they are compared in full.
 
 ## Known differences
 
-As of the 2026.09 data and 144 make-years recorded on 2026-10-01: 2,849 models agree, one is missing from the catalog, and none is extra.
-
-- **2026 Lexus GX** is in NHTSA's list and not in the catalog. NHTSA's API answers from newer data than the monthly release. In the 2026.09 release the newest GX schema covers 2025 only, so the catalog stops there. It should appear once a release carries the 2026 schema; record the lists again then.
+As of the 2026.10 data and 144 make-years recorded on 2026-11-10: 2,853 models agree, and none is missing from the catalog or extra.
 
 ## Refresh
 
 ```bash
 python3 tools/catalog/record.py data/catalog/nhtsa-models.json
-cargo run --release -p open-data -- catalog-parity --data data/build/wenmar-open-2026.09.sqlite3 --update-baseline
+cargo run --release -p open-data -- catalog-parity --data data/build/wenmar-open-2026.10.sqlite3 --update-baseline
 ```
 
 Recording makes 144 requests to NHTSA's API, one a second. Read every difference before committing a new baseline.

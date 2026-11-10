@@ -142,8 +142,8 @@ Each is a thin wrapper over the matching `mise run` task, and `mise run` remains
 
 ```bash
 cargo run --release -p open-data -- fetch
-cargo run --release -p open-data -- build --dump data/build/vPICList_lite_2026_09.sql --out data/build/wenmar-open-2026.09.sqlite3
-cargo run --release -p open-data -- decode --data data/build/wenmar-open-2026.09.sqlite3 1HGCM82633A004352
+cargo run --release -p open-data -- build --dump data/build/vPICList_lite_2026_10.sql --out data/build/wenmar-open-2026.10.sqlite3
+cargo run --release -p open-data -- decode --data data/build/wenmar-open-2026.10.sqlite3 1HGCM82633A004352
 ```
 
 `fetch` downloads NHTSA's newest vPIC release (about 73 MB) and prints the path of the extracted file to pass to `build`. No database server is needed.
@@ -153,7 +153,7 @@ With [mise](https://mise.jdx.dev) installed, `mise run data` does the fetch and 
 ## Checking against NHTSA
 
 ```bash
-cargo run --release -p open-data -- parity --data data/build/wenmar-open-2026.09.sqlite3
+cargo run --release -p open-data -- parity --data data/build/wenmar-open-2026.10.sqlite3
 ```
 
 Decodes a corpus of VINs and compares each field with NHTSA's own recorded answers. See [data/corpus/README.md](data/corpus/README.md). `mise run catalog-parity` does the same for the catalog's model lists.

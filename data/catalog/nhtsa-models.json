@@ -1,5 +1,5 @@
 {
- "recorded": "2026-10-01",
+ "recorded": "2026-11-10",
  "source": "https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/{make}/modelyear/{year}?format=json",
  "answers": [
   {
@@ -569,6 +569,7 @@
     "Rebel 500",
     "Ridgeline",
     "Rubicon",
+    "Ruckus",
     "SCL500",
     "SXS1000M (Pioneer 1000)",
     "SXS1000S (Talon 1000)",
@@ -1026,6 +1027,7 @@
     "4500XD",
     "5500HD",
     "5500XD",
+    "6500XD",
     "Aveo",
     "Blazer",
     "Bolt EV",
@@ -1036,7 +1038,6 @@
     "Cruze",
     "Equinox",
     "Express",
-    "FTR / 6500XD",
     "Impala",
     "Malibu",
     "Silverado",
@@ -1056,8 +1057,9 @@
    "make": "Chevrolet",
    "year": 2026,
    "models": [
-    "3500/4500",
+    "3500HG",
     "4500HD",
+    "4500HG",
     "4500XD",
     "5500HG",
     "5500XD",
@@ -3668,6 +3670,7 @@
     "MT-55 HHV Chassis (Hydraulic Hybrid Vehicle)",
     "MT45 Chassis",
     "MT45EV",
+    "NGE (956) Platform Truck COE",
     "OMC Chassis",
     "RA Cascadia",
     "RIV",
