@@ -20,6 +20,7 @@ pub mod licences;
 pub mod links;
 pub mod manuals;
 pub mod markdown;
+pub mod open_source;
 pub mod pages;
 pub mod recalls;
 pub mod report;
@@ -564,6 +565,11 @@ pub fn router() -> Router<AppState> {
         .route("/rules/canada/{province}", get(rules::province))
         .route("/docs", get(pages::docs_html))
         .route("/docs.md", get(pages::docs_md))
+        .route("/open-source-vin-decoder", get(open_source::html))
+        .route(
+            "/open-source-vin-decoder.md",
+            get(open_source::markdown_copy),
+        )
         .route("/data", get(pages::data_html))
         .route("/data.md", get(pages::data_md))
         .route("/about", get(pages::about_html))

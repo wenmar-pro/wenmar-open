@@ -78,6 +78,11 @@ async fn structured_data_says_what_each_page_is() {
         organization["logo"],
         "https://open.example/assets/apple-touch-icon.png"
     );
+    // The site, and the software anyone may run, are separate things.
+    let software = thing(&html, "SoftwareApplication").unwrap();
+    assert_eq!(software["name"], "Wenmar Open");
+    assert_eq!(software["offers"]["price"], "0");
+    assert_eq!(software["license"], "https://opensource.org/license/mit");
 
     // A make: the way back up, said to people and to search engines alike.
     let (_, html) = page(&app, "/makes/honda").await;
@@ -134,6 +139,12 @@ async fn structured_data_says_what_each_page_is() {
     assert!(thing(&html, "BreadcrumbList").is_some());
     let (_, html) = page(&app, "/about").await;
     assert!(thing(&html, "Organization").is_some());
+    // The API is a WebAPI, and the page says where its documentation is.
+    let (_, html) = page(&app, "/docs").await;
+    let api = thing(&html, "WebAPI").unwrap();
+    assert_eq!(api["url"], "https://open.example/v1");
+    assert_eq!(api["documentation"], "https://open.example/docs");
+    assert!(thing(&html, "Organization").is_some());
 
     // No markup that search engines no longer use or that does not fit.
     for path in ["/", "/guides", "/guides/how-to-read-a-vin", "/docs"] {
@@ -146,7 +157,6 @@ async fn structured_data_says_what_each_page_is() {
     // none at all.
     for path in [
         "/makes",
-        "/docs",
         "/data",
         "/guides",
         "/makes/honda?year=2019",
@@ -295,7 +305,14 @@ async fn titles_and_descriptions_are_for_what_people_search_and_are_unique() {
             "/wmi/1A9881",
             "Manufacturer code 1A9881: Ranger Trailer Works - Wenmar Open",
         ),
-        ("/docs", "Free VIN decoder API, no key - Wenmar Open"),
+        (
+            "/docs",
+            "Free open source VIN decoder API, no key - Wenmar Open",
+        ),
+        (
+            "/open-source-vin-decoder",
+            "Open source VIN decoder API and MCP server - Wenmar Open",
+        ),
         (
             "/data",
             "Vehicle data download: NHTSA vPIC as SQLite - Wenmar Open",
@@ -553,16 +570,19 @@ async fn a_server_with_shop_data_says_so_in_its_titles_and_links_its_lists() {
 }
 
 #[tokio::test]
-async fn the_docs_page_names_what_the_api_of_this_server_answers() {
+async fn the_docs_page_names_the_api_as_open_source_and_free() {
     let (_, html) = page(&common::codes_app().await, "/docs").await;
     assert_eq!(
         title(&html),
-        "Free VIN decoder and recalls API, no key - Wenmar Open"
+        "Free open source VIN decoder API, no key - Wenmar Open"
     );
     assert_eq!(
         description(&html),
-        "A free JSON API for VIN decoding, a vehicle catalog, recalls, service bulletins and trouble codes. No key, no account, open to any website. Examples to copy."
+        "A free self-hostable VIN decoder API and open source VIN lookup, with a vehicle catalog. Also an MCP server for VIN decoding. No key and no account."
     );
     let (_, html) = page(&common::app().await, "/docs").await;
-    assert_eq!(title(&html), "Free VIN decoder API, no key - Wenmar Open");
+    assert_eq!(
+        title(&html),
+        "Free open source VIN decoder API, no key - Wenmar Open"
+    );
 }

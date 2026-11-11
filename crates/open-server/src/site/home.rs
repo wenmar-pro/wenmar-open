@@ -50,6 +50,7 @@ pub async fn home(State(state): State<AppState>) -> Response {
                 .describing(vec![
                     jsonld::website(&state.config().base_url),
                     jsonld::organization(&state.config().base_url),
+                    jsonld::software_application(&state.config().base_url),
                 ]),
             years,
             makes: makes.into_iter().map(Make::from).collect(),

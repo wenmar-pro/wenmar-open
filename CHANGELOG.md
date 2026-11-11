@@ -4,6 +4,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ## [Unreleased]
 
+### Added
+
+- `/open-source-vin-decoder`, a page for the phrases "free self-hostable VIN decoder API", "open source VIN lookup" and "MCP server for VIN decoding", with the commands to run the server and connect an agent. It has a Markdown twin, is in the `pages` sitemap and `llms.txt`, and the home page links it. The home page, `/docs` and the new page describe the API as a schema.org `WebAPI` and the server as a `SoftwareApplication`: free, MIT licensed, with `{base}/docs` as its documentation.
+
 ## [0.5.0] - 2026-11-10
 
 ### Added

@@ -74,6 +74,51 @@ pub fn organization(base: &str) -> Value {
     })
 }
 
+/// The API as a service a program may call: where it is, what it answers
+/// and where its documentation is.
+pub fn web_api(base: &str) -> Value {
+    json!({
+        "@type": "WebAPI",
+        "@id": format!("{base}/v1#api"),
+        "name": "Wenmar Open VIN decoder API",
+        "description": "A free, self-hostable VIN decoder API and open source VIN lookup, with a vehicle catalog and an MCP server for VIN decoding.",
+        "url": format!("{base}/v1"),
+        "documentation": format!("{base}/docs"),
+        "provider": { "@id": ORGANIZATION_ID },
+        "isAccessibleForFree": true
+    })
+}
+
+/// The server as software anyone may run themselves. The price is stated
+/// as zero because a search engine asks for an offer, not because the
+/// software is sold.
+pub fn software_application(base: &str) -> Value {
+    json!({
+        "@type": "SoftwareApplication",
+        "@id": format!("{base}/#software"),
+        "name": "Wenmar Open",
+        "description": "A free, self-hostable VIN decoder API and open source VIN lookup, with an MCP server for VIN decoding.",
+        "url": format!("{base}/"),
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "isAccessibleForFree": true,
+        "license": "https://opensource.org/license/mit",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "featureList": [
+            "Free VIN decoder API with no key",
+            "Open source VIN lookup, self-hosted from one SQLite file",
+            "MCP server for VIN decoding",
+            "Vehicle catalog, recalls and service bulletins"
+        ],
+        "sameAs": "https://github.com/wenmar-pro/wenmar-open",
+        "publisher": { "@id": ORGANIZATION_ID }
+    })
+}
+
 /// The way from the top of the site down to a page. `crumbs` are the pages
 /// above it, as name and address on this site, outermost first; `name` is
 /// the page itself, which needs no address.
@@ -255,6 +300,32 @@ mod tests {
             text,
             r#"{"@context":"https://schema.org","@graph":[{"@type":"Thing","name":"a \u003c b"}]}"#
         );
+    }
+
+    #[test]
+    fn a_web_api_names_where_it_is_documented_and_who_provides_it() {
+        let api = web_api("https://open.example");
+        assert_eq!(api["@type"], "WebAPI");
+        assert_eq!(api["url"], "https://open.example/v1");
+        assert_eq!(api["documentation"], "https://open.example/docs");
+        assert_eq!(api["provider"], json!({ "@id": ORGANIZATION_ID }));
+        assert_eq!(api["isAccessibleForFree"], true);
+    }
+
+    #[test]
+    fn the_software_application_is_free_and_mit_licensed() {
+        let app = software_application("https://open.example");
+        assert_eq!(app["@type"], "SoftwareApplication");
+        assert_eq!(app["name"], "Wenmar Open");
+        assert_eq!(app["applicationCategory"], "DeveloperApplication");
+        assert_eq!(app["operatingSystem"], "Any");
+        assert_eq!(
+            app["offers"],
+            json!({ "@type": "Offer", "price": "0", "priceCurrency": "USD" })
+        );
+        assert_eq!(app["license"], "https://opensource.org/license/mit");
+        assert_eq!(app["publisher"], json!({ "@id": ORGANIZATION_ID }));
+        assert_eq!(app["sameAs"], "https://github.com/wenmar-pro/wenmar-open");
     }
 
     #[test]

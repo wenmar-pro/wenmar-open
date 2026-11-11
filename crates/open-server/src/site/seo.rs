@@ -553,7 +553,7 @@ pub async fn sitemap(
                     .filter(|province| province.confirmed)
                     .map(|province| province.path()),
             );
-            paths.extend(["/docs", "/data", "/about"].map(str::to_owned));
+            paths.extend(["/docs", site::open_source::PATH, "/data", "/about"].map(str::to_owned));
             Ok(Some(paths))
         }
         // Every job. The page of a job on a model year is in the

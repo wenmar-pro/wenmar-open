@@ -360,6 +360,7 @@ The calculators under `{base}/tools` are web pages with forms, for people. An ag
 ## Docs
 
 - [API reference]({base}/docs.md): examples to copy, errors, limits and caching
+- [Open source, self-hostable VIN decoder]({base}/open-source-vin-decoder.md): the free VIN decoder API, running it yourself, and the MCP server for VIN decoding
 - [Everything in one file]({base}/llms-full.txt): the API reference, the VIN guides and the notes on the data, as one Markdown document
 {guides}
 ## Shop calculators

@@ -161,6 +161,7 @@ async fn sitemaps_list_reference_pages_and_never_a_vin() {
         pages.contains("<url><loc>https://open.example/</loc><lastmod>2026-10-01</lastmod></url>")
     );
     assert!(pages.contains("<loc>https://open.example/docs</loc>"));
+    assert!(pages.contains("<loc>https://open.example/open-source-vin-decoder</loc>"));
     let (_, makes) = page(&app, "/sitemaps/makes.xml").await;
     assert!(makes.contains("<loc>https://open.example/makes/honda</loc>"));
     assert!(!makes.contains("ranger-trailers"));

@@ -43,6 +43,14 @@ async fn the_home_page_has_one_vin_box_and_a_picker_that_need_no_javascript() {
     assert!(html.find(r#"value="2023""#) < html.find(r#"value="2018""#));
     assert!(html.find(r#"value="ford""#) < html.find(r#"value="hyundai""#));
     assert!(!html.contains("ranger-trailers"));
+    // The words a developer searches for lead from the first page too.
+    for link in [
+        r#"<li><a href="/docs">Free VIN decoder API</a></li>"#,
+        r#"<li><a href="/open-source-vin-decoder">Open source VIN lookup and self-hosting</a></li>"#,
+        r#"<li><a href="/docs#mcp-server">MCP server for VIN decoding</a></li>"#,
+    ] {
+        assert!(html.contains(link), "{link}");
+    }
 }
 
 #[tokio::test]

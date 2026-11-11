@@ -57,7 +57,7 @@ pub fn docs(state: &AppState) -> Doc {
     let limit = state.config().requests_per_minute;
     let mut doc = Doc {
         title: "API".to_owned(),
-        intro: "A JSON API for VIN decoding and for looking up vehicles by year, make, model, trim and engine. It needs no key and no account, and any website may call it from a browser.".to_owned(),
+        intro: "A free, self-hostable VIN decoder API and open source VIN lookup, with a catalog for vehicles by year, make, model, trim and engine. It needs no key and no account, and any website may call it from a browser.".to_owned(),
         sections: vec![
             with_code(
                 section(
@@ -144,7 +144,7 @@ pub fn docs(state: &AppState) -> Doc {
                 with_code(
                     section(
                         "MCP server",
-                        &["The same lookups are tools on a Model Context Protocol server: wenmar_vin, wenmar_vehicles, wenmar_recalls, wenmar_bulletins, wenmar_codes, wenmar_labor and wenmar_payroll_deductions. A recall that wenmar_recalls lists may apply to a vehicle of that year, make and model; only the manufacturer can confirm it for one VIN. A bulletin that wenmar_bulletins lists is for a model year and is not a recall. The server speaks Streamable HTTP and needs no key. Add this address as a remote server or a custom connector:"],
+                        &["The same lookups are an MCP server for VIN decoding: wenmar_vin, wenmar_vehicles, wenmar_recalls, wenmar_bulletins, wenmar_codes, wenmar_labor and wenmar_payroll_deductions. A recall that wenmar_recalls lists may apply to a vehicle of that year, make and model; only the manufacturer can confirm it for one VIN. A bulletin that wenmar_bulletins lists is for a model year and is not a recall. The server speaks Streamable HTTP and needs no key. Add this address as a remote server or a custom connector:"],
                     ),
                     format!("{base}/mcp"),
                 ),
@@ -411,54 +411,19 @@ fn show(
         .indexed(state, path)
         .with_markdown(&format!("{path}.md"))
         .in_section(path.trim_start_matches('/'));
+    let base = &state.config().base_url;
     let page = if path == "/about" {
-        page.describing(vec![jsonld::organization(&state.config().base_url)])
+        page.describing(vec![jsonld::organization(base)])
+    } else if path == "/docs" {
+        page.describing(vec![jsonld::web_api(base), jsonld::organization(base)])
     } else {
         page
     };
     render(page, doc)
 }
 
-const DOCS_TITLE: &str = "Free VIN decoder API, no key - Wenmar Open";
-const DOCS: &str = "A free JSON API for VIN decoding and a year, make, model, trim and engine catalog. No key, no account, open to any website. Examples to copy.";
-
-/// The title and description of `/docs`. They name what this server's API
-/// answers: a server with the decoder and the catalog alone says so.
-fn docs_head(state: &AppState) -> (&'static str, String) {
-    let held = crate::llms::Held::of(state);
-    let mut named = Vec::new();
-    if held.recalls {
-        named.push("recalls");
-    }
-    if held.bulletins {
-        named.push("service bulletins");
-    }
-    if held.codes {
-        named.push("trouble codes");
-    }
-    if held.labor {
-        named.push("labour times");
-    }
-    let Some((last, first)) = named.split_last() else {
-        return (DOCS_TITLE, DOCS.to_owned());
-    };
-    let named = if first.is_empty() {
-        (*last).to_owned()
-    } else {
-        format!("{} and {last}", first.join(", "))
-    };
-    let title = if held.recalls {
-        "Free VIN decoder and recalls API, no key - Wenmar Open"
-    } else {
-        DOCS_TITLE
-    };
-    (
-        title,
-        format!(
-            "A free JSON API for VIN decoding, a vehicle catalog, {named}. No key, no account, open to any website. Examples to copy."
-        ),
-    )
-}
+const DOCS_TITLE: &str = "Free open source VIN decoder API, no key - Wenmar Open";
+const DOCS: &str = "A free self-hostable VIN decoder API and open source VIN lookup, with a vehicle catalog. Also an MCP server for VIN decoding. No key and no account.";
 
 const DATA_TITLE: &str = "Vehicle data download: NHTSA vPIC as SQLite - Wenmar Open";
 const DATA: &str = "Vehicle data built each month from NHTSA's vPIC: the version this site serves, where it comes from, and how to download it as one SQLite file.";
@@ -466,24 +431,22 @@ const ABOUT_TITLE: &str = "About Wenmar Open";
 const ABOUT: &str = "What Wenmar Open is, who runs it, and what it keeps.";
 
 pub async fn docs_html(State(state): State<AppState>) -> Response {
-    let (title, description) = docs_head(&state);
     show(
         &state,
         "/docs",
-        title,
-        &description,
+        DOCS_TITLE,
+        DOCS,
         docs(&state),
         Format::Html,
     )
 }
 
 pub async fn docs_md(State(state): State<AppState>) -> Response {
-    let (title, description) = docs_head(&state);
     show(
         &state,
         "/docs",
-        title,
-        &description,
+        DOCS_TITLE,
+        DOCS,
         docs(&state),
         Format::Markdown,
     )

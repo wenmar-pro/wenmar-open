@@ -2,7 +2,7 @@
 
 use axum::http::StatusCode;
 
-use crate::common::{self, assert_basics, markdown, page};
+use crate::common::{self, assert_basics, json_ld, markdown, page};
 
 #[tokio::test]
 async fn the_docs_page_states_the_limit_and_shows_examples_to_copy() {
@@ -12,6 +12,14 @@ async fn the_docs_page_states_the_limit_and_shows_examples_to_copy() {
     assert_basics(&html, "/docs");
     assert!(html.contains("<h1>API</h1>"));
     assert!(html.contains(r#"<link rel="canonical" href="https://open.example/docs">"#));
+    // The page says in its own text what it is, not only in its title.
+    for phrase in [
+        "free, self-hostable VIN decoder API",
+        "open source VIN lookup",
+        "MCP server for VIN decoding",
+    ] {
+        assert!(html.contains(phrase), "{phrase}");
+    }
     // The abuse ceiling is stated plainly, so "no limits" is not overstated.
     assert!(html.contains("One address may make 600 requests a minute."));
     assert!(html.contains("429"));
@@ -21,6 +29,86 @@ async fn the_docs_page_states_the_limit_and_shows_examples_to_copy() {
     assert!(
         html.contains(r#"<a href="https://open.example/v1/openapi.json">OpenAPI description</a>"#)
     );
+}
+
+#[tokio::test]
+async fn the_open_source_page_names_what_it_is_and_how_to_run_it() {
+    let app = common::app().await;
+    let (status, html) = page(&app, "/open-source-vin-decoder").await;
+    assert_eq!(status, StatusCode::OK);
+    assert_basics(&html, "/open-source-vin-decoder");
+    assert!(
+        html.contains("<title>Open source VIN decoder API and MCP server - Wenmar Open</title>"),
+        "{html}"
+    );
+    assert!(html.contains("<h1>Free, self-hostable VIN decoder API</h1>"));
+    assert!(
+        html.contains(
+            r#"<link rel="canonical" href="https://open.example/open-source-vin-decoder">"#
+        )
+    );
+    // The words people search for are in the prose, not only in a meta tag.
+    for phrase in [
+        "free self-hostable VIN decoder API",
+        "open source VIN lookup",
+        "MCP server for VIN decoding",
+        "Self-host the open source VIN lookup",
+    ] {
+        assert!(html.contains(phrase), "{phrase}");
+    }
+    // It says how to run it, and where the code is.
+    assert!(html.contains("bin/setup") && html.contains("mise run serve"));
+    assert!(html.contains(r#"<a href="https://open.example/docs">"#));
+    assert!(html.contains(r#"<a href="https://github.com/wenmar-pro/wenmar-open">"#));
+    // The Markdown copy is the same text.
+    let text = markdown(&app, "/open-source-vin-decoder.md").await;
+    assert!(text.starts_with("# Free, self-hostable VIN decoder API\n"));
+    assert!(text.contains("MCP server for VIN decoding"));
+}
+
+#[tokio::test]
+async fn the_open_source_page_and_the_docs_page_describe_the_api_as_software() {
+    let app = common::app().await;
+    let (_, html) = page(&app, "/open-source-vin-decoder").await;
+    let graph = json_ld(&html).unwrap()["@graph"]
+        .as_array()
+        .unwrap()
+        .clone();
+    let kinds: Vec<&str> = graph
+        .iter()
+        .filter_map(|thing| thing["@type"].as_str())
+        .collect();
+    assert_eq!(
+        kinds,
+        [
+            "BreadcrumbList",
+            "WebAPI",
+            "SoftwareApplication",
+            "Organization"
+        ]
+    );
+    let api = graph
+        .iter()
+        .find(|thing| thing["@type"] == "WebAPI")
+        .unwrap();
+    assert_eq!(api["url"], "https://open.example/v1");
+    assert_eq!(api["documentation"], "https://open.example/docs");
+    let software = graph
+        .iter()
+        .find(|thing| thing["@type"] == "SoftwareApplication")
+        .unwrap();
+    assert_eq!(software["offers"]["price"], "0");
+    assert_eq!(software["license"], "https://opensource.org/license/mit");
+
+    let (_, docs) = page(&app, "/docs").await;
+    let described = json_ld(&docs).unwrap();
+    let kinds: Vec<&str> = described["@graph"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|thing| thing["@type"].as_str())
+        .collect();
+    assert_eq!(kinds, ["WebAPI", "Organization"]);
 }
 
 #[tokio::test]
@@ -109,6 +197,9 @@ async fn llms_txt_lists_the_markdown_pages_and_each_one_exists() {
     let app = common::app().await;
     let (_, text) = page(&app, "/llms.txt").await;
     assert!(text.contains("- [API reference](https://open.example/docs.md)"));
+    assert!(text.contains(
+        "- [Open source, self-hostable VIN decoder](https://open.example/open-source-vin-decoder.md)"
+    ));
     assert!(text.contains("- [Makes](https://open.example/makes.md)"));
     let mut checked = 0;
     for link in text.split("](https://open.example").skip(1) {
