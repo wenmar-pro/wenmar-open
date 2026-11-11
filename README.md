@@ -108,6 +108,7 @@ Without mise: `OPEN_DATA=data/build/wenmar-open-2026.09.sqlite3 cargo run -p ope
 | `bin/data` | Download vPIC and build the data file |
 | `bin/shop-data`, `bin/coverage` | Build the shop file from the fetched sources, and check how much of it matched the catalog. It writes two: the full file in `data/build/shop/`, which the server reads, and a copy without bulletins in `data/build/shop/offline/` |
 | `bin/shop-pull` | Fetch the full file of the newest shop data release that pairs with the data version in `config/deploy.yml` |
+| `bin/ship` | Fetch the newest complete data and shop pair, commit `config/deploy.yml`, deploy with Kamal, and verify the live versions |
 | `bin/check` | Format check, lints and tests: what CI runs |
 | `bin/parity`, `bin/catalog-parity` | Compare the data and the catalog with NHTSA's answers |
 | `bin/js` | Build and test the npm client |

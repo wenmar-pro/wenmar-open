@@ -81,7 +81,21 @@ Stop it with Ctrl-C.
 
 ## Deploy
 
-Deploy from a clean checkout of `main`. Kamal builds from the working directory, because the data file is not in git, so anything uncommitted there would be built into the image.
+```bash
+bin/ship
+```
+
+`bin/ship` is the one command. It needs `BWS_ACCESS_TOKEN` in the shell (Kamal's secrets read it from Bitwarden) and Docker running. It:
+
+1. finds the newest shop release whose manifest names a data release that exists, so the two always pair;
+2. downloads both files through their release checksums, and writes their versions into `config/deploy.yml`;
+3. commits only `config/deploy.yml` (`deploy: data X, shop Y`) and pushes it to `main`;
+4. runs the checks Kamal's pre-build hook runs, then `kamal deploy`;
+5. waits for `/health` and reads `/v1/meta`, stopping with an error unless the live data and shop versions are the ones it shipped.
+
+It deploys from a clean `main`: it fast-forwards a `main` that is only behind origin, and refuses one with unrelated uncommitted changes, unpushed commits, or a diverged history. If the newest data release has no shop release yet (the weekly workflow takes about half an hour), it says so and ships the newest complete pair instead.
+
+To deploy by hand, start from a clean checkout of `main`. Kamal builds from the working directory, because the data file is not in git, so anything uncommitted there would be built into the image.
 
 ```bash
 git status --short        # must print nothing
@@ -236,7 +250,9 @@ Tests check what the pages contain. Only looking checks how they look. Before th
 
 ## A new shop file
 
-Recalls change every day, and a new shop file is released every Monday. To put the newest on the site, from a clean checkout of `main`:
+Recalls change every day, and a new shop file is released every Monday. `bin/ship` does the whole thing: it takes the newest complete pair, commits `config/deploy.yml`, deploys, and verifies the live versions.
+
+To do it by hand, from a clean checkout of `main`:
 
 1. `bin/shop-pull`. It downloads the full file of the newest shop release that pairs with `DATA_VERSION` and writes its version on the `SHOP_VERSION` line of `config/deploy.yml`. If it says the file is already here and the line already names it, there is nothing new to deploy.
 2. `git commit -am "deploy: shop data <version>"`, and push. Deploy from a clean checkout.
@@ -248,6 +264,8 @@ Skipping a week does no harm: the site says how old its recall data is, on every
 ## A new data version
 
 Each month, or when a data release is published. **The data file and the shop file change in the same deploy.** A shop file holds the ids of one data file's catalog, and the server does not start over a pair that disagree; nor does the image build.
+
+`bin/ship` handles this: it will not pair the new data file with an older shop file. It waits for a shop release that names the new data version and, until one exists, ships the newest complete pair and says which data release it skipped. To do it by hand:
 
 1. Put the new data file in `data/build/` (step 3 of "Before the first deploy").
 2. `DATA_VERSION` is already set: the release writes the version of the `data-YYYY.MM` release into `config/deploy.yml` and commits it to `main` (see "The monthly release" in `docs/releasing.md`). Change the line by hand only when deploying a data release that no release has cut yet.

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# One command: fetch the newest complete data and shop pair, commit
+# config/deploy.yml, deploy it with Kamal, and verify the live versions.
+# Thin wrapper over `mise run ship`.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec mise run ship "$@"

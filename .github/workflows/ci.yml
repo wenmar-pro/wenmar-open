@@ -92,3 +92,7 @@ jobs:
       - name: Test the shop release scripts
         working-directory: ${{ github.workspace }}
         run: node --test scripts/shop-release.test.mjs
+
+      - name: Test the ship script
+        working-directory: ${{ github.workspace }}
+        run: node --test scripts/ship.test.mjs
