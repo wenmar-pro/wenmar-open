@@ -27,13 +27,11 @@ pub enum Dataset {
     Tires,
     Manuals,
     Jobs,
-    Labor,
-    LaborAi,
     VinGuides,
 }
 
 impl Dataset {
-    pub const ALL: [Dataset; 19] = [
+    pub const ALL: [Dataset; 17] = [
         Dataset::RecallsUs,
         Dataset::RecallsCa,
         Dataset::Investigations,
@@ -50,8 +48,6 @@ impl Dataset {
         Dataset::Tires,
         Dataset::Manuals,
         Dataset::Jobs,
-        Dataset::Labor,
-        Dataset::LaborAi,
         Dataset::VinGuides,
     ];
 
@@ -74,8 +70,6 @@ impl Dataset {
             Dataset::Tires => "tires",
             Dataset::Manuals => "manuals",
             Dataset::Jobs => "jobs",
-            Dataset::Labor => "labor",
-            Dataset::LaborAi => "labor_ai",
             Dataset::VinGuides => "vin_guides",
         }
     }
@@ -218,8 +212,6 @@ mod tests {
                 "tires",
                 "manuals",
                 "jobs",
-                "labor",
-                "labor_ai",
                 "vin_guides"
             ]
         );
@@ -250,6 +242,15 @@ mod tests {
         assert_eq!(datasets.get(Dataset::RecallsCa).unwrap().rows, 7);
         let listed: Vec<Dataset> = datasets.iter().map(|(dataset, _)| dataset).collect();
         assert_eq!(listed, [Dataset::RecallsUs, Dataset::RecallsCa]);
+    }
+
+    #[test]
+    fn an_old_shop_file_with_labour_still_opens() {
+        let old = r#"{"jobs":{"as_of":"2026-10-11","rows":3,"licence":"mit","attribution":""},"labor":{"as_of":"2026-10-12","rows":6,"licence":"cc-by-4.0","attribution":"Labour estimates by Wenmar Pro, CC BY 4.0"},"labor_ai":{"as_of":"2026-10-30","rows":1,"licence":"cc-by-4.0","attribution":"Labour estimates by Wenmar Pro, CC BY 4.0"}}"#;
+        let datasets = Datasets::parse(old).unwrap();
+        assert_eq!(datasets.len(), 1);
+        assert!(datasets.contains(Dataset::Jobs));
+        assert!(!datasets.contains(Dataset::Codes));
     }
 
     #[test]

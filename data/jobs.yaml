@@ -1,9 +1,9 @@
 # Reviewed 2026-10-30 by the owner (ids and names); includes and excludes
 # drafted the same day in our own words. Never a time in this file.
 #
-# Jobs: the repair jobs a labour time can be about. Written by hand for
+# Jobs: the repair jobs of Wenmar's list. Written by hand for
 # this project; see jobs.md beside this file for the fields and the rules.
-# An id never changes once a labour record or a repair order uses it.
+# An id never changes once a repair order uses it.
 status: reviewed
 updated: 2026-11-01
 jobs:
@@ -603,8 +603,8 @@ jobs:
       - "refit everything removed with new gaskets, and clear the codes"
     excludes:
       - "intake manifold gasket replacement on its own"
-  # Small jobs: one reference time for every vehicle (wenmar-labor's
-  # data/labor/reference.yaml), never asked vehicle by vehicle.
+  # Small jobs: one reference time for every vehicle (in wenmar-labor),
+  # never asked vehicle by vehicle.
   - id: wiper-blades
     name: "Replace the front wiper blades"
     system: visibility

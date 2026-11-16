@@ -24,6 +24,7 @@ Use the bug report or feature request templates. For anything large, open an iss
 - Keep each pull request to one change.
 - Add or update tests for behaviour you change. Decoder changes need at least one real VIN with a known answer.
 - Run formatting, lints, and tests before you push: `bin/check` (or `mise run check`), or the three `cargo` commands listed under `[tasks.check]` in `mise.toml`. A new checkout needs `bin/setup` first. The scripts in `bin/` each wrap one `mise run` task; see the README.
+- If you change anything under `data/` that the shop file builds (jobs, codes or hand-written records), also run `bin/check-data` against a built data file (`mise run data`). It runs the same catalog checks as the shop release, so a model year the catalog no longer has fails here rather than in a release.
 - If you change decoding, run `mise run parity` against a built data file (`mise run data`) and explain any VIN that newly differs from NHTSA.
 - If you change the catalog build or the lists under `data/`, run `mise run catalog-parity` against a built data file and explain any model that newly differs from NHTSA.
 - Trims added to `data/presets.yaml` and spellings added to `data/catalog/names.yaml` must be your own work or public knowledge. Do not copy lists from licensed catalogs or parts databases. Every hand-written record follows "Curated data" below.
@@ -33,7 +34,7 @@ Use the bug report or feature request templates. For anything large, open an iss
 
 ## Curated data
 
-Some of the data here is written by hand: the lists under `data/` today, and in time fluids, tire fitments, trouble-code text, links to the makers' pages and labour times. These rules apply to every such record. They are stricter than the rules for code, because a wrong figure can damage a vehicle, and a copied sentence can end the project.
+Some of the data here is written by hand: the lists under `data/` today, and in time fluids, tire fitments, trouble-code text and links to the makers' pages. These rules apply to every such record. They are stricter than the rules for code, because a wrong figure can damage a vehicle, and a copied sentence can end the project.
 
 ### Where a record may not come from
 
@@ -42,7 +43,6 @@ Some of the data here is written by hand: the lists under `data/` today, and in 
 - Not from another website's, app's or parts catalogue's compiled list, whatever it says about viewing.
 - Not from the wording of an owner's manual, a service manual or a bulletin. A fact read there may be recorded: a capacity, a size, a specification, an interval. Its sentences, a whole table, and its pictures may not.
 - Not from memory. If you cannot point to where it is printed, do not record it.
-- A labour estimate (`data/labor/`) is the one exception to "not from memory", and it has a rule of its own: it comes from work you have done, and from nowhere else. No labour guide, no maker's warranty time and no shop software may be open while you write one, and its `source` is you: your name is in `author`. Labour estimates are published under CC BY 4.0, not MIT; by contributing one you agree to that licence for it.
 
 ### What a record must carry
 
@@ -56,7 +56,7 @@ Some of the data here is written by hand: the lists under `data/` today, and in 
 
 - For each record, the source, and how the reviewer can see it: a link to the page, or a photograph of the label or placard with the serial number of the VIN and any licence plate covered. Do not attach pages of a manual.
 - At most 20 records, so that each can be checked.
-- That `bin/check` passes. The build checks the shape of every record, not whether it is true.
+- That `bin/check` and, for anything the shop file builds, `bin/check-data` pass. The build checks the shape of every record, not whether it is true.
 - A row in "Datasets and their licences" in `NOTICE.md` and in `crates/open-server/src/site/licences.rs`, if the pull request starts a new dataset.
 
 ### Who approves
@@ -65,7 +65,6 @@ Some of the data here is written by hand: the lists under `data/` today, and in 
 - That reviewer's GitHub name goes in the record's `reviewer` field where the file has one. Where it has none, the approving review on the pull request is the record.
 - If there is no second person, the record waits.
 - A correction sent through "Report an error" is accepted the same way: a person edits the file in a pull request. Nothing a visitor sends changes data by itself.
-- A labour time sent through "Suggest a time" is an issue labelled `labour-time`, and nothing more. It is evidence for whoever next writes or reviews that estimate; it is never copied into `data/labor/` as it stands.
 
 ## Licensing of contributions
 

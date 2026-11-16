@@ -12,8 +12,8 @@
 use askama::Template;
 use axum::extract::rejection::{PathRejection, QueryRejection};
 use axum::extract::{Path, Query, State};
-use axum::http::{StatusCode, Uri};
-use axum::response::Response;
+use axum::http::{StatusCode, Uri, header};
+use axum::response::{IntoResponse, Response};
 use wenmar_shopdata::Dataset;
 use wenmar_shopdata::bulletins::{BulletinType, MOST_RELATED};
 use wenmar_vehicles::Scope;
@@ -275,18 +275,27 @@ pub async fn model_year_section(
     path: Result<Path<(String, String, String, String)>, PathRejection>,
     recall_query: Result<Query<ComponentQuery>, QueryRejection>,
     bulletin_query: Result<Query<BulletinFilter>, QueryRejection>,
-    labor_query: Result<Query<crate::site::labor::PriceQuery>, QueryRejection>,
     uri: Uri,
 ) -> Response {
+    let (stem, format) = path
+        .as_ref()
+        .ok()
+        .map(|Path((_, _, _, segment))| markdown::split(segment))
+        .unwrap_or(("", Format::Html));
+    if stem == "labor" {
+        let to = if format == Format::Markdown {
+            "/jobs.md"
+        } else {
+            "/jobs"
+        };
+        return (StatusCode::MOVED_PERMANENTLY, [(header::LOCATION, to)]).into_response();
+    }
     let section = path
         .as_ref()
         .ok()
         .map(|Path((_, _, _, segment))| markdown::split(segment).0.to_owned());
     match section.as_deref() {
         Some("bulletins") => {}
-        Some("labor") => {
-            return crate::site::labor::model_year_list(State(state), path, labor_query, uri).await;
-        }
         _ => return recalls::model_year_section(State(state), path, recall_query, uri).await,
     }
     let Ok(Path((make, model, year, segment))) = path else {

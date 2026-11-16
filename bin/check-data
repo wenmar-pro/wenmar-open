@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Check that the curated data still matches the newest data file's catalog.
+# Thin wrapper over `mise run check-data`.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+exec mise run check-data "$@"

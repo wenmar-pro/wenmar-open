@@ -116,88 +116,28 @@ pub struct Lookup {
     pub limit: Option<usize>,
 }
 
-/// A question about jobs or labour estimates.
+/// A question about the repair jobs.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LaborAction {
     /// The job list, or one job of it.
     Jobs,
-    /// The estimates of a model year, by its vehicle id.
-    Vehicle,
-    /// The estimates of the vehicle a VIN decodes to.
-    Vin,
 }
 
-impl LaborAction {
-    pub const ALL: [LaborAction; 3] = [LaborAction::Jobs, LaborAction::Vehicle, LaborAction::Vin];
-
-    /// The name of the action in the `wenmar_labor` tool.
-    pub fn name(self) -> &'static str {
-        match self {
-            LaborAction::Jobs => "jobs",
-            LaborAction::Vehicle => "vehicle",
-            LaborAction::Vin => "vin",
-        }
-    }
-
-    fn parse(name: &str) -> Option<LaborAction> {
-        LaborAction::ALL
-            .into_iter()
-            .find(|action| action.name() == name)
-    }
-}
-
-/// What a question about labour is asked with. Which fields are used
-/// depends on the [`LaborAction`].
+/// What a question about the jobs is asked with.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct LaborLookup {
     pub job: Option<String>,
-    pub id: Option<String>,
-    pub vin: Option<String>,
-    pub year: Option<u16>,
 }
 
-/// The fields an action uses, each present. A VIN is checked for its
-/// form here, as every VIN is; a job and a vehicle id are judged where
+/// The fields the job action uses, each present. A job is judged where
 /// the answer is made.
 fn checked_labor(
-    action: LaborAction,
+    _action: LaborAction,
     lookup: LaborLookup,
-    current_year: u16,
+    _current_year: u16,
 ) -> Result<LaborLookup, CliError> {
-    let job = present(lookup.job.as_ref());
-    Ok(match action {
-        LaborAction::Jobs => LaborLookup {
-            job,
-            ..LaborLookup::default()
-        },
-        LaborAction::Vehicle => {
-            let Some(id) = present(lookup.id.as_ref()) else {
-                return Err(CliError::validation(
-                    "id",
-                    "id is required for action=vehicle",
-                ));
-            };
-            LaborLookup {
-                job,
-                id: Some(id),
-                ..LaborLookup::default()
-            }
-        }
-        LaborAction::Vin => {
-            let Some(vin) = present(lookup.vin.as_ref()) else {
-                return Err(CliError::validation(
-                    "vin",
-                    "vin is required for action=vin",
-                ));
-            };
-            vin_year(lookup.year, current_year)?;
-            LaborLookup {
-                job,
-                vin: Some(well_formed(&vin)?.as_str().to_owned()),
-                year: lookup.year,
-                ..LaborLookup::default()
-            }
-        }
+    Ok(LaborLookup {
+        job: present(lookup.job.as_ref()),
     })
 }
 
@@ -481,7 +421,7 @@ pub enum Request {
         action: CodeAction,
         lookup: CodeLookup,
     },
-    /// The job list and Wenmar's labour estimates.
+    /// The job list and one job's definition.
     Labor {
         action: LaborAction,
         lookup: LaborLookup,
@@ -941,23 +881,6 @@ impl Request {
             let query: payroll_calc::Query = serde_json::from_value(arguments.clone())
                 .map_err(|error| CliError::validation("arguments", error.to_string()))?;
             return Ok(Request::Payroll { query });
-        }
-        if tool == "wenmar_labor" {
-            let Some(action) = LaborAction::parse(action) else {
-                return Err(CliError::validation(
-                    "action",
-                    "action must be jobs, vehicle or vin",
-                ));
-            };
-            return Ok(Request::Labor {
-                action,
-                lookup: LaborLookup {
-                    job: text(arguments, "job")?,
-                    id: text(arguments, "id")?,
-                    vin: text(arguments, "vin")?,
-                    year: number(arguments, "year")?,
-                },
-            });
         }
         if tool == "wenmar_codes" {
             let Some(action) = CodeAction::parse(action) else {

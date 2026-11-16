@@ -1294,10 +1294,6 @@ pub struct Overview {
     /// holds no ratings, and when a VIN reaches no model year.
     #[schema(value_type = Option<VehicleSafety>)]
     pub safety: Option<serde_json::Value>,
-    /// The vehicle's labour figures, as `/v1/vehicles/{id}/labor` gives
-    /// them. `null` when this server holds no labour estimates.
-    #[schema(value_type = Option<Object>)]
-    pub labor: Option<serde_json::Value>,
     /// The bulletins of the model year, in brief. `null` when this server
     /// holds no bulletins, and when a VIN reaches no model year.
     pub bulletins: Option<OverviewBulletins>,
@@ -2407,7 +2403,7 @@ pub struct VehicleCode {
     pub attribution: Vec<String>,
 }
 
-// ----- jobs and labour estimates -----
+// ----- jobs -----
 
 /// A repair job in a list.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
@@ -2425,7 +2421,7 @@ pub struct JobLink {
     pub url: String,
 }
 
-/// The repair jobs a labour estimate can be about.
+/// The repair jobs of Wenmar's list.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
 pub struct JobList {
     /// The day the list was last changed.
@@ -2447,94 +2443,7 @@ pub struct JobComponent {
     pub parent: Option<String>,
 }
 
-/// Hours, as numbers of hours.
-#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
-pub struct LaborHours {
-    pub low: f64,
-    /// A vehicle in ordinary condition.
-    pub typical: f64,
-    /// Allowing for rust and seized fasteners.
-    pub high: f64,
-}
-
-/// The first and last model year a figure covers.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
-pub struct LaborYears {
-    pub from: u16,
-    pub to: u16,
-}
-
-/// What stands behind a measured figure.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
-pub struct LaborSample {
-    /// Repair orders.
-    pub jobs: i64,
-    /// Shops they came from.
-    pub shops: i64,
-}
-
-/// One labour estimate: the hours a job takes, and what the figure is for.
-#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
-pub struct LaborFigure {
-    /// The job's id.
-    #[schema(example = "brake-pads-front")]
-    pub job: String,
-    pub name: String,
-    pub hours: LaborHours,
-    /// `expert`: written by a person who does the work. `observed`:
-    /// measured from repair orders; `sample` then says how many. `ai`:
-    /// worked out by a model from the job and the repair steps, not checked
-    /// by a person; `confidence_pct`, `model`, `method` and `inputs` then
-    /// say how. Within one scope: observed, then expert, then ai.
-    #[schema(example = "expert")]
-    pub basis: String,
-    /// What the figure is for, and so how far to trust it for one
-    /// vehicle: `engine`, `generation`, `model` or `class`.
-    #[schema(example = "class")]
-    pub scope: String,
-    /// The class, for a class-scope figure.
-    #[schema(example = "small-suv")]
-    pub class: Option<String>,
-    #[schema(example = "Small SUV")]
-    pub class_name: Option<String>,
-    /// The model years, for a generation or an engine.
-    pub years: Option<LaborYears>,
-    /// The engine's id form, for an engine-scope figure.
-    pub engine: Option<String>,
-    /// `null` for an `expert` figure.
-    pub sample: Option<LaborSample>,
-    /// For an `ai` figure: how sure the model was, in percent (at most 60).
-    /// `null` for the others.
-    #[schema(example = 45)]
-    pub confidence_pct: Option<i64>,
-    /// For an `ai` figure: the model that answered. `null` for the others.
-    pub model: Option<String>,
-    /// For an `ai` figure: the prompt version. `null` for the others.
-    #[schema(example = "open-labour-ai-1")]
-    pub method: Option<String>,
-    /// For an `ai` figure: what it was worked out from, of `vehicle`,
-    /// `job`, `wenmar-figures` and `procedure` (a repair procedure's steps,
-    /// never its numbers). `null` for the others.
-    pub inputs: Option<Vec<String>>,
-    pub notes: Option<String>,
-    /// The page that says how figures of this basis are made.
-    pub method_url: Option<String>,
-    /// The day the figure was last changed.
-    #[schema(example = "2026-10-12")]
-    pub updated: String,
-    /// The job's page on this site.
-    pub url: String,
-    /// The page that shows this figure to a person, for the vehicle asked
-    /// about: its `labor` page, with `?engine=` for an engine's figure.
-    /// `null` in a job's class list, which is for no vehicle.
-    #[schema(
-        example = "https://open.wenmarpro.com/makes/hyundai/kona/2023/labor/brake-pads-front"
-    )]
-    pub page_url: Option<String>,
-}
-
-/// One repair job: what it covers, and what it typically takes by class
-/// of vehicle.
+/// One repair job: what it covers and what it does not.
 #[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
 pub struct JobDetail {
     #[schema(example = "brake-pads-front")]
@@ -2550,96 +2459,5 @@ pub struct JobDetail {
     /// Work often done at the same visit that is not part of this job.
     pub excludes: Vec<String>,
     pub related: Vec<JobLink>,
-    /// The job's class-scope figures. `null` where labour estimates are
-    /// not held.
-    pub estimates: Option<Vec<LaborFigure>>,
     pub url: String,
-    /// What an estimate is not.
-    pub note: String,
-    /// The credit the labour estimates ask for. Empty without them.
-    pub attribution: Vec<String>,
-}
-
-/// The class a model year is in.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
-pub struct LaborClass {
-    #[schema(example = "small-suv")]
-    pub id: String,
-    #[schema(example = "Small SUV")]
-    pub name: String,
-    /// `epa`: EPA's size class for the model year. `nearest`: that of the
-    /// nearest model year of the same model EPA rated.
-    pub source: String,
-}
-
-/// Labour estimates for one model year: for each job, the figure of the
-/// narrowest scope that has one.
-#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
-pub struct VehicleLabor {
-    pub vehicle: RecallVehicle,
-    /// The engine the vehicle id named, as an id form. `null` when it
-    /// named none: no engine-scope figure can then answer.
-    pub engine: Option<String>,
-    /// `null` when the model year has no class: no class-scope figure
-    /// reaches it.
-    pub class: Option<LaborClass>,
-    /// The newest day an estimate was changed.
-    pub as_of: Option<String>,
-    /// One for each job that has a figure covering the vehicle, in the
-    /// order of the job list.
-    pub estimates: Vec<LaborFigure>,
-    /// The jobs of the list with no figure for this vehicle, in the order
-    /// of the job list: there is no Wenmar estimate for them.
-    pub missing: Vec<JobLink>,
-    /// "An estimate, not a quote. …"
-    pub note: String,
-    pub attribution: Vec<String>,
-}
-
-/// Labour estimates for the vehicle a VIN decodes to.
-#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
-pub struct VinLabor {
-    pub decode: RecallDecode,
-    /// `null` when the VIN decodes to no vehicle in the catalog.
-    pub vehicle: Option<RecallVehicle>,
-    pub engine: Option<String>,
-    pub class: Option<LaborClass>,
-    pub as_of: Option<String>,
-    pub estimates: Vec<LaborFigure>,
-    /// The jobs of the list with no figure for this vehicle, in the order
-    /// of the job list: there is no Wenmar estimate for them.
-    pub missing: Vec<JobLink>,
-    pub note: String,
-    pub attribution: Vec<String>,
-    pub warnings: Vec<Warning>,
-}
-
-/// A vehicle that has its own figure for a job: the model, and the figure
-/// that is narrower than class.
-#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
-pub struct JobVehicle {
-    #[schema(example = "Hyundai")]
-    pub make: String,
-    #[schema(example = "hyundai")]
-    pub make_slug: String,
-    #[schema(example = "Kona")]
-    pub model: String,
-    #[schema(example = "kona")]
-    pub model_slug: String,
-    /// The figure. Its `page_url` is the newest model year of its range
-    /// that the catalog holds.
-    pub figure: LaborFigure,
-}
-
-/// The vehicles that have their own figure for one job.
-#[derive(Debug, Clone, PartialEq, Serialize, ToSchema)]
-pub struct JobVehicles {
-    pub job: JobLink,
-    /// In make, model and year order.
-    pub vehicles: Vec<JobVehicle>,
-    /// Pass it back as `cursor` for the next page. `null` on the last.
-    pub next_cursor: Option<String>,
-    /// What an estimate is not.
-    pub note: String,
-    pub attribution: Vec<String>,
 }

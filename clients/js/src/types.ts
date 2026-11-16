@@ -120,20 +120,10 @@ export type CodeList = Schemas["CodeList"];
 /** A trouble code on one model year, with its bulletins and recalls. */
 export type VehicleCode = Schemas["VehicleCode"];
 
-/** The repair jobs a labour estimate can be about. */
+/** The repair jobs of Wenmar's list. */
 export type JobList = Schemas["JobList"];
-/** One repair job: what it covers and what it typically takes by class. */
+/** One repair job: what it covers and what it does not. */
 export type JobDetail = Schemas["JobDetail"];
-/** A vehicle that has its own figure for a job: the model and the figure. */
-export type JobVehicle = Schemas["JobVehicle"];
-/** The vehicles that have their own figure for one job. */
-export type JobVehicles = Schemas["JobVehicles"];
-/** One labour estimate: hours, the scope it is for and its basis. */
-export type LaborFigure = Schemas["LaborFigure"];
-/** Labour estimates for one model year. An estimate, not a quote. */
-export type VehicleLabor = Schemas["VehicleLabor"];
-/** Labour estimates for the vehicle a VIN decodes to. */
-export type VinLabor = Schemas["VinLabor"];
 
 /** The deductions from one regular pay in Ontario by CRA's T4127 formulas. An estimate: the employer remains liable. */
 export type PayrollDeductions = Schemas["PayrollDeductions"];
@@ -170,7 +160,6 @@ export type BulletinFilterQuery = Query<"vehicle_bulletins">;
 export type VinBulletinsQuery = Query<"vin_bulletins">;
 export type BulletinSearchQuery = Query<"bulletin_search">;
 export type CodeSearchQuery = Query<"code_search">;
-export type JobVehiclesQuery = Query<"job_vehicles">;
 export type PayrollDeductionsQuery = Query<"payroll_deductions">;
 export type VehicleInvestigationsQuery = Query<"vehicle_investigations">;
 export type RecentRecallsQuery = Query<"recent_recalls">;

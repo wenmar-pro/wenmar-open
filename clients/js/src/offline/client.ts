@@ -34,12 +34,10 @@ import type {
   VehicleRecalls,
   VehicleRecallsQuery,
   VehicleCode,
-  VehicleLabor,
   VehicleSafety,
   VehicleSpecs,
   VehicleTires,
   VinDecode,
-  VinLabor,
   VinFluids,
   VinFuel,
   VinFuelQuery,
@@ -112,7 +110,7 @@ const keyOf = (statement: Statement): string =>
 const READS_SHOP = new Set(["meta", "overview_vehicle", "overview_vin", "model_years"]);
 
 /** The operations about trouble codes. Each needs the shop file. */
-const CODE_OPS = new Set(["code", "codes", "vehicle_code", "jobs", "job", "labor_vehicle", "labor_vin"]);
+const CODE_OPS = new Set(["code", "codes", "vehicle_code", "jobs", "job"]);
 
 /** Whether a question reads the shop file, when there is one. */
 const needsShop = (question: Question): boolean =>
@@ -340,32 +338,14 @@ export class WenmarOpenOffline {
     return this.#one({ op: "tires_vin", args: { ...query, vin: String(vin) } }, options);
   }
 
-  /** The repair jobs a labour estimate can be about. Needs a shop file that holds the job list. */
+  /** The repair jobs of Wenmar's list. Needs a shop file that holds the job list. */
   async jobs(options: RequestOptions = {}): Promise<JobList> {
     return this.#one({ op: "jobs", args: {} }, options);
   }
 
-  /** One repair job: what it covers, and what it typically takes by class of vehicle. */
+  /** One repair job: what it covers and what it does not. */
   async job(job: string, options: RequestOptions = {}): Promise<JobDetail> {
     return this.#one({ op: "job", args: { job: String(job) } }, options);
-  }
-
-  /**
-   * Wenmar's labour estimates for a model year, or for one `job` of it.
-   * An estimate, not a quote; credit it as `attribution` says. Needs a
-   * shop file that holds the estimates.
-   */
-  async labor(id: string, job?: string, options: RequestOptions = {}): Promise<VehicleLabor> {
-    return this.#one({ op: "labor_vehicle", args: { id: String(id), job } }, options);
-  }
-
-  /** Labour estimates for the vehicle a VIN decodes to, or for one `job` of it. */
-  async vinLabor(
-    vin: string,
-    job?: string,
-    options: RequestOptions & { year?: number } = {},
-  ): Promise<VinLabor> {
-    return this.#one({ op: "labor_vin", args: { vin: String(vin), job, year: options.year } }, options);
   }
 
   /**

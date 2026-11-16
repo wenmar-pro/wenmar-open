@@ -331,9 +331,9 @@
     "/v1/jobs": {
       "get": {
         "tags": [
-          "Labour"
+          "Jobs"
         ],
-        "summary": "The repair jobs a labour estimate can be about, in the order of the\nlist. A job's id never changes.",
+        "summary": "The repair jobs of Wenmar's list, in the order of the list. A job's id\nnever changes.",
         "operationId": "jobs",
         "responses": {
           "200": {
@@ -362,9 +362,9 @@
     "/v1/jobs/{job}": {
       "get": {
         "tags": [
-          "Labour"
+          "Jobs"
         ],
-        "summary": "One repair job: what it covers, what it does not, and what it\ntypically takes by class of vehicle.",
+        "summary": "One repair job: what it covers and what it does not.",
         "operationId": "job",
         "parameters": [
           {
@@ -391,78 +391,6 @@
           },
           "404": {
             "description": "`not_found`: no job has that id. `dataset_unavailable`: this server holds no job list.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/jobs/{job}/vehicles": {
-      "get": {
-        "tags": [
-          "Labour"
-        ],
-        "summary": "The vehicles that have their own figure for one job. A class-scope\nfigure is typical of a class and is not a vehicle's own, so it is not\nlisted: what a shop does for one of these vehicles may take a different\ntime.",
-        "operationId": "job_vehicles",
-        "parameters": [
-          {
-            "name": "job",
-            "in": "path",
-            "description": "A job id.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "example": "brake-pads-front"
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "At most this many, up to 500. The default is 100.",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            }
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "description": "`next_cursor` from the page before, unchanged.",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The vehicles that have a figure of their own for the job, in make, model and year order.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JobVehicles"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "`validation_failed`: `limit` or `cursor` is wrong.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "`not_found`: no job has that id. `dataset_unavailable`: this server holds no labour estimates.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2003,103 +1931,6 @@
         }
       }
     },
-    "/v1/vehicles/{id}/labor": {
-      "get": {
-        "tags": [
-          "Labour"
-        ],
-        "summary": "Labour estimates for a model year: for each job, the hours of the\nnarrowest scope that has a figure, and which scope that was.",
-        "description": "An estimate, not a quote. `scope` says what a figure is for: `class` is\ntypical for vehicles of that class and was not worked out on this one.\nAn id that ends with an engine asks for that engine.",
-        "operationId": "vehicle_labor",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "A vehicle id. An engine in the id narrows the answer to it.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "example": "2018_ford_f-150"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "One estimate for each job that has a figure covering the vehicle.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VehicleLabor"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "`not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no labour estimates.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/vehicles/{id}/labor/{job}": {
-      "get": {
-        "tags": [
-          "Labour"
-        ],
-        "summary": "The labour estimate of one job for a model year. `estimates` has one\nentry, or none when no figure covers the vehicle.",
-        "operationId": "vehicle_labor_job",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "A vehicle id.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "example": "2018_ford_f-150"
-          },
-          {
-            "name": "job",
-            "in": "path",
-            "description": "A job id.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "example": "brake-pads-front"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The estimate, when there is one.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VehicleLabor"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "`not_found`: no vehicle, or no job, has that id. `dataset_unavailable`: this server holds no labour estimates.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/vehicles/{id}/overview": {
       "get": {
         "tags": [
@@ -2790,144 +2621,6 @@
           },
           "404": {
             "description": "`not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no fuel ratings, or none for the country asked for.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/vin/{vin}/labor": {
-      "get": {
-        "tags": [
-          "Labour"
-        ],
-        "summary": "Labour estimates for the vehicle a VIN decodes to. When the decode\nsettles the engine, an engine-scope figure can answer.",
-        "operationId": "vin_labor",
-        "parameters": [
-          {
-            "name": "vin",
-            "in": "path",
-            "description": "A 17-character VIN.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "example": "KM8K2CAB4PU001140"
-          },
-          {
-            "name": "year",
-            "in": "query",
-            "description": "The model year, when the VIN's tenth character leaves two possible.",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "minimum": 0
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The estimates. `vehicle` is `null` and `estimates` empty when the VIN reaches no catalog vehicle.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VinLabor"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "`invalid_vin`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "`dataset_unavailable`: this server holds no labour estimates.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/vin/{vin}/labor/{job}": {
-      "get": {
-        "tags": [
-          "Labour"
-        ],
-        "summary": "The labour estimate of one job for the vehicle a VIN decodes to.",
-        "operationId": "vin_labor_job",
-        "parameters": [
-          {
-            "name": "vin",
-            "in": "path",
-            "description": "A 17-character VIN.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "example": "KM8K2CAB4PU001140"
-          },
-          {
-            "name": "job",
-            "in": "path",
-            "description": "A job id.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "example": "brake-pads-front"
-          },
-          {
-            "name": "year",
-            "in": "query",
-            "description": "The model year, when the VIN's tenth character leaves two possible.",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "minimum": 0
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The estimate, when there is one.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VinLabor"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "`invalid_vin`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorBody"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "`not_found`: no job has that id. `dataset_unavailable`: this server holds no labour estimates.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5170,7 +4863,7 @@
       },
       "JobDetail": {
         "type": "object",
-        "description": "One repair job: what it covers, and what it typically takes by class\nof vehicle.",
+        "description": "One repair job: what it covers and what it does not.",
         "required": [
           "id",
           "name",
@@ -5180,33 +4873,14 @@
           "includes",
           "excludes",
           "related",
-          "url",
-          "note",
-          "attribution"
+          "url"
         ],
         "properties": {
-          "attribution": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "The credit the labour estimates ask for. Empty without them."
-          },
           "components": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/JobComponent"
             }
-          },
-          "estimates": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "items": {
-              "$ref": "#/components/schemas/LaborFigure"
-            },
-            "description": "The job's class-scope figures. `null` where labour estimates are\nnot held."
           },
           "excludes": {
             "type": "array",
@@ -5228,10 +4902,6 @@
           },
           "name": {
             "type": "string"
-          },
-          "note": {
-            "type": "string",
-            "description": "What an estimate is not."
           },
           "related": {
             "type": "array",
@@ -5285,7 +4955,7 @@
       },
       "JobList": {
         "type": "object",
-        "description": "The repair jobs a labour estimate can be about.",
+        "description": "The repair jobs of Wenmar's list.",
         "required": [
           "jobs",
           "attribution"
@@ -5311,310 +4981,6 @@
               "$ref": "#/components/schemas/JobLink"
             },
             "description": "In the order of the list."
-          }
-        }
-      },
-      "JobVehicle": {
-        "type": "object",
-        "description": "A vehicle that has its own figure for a job: the model, and the figure\nthat is narrower than class.",
-        "required": [
-          "make",
-          "make_slug",
-          "model",
-          "model_slug",
-          "figure"
-        ],
-        "properties": {
-          "figure": {
-            "$ref": "#/components/schemas/LaborFigure",
-            "description": "The figure. Its `page_url` is the newest model year of its range\nthat the catalog holds."
-          },
-          "make": {
-            "type": "string",
-            "example": "Hyundai"
-          },
-          "make_slug": {
-            "type": "string",
-            "example": "hyundai"
-          },
-          "model": {
-            "type": "string",
-            "example": "Kona"
-          },
-          "model_slug": {
-            "type": "string",
-            "example": "kona"
-          }
-        }
-      },
-      "JobVehicles": {
-        "type": "object",
-        "description": "The vehicles that have their own figure for one job.",
-        "required": [
-          "job",
-          "vehicles",
-          "note",
-          "attribution"
-        ],
-        "properties": {
-          "attribution": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "job": {
-            "$ref": "#/components/schemas/JobLink"
-          },
-          "next_cursor": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Pass it back as `cursor` for the next page. `null` on the last."
-          },
-          "note": {
-            "type": "string",
-            "description": "What an estimate is not."
-          },
-          "vehicles": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/JobVehicle"
-            },
-            "description": "In make, model and year order."
-          }
-        }
-      },
-      "LaborClass": {
-        "type": "object",
-        "description": "The class a model year is in.",
-        "required": [
-          "id",
-          "name",
-          "source"
-        ],
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "small-suv"
-          },
-          "name": {
-            "type": "string",
-            "example": "Small SUV"
-          },
-          "source": {
-            "type": "string",
-            "description": "`epa`: EPA's size class for the model year. `nearest`: that of the\nnearest model year of the same model EPA rated."
-          }
-        }
-      },
-      "LaborFigure": {
-        "type": "object",
-        "description": "One labour estimate: the hours a job takes, and what the figure is for.",
-        "required": [
-          "job",
-          "name",
-          "hours",
-          "basis",
-          "scope",
-          "updated",
-          "url"
-        ],
-        "properties": {
-          "basis": {
-            "type": "string",
-            "description": "`expert`: written by a person who does the work. `observed`:\nmeasured from repair orders; `sample` then says how many. `ai`:\nworked out by a model from the job and the repair steps, not checked\nby a person; `confidence_pct`, `model`, `method` and `inputs` then\nsay how. Within one scope: observed, then expert, then ai.",
-            "example": "expert"
-          },
-          "class": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "The class, for a class-scope figure.",
-            "example": "small-suv"
-          },
-          "class_name": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "example": "Small SUV"
-          },
-          "confidence_pct": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "format": "int64",
-            "description": "For an `ai` figure: how sure the model was, in percent (at most 60).\n`null` for the others.",
-            "example": 45
-          },
-          "engine": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "The engine's id form, for an engine-scope figure."
-          },
-          "hours": {
-            "$ref": "#/components/schemas/LaborHours"
-          },
-          "inputs": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "items": {
-              "type": "string"
-            },
-            "description": "For an `ai` figure: what it was worked out from, of `vehicle`,\n`job`, `wenmar-figures` and `procedure` (a repair procedure's steps,\nnever its numbers). `null` for the others."
-          },
-          "job": {
-            "type": "string",
-            "description": "The job's id.",
-            "example": "brake-pads-front"
-          },
-          "method": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "For an `ai` figure: the prompt version. `null` for the others.",
-            "example": "open-labour-ai-1"
-          },
-          "method_url": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "The page that says how figures of this basis are made."
-          },
-          "model": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "For an `ai` figure: the model that answered. `null` for the others."
-          },
-          "name": {
-            "type": "string"
-          },
-          "notes": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "page_url": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "The page that shows this figure to a person, for the vehicle asked\nabout: its `labor` page, with `?engine=` for an engine's figure.\n`null` in a job's class list, which is for no vehicle.",
-            "example": "https://open.wenmarpro.com/makes/hyundai/kona/2023/labor/brake-pads-front"
-          },
-          "sample": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/LaborSample",
-                "description": "`null` for an `expert` figure."
-              }
-            ]
-          },
-          "scope": {
-            "type": "string",
-            "description": "What the figure is for, and so how far to trust it for one\nvehicle: `engine`, `generation`, `model` or `class`.",
-            "example": "class"
-          },
-          "updated": {
-            "type": "string",
-            "description": "The day the figure was last changed.",
-            "example": "2026-10-12"
-          },
-          "url": {
-            "type": "string",
-            "description": "The job's page on this site."
-          },
-          "years": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/LaborYears",
-                "description": "The model years, for a generation or an engine."
-              }
-            ]
-          }
-        }
-      },
-      "LaborHours": {
-        "type": "object",
-        "description": "Hours, as numbers of hours.",
-        "required": [
-          "low",
-          "typical",
-          "high"
-        ],
-        "properties": {
-          "high": {
-            "type": "number",
-            "format": "double",
-            "description": "Allowing for rust and seized fasteners."
-          },
-          "low": {
-            "type": "number",
-            "format": "double"
-          },
-          "typical": {
-            "type": "number",
-            "format": "double",
-            "description": "A vehicle in ordinary condition."
-          }
-        }
-      },
-      "LaborSample": {
-        "type": "object",
-        "description": "What stands behind a measured figure.",
-        "required": [
-          "jobs",
-          "shops"
-        ],
-        "properties": {
-          "jobs": {
-            "type": "integer",
-            "format": "int64",
-            "description": "Repair orders."
-          },
-          "shops": {
-            "type": "integer",
-            "format": "int64",
-            "description": "Shops they came from."
-          }
-        }
-      },
-      "LaborYears": {
-        "type": "object",
-        "description": "The first and last model year a figure covers.",
-        "required": [
-          "from",
-          "to"
-        ],
-        "properties": {
-          "from": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 0
-          },
-          "to": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 0
           }
         }
       },
@@ -6054,13 +5420,6 @@
                 "description": "The generation of the model the year belongs to, from corgi-rs's\ntable, as `/v1/models/{make}/{model}` gives it. `null` for a model\nthe table does not list, and when a VIN reaches no model year."
               }
             ]
-          },
-          "labor": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "description": "The vehicle's labour figures, as `/v1/vehicles/{id}/labor` gives\nthem. `null` when this server holds no labour estimates."
           },
           "links": {
             "$ref": "#/components/schemas/OverviewLinks"
@@ -8854,71 +8213,6 @@
           }
         }
       },
-      "VehicleLabor": {
-        "type": "object",
-        "description": "Labour estimates for one model year: for each job, the figure of the\nnarrowest scope that has one.",
-        "required": [
-          "vehicle",
-          "estimates",
-          "missing",
-          "note",
-          "attribution"
-        ],
-        "properties": {
-          "as_of": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "The newest day an estimate was changed."
-          },
-          "attribution": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "class": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/LaborClass",
-                "description": "`null` when the model year has no class: no class-scope figure\nreaches it."
-              }
-            ]
-          },
-          "engine": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "The engine the vehicle id named, as an id form. `null` when it\nnamed none: no engine-scope figure can then answer."
-          },
-          "estimates": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LaborFigure"
-            },
-            "description": "One for each job that has a figure covering the vehicle, in the\norder of the job list."
-          },
-          "missing": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/JobLink"
-            },
-            "description": "The jobs of the list with no figure for this vehicle, in the order\nof the job list: there is no Wenmar estimate for them."
-          },
-          "note": {
-            "type": "string",
-            "description": "\"An estimate, not a quote. …\""
-          },
-          "vehicle": {
-            "$ref": "#/components/schemas/RecallVehicle"
-          }
-        }
-      },
       "VehicleRecalls": {
         "type": "object",
         "description": "Recalls that may apply to one model year.",
@@ -9701,84 +8995,6 @@
           }
         }
       },
-      "VinLabor": {
-        "type": "object",
-        "description": "Labour estimates for the vehicle a VIN decodes to.",
-        "required": [
-          "decode",
-          "estimates",
-          "missing",
-          "note",
-          "attribution",
-          "warnings"
-        ],
-        "properties": {
-          "as_of": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "attribution": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "class": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/LaborClass"
-              }
-            ]
-          },
-          "decode": {
-            "$ref": "#/components/schemas/RecallDecode"
-          },
-          "engine": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "estimates": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LaborFigure"
-            }
-          },
-          "missing": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/JobLink"
-            },
-            "description": "The jobs of the list with no figure for this vehicle, in the order\nof the job list: there is no Wenmar estimate for them."
-          },
-          "note": {
-            "type": "string"
-          },
-          "vehicle": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/RecallVehicle",
-                "description": "`null` when the VIN decodes to no vehicle in the catalog."
-              }
-            ]
-          },
-          "warnings": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Warning"
-            }
-          }
-        }
-      },
       "VinRecallCount": {
         "type": "object",
         "description": "What a batch decode says of recalls when `include=recalls` is asked:\nhow many campaigns may apply to the model year the VIN decodes to.",
@@ -10038,8 +9254,8 @@
       "description": "Generic OBD-II trouble codes, described in this project's own words, and what is held about a code for one model year. Manufacturer-specific codes are not described."
     },
     {
-      "name": "Labour",
-      "description": "Wenmar's own estimates of the hours a repair job takes, by job and vehicle, under CC BY 4.0. An estimate, not a quote, and never taken from a labour guide. Each figure says what it is for: an engine, a run of model years, a model, or a class of vehicle."
+      "name": "Jobs",
+      "description": "Repair jobs: what each includes and excludes. The job ids are an open vocabulary shared with Wenmar Pro."
     },
     {
       "name": "Payroll",

@@ -2,7 +2,7 @@
 # rust-toolchain.toml and the commands under [tasks] can be run by hand.
 
 [tools]
-rust = "1.99.0"   # keep in sync with rust-toolchain.toml
+rust = "1.100.0"   # keep in sync with rust-toolchain.toml
 python = "3.14"   # tools/corpus, tools/catalog
 
 [tasks.check]
@@ -12,6 +12,25 @@ run = [
   "cargo clippy --workspace --all-targets --all-features -- -D warnings",
   "cargo test --workspace --all-features",
 ]
+
+[tasks.check-data]
+description = "Build the shop file's curated datasets against the newest data file, to catch data that no longer matches its catalog"
+run = '''
+set -eu
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort -V | tail -1)
+if [ -z "$data" ]; then
+  echo "No data file in data/build. Run: mise run data" >&2
+  exit 1
+fi
+out="data/build/curated-check.sqlite3"
+rm -f "$out"
+trap 'rm -f "$out"' EXIT
+cargo run --release -q -p open-data -- build-shop \
+  --catalog "$data" \
+  --out "$out" \
+  --data-version "$(date -u +%Y.%m.%d)" \
+  --curated data
+'''
 
 [tasks.doctor]
 description = "Check the data file and the API, and say which of them answers"
@@ -74,7 +93,7 @@ cargo run --release -q -p open-data -- build --dump "$dump" --out "$out"
 description = "Build the shop file from the newest data file and the fetched sources in data/build"
 run = '''
 set -eu
-data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort -V | tail -1)
 if [ -z "$data" ]; then
   echo "No data file in data/build. Run: mise run data" >&2
   exit 1
@@ -134,7 +153,7 @@ run = "node scripts/shop-pull.mjs"
 description = "Compare decodes with NHTSA's recorded answers"
 run = '''
 set -eu
-data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort -V | tail -1)
 if [ -z "$data" ]; then
   echo "No data file in data/build. Run: mise run data" >&2
   exit 1
@@ -146,7 +165,7 @@ cargo run --release -q -p open-data -- parity --data "$data"
 description = "Time VIN decoding: one at a time with and without the cache, and in batches"
 run = '''
 set -eu
-data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort -V | tail -1)
 if [ -z "$data" ]; then
   echo "No data file in data/build. Run: mise run data" >&2
   exit 1
@@ -158,7 +177,7 @@ cargo run --release -q -p wenmar-open-db --example bench -- "$data"
 description = "Compare the catalog's models with NHTSA's recorded answers"
 run = '''
 set -eu
-data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort -V | tail -1)
 if [ -z "$data" ]; then
   echo "No data file in data/build. Run: mise run data" >&2
   exit 1
@@ -170,7 +189,7 @@ cargo run --release -q -p open-data -- catalog-parity --data "$data"
 description = "Ask for every stored link to a maker's site, one at a time, and write data/build/link-report.md. Never fails because a link did"
 run = '''
 set -eu
-data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort -V | tail -1)
 # With a data file, each address pattern in makes.yaml is tried on a few
 # model years. Without one, only the addresses written out are asked for.
 if [ -n "$data" ]; then
@@ -184,7 +203,7 @@ fi
 description = "Check how much of the newest shop file matched the catalog"
 run = '''
 set -eu
-data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort -V | tail -1)
 # The full file. The pattern does not reach into data/build/shop/offline/,
 # where the copy without bulletins is: data/coverage.yaml has a minimum for
 # bulletins, which that copy would fail.
@@ -201,7 +220,7 @@ cargo run --release -q -p open-data -- coverage --shop "$shop" --catalog "$data"
 description = "Run the website and the API on http://localhost:3000 with the newest data file in data/build, and the newest full shop file in data/build/shop if there is one"
 run = '''
 set -eu
-data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort | tail -1)
+data=$(ls data/build/wenmar-open-*.sqlite3 2>/dev/null | sort -V | tail -1)
 if [ -z "$data" ]; then
   echo "No data file in data/build. Run: mise run data" >&2
   exit 1

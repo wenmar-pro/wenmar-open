@@ -325,8 +325,6 @@ fn with_no_command_and_no_terminal_the_tool_says_what_it_is_and_stops() {
             "wenmar-open codes vehicle",
             "wenmar-open labor jobs",
             "wenmar-open labor job",
-            "wenmar-open labor vehicle",
-            "wenmar-open labor vin",
             "wenmar-open payroll deductions",
             "wenmar-open data pull",
             "wenmar-open data status",

@@ -1,4 +1,4 @@
-//! The repair jobs a labour time can be about, from `data/jobs.yaml`.
+//! The repair jobs of Wenmar's list, from `data/jobs.yaml`.
 //!
 //! A job's id is what makes two shops' times for it comparable. It never
 //! changes once used.

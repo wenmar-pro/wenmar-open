@@ -333,7 +333,7 @@ async fn bare_fts5_on_the_real_index_shows_where_it_diverges() {
     // The count is a guard, not the point: it proves the whole index was read
     // and not a prefix. It has to be updated when a monthly data file brings
     // a different number of models.
-    assert_eq!(rows.len(), 31_470, "the model count of the data file");
+    assert_eq!(rows.len(), 31_528, "the model count of the data file");
     let connection = index(&rows);
     for text in ["f150", "chevy", "2019 civic si", "civic honda"] {
         println!("{text:?} -> {:?}", models(&connection, text, 10));

@@ -60,6 +60,8 @@ async fn the_open_source_page_names_what_it_is_and_how_to_run_it() {
     assert!(html.contains("bin/setup") && html.contains("mise run serve"));
     assert!(html.contains(r#"<a href="https://open.example/docs">"#));
     assert!(html.contains(r#"<a href="https://github.com/wenmar-pro/wenmar-open">"#));
+    assert!(!html.contains("wenmar_labor"), "{html}");
+    assert!(!html.contains("labour times"), "{html}");
     // The Markdown copy is the same text.
     let text = markdown(&app, "/open-source-vin-decoder.md").await;
     assert!(text.starts_with("# Free, self-hostable VIN decoder API\n"));
@@ -265,26 +267,4 @@ async fn the_data_page_lists_every_dataset_with_its_licence() {
             .all(|licence| full.contains(&markdown_row(licence))),
         "{full}"
     );
-}
-
-#[tokio::test]
-async fn the_licences_name_the_ai_estimates_and_the_page_that_explains_them() {
-    use open_server::site::licences::LICENCES;
-    let ai = LICENCES
-        .iter()
-        .find(|licence| licence.dataset.contains("worked out by AI"))
-        .expect("a licence row for the AI estimates");
-    assert_eq!(ai.licence_id, "cc-by-4.0");
-    assert_eq!(
-        ai.licence,
-        "Creative Commons Attribution 4.0 International (CC BY 4.0)"
-    );
-    assert!(
-        ai.source.contains("/jobs/how-estimates-are-made"),
-        "{}",
-        ai.source
-    );
-    let app = common::app().await;
-    let (_, html) = page(&app, "/data").await;
-    assert!(html.contains("/jobs/how-estimates-are-made"), "{html}");
 }

@@ -92,8 +92,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * The repair jobs a labour estimate can be about, in the order of the
-         *     list. A job's id never changes.
+         * The repair jobs of Wenmar's list, in the order of the list. A job's id
+         *     never changes.
          */
         get: operations["jobs"];
         put?: never;
@@ -111,33 +111,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * One repair job: what it covers, what it does not, and what it
-         *     typically takes by class of vehicle.
-         */
+        /** One repair job: what it covers and what it does not. */
         get: operations["job"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/jobs/{job}/vehicles": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * The vehicles that have their own figure for one job. A class-scope
-         *     figure is typical of a class and is not a vehicle's own, so it is not
-         *     listed: what a shop does for one of these vehicles may take a different
-         *     time.
-         */
-        get: operations["job_vehicles"];
         put?: never;
         post?: never;
         delete?: never;
@@ -584,49 +559,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/vehicles/{id}/labor": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Labour estimates for a model year: for each job, the hours of the
-         *     narrowest scope that has a figure, and which scope that was.
-         * @description An estimate, not a quote. `scope` says what a figure is for: `class` is
-         *     typical for vehicles of that class and was not worked out on this one.
-         *     An id that ends with an engine asks for that engine.
-         */
-        get: operations["vehicle_labor"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vehicles/{id}/labor/{job}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * The labour estimate of one job for a model year. `estimates` has one
-         *     entry, or none when no figure covers the vehicle.
-         */
-        get: operations["vehicle_labor_job"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/vehicles/{id}/overview": {
         parameters: {
             query?: never;
@@ -853,43 +785,6 @@ export interface paths {
          *     holds every rating of the model year, as the vehicle route does.
          */
         get: operations["vin_fuel"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vin/{vin}/labor": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Labour estimates for the vehicle a VIN decodes to. When the decode
-         *     settles the engine, an engine-scope figure can answer.
-         */
-        get: operations["vin_labor"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/vin/{vin}/labor/{job}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** The labour estimate of one job for the vehicle a VIN decodes to. */
-        get: operations["vin_labor_job"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1876,19 +1771,9 @@ export interface components {
             /** @description The system a part belongs to. `null` for a system. */
             parent?: string | null;
         };
-        /**
-         * @description One repair job: what it covers, and what it typically takes by class
-         *     of vehicle.
-         */
+        /** @description One repair job: what it covers and what it does not. */
         JobDetail: {
-            /** @description The credit the labour estimates ask for. Empty without them. */
-            attribution: string[];
             components: components["schemas"]["JobComponent"][];
-            /**
-             * @description The job's class-scope figures. `null` where labour estimates are
-             *     not held.
-             */
-            estimates?: components["schemas"]["LaborFigure"][] | null;
             /** @description Work often done at the same visit that is not part of this job. */
             excludes: string[];
             /** @example brake-pads-front */
@@ -1896,8 +1781,6 @@ export interface components {
             /** @description The work the job covers. */
             includes: string[];
             name: string;
-            /** @description What an estimate is not. */
-            note: string;
             related: components["schemas"]["JobLink"][];
             /** @example brakes */
             system: string;
@@ -1925,7 +1808,7 @@ export interface components {
              */
             url: string;
         };
-        /** @description The repair jobs a labour estimate can be about. */
+        /** @description The repair jobs of Wenmar's list. */
         JobList: {
             /**
              * @description The day the list was last changed.
@@ -1935,156 +1818,6 @@ export interface components {
             attribution: string[];
             /** @description In the order of the list. */
             jobs: components["schemas"]["JobLink"][];
-        };
-        /**
-         * @description A vehicle that has its own figure for a job: the model, and the figure
-         *     that is narrower than class.
-         */
-        JobVehicle: {
-            /**
-             * @description The figure. Its `page_url` is the newest model year of its range
-             *     that the catalog holds.
-             */
-            figure: components["schemas"]["LaborFigure"];
-            /** @example Hyundai */
-            make: string;
-            /** @example hyundai */
-            make_slug: string;
-            /** @example Kona */
-            model: string;
-            /** @example kona */
-            model_slug: string;
-        };
-        /** @description The vehicles that have their own figure for one job. */
-        JobVehicles: {
-            attribution: string[];
-            job: components["schemas"]["JobLink"];
-            /** @description Pass it back as `cursor` for the next page. `null` on the last. */
-            next_cursor?: string | null;
-            /** @description What an estimate is not. */
-            note: string;
-            /** @description In make, model and year order. */
-            vehicles: components["schemas"]["JobVehicle"][];
-        };
-        /** @description The class a model year is in. */
-        LaborClass: {
-            /** @example small-suv */
-            id: string;
-            /** @example Small SUV */
-            name: string;
-            /**
-             * @description `epa`: EPA's size class for the model year. `nearest`: that of the
-             *     nearest model year of the same model EPA rated.
-             */
-            source: string;
-        };
-        /** @description One labour estimate: the hours a job takes, and what the figure is for. */
-        LaborFigure: {
-            /**
-             * @description `expert`: written by a person who does the work. `observed`:
-             *     measured from repair orders; `sample` then says how many. `ai`:
-             *     worked out by a model from the job and the repair steps, not checked
-             *     by a person; `confidence_pct`, `model`, `method` and `inputs` then
-             *     say how. Within one scope: observed, then expert, then ai.
-             * @example expert
-             */
-            basis: string;
-            /**
-             * @description The class, for a class-scope figure.
-             * @example small-suv
-             */
-            class?: string | null;
-            /** @example Small SUV */
-            class_name?: string | null;
-            /**
-             * Format: int64
-             * @description For an `ai` figure: how sure the model was, in percent (at most 60).
-             *     `null` for the others.
-             * @example 45
-             */
-            confidence_pct?: number | null;
-            /** @description The engine's id form, for an engine-scope figure. */
-            engine?: string | null;
-            hours: components["schemas"]["LaborHours"];
-            /**
-             * @description For an `ai` figure: what it was worked out from, of `vehicle`,
-             *     `job`, `wenmar-figures` and `procedure` (a repair procedure's steps,
-             *     never its numbers). `null` for the others.
-             */
-            inputs?: string[] | null;
-            /**
-             * @description The job's id.
-             * @example brake-pads-front
-             */
-            job: string;
-            /**
-             * @description For an `ai` figure: the prompt version. `null` for the others.
-             * @example open-labour-ai-1
-             */
-            method?: string | null;
-            /** @description The page that says how figures of this basis are made. */
-            method_url?: string | null;
-            /** @description For an `ai` figure: the model that answered. `null` for the others. */
-            model?: string | null;
-            name: string;
-            notes?: string | null;
-            /**
-             * @description The page that shows this figure to a person, for the vehicle asked
-             *     about: its `labor` page, with `?engine=` for an engine's figure.
-             *     `null` in a job's class list, which is for no vehicle.
-             * @example https://open.wenmarpro.com/makes/hyundai/kona/2023/labor/brake-pads-front
-             */
-            page_url?: string | null;
-            sample?: null | components["schemas"]["LaborSample"];
-            /**
-             * @description What the figure is for, and so how far to trust it for one
-             *     vehicle: `engine`, `generation`, `model` or `class`.
-             * @example class
-             */
-            scope: string;
-            /**
-             * @description The day the figure was last changed.
-             * @example 2026-10-12
-             */
-            updated: string;
-            /** @description The job's page on this site. */
-            url: string;
-            years?: null | components["schemas"]["LaborYears"];
-        };
-        /** @description Hours, as numbers of hours. */
-        LaborHours: {
-            /**
-             * Format: double
-             * @description Allowing for rust and seized fasteners.
-             */
-            high: number;
-            /** Format: double */
-            low: number;
-            /**
-             * Format: double
-             * @description A vehicle in ordinary condition.
-             */
-            typical: number;
-        };
-        /** @description What stands behind a measured figure. */
-        LaborSample: {
-            /**
-             * Format: int64
-             * @description Repair orders.
-             */
-            jobs: number;
-            /**
-             * Format: int64
-             * @description Shops they came from.
-             */
-            shops: number;
-        };
-        /** @description The first and last model year a figure covers. */
-        LaborYears: {
-            /** Format: int32 */
-            from: number;
-            /** Format: int32 */
-            to: number;
         };
         /** @description A make in the make step of a vehicle form. */
         Make: {
@@ -2260,11 +1993,6 @@ export interface components {
             fluids?: Record<string, unknown> | null;
             fuel?: Record<string, unknown> | null;
             generation?: null | components["schemas"]["Generation"];
-            /**
-             * @description The vehicle's labour figures, as `/v1/vehicles/{id}/labor` gives
-             *     them. `null` when this server holds no labour estimates.
-             */
-            labor?: Record<string, unknown> | null;
             links: components["schemas"]["OverviewLinks"];
             recalls?: null | components["schemas"]["OverviewRecalls"];
             safety?: null | components["schemas"]["VehicleSafety"];
@@ -3412,34 +3140,6 @@ export interface components {
             note: string;
             vehicle: components["schemas"]["RecallVehicle"];
         };
-        /**
-         * @description Labour estimates for one model year: for each job, the figure of the
-         *     narrowest scope that has one.
-         */
-        VehicleLabor: {
-            /** @description The newest day an estimate was changed. */
-            as_of?: string | null;
-            attribution: string[];
-            class?: null | components["schemas"]["LaborClass"];
-            /**
-             * @description The engine the vehicle id named, as an id form. `null` when it
-             *     named none: no engine-scope figure can then answer.
-             */
-            engine?: string | null;
-            /**
-             * @description One for each job that has a figure covering the vehicle, in the
-             *     order of the job list.
-             */
-            estimates: components["schemas"]["LaborFigure"][];
-            /**
-             * @description The jobs of the list with no figure for this vehicle, in the order
-             *     of the job list: there is no Wenmar estimate for them.
-             */
-            missing: components["schemas"]["JobLink"][];
-            /** @description "An estimate, not a quote. …" */
-            note: string;
-            vehicle: components["schemas"]["RecallVehicle"];
-        };
         /** @description Recalls that may apply to one model year. */
         VehicleRecalls: {
             as_of: components["schemas"]["RecallAsOf"];
@@ -3678,23 +3378,6 @@ export interface components {
             /** @description Whether `ratings` is narrowed to `engine`. */
             engine_settled: boolean;
             ratings: components["schemas"]["FuelRating"][];
-            vehicle?: null | components["schemas"]["RecallVehicle"];
-            warnings: components["schemas"]["Warning"][];
-        };
-        /** @description Labour estimates for the vehicle a VIN decodes to. */
-        VinLabor: {
-            as_of?: string | null;
-            attribution: string[];
-            class?: null | components["schemas"]["LaborClass"];
-            decode: components["schemas"]["RecallDecode"];
-            engine?: string | null;
-            estimates: components["schemas"]["LaborFigure"][];
-            /**
-             * @description The jobs of the list with no figure for this vehicle, in the order
-             *     of the job list: there is no Wenmar estimate for them.
-             */
-            missing: components["schemas"]["JobLink"][];
-            note: string;
             vehicle?: null | components["schemas"]["RecallVehicle"];
             warnings: components["schemas"]["Warning"][];
         };
@@ -4043,55 +3726,6 @@ export interface operations {
                 };
             };
             /** @description `not_found`: no job has that id. `dataset_unavailable`: this server holds no job list. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-        };
-    };
-    job_vehicles: {
-        parameters: {
-            query?: {
-                /** @description At most this many, up to 500. The default is 100. */
-                limit?: number;
-                /** @description `next_cursor` from the page before, unchanged. */
-                cursor?: string;
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description A job id.
-                 * @example brake-pads-front
-                 */
-                job: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The vehicles that have a figure of their own for the job, in make, model and year order. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["JobVehicles"];
-                };
-            };
-            /** @description `validation_failed`: `limit` or `cursor` is wrong. */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description `not_found`: no job has that id. `dataset_unavailable`: this server holds no labour estimates. */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -5114,81 +4748,6 @@ export interface operations {
             };
         };
     };
-    vehicle_labor: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description A vehicle id. An engine in the id narrows the answer to it.
-                 * @example 2018_ford_f-150
-                 */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description One estimate for each job that has a figure covering the vehicle. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["VehicleLabor"];
-                };
-            };
-            /** @description `not_found`: no vehicle has that id. `dataset_unavailable`: this server holds no labour estimates. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-        };
-    };
-    vehicle_labor_job: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description A vehicle id.
-                 * @example 2018_ford_f-150
-                 */
-                id: string;
-                /**
-                 * @description A job id.
-                 * @example brake-pads-front
-                 */
-                job: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The estimate, when there is one. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["VehicleLabor"];
-                };
-            };
-            /** @description `not_found`: no vehicle, or no job, has that id. `dataset_unavailable`: this server holds no labour estimates. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-        };
-    };
     vehicle_overview: {
         parameters: {
             query?: never;
@@ -5685,105 +5244,6 @@ export interface operations {
                 };
             };
             /** @description `not_found`: no manufacturer is registered for the first three characters. `dataset_unavailable`: this server holds no fuel ratings, or none for the country asked for. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-        };
-    };
-    vin_labor: {
-        parameters: {
-            query?: {
-                /** @description The model year, when the VIN's tenth character leaves two possible. */
-                year?: number;
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description A 17-character VIN.
-                 * @example KM8K2CAB4PU001140
-                 */
-                vin: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The estimates. `vehicle` is `null` and `estimates` empty when the VIN reaches no catalog vehicle. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["VinLabor"];
-                };
-            };
-            /** @description `invalid_vin`. */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description `dataset_unavailable`: this server holds no labour estimates. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-        };
-    };
-    vin_labor_job: {
-        parameters: {
-            query?: {
-                /** @description The model year, when the VIN's tenth character leaves two possible. */
-                year?: number;
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description A 17-character VIN.
-                 * @example KM8K2CAB4PU001140
-                 */
-                vin: string;
-                /**
-                 * @description A job id.
-                 * @example brake-pads-front
-                 */
-                job: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The estimate, when there is one. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["VinLabor"];
-                };
-            };
-            /** @description `invalid_vin`. */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description `not_found`: no job has that id. `dataset_unavailable`: this server holds no labour estimates. */
             404: {
                 headers: {
                     [name: string]: unknown;

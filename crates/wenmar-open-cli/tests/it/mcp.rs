@@ -81,7 +81,6 @@ fn a_client_can_initialize_and_list_the_tools() {
             "wenmar_recalls",
             "wenmar_bulletins",
             "wenmar_codes",
-            "wenmar_labor",
             "wenmar_payroll_deductions"
         ]
     );

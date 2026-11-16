@@ -1,6 +1,6 @@
 # Wenmar Open
 
-Free vehicle data and shop calculators for auto repair shops: VIN decoding, a vehicle catalog, recalls, manufacturer service bulletins, OBD-II trouble codes and labour estimates. No API key, no signup.
+Free vehicle data and shop calculators for auto repair shops: VIN decoding, a vehicle catalog, recalls, manufacturer service bulletins and OBD-II trouble codes. No API key, no signup.
 
 Wenmar Open is built and hosted by [Wenmar Pro](https://wenmarpro.com), shop management software for independent auto repair shops.
 
@@ -68,7 +68,7 @@ Fields and endpoints are only ever added.
 ### For AI agents
 
 - `GET /v1/vin/{vin}` needs no key and no header: an assistant that can fetch an address can decode a VIN.
-- `/mcp` is a Model Context Protocol endpoint (Streamable HTTP, no key) with seven tools, `wenmar_vin`, `wenmar_vehicles`, `wenmar_recalls` (recalls that may apply to a model year; confirm by VIN with the manufacturer), `wenmar_bulletins` (manufacturer bulletins that list a model year; a bulletin is not a recall), `wenmar_codes` (generic OBD-II trouble codes), `wenmar_labor` (Wenmar's estimate of the hours a repair job takes) and `wenmar_payroll_deductions` (the Ontario deductions a pay owes). It answers protocol revision 2026-07-28 and the revisions that open with `initialize`. The site's own address, `https://open.wenmarpro.com`, answers MCP messages too, so a connector given the bare domain works.
+- `/mcp` is a Model Context Protocol endpoint (Streamable HTTP, no key) with six tools, `wenmar_vin`, `wenmar_vehicles`, `wenmar_recalls` (recalls that may apply to a model year; confirm by VIN with the manufacturer), `wenmar_bulletins` (manufacturer bulletins that list a model year; a bulletin is not a recall), `wenmar_codes` (generic OBD-II trouble codes) and `wenmar_payroll_deductions` (the Ontario deductions a pay owes). It answers protocol revision 2026-07-28 and the revisions that open with `initialize`. The site's own address, `https://open.wenmarpro.com`, answers MCP messages too, so a connector given the bare domain works.
 - `/llms.txt` describes the service for language models, and `/llms-full.txt` is the documentation as one Markdown file.
 - `/.well-known/api-catalog` points to the OpenAPI description (RFC 9727).
 - `robots.txt` welcomes AI crawlers on everything except single VINs.
@@ -110,6 +110,7 @@ Without mise: `OPEN_DATA=data/build/wenmar-open-2026.09.sqlite3 cargo run -p ope
 | `bin/shop-pull` | Fetch the full file of the newest shop data release that pairs with the data version in `config/deploy.yml` |
 | `bin/ship` | Fetch the newest complete data and shop pair, commit `config/deploy.yml`, deploy with Kamal, and verify the live versions |
 | `bin/check` | Format check, lints and tests: what CI runs |
+| `bin/check-data` | Build the shop file's curated datasets against the newest data file, to catch data that no longer matches its catalog. CI and the data release run the same check |
 | `bin/parity`, `bin/catalog-parity` | Compare the data and the catalog with NHTSA's answers |
 | `bin/js` | Build and test the npm client |
 | `bin/release-check` | Check that a release would work |
@@ -198,7 +199,7 @@ Free-text search finds more online than offline. The data file reads the text as
 
 Piped, the output is JSON; at a terminal it is text. `--json` prints JSON at a terminal too, and `--jq EXPR` filters it with a jq expression. An error is JSON on standard error, in the API's shape, with a non-zero exit code.
 
-For AI agents: `wenmar-open mcp` is an MCP server on standard input and output with seven tools, `wenmar_vin`, `wenmar_vehicles`, `wenmar_recalls`, `wenmar_bulletins`, `wenmar_codes`, `wenmar_labor` and `wenmar_payroll_deductions`. `wenmar-open setup claude` or `wenmar-open setup codex` writes a skill file that describes the commands and prints the command that registers the MCP server. `wenmar-open doctor` says whether the data file and the API can answer.
+For AI agents: `wenmar-open mcp` is an MCP server on standard input and output with six tools, `wenmar_vin`, `wenmar_vehicles`, `wenmar_recalls`, `wenmar_bulletins`, `wenmar_codes` and `wenmar_payroll_deductions`. `wenmar-open setup claude` or `wenmar-open setup codex` writes a skill file that describes the commands and prints the command that registers the MCP server. `wenmar-open doctor` says whether the data file and the API can answer.
 
 Run with no command at a terminal, `wenmar-open` opens a one-screen interface: type a VIN or a vehicle such as `2019 civic si`, press Enter, and read the answer. Esc clears the line, and Esc again leaves.
 
@@ -230,9 +231,7 @@ A campaign names vehicles by year, make and model in the publisher's own words, 
 3. Defect investigations, recall completion rates and crash ratings.
 4. Service bulletins (NHTSA manufacturer communications), then trouble codes, fuel economy and engine oil grades.
 5. Camera VIN scanning on the website, and more coverage of Canada-only vehicles.
-6. Labor times.
-
-Labor times depend on finding a source that can be redistributed freely. The standard commercial labor guides are licensed products and cannot be.
+6. Labor times are not part of this project: they live at [labor.wenmarpro.com](https://labor.wenmarpro.com), which asks Wenmar for every figure.
 
 ## Contributing
 

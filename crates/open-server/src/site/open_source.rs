@@ -23,7 +23,7 @@ pub const DESCRIPTION: &str = "Free, self-hostable VIN decoder API and open sour
 pub fn doc(base: &str) -> Doc {
     Doc {
         title: "Free, self-hostable VIN decoder API".to_owned(),
-        intro: "Wenmar Open is a free self-hostable VIN decoder API and open source VIN lookup. It decodes a 17-character VIN to its year, make, model, trim, engine and safety equipment, and answers for a vehicle's recalls, service bulletins, trouble codes and labour times. Every answer is JSON, with no key and no account. The same lookups are an MCP server for VIN decoding.".to_owned(),
+        intro: "Wenmar Open is a free self-hostable VIN decoder API and open source VIN lookup. It decodes a 17-character VIN to its year, make, model, trim, engine and safety equipment, and answers for a vehicle's recalls, service bulletins and trouble codes. Every answer is JSON, with no key and no account. The same lookups are an MCP server for VIN decoding.".to_owned(),
         sections: vec![
             with_code(
                 with_links(
@@ -72,7 +72,7 @@ pub fn doc(base: &str) -> Doc {
                     section(
                         "MCP server for VIN decoding",
                         &[
-                            "The hosted service is also an MCP server for VIN decoding. It speaks Streamable HTTP, needs no key, and offers the tools wenmar_vin, wenmar_vehicles, wenmar_recalls, wenmar_bulletins, wenmar_codes, wenmar_labor and wenmar_payroll_deductions. A connector given the bare domain works too, because the site's own address answers MCP messages.",
+                            "The hosted service is also an MCP server for VIN decoding. It speaks Streamable HTTP, needs no key, and offers the tools wenmar_vin, wenmar_vehicles, wenmar_recalls, wenmar_bulletins, wenmar_codes and wenmar_payroll_deductions. A connector given the bare domain works too, because the site's own address answers MCP messages.",
                             "Add the address as a remote server or a custom connector:",
                         ],
                     ),

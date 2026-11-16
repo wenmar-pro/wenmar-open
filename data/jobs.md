@@ -1,6 +1,6 @@
 # Jobs
 
-`jobs.yaml` lists the repair jobs a labour time can be about. It is written by hand for this project. A labour time is only comparable between two shops if both mean the same work by the job, so each job says what it includes and what it does not, and its id never changes once a labour record (`data/labor/`) or a repair order uses it.
+`jobs.yaml` lists the repair jobs of Wenmar's list. It is written by hand for this project. A job is only comparable between two shops if both mean the same work by it, so each job says what it includes and what it does not, and its id never changes once a repair order uses it.
 
 Wenmar Pro records repair orders against these ids. Anyone else may use them too.
 
@@ -33,7 +33,7 @@ jobs:
 
 ## Rules
 
-- **Never a time.** No hours and no minutes in this file. Times are in `data/labor/`.
+- **Never a time.** No hours and no minutes in this file.
 - **Our own words.** Do not copy a job list, an operation name or an operation description from a labour guide (MOTOR, Mitchell, ALLDATA), from shop software or from another website.
 - **One job, one piece of work.** Where shops often do two things together and bill them as one, make a job for the pair as well (`brake-pads-and-rotors-front`) rather than stretching one job to mean both.
 - **General, not about one make.** A job is the same job on every vehicle. What differs by vehicle is the time.

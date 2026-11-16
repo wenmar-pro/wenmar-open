@@ -1,4 +1,4 @@
-//! `data/jobs.yaml`: the repair jobs a labour time can be about, built
+//! `data/jobs.yaml`: the repair jobs of Wenmar's list, built
 //! into the `job` and `job_component` tables once the list is reviewed.
 
 use std::collections::HashSet;

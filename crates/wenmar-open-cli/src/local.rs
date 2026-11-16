@@ -212,18 +212,14 @@ impl Local {
         json(answers.complaints(id).map_err(answer_error)?)
     }
 
-    /// The job list and the labour estimates, from the shop file beside
+    /// The job list and one job's definition, from the shop file beside
     /// the data file, worded as the hosted API words them.
     fn labor(&self, action: LaborAction, lookup: &LaborLookup) -> Result<Value, CliError> {
-        let asked = match (action, &lookup.job) {
-            (LaborAction::Jobs, _) => Dataset::Jobs,
-            _ => Dataset::Labor,
-        };
         let Some(shop) = &self.shop else {
             return Err(if self.shop_status.installed {
                 shop_unusable(&self.shop_status)
             } else {
-                dataset_unavailable(asked)
+                dataset_unavailable(Dataset::Jobs)
             });
         };
         let answers = Answers {
@@ -232,26 +228,11 @@ impl Local {
             core: &self.core,
             base: SITE,
         };
-        let text = |field: &Option<String>| field.clone().unwrap_or_default();
-        let job = lookup.job.as_deref();
         match action {
-            LaborAction::Jobs => match job {
+            LaborAction::Jobs => match lookup.job.as_deref() {
                 Some(job) => json(answers.job(job).map_err(answer_error)?),
                 None => json(answers.jobs().map_err(answer_error)?),
             },
-            LaborAction::Vehicle => json(
-                answers
-                    .vehicle_labor(&text(&lookup.id), job)
-                    .map_err(answer_error)?,
-            ),
-            LaborAction::Vin => {
-                // The API looks for the estimates before it decodes the
-                // VIN, so the same error comes first here.
-                shop.require(Dataset::Labor)
-                    .map_err(|error| answer_error(error.into()))?;
-                let decode = self.decode(&text(&lookup.vin), lookup.year)?;
-                json(answers.vin_labor(&decode, job).map_err(answer_error)?)
-            }
         }
     }
 

@@ -45,6 +45,62 @@ jobs:
       # and the data-file tables from the workspace.
       - run: scripts/release-data-test.sh
 
+  curated:
+    # The shop file's curated datasets (jobs, codes and the hand-kept
+    # records) are checked against the newest released data file, which is the
+    # catalog the next shop release will use. The fetched sources are not
+    # needed: the curated steps run without them.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install pinned toolchain
+        run: rustup toolchain install
+      - name: Build the data tool
+        run: cargo build --release --locked -p open-data
+      - name: The newest data release
+        id: data
+        run: |
+          set -euo pipefail
+          version=$(gh release list --limit 200 --exclude-drafts --exclude-pre-releases \
+            --json tagName --jq '.[].tagName' \
+            | sed -n 's/^data-\([0-9]\{4\}\.[0-9]\{2\}\(\.[0-9]\+\)\?\)$/\1/p' \
+            | sort -t. -k1,1n -k2,2n -k3,3n | tail -n 1)
+          if [ -z "$version" ]; then
+            echo "There is no data-YYYY.MM release to check the curated data against." >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Data $version."
+      - name: Download the data file
+        env:
+          VERSION: ${{ steps.data.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p data/build
+          cd data/build
+          file="wenmar-open-$VERSION.sqlite3"
+          gh release download "data-$VERSION" \
+            --pattern "$file.gz" --pattern "$file.gz.sha256"
+          sha256sum --check "$file.gz.sha256"
+          gunzip "$file.gz"
+      - name: Build the shop file's curated datasets
+        env:
+          VERSION: ${{ steps.data.outputs.version }}
+        run: |
+          set -euo pipefail
+          ./target/release/open-data build-shop \
+            --catalog "data/build/wenmar-open-$VERSION.sqlite3" \
+            --out "$RUNNER_TEMP/curated-check.sqlite3" \
+            --data-version "$(date -u +%Y.%m.%d)" \
+            --curated data
+
   msrv:
     runs-on: ubuntu-24.04
     steps:

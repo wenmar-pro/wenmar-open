@@ -40,10 +40,6 @@ import type {
   VehicleInvestigationsQuery,
   JobDetail,
   JobList,
-  JobVehicles,
-  JobVehiclesQuery,
-  VehicleLabor,
-  VinLabor,
   VehicleBulletins,
   VehicleCode,
   VehicleRecalls,
@@ -297,52 +293,14 @@ export class WenmarOpen {
     return this.#request("GET", path, undefined, options);
   }
 
-  /** The repair jobs a labour estimate can be about. A job's id never changes. */
+  /** The repair jobs of Wenmar's list. A job's id never changes. */
   async jobs(options: RequestOptions = {}): Promise<JobList> {
     return this.#request("GET", "/v1/jobs", undefined, options);
   }
 
-  /** One repair job: what it covers, and what it typically takes by class of vehicle. */
+  /** One repair job: what it covers and what it does not. */
   async job(job: string, options: RequestOptions = {}): Promise<JobDetail> {
     return this.#request("GET", `/v1/jobs/${segment("job", job)}`, undefined, options);
-  }
-
-  /**
-   * The vehicles that have their own figure for one `job`, in make, model
-   * and year order. A class figure is typical of a class of vehicle, not a
-   * vehicle's own, so it is not listed. Pass `next_cursor` back as
-   * `cursor`.
-   */
-  async jobVehicles(
-    job: string,
-    query: JobVehiclesQuery = {},
-    options: RequestOptions = {},
-  ): Promise<JobVehicles> {
-    const path = `/v1/jobs/${segment("job", job)}/vehicles${queryString(query)}`;
-    return this.#request("GET", path, undefined, options);
-  }
-
-  /**
-   * Wenmar's labour estimates for a model year, or for one `job` of it:
-   * for each job, the hours of the narrowest scope that has a figure, and
-   * which scope that was. An estimate, not a quote. Credit it as
-   * `attribution` says.
-   */
-  async labor(id: string, job?: string, options: RequestOptions = {}): Promise<VehicleLabor> {
-    const narrowed = job === undefined ? "" : `/${segment("job", job)}`;
-    const path = `/v1/vehicles/${segment("id", id)}/labor${narrowed}`;
-    return this.#request("GET", path, undefined, options);
-  }
-
-  /** Labour estimates for the vehicle a VIN decodes to, or for one `job` of it. */
-  async vinLabor(
-    vin: string,
-    job?: string,
-    options: RequestOptions & { year?: number } = {},
-  ): Promise<VinLabor> {
-    const narrowed = job === undefined ? "" : `/${segment("job", job)}`;
-    const path = `/v1/vin/${segment("vin", vin)}/labor${narrowed}${queryString({ year: options.year })}`;
-    return this.#request("GET", path, undefined, options);
   }
 
   /**

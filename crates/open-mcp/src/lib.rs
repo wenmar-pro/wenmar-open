@@ -50,16 +50,15 @@ pub enum Era {
 pub const SERVER_NAME: &str = "wenmar-open";
 
 /// What a model is told about the server as a whole.
-pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. The overview action of either gives everything held for one vehicle in one answer. Use wenmar_recalls to list the recall campaigns from NHTSA and Transport Canada that may apply to a model year. A recall listed may apply: only the manufacturer can confirm it for one VIN. Use wenmar_bulletins to list the manufacturer service bulletins, warranty extensions and software updates that NHTSA publishes for a model year, or to search them by trouble code or by text. Use wenmar_codes to read what a generic OBD-II trouble code means and what bulletins and recalls a model year has for it. Use wenmar_labor for Wenmar's estimate of the hours a repair job takes on a vehicle: an estimate, not a quote. Use wenmar_payroll_deductions to work out the income tax, CPP, CPP2 and EI on one pay in Ontario by CRA's T4127 formulas: an estimate, and the employer remains liable. Every call is read-only and needs no key.";
+pub const INSTRUCTIONS: &str = "Wenmar Open is free vehicle data for auto repair shops, from NHTSA's vPIC. Use wenmar_vin to decode a VIN. Use wenmar_vehicles to step through year, make, model, submodel and engine, to search by free text, or to look up a vehicle id. The overview action of either gives everything held for one vehicle in one answer. Use wenmar_recalls to list the recall campaigns from NHTSA and Transport Canada that may apply to a model year. A recall listed may apply: only the manufacturer can confirm it for one VIN. Use wenmar_bulletins to list the manufacturer service bulletins, warranty extensions and software updates that NHTSA publishes for a model year, or to search them by trouble code or by text. Use wenmar_codes to read what a generic OBD-II trouble code means and what bulletins and recalls a model year has for it. Use wenmar_payroll_deductions to work out the income tax, CPP, CPP2 and EI on one pay in Ontario by CRA's T4127 formulas: an estimate, and the employer remains liable. Every call is read-only and needs no key.";
 
 /// The names of the tools, in the order `tools/list` gives them.
-pub const TOOL_NAMES: [&str; 7] = [
+pub const TOOL_NAMES: [&str; 6] = [
     "wenmar_vin",
     "wenmar_vehicles",
     "wenmar_recalls",
     "wenmar_bulletins",
     "wenmar_codes",
-    "wenmar_labor",
     "wenmar_payroll_deductions",
 ];
 
@@ -76,7 +75,7 @@ pub const CATALOG_TYPE: &str = "application/ai-catalog+json";
 /// One line, at most a hundred characters, on what this server is for. The
 /// schema sets that limit, and `registry server.json` holds the same words.
 pub const CARD_DESCRIPTION: &str =
-    "Free VIN decoder, recalls, bulletins, trouble codes, labour times and payroll. No key.";
+    "Free VIN decoder, recalls, bulletins, trouble codes and payroll. No key.";
 
 /// The Server Card (SEP-2127): what this server is and where to reach it,
 /// for a client that has a domain and no connection yet.
@@ -230,25 +229,6 @@ pub fn tools() -> Value {
                     "system": { "type": "string" },
                     "limit": { "type": "integer" },
                     "cursor": { "type": "string" }
-                },
-                "required": ["action"]
-            },
-            "annotations": { "readOnlyHint": true, "openWorldHint": false }
-        },
-        {
-            "name": "wenmar_labor",
-            "title": "Labour estimates",
-            "description": "Wenmar's own estimates of the hours a repair job takes: written by people who do the work, measured from repair orders, or worked out by AI from the repair steps; never copied from a labour guide. An estimate, not a quote. Rust, seized fasteners and added equipment change the time. action=jobs lists the jobs an estimate can be about; with `job` it gives one job: what it includes, what it excludes, and its typical hours by class of vehicle. action=vehicle takes `id`, a vehicle id such as \"2018_ford_f-150\" (an id that ends with an engine asks for that engine), and optionally `job`: for each job it gives `hours` (low, typical, high), `basis` (expert, observed or ai: an AI estimate worked out from the repair steps, not checked by a person; say so, with its confidence_pct) and `scope`, which says what the figure is for: engine, generation, model or class. `notes` says what an AI estimate assumed (the engine, both sides or one): repeat it when it matters; `page_url` is a page to give a person; `method_url` is the page that says how estimates are made. A class figure is typical for vehicles of that class and was not worked out on this vehicle: say so. A vehicle answer's `missing` lists the jobs with no Wenmar estimate for that vehicle: say there is none, never make one up. action=vin takes `vin` (and optionally `year`, `job`) and does the same for the vehicle the VIN decodes to. action=coverage takes `job` and lists the vehicles that have their own figure for it (make, model, years), for 'which vehicles do you have times for'; pass `next_cursor` back as `cursor` for more. No answer holds a price: multiply by the shop's own rate. Credit the data as `attribution` says: Labour estimates by Wenmar Pro, CC BY 4.0.",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "action": { "type": "string", "enum": ["jobs", "vehicle", "vin", "coverage"] },
-                    "job": { "type": "string", "description": "A job id, such as brake-pads-front." },
-                    "id": { "type": "string", "description": "A vehicle id, such as 2018_ford_f-150." },
-                    "vin": { "type": "string", "description": "A 17-character VIN. Spaces and dashes are ignored." },
-                    "year": { "type": "integer", "description": "For vin: the model year to use." },
-                    "limit": { "type": "integer", "description": "For coverage: at most this many vehicles, up to 500. The default is 100." },
-                    "cursor": { "type": "string", "description": "For coverage: `next_cursor` from the page before, unchanged." }
                 },
                 "required": ["action"]
             },
@@ -484,41 +464,6 @@ mod tests {
     }
 
     #[test]
-    fn the_labor_tool_says_an_estimate_is_not_a_quote() {
-        let tools = tools();
-        let tool = tools
-            .as_array()
-            .unwrap()
-            .iter()
-            .find(|tool| tool["name"] == "wenmar_labor")
-            .unwrap();
-        let description = tool["description"].as_str().unwrap();
-        assert!(
-            description.contains("Labour estimates by Wenmar Pro, CC BY 4.0"),
-            "{description}"
-        );
-        assert!(description.contains("`scope`"), "{description}");
-        assert!(
-            description.contains("never copied from a labour guide"),
-            "{description}"
-        );
-        assert!(
-            description.contains("expert, observed or ai"),
-            "{description}"
-        );
-        assert!(description.contains("`notes`"), "{description}");
-        assert!(description.contains("missing"), "{description}");
-        assert!(description.contains("`page_url`"), "{description}");
-        assert!(description.contains("`method_url`"), "{description}");
-        assert!(description.contains("action=coverage"), "{description}");
-        assert_eq!(
-            tool["inputSchema"]["properties"]["action"]["enum"],
-            json!(["jobs", "vehicle", "vin", "coverage"])
-        );
-        assert!(INSTRUCTIONS.contains("wenmar_labor"));
-    }
-
-    #[test]
     fn the_payroll_tool_says_estimate_and_liable_and_needs_no_action() {
         let tools = tools();
         let tool = tools
@@ -554,7 +499,7 @@ mod tests {
     }
 
     #[test]
-    fn there_are_seven_tools_and_each_gateway_tool_needs_an_action() {
+    fn there_are_six_tools_and_each_gateway_tool_needs_an_action() {
         let tools = tools();
         let tools = tools.as_array().unwrap();
         let names: Vec<&str> = tools
@@ -641,7 +586,7 @@ mod tests {
                 .unwrap()
                 .clone()
         };
-        assert_eq!(TOOL_NAMES.len(), 7);
+        assert_eq!(TOOL_NAMES.len(), 6);
         assert!(actions("wenmar_vin").contains(&json!("overview")));
         for action in ["entry", "overview", "model_years"] {
             assert!(
@@ -683,7 +628,7 @@ mod tests {
         assert!(description.contains("safety (`id`"), "{description}");
         assert!(description.contains("NHTSA"), "{description}");
         // An action of a tool that exists: no tool was added.
-        assert_eq!(TOOL_NAMES.len(), 7);
+        assert_eq!(TOOL_NAMES.len(), 6);
     }
 
     #[test]
@@ -712,7 +657,7 @@ mod tests {
             }
         }
         // Actions of tools that exist: no tool was added.
-        assert_eq!(TOOL_NAMES.len(), 7);
+        assert_eq!(TOOL_NAMES.len(), 6);
     }
 
     #[test]

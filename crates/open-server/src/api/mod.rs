@@ -46,7 +46,7 @@ use crate::state::AppState;
         (name = "Bulletins", description = "Manufacturer communications NHTSA publishes: service bulletins, service campaigns, warranty extensions and over-the-air updates, by model year. NHTSA's index and summary only; the document is linked at NHTSA."),
         (name = "Complaints", description = "What owners reported to NHTSA about a model year, as counts by component. Reports, not verified defects; counts, not rates."),
         (name = "Codes", description = "Generic OBD-II trouble codes, described in this project's own words, and what is held about a code for one model year. Manufacturer-specific codes are not described."),
-        (name = "Labour", description = "Wenmar's own estimates of the hours a repair job takes, by job and vehicle, under CC BY 4.0. An estimate, not a quote, and never taken from a labour guide. Each figure says what it is for: an engine, a run of model years, a model, or a class of vehicle."),
+        (name = "Jobs", description = "Repair jobs: what each includes and excludes. The job ids are an open vocabulary shared with Wenmar Pro."),
         (name = "Payroll", description = "Ontario payroll deductions for one pay by CRA's T4127 formulas (Option 1): income tax, CPP, CPP2 and EI, the net pay and the employer's share, with every factor used. An estimate: the employer remains liable to CRA for what it deducts and remits; check with CRA's Payroll Deductions Online Calculator (PDOC)."),
         (name = "Data", description = "About the data being served.")
     )
@@ -82,11 +82,6 @@ pub fn router() -> (axum::Router<AppState>, utoipa::openapi::OpenApi) {
         .routes(routes!(codes::vehicle_code))
         .routes(routes!(labor::jobs))
         .routes(routes!(labor::job))
-        .routes(routes!(labor::job_vehicles))
-        .routes(routes!(labor::vehicle_labor))
-        .routes(routes!(labor::vehicle_labor_job))
-        .routes(routes!(labor::vin_labor))
-        .routes(routes!(labor::vin_labor_job))
         .routes(routes!(investigations::vehicle_investigations))
         .routes(routes!(investigations::recall_investigations))
         .routes(routes!(overview::recent_recalls))

@@ -6,7 +6,12 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ### Added
 
+- `bin/check-data` (`mise run check-data`) builds the shop file's curated datasets against the newest data file, so a job or hand-written record that names a model year the catalog no longer has fails before a release. CI runs it against the newest released data file, and the data release runs it against the new catalog before publishing.
 - `/open-source-vin-decoder`, a page for the phrases "free self-hostable VIN decoder API", "open source VIN lookup" and "MCP server for VIN decoding", with the commands to run the server and connect an agent. It has a Markdown twin, is in the `pages` sitemap and `llms.txt`, and the home page links it. The home page, `/docs` and the new page describe the API as a schema.org `WebAPI` and the server as a `SoftwareApplication`: free, MIT licensed, with `{base}/docs` as its documentation.
+
+### Removed
+
+- Labour figures left the open app. The `/v1/vehicles/{id}/labor`, `/v1/vin/{vin}/labor` and `/v1/jobs/{job}/vehicles` routes, the overview's `labor` block, the `wenmar_labor` MCP tool, the vehicle-job pages and the labour suggestion form, `wenmar-open labor vehicle|vin`, the npm client's `labor`, `vinLabor` and `jobVehicles`, and the `labor` and `labor_ai` shop datasets are gone. The job list stays open: `/v1/jobs`, `/v1/jobs/{job}`, its pages, `wenmar-open labor jobs|job` and the `jobs` dataset. Labour hours are at `labor.wenmarpro.com`, which asks Wenmar for every figure.
 
 ## [0.5.0] - 2026-11-10
 

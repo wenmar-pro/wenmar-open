@@ -110,6 +110,19 @@ jobs:
             --data-version "${{ steps.pick.outputs.version }}" \
             --curated data | tee build.txt
 
+      - name: Check the curated data against the new catalog
+        if: steps.pick.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          # A data file whose catalog drops a model year that the shop file's
+          # curated data still names would break the shop release that follows.
+          # The fetched sources are not needed for this check.
+          ./target/release/open-data build-shop \
+            --catalog "data/build/wenmar-open-${{ steps.pick.outputs.version }}.sqlite3" \
+            --out "$RUNNER_TEMP/curated-check.sqlite3" \
+            --data-version "$(date -u +%Y.%m.%d)" \
+            --curated data
+
       - name: Compare decodes with NHTSA
         if: steps.pick.outputs.exists == 'false'
         run: |

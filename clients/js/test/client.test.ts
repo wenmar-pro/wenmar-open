@@ -195,31 +195,6 @@ const calls: Record<string, { call: () => Promise<unknown>; method: string; url:
     method: "GET",
     url: "/v1/jobs/brake-pads-front",
   },
-  job_vehicles: {
-    call: () => client.jobVehicles("brake-pads-front", { limit: 5 }),
-    method: "GET",
-    url: "/v1/jobs/brake-pads-front/vehicles?limit=5",
-  },
-  vehicle_labor: {
-    call: () => client.labor("2018_ford_f-150"),
-    method: "GET",
-    url: "/v1/vehicles/2018_ford_f-150/labor",
-  },
-  vehicle_labor_job: {
-    call: () => client.labor("2018_ford_f-150", "brake-pads-front"),
-    method: "GET",
-    url: "/v1/vehicles/2018_ford_f-150/labor/brake-pads-front",
-  },
-  vin_labor: {
-    call: () => client.vinLabor(KONA, undefined, { year: 2023 }),
-    method: "GET",
-    url: `/v1/vin/${KONA}/labor?year=2023`,
-  },
-  vin_labor_job: {
-    call: () => client.vinLabor(KONA, "brake-pads-front"),
-    method: "GET",
-    url: `/v1/vin/${KONA}/labor/brake-pads-front`,
-  },
   vehicle_bulletins: {
     call: () => client.bulletins("2018_ford_f-150", { type: "warranty_extension", limit: 5 }),
     method: "GET",

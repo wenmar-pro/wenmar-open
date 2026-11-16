@@ -302,9 +302,9 @@ impl Engine {
                     _ => ops::vehicle_code(&answers, args),
                 }
             }
-            "jobs" | "job" | "labor_vehicle" | "labor_vin" => {
+            "jobs" | "job" => {
                 let Some(shop) = &self.shop else {
-                    return Err(ops::no_labor(op));
+                    return Err(ops::no_jobs(op));
                 };
                 let answers = ops::RecallAnswers {
                     shop,
@@ -314,15 +314,7 @@ impl Engine {
                 };
                 match op {
                     "jobs" => ops::jobs(&answers),
-                    "job" => ops::job(&answers, args),
-                    "labor_vehicle" => ops::labor_vehicle(&answers, args),
-                    _ => {
-                        let current_year = current_year
-                            .and_then(Value::as_u64)
-                            .and_then(|year| u16::try_from(year).ok())
-                            .ok_or_else(|| bad_request("current_year"))?;
-                        ops::labor_vin(&answers, args, current_year)
-                    }
+                    _ => ops::job(&answers, args),
                 }
             }
             "overview_vehicle" | "overview_vin" | "model_years" => {

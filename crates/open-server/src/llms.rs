@@ -34,8 +34,6 @@ pub struct Held {
     pub codes: bool,
     /// The list of repair jobs.
     pub jobs: bool,
-    /// Labour estimates for those jobs.
-    pub labor: bool,
 }
 
 impl Held {
@@ -49,7 +47,6 @@ impl Held {
             complaints: holds_complaints(state),
             codes: state.dataset(Dataset::Codes).is_ok(),
             jobs: state.dataset(Dataset::Jobs).is_ok(),
-            labor: state.dataset(Dataset::Labor).is_ok(),
         }
     }
 
@@ -95,9 +92,6 @@ fn summary(data_version: &str, held: &Held) -> String {
     }
     if held.codes {
         more.push_str(" Generic OBD-II trouble codes, each described in plain words.");
-    }
-    if held.labor {
-        more.push_str(" Wenmar's own estimates of the hours a repair job takes on a vehicle.");
     }
     let by_model_year = held.by_model_year();
     if !by_model_year.is_empty() {
@@ -175,54 +169,21 @@ fn code_text(base: &str) -> (String, String, String) {
     (prose, api, pages)
 }
 
-/// What `/llms.txt` says about repair jobs and labour times: a paragraph
-/// of prose, the lines of `## API` and the lines of `## Reference pages`.
-/// `labor` says whether the server holds estimates as well as the job
-/// list: without them only the jobs are named. An estimate is not a quote.
-fn labor_text(base: &str, labor: bool) -> (String, String, String) {
-    let estimates = if labor {
-        format!(
-            " Wenmar's estimate of the hours a job takes on a vehicle is at `{base}/v1/vehicles/` followed by a vehicle id and `/labor`, or `{base}/v1/vin/` followed by a VIN and `/labor`: `hours` (low, typical, high), and `scope`, which says whether the figure is for that engine, generation or model, or is typical of its class of vehicle. Each figure has a `basis`: `expert` (written by a person who does the work), `observed` (measured from repair orders) or `ai` (worked out by a model from the repair steps, not checked by a person). An `ai` figure carries `confidence_pct`, `model`, `method`, `inputs` and `notes`, which says what it assumed: say so when you quote it, and link `method_url`, the page that says how estimates are made. It is an estimate, not a quote, and holds no price. Credit it as `attribution` says."
-        )
-    } else {
-        String::new()
-    };
+/// What `/llms.txt` says about repair jobs: a paragraph of prose, the lines
+/// of `## API` and the lines of `## Reference pages`.
+fn jobs_text(base: &str) -> (String, String, String) {
     let prose = format!(
-        "Common repair jobs are listed at `{base}/v1/jobs`, each with what it includes and excludes.{estimates}\n\n"
+        "Common repair jobs are listed at `{base}/v1/jobs`, each with what it includes and excludes.\n\n"
     );
-    let mut api = format!(
+    let api = format!(
         "- [Repair jobs]({base}/v1/jobs): `GET /v1/jobs`
 - [One repair job]({base}/v1/jobs/brake-pads-front): `GET /v1/jobs/{{job}}`
 "
     );
-    if labor {
-        api.push_str(&format!(
-            "- [Labour estimates for a model year]({base}/v1/vehicles/2019_honda_civic/labor): `GET /v1/vehicles/{{id}}/labor` and `GET /v1/vehicles/{{id}}/labor/{{job}}`
-- [Labour estimates for the vehicle a VIN decodes to]({base}/v1/vin/KM8K2CAB4PU001140/labor): `GET /v1/vin/{{vin}}/labor` and `GET /v1/vin/{{vin}}/labor/{{job}}`
-- [The vehicles that have a time for a job]({base}/v1/jobs/brake-pads-front/vehicles): `GET /v1/jobs/{{job}}/vehicles`
-"
-        ));
-    }
-    let made = if labor {
-        format!(
-            "- [How labour estimates are made]({base}/jobs/how-estimates-are-made.md): how every figure is made, counted from the data held\n"
-        )
-    } else {
-        String::new()
-    };
-    let vehicle_pages = if labor {
-        format!(
-            "- [Every labour time for a model year, such as the 2023 Hyundai Kona]({base}/makes/hyundai/kona/2023/labor.md): `/makes/{{make}}/{{model}}/{{year}}/labor.md`
-- [One job's time on a model year, such as front brake pads]({base}/makes/hyundai/kona/2023/labor/brake-pads-front.md): `/makes/{{make}}/{{model}}/{{year}}/labor/{{job}}.md`
-"
-        )
-    } else {
-        String::new()
-    };
     let pages = format!(
-        "- [Repair jobs and labour times]({base}/jobs.md): the list of jobs
+        "- [Repair jobs]({base}/jobs.md): the list of jobs
 - [One repair job, such as front brake pads]({base}/jobs/brake-pads-front.md): `/jobs/{{job}}.md`
-{vehicle_pages}{made}"
+"
     );
     (prose, api, pages)
 }
@@ -246,8 +207,8 @@ pub fn text(base: &str, data_version: &str, limit: u32, held: &Held) -> String {
     } else {
         Default::default()
     };
-    let (labor_prose, labor_api, labor_pages) = if held.jobs {
-        labor_text(base, held.labor)
+    let (jobs_prose, jobs_api, jobs_pages) = if held.jobs {
+        jobs_text(base)
     } else {
         Default::default()
     };
@@ -334,11 +295,11 @@ To decode a VIN, fetch `{base}/v1/vin/` followed by the VIN, and read the JSON. 
 
 Responses are plain JSON with no wrapper. Errors are `{{ \"error\": {{ \"code\", \"message\", \"details\" }} }}`. One address may make {limit} requests a minute; over that the answer is 429 with `Retry-After`. Fields and endpoints are only ever added.
 
-An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenmar_vin` (actions `decode`, `batch`, `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`, `safety`), `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`, `recent`), `wenmar_bulletins` (actions `vehicle`, `vin`, `get`, `search`), `wenmar_codes` (actions `get`, `search`, `vehicle`), `wenmar_labor` (actions `jobs`, `vehicle`, `vin`) and `wenmar_payroll_deductions` (no action: `frequency`, `gross` and the claims). `wenmar_recalls` lists recalls by year, make and model and never looks a VIN up: confirm by VIN with the manufacturer. `wenmar_bulletins` lists the manufacturer's bulletins by model year, and a bulletin is not a recall. `wenmar_codes` describes generic OBD-II trouble codes: a description is general and is not a diagnosis. `wenmar_labor` gives Wenmar's estimate of the hours a repair job takes: an estimate, not a quote. `wenmar_payroll_deductions` works out the income tax, CPP, CPP2 and EI on one pay in Ontario: an estimate, and the employer remains liable. `wenmar_vin` and `wenmar_vehicles` also have the actions `fuel`, `specs`, `fluids` and `tires`: fuel consumption ratings, specifications, the engine oil grade with the fluids a person read from the maker's documents, and original-equipment tire fitments, for a VIN or a vehicle id.
+An MCP server is at `{base}/mcp` (Streamable HTTP, no key). Its tools are `wenmar_vin` (actions `decode`, `batch`, `overview`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`, `safety`), `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search`, `recent`), `wenmar_bulletins` (actions `vehicle`, `vin`, `get`, `search`), `wenmar_codes` (actions `get`, `search`, `vehicle`) and `wenmar_payroll_deductions` (no action: `frequency`, `gross` and the claims). `wenmar_recalls` lists recalls by year, make and model and never looks a VIN up: confirm by VIN with the manufacturer. `wenmar_bulletins` lists the manufacturer's bulletins by model year, and a bulletin is not a recall. `wenmar_codes` describes generic OBD-II trouble codes: a description is general and is not a diagnosis. `wenmar_payroll_deductions` works out the income tax, CPP, CPP2 and EI on one pay in Ontario: an estimate, and the employer remains liable. `wenmar_vin` and `wenmar_vehicles` also have the actions `fuel`, `specs`, `fluids` and `tires`: fuel consumption ratings, specifications, the engine oil grade with the fluids a person read from the maker's documents, and original-equipment tire fitments, for a VIN or a vehicle id.
 
 The calculators under `{base}/tools` are web pages with forms, for people. An agent does the arithmetic itself: the Markdown version of each calculator states its formula and one worked example. The payroll deductions calculator is also `{base}/v1/payroll/deductions` and the tool `wenmar_payroll_deductions`, because its tables are too large to restate.
 
-{recall_prose}{bulletin_prose}{code_prose}{labor_prose}{complaint_prose}Vehicle ids such as `2019_honda_civic_si` are built from the year and the names, and stay the same between data releases for as long as the names do. Every reference page has a Markdown version at the same address with `.md` added. The data is what manufacturers reported to NHTSA. It can be incomplete, especially for vehicles never sold in the United States.
+{recall_prose}{bulletin_prose}{code_prose}{jobs_prose}{complaint_prose}Vehicle ids such as `2019_honda_civic_si` are built from the year and the names, and stay the same between data releases for as long as the names do. Every reference page has a Markdown version at the same address with `.md` added. The data is what manufacturers reported to NHTSA. It can be incomplete, especially for vehicles never sold in the United States.
 
 ## API
 
@@ -355,7 +316,7 @@ The calculators under `{base}/tools` are web pages with forms, for people. An ag
 - [Everything held for one model year]({base}/v1/vehicles/2019_honda_civic/overview): `GET /v1/vehicles/{{id}}/overview`
 - [Everything held for the vehicle a VIN decodes to]({base}/v1/vin/KM8K2CAB4PU001140/overview): `GET /v1/vin/{{vin}}/overview`
 - [Every model year of one model]({base}/v1/models/honda/civic): `GET /v1/models/{{make}}/{{model}}`
-{rating_api}{facts_api}{complaint_api}{recall_api}{bulletin_api}{code_api}{labor_api}- [Data version]({base}/v1/meta): `GET /v1/meta`
+{rating_api}{facts_api}{complaint_api}{recall_api}{bulletin_api}{code_api}{jobs_api}- [Data version]({base}/v1/meta): `GET /v1/meta`
 
 ## Docs
 
@@ -378,7 +339,7 @@ The calculators under `{base}/tools` are web pages with forms, for people. An ag
 - [One make, such as Honda]({base}/makes/honda.md): `/makes/{{make}}.md`
 - [One model year, such as the 2019 Honda Civic]({base}/makes/honda/civic/2019.md): `/makes/{{make}}/{{model}}/{{year}}.md`
 - [One manufacturer code, such as KM8]({base}/wmi/KM8.md): `/wmi/{{code}}.md`
-{recall_pages}{bulletin_pages}{code_pages}{labor_pages}
+{recall_pages}{bulletin_pages}{code_pages}{jobs_pages}
 ## Optional
 
 - [About the data]({base}/data.md): the data version, its source and how to download it

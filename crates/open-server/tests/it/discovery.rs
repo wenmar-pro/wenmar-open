@@ -782,7 +782,7 @@ async fn a_server_with_complaints_says_so_where_a_model_looks() {
 }
 
 #[tokio::test]
-async fn a_server_with_codes_or_labour_says_so_where_a_model_looks() {
+async fn a_server_with_codes_or_jobs_says_so_where_a_model_looks() {
     let app = common::codes_app().await;
     let text = body_text(app.get("/llms.txt").await).await;
     assert!(
@@ -811,67 +811,48 @@ async fn a_server_with_codes_or_labour_says_so_where_a_model_looks() {
     }
     assert!(!text.contains("/v1/jobs"), "{text}");
 
-    let app = common::labor_app().await;
+    let app = common::jobs_app().await;
     let text = body_text(app.get("/llms.txt").await).await;
-    assert!(text.contains("It is an estimate, not a quote"), "{text}");
-    for address in [
-        "/v1/jobs",
-        "/v1/vehicles/2019_honda_civic/labor",
-        "/v1/vin/KM8K2CAB4PU001140/labor",
-        "/jobs.md",
-    ] {
+    assert!(
+        text.contains("Common repair jobs are listed at `https://open.example/v1/jobs`"),
+        "{text}"
+    );
+    for address in ["/v1/jobs", "/jobs.md"] {
         assert!(
             text.contains(&format!("](https://open.example{address}): ")),
             "{address}: {text}"
         );
         assert_eq!(app.get(address).await.status(), StatusCode::OK, "{address}");
     }
-    // The vehicles that have a time for a job, which the fixtures must ask
-    // for one of their own.
+    assert_eq!(app.get("/jobs/test-job-a").await.status(), StatusCode::OK);
     assert!(
-        text.contains("](https://open.example/v1/jobs/brake-pads-front/vehicles): `GET /v1/jobs/{job}/vehicles`"),
+        !text.contains("/v1/vehicles/2019_honda_civic/labor"),
         "{text}"
     );
-    assert_eq!(
-        app.get("/v1/jobs/test-job-a/vehicles").await.status(),
-        StatusCode::OK
+    assert!(
+        !text.contains("/makes/{make}/{model}/{year}/labor"),
+        "{text}"
     );
-    for needle in [
-        "`basis`",
-        "`ai`",
-        "`confidence_pct`",
-        "/jobs/how-estimates-are-made",
+    assert!(!text.contains("wenmar_labor"), "{text}");
+    assert!(!text.contains("labour estimate"), "{text}");
+    assert!(!text.contains("hours a job"), "{text}");
+    for removed in [
+        "/v1/vehicles/2019_honda_civic/labor",
+        "/v1/vin/KM8K2CAB4PU001140/labor",
     ] {
-        assert!(text.contains(needle), "{needle}: {text}");
-    }
-    // The two vehicle labour page patterns, and their Markdown twins.
-    for (address, pattern) in [
-        (
-            "/makes/hyundai/kona/2023/labor.md",
-            "`/makes/{make}/{model}/{year}/labor.md`",
-        ),
-        (
-            "/makes/hyundai/kona/2023/labor/brake-pads-front.md",
-            "`/makes/{make}/{model}/{year}/labor/{job}.md`",
-        ),
-    ] {
-        assert!(
-            text.contains(&format!("](https://open.example{address}): {pattern}")),
-            "{address}: {text}"
+        assert_eq!(
+            app.get(removed).await.status(),
+            StatusCode::NOT_FOUND,
+            "{removed}"
         );
     }
-    // The list of every time for a model year is a page on this server.
-    assert_eq!(
-        app.get("/makes/hyundai/kona/2023/labor.md").await.status(),
-        StatusCode::OK
-    );
     assert!(!text.contains("/v1/codes"), "{text}");
 
     // Every tool is named whatever is held, and nothing else is said of
     // codes or jobs on a server without them.
     let text = body_text(common::app().await.get("/llms.txt").await).await;
     assert!(text.contains("`wenmar_codes` (actions `get`, `search`, `vehicle`)"));
-    assert!(text.contains("`wenmar_labor` (actions `jobs`, `vehicle`, `vin`)"));
+    assert!(!text.contains("wenmar_labor"));
     assert!(text.contains("`wenmar_payroll_deductions` (no action"));
     assert!(!text.contains("/v1/codes") && !text.contains("/v1/jobs"));
     assert!(!text.contains("/codes.md") && !text.contains("/jobs.md"));

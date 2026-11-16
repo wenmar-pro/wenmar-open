@@ -29,7 +29,7 @@ use serde::Deserialize;
 use serde::de::DeserializeOwned;
 use serde_json::{Value, json};
 
-use crate::api::{bulletins, codes, fuel, hand, labor, overview, payroll, recalls, vehicles, vin};
+use crate::api::{bulletins, codes, fuel, hand, overview, payroll, recalls, vehicles, vin};
 use crate::error::ApiError;
 use crate::state::AppState;
 
@@ -381,53 +381,6 @@ fn payroll_tool(given: &Value) -> Result<Value, ApiError> {
     to_value(payroll::deductions_op(&query)?)
 }
 
-/// What a `wenmar_labor` call may carry.
-#[derive(Debug, Default, Deserialize)]
-struct LaborArguments {
-    job: Option<String>,
-    id: Option<String>,
-    vin: Option<String>,
-    year: Option<u16>,
-    limit: Option<usize>,
-    cursor: Option<String>,
-}
-
-/// The job list and the labour estimates. Each action is the function
-/// behind a `/v1` route.
-async fn labor_tool(state: &AppState, action: &str, given: &Value) -> Result<Value, ApiError> {
-    let asked: LaborArguments = arguments(given)?;
-    match action {
-        "jobs" => match asked.job {
-            Some(job) => to_value(labor::job_op(state, job).await?),
-            None => to_value(labor::jobs_op(state).await?),
-        },
-        "vehicle" => {
-            let Some(id) = asked.id else {
-                return Err(ApiError::validation("id is required for action=vehicle"));
-            };
-            to_value(labor::vehicle_labor_op(state, id, asked.job).await?)
-        }
-        "vin" => {
-            let Some(vin) = asked.vin else {
-                return Err(ApiError::validation("vin is required for action=vin"));
-            };
-            to_value(labor::vin_labor_op(state, vin, asked.year, asked.job).await?)
-        }
-        "coverage" => {
-            let Some(job) = asked.job else {
-                return Err(ApiError::validation("job is required for action=coverage"));
-            };
-            let query = labor::JobVehiclesQuery {
-                limit: asked.limit,
-                cursor: asked.cursor,
-            };
-            to_value(labor::job_vehicles_op(state, job, query).await?)
-        }
-        _ => Err(ApiError::validation(
-            "action must be jobs, vehicle, vin or coverage",
-        )),
-    }
-}
 /// Runs one `tools/call`. `Err` is a protocol error; a tool that fails
 /// answers `Ok` with `isError`.
 async fn call(state: &AppState, params: &Value) -> Result<Value, (i64, String)> {
@@ -451,7 +404,6 @@ async fn call(state: &AppState, params: &Value) -> Result<Value, (i64, String)> 
         "wenmar_recalls" => recalls_tool(state, action, given).await,
         "wenmar_bulletins" => bulletins_tool(state, action, given).await,
         "wenmar_codes" => codes_tool(state, action, given).await,
-        "wenmar_labor" => labor_tool(state, action, given).await,
         "wenmar_payroll_deductions" => payroll_tool(given),
         _ => return Err((INVALID_PARAMS, format!("Unknown tool: {name:.60}"))),
     };

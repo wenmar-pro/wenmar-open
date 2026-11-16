@@ -15,7 +15,7 @@
 # The image tag pins the Rust version and already contains that toolchain, so
 # rustup never has to reach static.rust-lang.org. Keep it in sync with the
 # channel in rust-toolchain.toml and the rust pin in mise.toml.
-FROM rust:1.99.0-bookworm AS builder
+FROM rust:1.100.0-bookworm AS builder
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates

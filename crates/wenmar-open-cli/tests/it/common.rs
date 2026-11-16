@@ -308,6 +308,56 @@ pub fn shop_dir() -> Fixture {
     fixture
 }
 
+/// The `datasets` value of a shop file that holds the job list.
+pub const JOB_DATASETS: &str =
+    r#"{"jobs":{"as_of":"2026-10-11","rows":3,"licence":"mit","attribution":""}}"#;
+
+/// Three made-up jobs.
+pub const JOB_ROWS: &str = r#"
+INSERT INTO component VALUES
+  ('engine', 'Engine', NULL),
+  ('timing-belt', 'Timing belt or chain', 'engine'),
+  ('brakes', 'Brakes', NULL);
+INSERT INTO job VALUES
+  ('test-job-a', 'Test job A', 'engine', '["made-up step one","made-up step two"]', '["made-up exclusion"]', '["test-job-b"]', 0),
+  ('test-job-b', 'Test job B', 'brakes', '["made-up step"]', '[]', '[]', 1),
+  ('test-job-c', 'Test job C', 'engine', '["made-up step"]', '[]', '[]', 2);
+INSERT INTO job_component VALUES ('test-job-a', 'timing-belt', 0), ('test-job-a', 'engine', 1);
+"#;
+
+/// A data directory holding a data file and the shop file that goes with
+/// it, with the job list in it.
+pub fn jobs_dir() -> Fixture {
+    let fixture = data_dir();
+    let connection = Connection::open(fixture.shop_file()).unwrap();
+    connection
+        .execute_batch(wenmar_shopdata::schema::META)
+        .unwrap();
+    for (key, value) in [
+        ("schema_version", wenmar_shopdata::schema::SCHEMA_VERSION),
+        ("data_version", "2026.10.12"),
+        ("catalog_data_version", "2026.09"),
+        ("built_at", "2026-10-12 06:00:00"),
+        ("datasets", JOB_DATASETS),
+    ] {
+        connection
+            .execute(
+                "INSERT INTO meta (key, value) VALUES (?1, ?2)",
+                [key, value],
+            )
+            .unwrap();
+    }
+    connection
+        .execute_batch(wenmar_shopdata::schema::COMPONENTS)
+        .unwrap();
+    connection
+        .execute_batch(wenmar_shopdata::schema::JOBS)
+        .unwrap();
+    connection.execute_batch(JOB_ROWS).unwrap();
+    connection.close().unwrap();
+    fixture
+}
+
 // ----- crash test ratings -----
 
 /// The `datasets` value of a shop file that holds the crash test ratings

@@ -59,8 +59,8 @@ pub const LICENCES: &[Licence] = &[
     // ---- Shop-data plans add one row per dataset below this line. ----
     // In the order of the roadmap's dataset ids: recalls_us, recalls_ca,
     // investigations, recall_reports, ratings, bulletins, complaints, codes,
-    // fuel_us, fuel_ca, specs, oil_grade, fluids, tires, manuals, jobs, labor,
-    // labor_ai, vin_guides.
+    // fuel_us, fuel_ca, specs, oil_grade, fluids, tires, manuals, jobs,
+    // vin_guides.
     // The same row, cell for cell, goes above the marker in NOTICE.md.
     Licence {
         dataset: "Vehicle recall campaigns, United States",
@@ -119,25 +119,11 @@ pub const LICENCES: &[Licence] = &[
         attribution: "Keep the copyright notice in LICENSE.",
     },
     Licence {
-        dataset: "Job list: the repair jobs a labour time can be about",
+        dataset: "Job list: repair jobs of the Wenmar list",
         source: "Written by hand for this project, in its own words: data/jobs.yaml",
         licence: "MIT",
         licence_id: "mit",
         attribution: "Keep the copyright notice in LICENSE.",
-    },
-    Licence {
-        dataset: "Labour estimates: the hours a repair job takes",
-        source: "Wenmar Pro. Written by people who do the work, in data/labor/, and later measured from repair orders of shops that opt in. Never taken from a labour guide",
-        licence: "Creative Commons Attribution 4.0 International (CC BY 4.0)",
-        licence_id: "cc-by-4.0",
-        attribution: "Labour estimates by Wenmar Pro, CC BY 4.0",
-    },
-    Licence {
-        dataset: "Labour estimates worked out by AI: the hours a repair job takes",
-        source: "Wenmar Pro. Worked out by a model from the job and, when there is one, the steps of a repair procedure with every number removed, in data/labor/ai/. Never taken from a labour guide. How each is made: /jobs/how-estimates-are-made",
-        licence: "Creative Commons Attribution 4.0 International (CC BY 4.0)",
-        licence_id: "cc-by-4.0",
-        attribution: "Labour estimates by Wenmar Pro, CC BY 4.0",
     },
     Licence {
         dataset: "Index of the VIN guides manufacturers file under 49 CFR Part 565",

@@ -769,15 +769,7 @@ fn the_overview_commands_answer_from_the_files_as_the_api_words_it() {
         json!({ "page": format!("{SITE}/makes/hyundai/kona/2023"), "maker": null })
     );
     // A block the files do not hold is null, and it is there.
-    for block in [
-        "specs",
-        "fuel",
-        "fluids",
-        "tires",
-        "safety",
-        "labor",
-        "bulletins",
-    ] {
+    for block in ["specs", "fuel", "fluids", "tires", "safety", "bulletins"] {
         assert_eq!(answer[block], Value::Null, "{block}");
         assert!(answer.as_object().unwrap().contains_key(block), "{block}");
     }
@@ -906,7 +898,7 @@ fn without_the_shop_file_an_overview_still_answers_and_its_recalls_are_null() {
         answer["links"]["page"],
         format!("{SITE}/makes/hyundai/kona/2023")
     );
-    assert_eq!(answer.as_object().unwrap().len(), 15);
+    assert_eq!(answer.as_object().unwrap().len(), 14);
     assert_eq!(answer["complaints"], Value::Null);
 
     let run = offline(&fixture, &["vin", "overview", KONA]);
@@ -1289,4 +1281,77 @@ fn an_overview_has_the_crash_test_ratings_when_the_shop_file_holds_them() {
         "{}",
         run.stdout
     );
+}
+
+#[test]
+fn the_job_list_still_answers_offline_and_online() {
+    let fixture = common::jobs_dir();
+    let run = offline(&fixture, &["labor", "jobs"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    let answer = run.json();
+    assert_eq!(answer["jobs"][0]["id"], "test-job-a");
+    let run = offline(&fixture, &["labor", "job", "test-job-a"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    let answer = run.json();
+    assert_eq!(
+        answer["includes"],
+        json!(["made-up step one", "made-up step two"])
+    );
+    assert!(!answer.as_object().unwrap().contains_key("estimates"));
+
+    let server = server::serve(|request: &Seen| match request.target.as_str() {
+        "/v1/jobs" => Reply::json(
+            200,
+            &json!({
+                "as_of": "2026-10-11",
+                "jobs": [{ "id": "test-job-a", "name": "Test job A", "system": "engine", "url": format!("{SITE}/jobs/test-job-a") }],
+                "attribution": []
+            }),
+        ),
+        "/v1/jobs/test-job-a" => Reply::json(
+            200,
+            &json!({
+                "id": "test-job-a",
+                "name": "Test job A",
+                "system": "engine",
+                "system_name": "Engine",
+                "components": [],
+                "includes": ["made-up step one"],
+                "excludes": [],
+                "related": [],
+                "url": format!("{SITE}/jobs/test-job-a")
+            }),
+        ),
+        _ => Reply::json(
+            404,
+            &json!({ "error": { "code": "not_found", "message": "No job has that id." } }),
+        ),
+    });
+    let env = Env {
+        api: Some(server.url().to_owned()),
+        ..common::env(&fixture)
+    };
+    let run = common::run(&env, &["labor", "jobs", "--online"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(run.json()["jobs"][0]["id"], "test-job-a");
+    let run = common::run(&env, &["labor", "job", "test-job-a", "--online"]);
+    assert_eq!(run.code, 0, "{}", run.stderr);
+    assert_eq!(run.json()["includes"], json!(["made-up step one"]));
+}
+
+#[test]
+fn labour_hours_are_no_longer_a_command() {
+    let fixture = common::data_dir();
+    for args in [
+        &["labor", "vehicle", "2018_ford_f-150"][..],
+        &["labor", "vin", KONA][..],
+    ] {
+        let run = common::run(&common::env(&fixture), args);
+        assert_ne!(run.code, 0, "{args:?}");
+        assert!(
+            run.stderr.contains("unrecognized subcommand"),
+            "{args:?}: {}",
+            run.stderr
+        );
+    }
 }

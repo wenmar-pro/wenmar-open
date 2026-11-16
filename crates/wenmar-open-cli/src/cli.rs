@@ -92,13 +92,7 @@ pub enum Command {
         #[command(subcommand)]
         command: CodesCommand,
     },
-    /// Wenmar's estimates of the hours a repair job takes.
-    ///
-    /// An estimate, not a quote: rust, seized fasteners and added
-    /// equipment change the time. Each figure says what it is for: an
-    /// engine, a run of model years, a model, or a class of vehicle.
-    /// Labour estimates by Wenmar Pro, CC BY 4.0. Offline, they come from
-    /// the shop data file (see `wenmar-open data pull --shop`).
+    /// Wenmar's list of repair jobs: what each includes and excludes.
     Labor {
         #[command(subcommand)]
         command: LaborCommand,
@@ -472,33 +466,12 @@ pub struct CountryArg {
 
 #[derive(Debug, Subcommand)]
 pub enum LaborCommand {
-    /// The jobs an estimate can be about.
+    /// The repair jobs of Wenmar's list.
     Jobs,
-    /// One job: what it includes and excludes, and its typical hours by
-    /// class of vehicle.
+    /// One job: what it includes and excludes.
     Job {
         /// The job id, such as brake-pads-front.
         job: String,
-    },
-    /// The estimates for a model year, one for each job that has a figure.
-    Vehicle {
-        /// The vehicle id, such as 2018_ford_f-150. An id that ends with
-        /// an engine asks for that engine.
-        id: String,
-        /// Only this job.
-        #[arg(long)]
-        job: Option<String>,
-    },
-    /// The estimates for the vehicle a VIN decodes to.
-    Vin {
-        /// The 17-character VIN.
-        vin: String,
-        /// Use this model year instead of the one worked out from the VIN.
-        #[arg(long)]
-        year: Option<u16>,
-        /// Only this job.
-        #[arg(long)]
-        job: Option<String>,
     },
 }
 
@@ -572,30 +545,7 @@ impl LaborCommand {
     pub fn request(self) -> Request {
         let (action, lookup) = match self {
             LaborCommand::Jobs => (LaborAction::Jobs, LaborLookup::default()),
-            LaborCommand::Job { job } => (
-                LaborAction::Jobs,
-                LaborLookup {
-                    job: Some(job),
-                    ..LaborLookup::default()
-                },
-            ),
-            LaborCommand::Vehicle { id, job } => (
-                LaborAction::Vehicle,
-                LaborLookup {
-                    id: Some(id),
-                    job,
-                    ..LaborLookup::default()
-                },
-            ),
-            LaborCommand::Vin { vin, year, job } => (
-                LaborAction::Vin,
-                LaborLookup {
-                    vin: Some(vin),
-                    year,
-                    job,
-                    ..LaborLookup::default()
-                },
-            ),
+            LaborCommand::Job { job } => (LaborAction::Jobs, LaborLookup { job: Some(job) }),
         };
         Request::Labor { action, lookup }
     }

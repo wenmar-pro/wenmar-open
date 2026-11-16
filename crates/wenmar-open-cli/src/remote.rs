@@ -236,9 +236,8 @@ impl Remote {
         }
     }
 
-    /// The job and labour routes. Only text with the form of a job id, a
-    /// vehicle id or a VIN is put in a path. Every answer has the field
-    /// named last: one without it did not come from the API.
+    /// The job route. Only text with the form of a job id is put in a
+    /// path. The answer has `jobs` for the list and `includes` for one job.
     fn labor(&self, action: LaborAction, lookup: &LaborLookup) -> Result<Value, CliError> {
         use wenmar_shopdata::answer::NO_JOB;
         use wenmar_vehicles::text::is_slug;
@@ -248,27 +247,11 @@ impl Remote {
             Some(job) => format!("/{job}"),
             None => String::new(),
         };
-        let mut query: Vec<(&str, String)> = Vec::new();
         let (path, field) = match action {
             LaborAction::Jobs if job.is_empty() => ("/v1/jobs".to_owned(), "jobs"),
             LaborAction::Jobs => (format!("/v1/jobs{job}"), "includes"),
-            LaborAction::Vehicle => {
-                let id = lookup.id.clone().unwrap_or_default();
-                if VehicleId::parse(&id).is_none() {
-                    return Err(CliError::new(NOT_FOUND, "No vehicle has that id."));
-                }
-                (format!("/v1/vehicles/{id}/labor{job}"), "estimates")
-            }
-            LaborAction::Vin => {
-                if let Some(year) = lookup.year {
-                    query.push(("year", year.to_string()));
-                }
-                // `vin` is well formed, so it is safe in a path.
-                let vin = lookup.vin.clone().unwrap_or_default();
-                (format!("/v1/vin/{vin}/labor{job}"), "estimates")
-            }
         };
-        let answer = self.get(&path, &query)?;
+        let answer = self.get(&path, &[])?;
         if answer.get(field).is_some() {
             Ok(answer)
         } else {

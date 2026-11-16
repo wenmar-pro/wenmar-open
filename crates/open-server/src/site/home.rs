@@ -75,7 +75,7 @@ fn lookups(state: &AppState) -> Vec<(&'static str, &'static str)> {
         held.push(("OBD-II trouble codes", "/codes"));
     }
     if state.dataset(Dataset::Jobs).is_ok() {
-        held.push(("Repair jobs and labour times", "/jobs"));
+        held.push(("Repair jobs", "/jobs"));
     }
     held
 }
@@ -95,7 +95,7 @@ fn describe(lookups: &[(&'static str, &'static str)]) -> (&'static str, String) 
         named.push("trouble codes");
     }
     if holds("/jobs") {
-        named.push("labour times");
+        named.push("repair jobs");
     }
     let Some((last, first)) = named.split_last() else {
         return (

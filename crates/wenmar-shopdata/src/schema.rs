@@ -662,7 +662,7 @@ CREATE TABLE code_component (
 CREATE INDEX code_component_component ON code_component (component_id);
 ";
 
-/// The repair jobs a labour time can be about, from `data/jobs.yaml`: the
+/// The repair jobs of Wenmar's list, from `data/jobs.yaml`: the
 /// `jobs` dataset. `job.id` never changes once used. `system` is the id
 /// of a system of `component`. `includes`, `excludes` and `related` are
 /// JSON lists. `position` is the order of the file. A file that holds the
@@ -685,70 +685,4 @@ CREATE TABLE job_component (
     PRIMARY KEY (job_id, component_id)
 ) WITHOUT ROWID;
 CREATE INDEX job_component_component ON job_component (component_id);
-";
-
-/// Labour estimates, from `data/labor/`: the `labor` dataset, under
-/// CC BY 4.0. An estimate is the hours one job takes, in whole hundredths
-/// of an hour as `shop_math::Hours` counts them, for one scope:
-///
-/// - `class`: every vehicle of `class`, one of
-///   `wenmar_shopdata::labor::CLASSES`;
-/// - `model`: every model year of `model_id`;
-/// - `generation`: model years `year_from` to `year_to` of `model_id`;
-/// - `engine`: the same, with the engine whose id form is `engine`.
-///
-/// `basis` is `expert` (written by a person), `observed` (measured from
-/// repair orders; `sample_jobs` and `sample_shops` are then set, and
-/// `author` and `reviewer` are NULL) or `ai` (worked out by a model from the
-/// job and the repair steps; `author` and `reviewer` are NULL, and its
-/// row of [`LABOR_AI`] says how). `vehicle_class` holds the class of
-/// each model year that has one; `source` is `epa` or `nearest`. A file
-/// that holds the dataset also holds the `jobs` dataset.
-pub const LABOR: &str = "
-CREATE TABLE labor_estimate (
-    id            INTEGER PRIMARY KEY,
-    job_id        TEXT NOT NULL,
-    scope         TEXT NOT NULL,
-    class         TEXT,
-    make_id       INTEGER,
-    model_id      INTEGER,
-    year_from     INTEGER,
-    year_to       INTEGER,
-    engine        TEXT,
-    hours_low     INTEGER NOT NULL,
-    hours_typical INTEGER NOT NULL,
-    hours_high    INTEGER NOT NULL,
-    basis         TEXT NOT NULL,
-    sample_jobs   INTEGER,
-    sample_shops  INTEGER,
-    notes         TEXT,
-    author        TEXT,
-    reviewer      TEXT,
-    updated       TEXT NOT NULL
-);
-CREATE INDEX labor_estimate_job ON labor_estimate (job_id, scope);
-CREATE INDEX labor_estimate_model ON labor_estimate (model_id, job_id);
-
-CREATE TABLE vehicle_class (
-    model_id INTEGER NOT NULL,
-    year     INTEGER NOT NULL,
-    class    TEXT NOT NULL,
-    source   TEXT NOT NULL,
-    PRIMARY KEY (model_id, year)
-) WITHOUT ROWID;
-";
-
-/// The `labor_ai` dataset: how each `ai` row of `labor_estimate` was
-/// worked out. `confidence_pct` is the model's own, at most 60; `method`
-/// is the prompt version; `inputs` the kinds of input it was given, comma
-/// separated (`vehicle`, `job`, `wenmar-figures`, `procedure`). A file
-/// that holds the dataset also holds the `labor` dataset.
-pub const LABOR_AI: &str = "
-CREATE TABLE labor_ai (
-    estimate_id    INTEGER PRIMARY KEY REFERENCES labor_estimate (id),
-    confidence_pct INTEGER NOT NULL,
-    model          TEXT NOT NULL,
-    method         TEXT NOT NULL,
-    inputs         TEXT NOT NULL
-);
 ";

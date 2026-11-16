@@ -519,7 +519,7 @@ pub fn router() -> Router<AppState> {
         .route("/feedback", get(feedback::show).post(feedback::send))
         .route(
             "/feedback/labor",
-            get(feedback::show_labor).post(feedback::send_labor),
+            get(labor::old_feedback).post(labor::old_feedback_post),
         )
         .route("/makes", get(catalog::makes))
         .route("/makes.md", get(catalog::makes_md))
@@ -533,12 +533,12 @@ pub fn router() -> Router<AppState> {
         .route("/bulletins/{nhtsa_id}", get(bulletins::bulletin))
         .route("/jobs", get(labor::index))
         .route("/jobs.md", get(labor::index_md))
-        .route("/jobs/how-estimates-are-made", get(labor::method))
-        .route("/jobs/how-estimates-are-made.md", get(labor::method))
+        .route("/jobs/how-estimates-are-made", get(labor::old_method))
+        .route("/jobs/how-estimates-are-made.md", get(labor::old_method))
         .route("/jobs/{job}", get(labor::job))
         .route(
             "/makes/{make}/{model}/{year}/labor/{job}",
-            get(labor::model_year_labor),
+            get(labor::old_vehicle_job),
         )
         .route("/codes", get(codes::index))
         .route("/codes.md", get(codes::index_md))

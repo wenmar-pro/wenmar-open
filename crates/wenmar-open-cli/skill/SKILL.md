@@ -131,23 +131,16 @@ Generic OBD-II trouble codes, described in Wenmar Open's own words. `codes get` 
 - Bulletins are on the hosted service only. Offline, `bulletins` and `related.bulletins` are `null`; that is not an error. Ask again with `--online` for them.
 - Offline, the codes are in the shop data file. Without it the error is `dataset_unavailable` and `details.hint` is `Run: wenmar-open data pull --shop`.
 
-## Labour estimates
+## Repair jobs
 
 ```bash
 wenmar-open labor jobs
 wenmar-open labor job brake-pads-front
-wenmar-open labor vehicle 2018_ford_f-150 --job brake-pads-front
-wenmar-open labor vin 1FTEW1EP5JFA00000
 ```
 
-Wenmar's own estimates of the hours a repair job takes, written by people who do the work and never taken from a labour guide. `labor jobs` lists the jobs; `labor job` gives one, with what it `includes` and `excludes`. `labor vehicle` and `labor vin` give `estimates`: one entry for each job that has a figure covering the vehicle, with `hours.low`, `hours.typical` and `hours.high`.
+`labor jobs` lists the repair jobs of Wenmar's list; `labor job` gives one, with what it `includes` and `excludes`. The job ids are an open vocabulary and never change.
 
-- **An estimate, not a quote.** Say so, and never turn hours into a price without the shop's own rate.
-- `scope` says what a figure is for: `engine`, `generation`, `model` or `class`. A `class` figure is typical for vehicles of that class (`class_name`) and was not worked out on this vehicle: say that too.
-- `basis` is `expert` (written by a person) or `observed` (measured from repair orders; `sample` says how many jobs and shops).
-- A job that is missing from `estimates` has no figure for the vehicle. Do not guess one.
-- Credit the data as `attribution` says: `Labour estimates by Wenmar Pro, CC BY 4.0`.
-- Offline, the estimates are in the shop data file. Without it the error is `dataset_unavailable` and `details.hint` is `Run: wenmar-open data pull --shop`.
+- Offline, the job list is in the shop data file. Without it the error is `dataset_unavailable` and `details.hint` is `Run: wenmar-open data pull --shop`.
 
 ## Recalls
 
@@ -205,7 +198,7 @@ wenmar-open recalls recent --since 2026-09-01 --make ford --country ca
 ```
 
 - `vehicles overview` and `vin overview` give `vehicle`, `decode` (what the VIN decoded to in brief; `null` when asked by vehicle id), `recalls`, `links` and `attribution`. `recalls` has `count` (`us` and `ca`), `do_not_drive`, `park_outside`, the three `newest` campaigns, `as_of`, `lookup` and `"may_apply": true`. It counts the campaigns that may apply to the year, make and model, and is never a statement about one VIN. The whole list is `recalls vehicle`.
-- A block with no data is `null`. `safety` is what `vehicles safety` gives, where the crash test ratings are held, online and offline. `specs`, `fuel`, `fluids` and `tires` are what the commands of those names give, where the data is held, online and offline. `bulletins` is filled by the hosted API where its server holds bulletins, and is `null` offline. `labor` is `null` everywhere today. Offline, `recalls` is `null` when there is no shop data file. That is not an error.
+- A block with no data is `null`. `safety` is what `vehicles safety` gives, where the crash test ratings are held, online and offline. `specs`, `fuel`, `fluids` and `tires` are what the commands of those names give, where the data is held, online and offline. `bulletins` is filled by the hosted API where its server holds bulletins, and is `null` offline. Offline, `recalls` is `null` when there is no shop data file. That is not an error.
 - A VIN that decodes to no vehicle in the catalog gives `"vehicle": null`, every block `null` and a warning with the code `no_catalog_vehicle`.
 - `vehicles model-years` lists every model year of one model, newest first, each with its vehicle id and `recalls`, the number of campaigns that may apply (`null` when no recalls are held).
 - `recalls recent` lists the campaigns reported on or after `--since`, a day written like `2026-09-01`, newest first, each with `vehicles`, the vehicles it lists (at most 200; `vehicles_listed` is how many there are in all). Compare `vehicles[].vehicle_id` with your own list. `--make`, `--country`, `--limit` and `--cursor` are as in `recalls search`. Offline it needs the shop data file.
@@ -256,6 +249,6 @@ Online, one address may make 600 requests a minute. Over that the error is `rate
 wenmar-open mcp
 ```
 
-This runs an MCP server on standard input and output with seven tools: `wenmar_vin` (actions `decode`, `batch`, `overview`, `fuel`, `specs`, `fluids` and `tires`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`, `safety`, `fuel`, `specs`, `fluids` and `tires`), `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search` and `recent`), `wenmar_bulletins` (actions `vehicle`, `vin`, `get` and `search`), `wenmar_labor` and `wenmar_payroll_deductions`. The first six take an `action`; `wenmar_payroll_deductions` takes its fields, as in `payroll deductions`. The results are the same JSON as the commands above. `wenmar-open setup claude` and `wenmar-open setup codex` print the command that registers it.
+This runs an MCP server on standard input and output with six tools: `wenmar_vin` (actions `decode`, `batch`, `overview`, `fuel`, `specs`, `fluids` and `tires`), `wenmar_vehicles` (actions `years`, `makes`, `models`, `submodels`, `engines`, `search`, `entry`, `overview`, `model_years`, `safety`, `fuel`, `specs`, `fluids` and `tires`), `wenmar_recalls` (actions `vehicle`, `vin`, `campaign`, `search` and `recent`), `wenmar_bulletins` (actions `vehicle`, `vin`, `get` and `search`) and `wenmar_payroll_deductions`. The first five take an `action`; `wenmar_payroll_deductions` takes its fields, as in `payroll deductions`. The results are the same JSON as the commands above. `wenmar-open setup claude` and `wenmar-open setup codex` print the command that registers it.
 
 <!-- wenmar-open-skill: managed. Written by `wenmar-open setup`; the next setup replaces it. -->

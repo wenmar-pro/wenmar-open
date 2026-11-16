@@ -16,7 +16,6 @@ pub mod fuel;
 pub mod hand;
 pub mod investigations;
 pub mod jobs;
-pub mod labor;
 pub mod licence;
 pub mod ratings;
 pub mod recall_reports;
