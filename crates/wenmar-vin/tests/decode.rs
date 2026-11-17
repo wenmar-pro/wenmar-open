@@ -1397,3 +1397,95 @@ fn the_new_elements_have_vpic_ids() {
     }
     assert_eq!(Element::Gvwr.weight(), 70);
 }
+
+#[test]
+fn a_vin_that_fails_its_check_digit_and_matches_nothing_gets_no_year() {
+    // A European Mercedes-Benz VIN: model code 221156 (S-Class W221), no
+    // check digit and no model year. Position 10 would read as 2001.
+    let data = MemoryData::new()
+        .with_manufacturer(Manufacturer {
+            wmi: "WDD".to_owned(),
+            name: "Mercedes-Benz Cars".to_owned(),
+            make: Some("Mercedes-Benz".to_owned()),
+            country: Some("GERMANY".to_owned()),
+            vehicle_type: Some("Passenger Car".to_owned()),
+            light_vehicle: true,
+        })
+        .with_schema("WDD", 1, 2000, Some(2002))
+        .with_pattern(1, "NG8***", Element::Model, "S-Class");
+    let decoded = Decoder::new(data)
+        .decode("WDD2211561A123456", options())
+        .unwrap();
+    assert!(!decoded.valid);
+    assert_eq!(decoded.year, None);
+    assert!(!decoded.year_conclusive);
+    assert_eq!(decoded.make.as_deref(), Some("Mercedes-Benz"));
+    assert_eq!(
+        codes(&decoded),
+        vec![
+            WarningCode::InvalidCheckDigit,
+            WarningCode::ModelYearUnknown,
+            WarningCode::NoPatterns,
+        ]
+    );
+}
+
+fn european(wmi: &str, make: &str) -> MemoryData {
+    MemoryData::new()
+        .with_manufacturer(Manufacturer {
+            wmi: wmi.to_owned(),
+            name: make.to_owned(),
+            make: Some(make.to_owned()),
+            country: Some("GERMANY".to_owned()),
+            vehicle_type: Some("Passenger Car".to_owned()),
+            light_vehicle: true,
+        })
+        .with_schema(wmi, 1, 1980, Some(1990))
+        .with_schema(wmi, 2, 2010, Some(2020))
+}
+
+#[test]
+fn a_european_mercedes_names_its_model_code_and_gives_no_year() {
+    let decoded = Decoder::new(european("WDD", "Mercedes-Benz"))
+        .decode("WDD2211561A123456", options())
+        .unwrap();
+    assert_eq!(decoded.year, None);
+    let year = decoded
+        .warnings
+        .iter()
+        .find(|warning| warning.code == WarningCode::ModelYearUnknown)
+        .unwrap();
+    assert!(year.message.contains("model code 221156"));
+    let check = &decoded.warnings[0];
+    assert_eq!(check.code, WarningCode::InvalidCheckDigit);
+    assert!(check.suggestions.is_empty());
+}
+
+#[test]
+fn a_volkswagen_group_vin_keeps_its_year_but_does_not_settle_it() {
+    // A Golf of 2014: position 7 holds a digit of the model code, which says
+    // nothing about the cycle, so E is 2014 rather than 1984.
+    let decoded = Decoder::new(european("WVW", "Volkswagen"))
+        .decode("WVWZZZ5GZEW123456", options())
+        .unwrap();
+    assert_eq!(decoded.year, Some(2014));
+    assert!(!decoded.year_conclusive);
+    assert!(decoded.warnings[0].suggestions.is_empty());
+}
+
+#[test]
+fn a_letter_in_position_9_with_nothing_on_file_gives_no_year() {
+    let decoded = Decoder::new(european("VF3", "Peugeot"))
+        .decode("VF3ABCDEF12345678", options())
+        .unwrap();
+    assert_eq!(decoded.year, None);
+    assert!(!decoded.year_conclusive);
+    assert_eq!(
+        codes(&decoded),
+        vec![
+            WarningCode::InvalidCheckDigit,
+            WarningCode::ModelYearUnknown,
+            WarningCode::NoPatterns,
+        ]
+    );
+}

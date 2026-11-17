@@ -7,6 +7,7 @@ use crate::data::{DataError, Element, Manufacturer, Pattern, SpecRow, VinData};
 use crate::engine::{self, Engine};
 use crate::error::VinError;
 use crate::generation;
+use crate::layout::Layout;
 use crate::model_year;
 use crate::pattern;
 use crate::result::{
@@ -211,25 +212,38 @@ impl<D: VinData> Decoder<D> {
         })?;
 
         let check_digit = check_digit::check(&vin);
+        let manufacturer = self.find_manufacturer(&vin)?;
+        let layout = Layout::of(&vin, manufacturer.make.as_deref());
+
         let mut warnings = Vec::new();
         if !check_digit.valid {
-            warnings.push(Warning {
-                code: WarningCode::InvalidCheckDigit,
-                message: format!(
-                    "Position 9 should be {} for this VIN, but it is {}.",
-                    check_digit.expected, check_digit.actual
-                ),
-                suggestions: suggest::for_check_digit(&vin),
+            warnings.push(if layout.has_check_digit() {
+                Warning {
+                    code: WarningCode::InvalidCheckDigit,
+                    message: format!(
+                        "Position 9 should be {} for this VIN, but it is {}.",
+                        check_digit.expected, check_digit.actual
+                    ),
+                    suggestions: suggest::for_check_digit(&vin),
+                }
+            } else {
+                warning(
+                    WarningCode::InvalidCheckDigit,
+                    "Position 9 is not a check digit: this VIN is laid out for a vehicle sold \
+                     outside North America, where a check digit is optional.",
+                )
             });
         }
 
-        let manufacturer = self.find_manufacturer(&vin)?;
-
-        let years = match options.model_year {
-            Some(year) => vec![year],
-            None => {
+        let years = match (options.model_year, &layout) {
+            (Some(year), _) => vec![year],
+            (None, Layout::MercedesModelCode(_)) => Vec::new(),
+            (None, _) => {
                 let current = options.current_year.unwrap_or_else(current_year);
-                model_year::candidates(&vin, current, manufacturer.light_vehicle)
+                // Outside North America position 7 says nothing about the
+                // cycle, so the later one is tried first, as for heavy vehicles.
+                let light = manufacturer.light_vehicle && layout == Layout::NorthAmerican;
+                model_year::candidates(&vin, current, light)
             }
         };
         // For cars, MPVs and light trucks position 7 settles the cycle, so the
@@ -237,7 +251,7 @@ impl<D: VinData> Decoder<D> {
         // decoder. A new model missing from the data must not turn into a
         // 30-year-old one. For other vehicles the cycle is not settled, so
         // every candidate is decoded and the one that explains more is kept.
-        let conclusive = manufacturer.light_vehicle;
+        let conclusive = manufacturer.light_vehicle && layout == Layout::NorthAmerican;
         let key = vin.match_key();
         let mut best: Option<Attempt> = None;
         let mut with_schemas = 0usize;
@@ -316,11 +330,46 @@ impl<D: VinData> Decoder<D> {
                 } else {
                     with_schemas == 1
                 });
-        if year.is_none() {
+        // VINs for vehicles sold outside North America need not carry a check
+        // digit or a model year. When position 9 is not a valid check digit
+        // and nothing on file matches, the year read from position 10 is a
+        // guess that is more likely wrong than right, so none is given. The
+        // Volkswagen group's layout is the exception: it keeps the year.
+        let guessed = options.model_year.is_none()
+            && year.is_some()
+            && matched.is_empty()
+            && match layout {
+                Layout::NorthAmerican => !check_digit.valid,
+                Layout::NoCheckDigit => true,
+                Layout::ZFiller | Layout::MercedesModelCode(_) => false,
+            };
+        let year = if guessed { None } else { year };
+        // Outside North America the year stands only when the data names the
+        // model for it: a plant or a body type alone confirms little.
+        let year_conclusive = year_conclusive
+            && !guessed
+            && (layout == Layout::NorthAmerican || values.contains_key(&Element::Model));
+        if guessed {
             warnings.push(warning(
                 WarningCode::ModelYearUnknown,
-                "Position 10 of this VIN does not encode a model year.",
+                "Position 9 is not a valid check digit and nothing on file matches this VIN, so \
+                 it may be from a vehicle sold outside North America, where position 10 need \
+                 not be a model year. Check the vehicle's label for the year.",
             ));
+        } else if year.is_none() {
+            let message = match (&layout, options.model_year) {
+                (Layout::MercedesModelCode(code), None) => format!(
+                    "This is a Mercedes-Benz VIN for a vehicle sold outside North America: \
+                     positions 4 to 9 are the model code {code}, and it does not encode a model \
+                     year. Check the vehicle's label for the year."
+                ),
+                _ => "Position 10 of this VIN does not encode a model year.".to_owned(),
+            };
+            warnings.push(Warning {
+                code: WarningCode::ModelYearUnknown,
+                message,
+                suggestions: Vec::new(),
+            });
         }
 
         if matched.is_empty() {

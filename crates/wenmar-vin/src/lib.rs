@@ -41,6 +41,7 @@ pub mod decode;
 pub mod engine;
 pub mod error;
 pub mod generation;
+mod layout;
 pub mod memory;
 pub mod model_year;
 pub mod pattern;
